@@ -4,6 +4,10 @@ on:
 
 jobs:
   prepare:
+    outputs:
+      COMMUNITY_EXTENSION_NAME: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_NAME }}
+      COMMUNITY_EXTENSION_GITHUB: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      COMMUNITY_EXTENSION_REF: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REF }}
     runs-on: ubuntu-latest
     steps:
     - name: Get all changed description files
@@ -18,6 +22,7 @@ jobs:
         fetch-depth: 0
 
     - name: Parse description files
+      id: parse
       env:
         ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
       run: |
