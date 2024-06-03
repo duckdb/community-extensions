@@ -3,7 +3,7 @@ on:
   pull_request:
 
 jobs:
-  duckdb-stable-build:
+  build-extension:
     runs-on: ubuntu-latest
     steps:
     - name: Get all changed description files
@@ -25,22 +25,11 @@ jobs:
         python scripts/build.py
         cat env.sh >> $GITHUB_ENV
 
-    - name: printf
-      env:
-        COMMUNITY_EXTENSION_GITHUB:  ${{ env.COMMUNITY_EXTENSION_GITHUB }}
-      run: |
-        echo $COMMUNITY_EXTENSION_GITHUB
-
-    - uses: actions/checkout@v4
+    - name: Build extension binaries
+      uses: .github/workflows/_extension_distribution.yml@main
       with:
+        duckdb_version: main
+        extension_name: ${{ env.COMMUNITY_EXTENSION_NAME }}
+        exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools'
         repository: ${{ env.COMMUNITY_EXTENSION_GITHUB }}
         ref: ${{ env.COMMUNITY_EXTENSION_REF }}
-        path: extension-build
-        fetch-depth: 0
-
-    # - name: Build extension binaries
-    #   uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
-    #   with:
-    #     duckdb_version: main
-    #     extension_name: postgres_scanner
-    #     exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools'
