@@ -10,5 +10,5 @@ extension:
     - carlopi
 
 repo:
-  url: duckdb/extension-template
+  github: duckdb/extension-template
   ref: a86093f6abd711620b49af29a7e621728d275e00
