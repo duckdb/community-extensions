@@ -1,0 +1,14 @@
+extension:
+  name: demo
+  description: Provides a hello world example demo
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - samansmink
+    - carlopi
+
+repo:
+  url: https://github.com/duckdb/extension-template
+  revision: a86093f6abd711620b49af29a7e621728d275e00
