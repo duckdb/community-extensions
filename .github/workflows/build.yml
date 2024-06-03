@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Get all changed description files
-      id: changed-description-files
+      id: changed-files
       uses: tj-actions/changed-files@v44
       with:
         files: |
@@ -19,10 +19,18 @@ jobs:
 
     - name: Parse description files
       env:
-        ALL_CHANGED_FILES: ${{ steps.changed-description-files.outputs.all_changed_files }}
+        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
       run: |
-        ls -R .
+        pip install pyyaml
         python scripts/build.py
+
+    - uses: actions/checkout@v4
+      env: 
+      with:
+        repository: ${{ env.COMMUNITY_EXTENSION_URL }}
+        ref: ${{ env.COMMUNITY_EXTENSION_REF }}
+        path: extension-build
+        fetch-depth: 0
 
     # - name: Build extension binaries
     #   uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main

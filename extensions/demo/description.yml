@@ -11,4 +11,4 @@ extension:
 
 repo:
   url: https://github.com/duckdb/extension-template
-  revision: a86093f6abd711620b49af29a7e621728d275e00
+  ref: a86093f6abd711620b49af29a7e621728d275e00
