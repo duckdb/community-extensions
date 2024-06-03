@@ -17,5 +17,5 @@ print(desc)
 
 
 os.environ['COMMUNITY_EXTENSION_URL'] = desc['repo']['url']
-os.environ['COMMUNITY_EXTENSION_REVISION'] = desc['repo']['revision']
+os.environ['COMMUNITY_EXTENSION_REF'] = desc['repo']['ref']
 os.environ['COMMUNITY_EXTENSION_NAME'] = desc['extension']['name']
