@@ -18,6 +18,7 @@ jobs:
       env:
         ALL_CHANGED_FILES: ${{ steps.changed-description-files.outputs.all_changed_files }}
       run: |
+        ls -R .
         python scripts/build.py
 
     # - name: Build extension binaries
