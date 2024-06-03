@@ -1,0 +1,26 @@
+name: Community Extension Build
+on:
+  pull_request:
+
+jobs:
+  duckdb-stable-build:
+    - name: Get all changed markdown files
+      id: changed-markdown-files
+      uses: tj-actions/changed-files@v44
+      with: */description.yml
+
+    - name: List all changed files markdown files
+      if: steps.changed-markdown-files.outputs.any_changed == 'true'
+      env:
+        ALL_CHANGED_FILES: ${{ steps.changed-markdown-files.outputs.all_changed_files }}
+      run: |
+        for file in ${ALL_CHANGED_FILES}; do
+          echo "$file was changed"
+        done
+
+    - name: Build extension binaries
+      uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
+      with:
+        duckdb_version: main
+        extension_name: postgres_scanner
+        exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools'
