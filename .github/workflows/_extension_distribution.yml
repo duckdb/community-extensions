@@ -170,6 +170,13 @@ jobs:
         with:
           aarch64_cross_compile: ${{ matrix.duckdb_arch == 'linux_arm64' && 1 }}
 
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          submodules: 'true'
+          
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11.1
         with:
