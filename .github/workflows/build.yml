@@ -26,6 +26,11 @@ jobs:
         echo "COMMUNITY_EXTENSION_GITHUB=$COMMUNITY_EXTENSION_GITHUB" >> $GITHUB_ENV
         echo "COMMUNITY_EXTENSION_REF=$COMMUNITY_EXTENSION_REF" >> $GITHUB_ENV
 
+    - name: printf
+      env:
+        COMMUNITY_EXTENSION_GITHUB:  ${{ env.COMMUNITY_EXTENSION_GITHUB }}
+      run: |
+        echo $COMMUNITY_EXTENSION_GITHUB
 
     - uses: actions/checkout@v4
       with:
