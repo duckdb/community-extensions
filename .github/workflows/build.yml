@@ -7,7 +7,7 @@ jobs:
     - name: Get all changed markdown files
       id: changed-markdown-files
       uses: tj-actions/changed-files@v44
-      with: 
+      with:
         files: */description.yml
 
     - name: List all changed files markdown files
