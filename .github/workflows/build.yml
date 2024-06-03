@@ -18,9 +18,7 @@ jobs:
       env:
         ALL_CHANGED_FILES: ${{ steps.changed-description-files.outputs.all_changed_files }}
       run: |
-        for file in ${ALL_CHANGED_FILES}; do
-          echo "$file was changed"
-        done
+        python scripts/build.py
 
     # - name: Build extension binaries
     #   uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
