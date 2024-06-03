@@ -8,7 +8,8 @@ jobs:
       id: changed-markdown-files
       uses: tj-actions/changed-files@v44
       with:
-        files: */description.yml
+        files: |
+          */description.yml
 
     - name: List all changed files markdown files
       if: steps.changed-markdown-files.outputs.any_changed == 'true'
