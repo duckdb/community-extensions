@@ -13,8 +13,11 @@ jobs:
         files: |
           extensions/*/description.yml
 
-    - name: List all changed description files
-      if: steps.changed-description-files.outputs.any_changed == 'true'
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Parse description files
       env:
         ALL_CHANGED_FILES: ${{ steps.changed-description-files.outputs.all_changed_files }}
       run: |
