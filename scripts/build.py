@@ -15,7 +15,7 @@ print(desc)
 
 # todo check other stuff like build system etc.
 
-
-os.environ['COMMUNITY_EXTENSION_GITHUB'] = desc['repo']['github']
-os.environ['COMMUNITY_EXTENSION_REF'] = desc['repo']['ref']
-os.environ['COMMUNITY_EXTENSION_NAME'] = desc['extension']['name']
+with open('env.sh', 'w+') as hdl:
+	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
+	hdl.write(f"COMMUNITY_EXTENSION_REF={desc['repo']['ref']}\n")
+	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
