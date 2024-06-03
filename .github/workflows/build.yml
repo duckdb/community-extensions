@@ -3,7 +3,7 @@ on:
   pull_request:
 
 jobs:
-  build-extension:
+  prepare:
     runs-on: ubuntu-latest
     steps:
     - name: Get all changed description files
@@ -23,13 +23,14 @@ jobs:
       run: |
         pip install pyyaml
         python scripts/build.py
-        cat env.sh >> $GITHUB_ENV
+        cat env.sh >> $GITHUB_OUTPUT
 
-    - name: Build extension binaries
-      uses: ./.github/actions/extension_distribution
-      with:
-        duckdb_version: main
-        extension_name: ${{ env.COMMUNITY_EXTENSION_NAME }}
-        exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools'
-        repository: ${{ env.COMMUNITY_EXTENSION_GITHUB }}
-        ref: ${{ env.COMMUNITY_EXTENSION_REF }}
+  build:
+    needs: prepare
+    uses: ./.github/workflows/_extension_distribution.yml
+    with:
+      duckdb_version: main
+      extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+      exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools'
+      repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
