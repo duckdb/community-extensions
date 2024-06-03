@@ -26,7 +26,7 @@ jobs:
         cat env.sh >> $GITHUB_ENV
 
     - name: Build extension binaries
-      uses: .github/workflows/_extension_distribution.yml@main
+      uses: ./.github/workflows/_extension_distribution.yml@main
       with:
         duckdb_version: main
         extension_name: ${{ env.COMMUNITY_EXTENSION_NAME }}
