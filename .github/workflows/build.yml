@@ -24,6 +24,7 @@ jobs:
         pip install pyyaml
         python scripts/build.py
         cat env.sh >> $GITHUB_OUTPUT
+        echo `cat $GITHUB_OUTPUT`
 
   build:
     needs: prepare
