@@ -4,6 +4,7 @@ on:
 
 jobs:
   duckdb-stable-build:
+    steps:
     - name: Get all changed markdown files
       id: changed-markdown-files
       uses: tj-actions/changed-files@v44
