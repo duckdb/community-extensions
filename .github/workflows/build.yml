@@ -6,17 +6,17 @@ jobs:
   duckdb-stable-build:
     runs-on: ubuntu-latest
     steps:
-    - name: Get all changed markdown files
-      id: changed-markdown-files
+    - name: Get all changed description files
+      id: changed-description-files
       uses: tj-actions/changed-files@v44
       with:
         files: |
-          */description.yml
+          extensions/*/description.yml
 
-    - name: List all changed files markdown files
-      if: steps.changed-markdown-files.outputs.any_changed == 'true'
+    - name: List all changed description files
+      if: steps.changed-description-files.outputs.any_changed == 'true'
       env:
-        ALL_CHANGED_FILES: ${{ steps.changed-markdown-files.outputs.all_changed_files }}
+        ALL_CHANGED_FILES: ${{ steps.changed-description-files.outputs.all_changed_files }}
       run: |
         for file in ${ALL_CHANGED_FILES}; do
           echo "$file was changed"
