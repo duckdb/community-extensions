@@ -4,6 +4,7 @@ on:
 
 jobs:
   duckdb-stable-build:
+    runs-on: ubuntu-latest
     steps:
     - name: Get all changed markdown files
       id: changed-markdown-files
