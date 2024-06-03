@@ -25,7 +25,6 @@ jobs:
         python scripts/build.py
 
     - uses: actions/checkout@v4
-      env: 
       with:
         repository: ${{ env.COMMUNITY_EXTENSION_URL }}
         ref: ${{ env.COMMUNITY_EXTENSION_REF }}
