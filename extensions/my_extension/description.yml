@@ -1,0 +1,13 @@
+extension:
+  name: my_extension
+  description: Provides a DuckDB extension
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - hannes
+
+repo:
+  github: hannes/my_extension
+  ref: a86093f6abd711620b49af29a7e621728d275e00
