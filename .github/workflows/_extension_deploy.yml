@@ -48,7 +48,14 @@ on:
         required: false
         type: string
         default: "./duckdb/scripts/modify_distribution_matrix.py"
-
+      repository:
+        required: false
+        type: string
+        default: ""
+      ref:
+        required: false
+        type: string
+        default: ""
 jobs:
   generate_matrix:
     name: Generate matrix
@@ -58,6 +65,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
           submodules: 'true'
 
