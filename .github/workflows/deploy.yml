@@ -1,0 +1,45 @@
+name: Community Extension Deploy
+on:
+  workflow_dispatch
+
+jobs:
+  generate_matrix:
+    name: Generate matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - id: set-matrix
+        run: |
+          pip install pyyaml
+          echo "{"include": [" >> matrix.json
+          for FILE in extensions/*/description.yml; do
+            ALL_CHANGED_FILES=$FILE python scripts/build.py
+            source env.sh
+            echo "{\"COMMUNITY_EXTENSION_NAME\" : \"$COMMUNITY_EXTENSION_NAME\",\"COMMUNITY_EXTENSION_GITHUB\" : \"$COMMUNITY_EXTENSION_GITHUB\",\"COMMUNITY_EXTENSION_REF\" : \"$COMMUNITY_EXTENSION_REF\"}", >> matrix.json
+          done
+          echo "])" >> matrix.json
+
+          matrix="`cat matrix.json`"
+          echo matrix=$matrix >> $GITHUB_OUTPUT
+          echo `cat $GITHUB_OUTPUT`
+
+  build:
+    needs: generate_matrix
+    uses: ./.github/workflows/_extension_distribution.yml
+    needs: generate_matrix
+    strategy:
+      matrix: ${{fromJson(needs.generate_matrix.outputs.matrix)}}
+    with:
+      duckdb_version: main
+      extension_name: ${{ matrix.COMMUNITY_EXTENSION_NAME }}
+      exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;linux_amd64;linux_amd64_gcc4;linux_arm64;windows_amd64;windows_amd64_rtools'
+      repository: ${{ matrix.COMMUNITY_EXTENSION_GITHUB }}
+      ref: ${{ matrix.COMMUNITY_EXTENSION_REF }}
+
+
