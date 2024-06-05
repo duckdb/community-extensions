@@ -45,7 +45,7 @@ jobs:
     needs: 
       - prepare
       - build
-    uses: ./.github/workflows/_extension_deploy.yml.
+    uses: ./.github/workflows/_extension_deploy.yml
     strategy:
       matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
     with:
