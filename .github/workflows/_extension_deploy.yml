@@ -84,6 +84,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
           submodules: 'true'
 
