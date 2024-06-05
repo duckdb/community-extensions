@@ -11,16 +11,16 @@ jobs:
       COMMUNITY_EXTENSION_REF: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REF }}
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
     - name: Get all changed description files
       id: changed-files
       uses: tj-actions/changed-files@v44
       with:
         files: |
           extensions/*/description.yml
-
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Parse description files
       id: parse
