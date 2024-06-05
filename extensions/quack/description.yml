@@ -6,9 +6,8 @@ extension:
   build: cmake
   license: MIT
   maintainers:
-    - samansmink
-    - carlopi
+    - hannes
 
 repo:
-  github: duckdb/extension-template
-  ref: a3efe6b6b72e17f11ae8cc3f3ad39ddd76a0578e
+  github: hannes/quack
+  ref: 09680a975bcf9e93b5a2f46d3eeb68792d5239c6
