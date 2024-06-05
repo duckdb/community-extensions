@@ -32,7 +32,6 @@ jobs:
   build:
     needs: generate_matrix
     uses: ./.github/workflows/_extension_distribution.yml
-    needs: generate_matrix
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.matrix)}}
     with:
