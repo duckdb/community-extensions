@@ -1,26 +1,57 @@
 name: Community Extension Build
 on:
   pull_request:
+  push:
 
 jobs:
-  duckdb-stable-build:
-    - name: Get all changed markdown files
-      id: changed-markdown-files
+  prepare:
+    outputs:
+      COMMUNITY_EXTENSION_NAME: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_NAME }}
+      COMMUNITY_EXTENSION_GITHUB: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      COMMUNITY_EXTENSION_REF: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REF }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get all changed description files
+      id: changed-files
       uses: tj-actions/changed-files@v44
-      with: */description.yml
-
-    - name: List all changed files markdown files
-      if: steps.changed-markdown-files.outputs.any_changed == 'true'
-      env:
-        ALL_CHANGED_FILES: ${{ steps.changed-markdown-files.outputs.all_changed_files }}
-      run: |
-        for file in ${ALL_CHANGED_FILES}; do
-          echo "$file was changed"
-        done
-
-    - name: Build extension binaries
-      uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
       with:
-        duckdb_version: main
-        extension_name: postgres_scanner
-        exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools'
+        files: |
+          extensions/*/description.yml
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Parse description files
+      id: parse
+      env:
+        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+      run: |
+        pip install pyyaml
+        python scripts/build.py
+        cat env.sh >> $GITHUB_OUTPUT
+        echo `cat $GITHUB_OUTPUT`
+
+  build:
+    needs: prepare
+    uses: ./.github/workflows/_extension_distribution.yml
+    with:
+      duckdb_version: main
+      extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+      exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;linux_amd64;linux_amd64_gcc4;linux_arm64;windows_amd64;windows_amd64_rtools'
+      repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+
+  deploy:
+    needs: 
+      - prepare
+      - build
+    uses: ./.github/workflows/_extension_deploy.yml
+    with:
+      deploy_latest: true
+      duckdb_version: main
+      extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+      exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;linux_amd64;linux_amd64_gcc4;linux_arm64;windows_amd64;windows_amd64_rtools'
+      repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+
