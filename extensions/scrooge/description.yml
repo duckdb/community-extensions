@@ -1,0 +1,13 @@
+extension:
+  name: scrooge
+  description: Provides functionality for financial data-analysis
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - pdet
+
+repo:
+  github: pdet/Scrooge-McDuck
+  ref: 9520aeba138a6bb43f766ed4f78accac026bfae0
