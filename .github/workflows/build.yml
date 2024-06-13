@@ -48,6 +48,7 @@ jobs:
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
+    secrets: inherit
     with:
       deploy_latest: true
       duckdb_version: v1.0.0
