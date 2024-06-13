@@ -8,7 +8,7 @@ if len(desc_files) != 1:
 	raise ValueError('cannot have multiple descriptors changed or packages with spaces in their names')
 desc_file = desc_files[0]
 if len(desc_file) == 0:
-	raise ValueError('description file not found (ALL_CHANGED_FILES was set but empty)')
+        desc_file = 'extensions/quack/description.yml'
 
 with open(desc_file, 'r') as stream:
     desc = yaml.safe_load(stream)
