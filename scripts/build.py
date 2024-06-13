@@ -23,8 +23,6 @@ if len(desc_files) == 0 or len(desc_files[0]) == 0:
 		sys.exit(os.EX_OK)
 
 desc_file = desc_files[0]
-if len(desc_file) == 0:
-        desc_file = 'extensions/quack/description.yml'
 
 with open(desc_file, 'r') as stream:
 	desc = yaml.safe_load(stream)
