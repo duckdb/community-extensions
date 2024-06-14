@@ -48,6 +48,7 @@ jobs:
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
+    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_DEPLOY != '' }}
     secrets: inherit
     with:
       deploy_latest: true
