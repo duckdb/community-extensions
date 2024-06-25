@@ -14,13 +14,12 @@ print(f"Files changed: {desc_files}")
 if len(desc_files) > 1:
 	raise ValueError('cannot have multiple descriptors changed or packages with spaces in their names')
 
+deploy = True
+
 if len(desc_files) == 0 or len(desc_files[0]) == 0:
-	print("No changed files, nothing will be built")
-	with open('env.sh', 'w+') as hdl:
-		hdl.write(f"COMMUNITY_EXTENSION_GITHUB=\n")
-		hdl.write(f"COMMUNITY_EXTENSION_REF=\n")
-		hdl.write(f"COMMUNITY_EXTENSION_NAME=\n")
-		sys.exit(os.EX_OK)
+	print("No changed files, only quack will be built as a test")
+	desc_files = ['extensions/quack/description.yml']
+	deploy = False
 
 desc_file = desc_files[0]
 
@@ -35,3 +34,8 @@ with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_REF={desc['repo']['ref']}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
+	excluded_platforms = desc['extension'].get('excluded_platforms')
+	if excluded_platforms:
+		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
+	if deploy:
+		hdl.write(f"COMMUNITY_EXTENSION_DEPLOY=1\n")
