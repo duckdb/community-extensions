@@ -2,6 +2,10 @@ name: Community Extension Build
 on:
   pull_request:
   push:
+  workflow_dispatch:
+    inputs:
+      extension_name:
+        type: string
 
 jobs:
   prepare:
@@ -27,7 +31,7 @@ jobs:
     - name: Parse description files
       id: parse
       env:
-        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
       run: |
         pip install pyyaml
         python scripts/build.py
