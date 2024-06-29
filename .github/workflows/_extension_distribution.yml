@@ -176,6 +176,11 @@ jobs:
           ref: ${{ inputs.ref }}
           fetch-depth: 0
           submodules: 'true'
+
+      - name: Checkout DuckDB to version
+        run: |
+          cd duckdb
+          git checkout ${{ inputs.duckdb_version }}
           
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11.1
