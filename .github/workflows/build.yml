@@ -49,8 +49,17 @@ jobs:
       repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
 
+  doc_test:
+    needs:
+      - prepare
+      - build
+    uses: ./.github/workflows/generate_docs.yml
+    with:
+      extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+
   deploy:
     needs: 
+      - doc_test
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
@@ -64,26 +73,7 @@ jobs:
       repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
 
-  docs:
+  docs_all:
     needs:
-      - deploy
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up DuckDB
-      run: |
-        wget https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-amd64.zip
-        unzip duckdb_cli-linux-amd64.zip
-        chmod +x duckdb
-
-    - name: Generate docs
-      run: |
-        ./scripts/fetch_extensions.sh ./duckdb
-        ./scripts/generate_md.sh ./duckdb
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: generated_markdowns
-        path: |
-          build/docs/*.md
+     - deploy
+    uses: ./.github/workflows/generate_docs.yml
