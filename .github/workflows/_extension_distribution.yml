@@ -158,12 +158,6 @@ jobs:
         run: |
           ./duckdb/scripts/setup_manylinux2014.sh general aws-cli ccache ssh python_alias openssl
 
-      - name: Setup Ccache
-        uses: hendrikmuhs/ccache-action@v1.2.11 # Note: pinned due to GLIBC incompatibility in later releases
-        continue-on-error: true
-        with:
-          key: ${{ github.job }}-${{ matrix.duckdb_arch }}
-
       - name: Setup Ubuntu
         if: ${{ matrix.duckdb_arch == 'linux_amd64' || matrix.duckdb_arch == 'linux_arm64' }}
         uses: ./duckdb/.github/actions/ubuntu_18_setup
@@ -182,6 +176,12 @@ jobs:
           cd duckdb
           git checkout ${{ inputs.duckdb_version }}
           
+      - name: Setup Ccache
+        uses: hendrikmuhs/ccache-action@v1.2.11 # Note: pinned due to GLIBC incompatibility in later releases
+        continue-on-error: true
+        with:
+          key: ${{ github.job }}-${{ matrix.duckdb_arch }}
+
       - name: Setup vcpkg
         uses: lukka/run-vcpkg@v11.1
         with:
