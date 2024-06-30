@@ -282,7 +282,6 @@ jobs:
     strategy:
       matrix: ${{fromJson(needs.generate_matrix.outputs.windows_matrix)}}
     env:
-      GEN: Ninja
       VCPKG_TOOLCHAIN_PATH: ${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
       VCPKG_TARGET_TRIPLET: ${{ matrix.vcpkg_triplet }}
       BUILD_SHELL: ${{ inputs.build_duckdb_shell && '1' || '0' }}
