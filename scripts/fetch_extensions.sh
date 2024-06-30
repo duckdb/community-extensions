@@ -1,3 +1,5 @@
+set -eo pipefail
+
 rm -rf build
 for extension_folder in extensions/*;
 do

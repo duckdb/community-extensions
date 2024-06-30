@@ -3,6 +3,8 @@
 # Example of use
 # ./scripts/generated_docs_readme.sh build/release/duckdb
 
+set -eo pipefail
+
 platform=$($1 -csv -c "PRAGMA platform" | tail -n1)
 version_raw=$($1 -csv -c "PRAGMA version" | tail -n1)
 version=$(echo "$version_raw-,$version_raw" | cut -d '-' -f 2 | cut -d ',' -f 2)
