@@ -11,8 +11,6 @@ on:
 
 jobs:
   docs:
-    needs:
-      - deploy
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -31,7 +29,7 @@ jobs:
     - uses: actions/download-artifact@v3
       if: ${{ inputs.extension_name != '' }}
       with:
-        name: ${{ inputs.extension_name }}-1.0.0-extension-linux_arm64
+        name: ${{ inputs.extension_name }}-v1.0.0-extension-linux_amd64_gcc4
         path: build/downloaded
 
     - name: Install downloaded extension
