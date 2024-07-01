@@ -49,8 +49,17 @@ jobs:
       repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
 
+  doc_test:
+    needs:
+      - prepare
+      - build
+    uses: ./.github/workflows/generate_docs.yml
+    with:
+      extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+
   deploy:
     needs: 
+      - doc_test
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
@@ -64,3 +73,7 @@ jobs:
       repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
 
+  docs_all:
+    needs:
+     - deploy
+    uses: ./.github/workflows/generate_docs.yml
