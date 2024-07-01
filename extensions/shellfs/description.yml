@@ -1,0 +1,14 @@
+extension:
+  name: shellfs
+  description: Allow shell commands to be used for input and output
+  version: 1.0.0
+  language: C++
+  build: cmake
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  license: Apache-2.0
+  maintainers:
+    - rustyconover
+
+repo:
+  github: rustyconover/duckdb-shellfs-extension
+  ref: ba3987eddc9152f656a9cccdd236562ce7afd2a4
