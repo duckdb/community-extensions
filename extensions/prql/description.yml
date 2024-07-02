@@ -10,4 +10,4 @@ extension:
 
 repo:
   github: ywelsch/duckdb-prql
-  ref: 5ffedaf6d7ec41e94217b4039d7151dca358ef04
+  ref: d1add703932ab2639135f998d335cba51020208e
