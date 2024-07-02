@@ -31,7 +31,7 @@ jobs:
 
   build:
     needs: prepare
-    uses: samansmink/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.0.0
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.0.0
     strategy:
       matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
     with:
