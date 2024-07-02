@@ -1,0 +1,14 @@
+extension:
+  name: lindel
+  description: Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - rustyconover
+
+repo:
+  github: rustyconover/duckdb-lindel-extension
+  ref: 295963d5513642d94511fae10081f0acea508db5
