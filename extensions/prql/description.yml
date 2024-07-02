@@ -5,10 +5,10 @@ extension:
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools"
+  excluded_platforms: ""
   maintainers:
     - ywelsch
 
 repo:
   github: ywelsch/duckdb-prql
-  ref: d1add703932ab2639135f998d335cba51020208e
+  ref: 60854f0f1c90a3e90786ff353b0ac99629e26300
