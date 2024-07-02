@@ -1,6 +1,6 @@
 extension:
   name: h3
-  description: Hierarchical exagonal indexing for geospatial data
+  description: Hierarchical hexagonal indexing for geospatial data
   version: 1.0.0
   language: C++
   build: cmake

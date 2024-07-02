@@ -2,6 +2,10 @@ name: Community Extension Build
 on:
   pull_request:
   push:
+  workflow_dispatch:
+    inputs:
+      extension_name:
+        type: string
 
 jobs:
   prepare:
@@ -27,7 +31,7 @@ jobs:
     - name: Parse description files
       id: parse
       env:
-        ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
+        ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
       run: |
         pip install pyyaml
         python scripts/build.py
@@ -36,17 +40,27 @@ jobs:
 
   build:
     needs: prepare
-    uses: ./.github/workflows/_extension_distribution.yml
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.0.0
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: v1.0.0
+      enable_rust: true
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
-      repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
-      ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+      override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+
+  doc_test:
+    needs:
+      - prepare
+      - build
+    uses: ./.github/workflows/generate_docs.yml
+    with:
+      extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
 
   deploy:
     needs: 
+      - doc_test
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
@@ -60,3 +74,7 @@ jobs:
       repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
 
+  docs_all:
+    needs:
+     - deploy
+    uses: ./.github/workflows/generate_docs.yml
