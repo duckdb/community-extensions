@@ -40,14 +40,15 @@ jobs:
 
   build:
     needs: prepare
-    uses: ./.github/workflows/_extension_distribution.yml
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.0.0
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: v1.0.0
+      enable_rust: true
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
-      repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
-      ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+      override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
 
   doc_test:
     needs:
