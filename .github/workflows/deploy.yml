@@ -31,11 +31,12 @@ jobs:
 
   build:
     needs: prepare
-    uses: ./.github/workflows/_extension_distribution.yml
+    uses: samansmink/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.0.0
     strategy:
       matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
     with:
       duckdb_version: v1.0.0
+      enable_rust: true
       extension_name: ${{ matrix.COMMUNITY_EXTENSION_NAME }}
       exclude_archs: 'wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools'
       repository: ${{ matrix.COMMUNITY_EXTENSION_GITHUB }}
