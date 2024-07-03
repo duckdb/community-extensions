@@ -1,0 +1,14 @@
+extension:
+  name: crypto
+  description: Cryptographic hash functions and HMAC
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "windows_amd64_rtools;windows_amd64"
+  maintainers:
+    - rustyconover
+
+repo:
+  github: rustyconover/duckdb-crypto-extension
+  ref: b6ccda3451d4fac8a2c0ae5ab2bca5216f22424c
