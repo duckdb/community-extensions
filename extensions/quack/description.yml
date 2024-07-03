@@ -11,3 +11,9 @@ extension:
 repo:
   github: hannes/quack
   ref: 09680a975bcf9e93b5a2f46d3eeb68792d5239c6
+
+docs:
+  hello_world: |
+    SELECT quack(i::VARCHAR) FROM range(10) tbl(i);
+  extended_description: |
+    The quack extension is based on DuckDB's [Extension Template](https://duckdb/extension_template/), and it's a great starting point to get started building more advanced extensions.
