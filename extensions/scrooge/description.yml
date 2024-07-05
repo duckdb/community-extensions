@@ -24,7 +24,6 @@ docs:
     20034100, 
     blocks_per_thread=1
     );
-    
   extended_description: |
     Scrooge McDuck is a third-party financial extension for DuckDB. 
     This extension's main goal is to support a set of aggregation functions and data scanners for financial data. 
