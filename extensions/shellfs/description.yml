@@ -12,3 +12,12 @@ extension:
 repo:
   github: rustyconover/duckdb-shellfs-extension
   ref: d01c73d211544f5f0ff62acb8263a9874f973ddd
+
+docs:
+  hello_world: |
+    SELECT * from read_csv('seq 1 100 | grep 2 |');
+  extended_description: |
+    The `shellfs`` extension for DuckDB enables the use of Unix pipes for input and output.
+    By appending a pipe character `|`` to a filename, DuckDB will treat it as a series of commands
+    to execute and capture the output. Conversely, if you prefix a filename with `|`, DuckDB will
+    treat it as an output pipe.
