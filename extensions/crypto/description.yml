@@ -12,3 +12,10 @@ extension:
 repo:
   github: rustyconover/duckdb-crypto-extension
   ref: b6ccda3451d4fac8a2c0ae5ab2bca5216f22424c
+
+docs:
+  hello_world: |
+    SELECT * from read_csv('seq 1 100 | grep 2 |');
+  extended_description: |
+    This extension, `crypto`, adds cryptographic hash functions and
+    the ability to calculate a HMAC to DuckDB's SQL engine.

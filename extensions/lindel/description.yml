@@ -11,3 +11,11 @@ extension:
 repo:
   github: rustyconover/duckdb-lindel-extension
   ref: 76f5bc78e8bfd1a7953c8cc4c284209b65626216
+
+docs:
+  hello_world: |
+    SELECT hilbert_encode([1, 2, 3]::tinyint[3]);
+  extended_description: |
+    This `lindel` extension adds functions for the linearization and
+    delinearization of numeric arrays in DuckDB. It allows you to order
+    multi-dimensional data using space-filling curves.
