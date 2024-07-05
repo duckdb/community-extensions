@@ -11,3 +11,9 @@ extension:
 repo:
   github: isaacbrodsky/h3-duckdb
   ref: 3c8a5358e42ab8d11e0253c70f7cc7d37781b2ef
+
+docs:
+  hello_world: |
+    SELECT h3_latlng_to_cell(37.7887987, -122.3931578, 9);
+  extended_description: |
+    The H3 extension adds support for the [H3 hierarchical hexagonal grid system](https://h3geo.org/).
