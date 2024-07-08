@@ -7,7 +7,8 @@ extension:
   license: Apache-2.0
   maintainers:
     - rustyconover
+  excluded_platforms: "windows_amd64_rtools;windows_amd64"
 
 repo:
   github: rustyconover/duckdb-evalexpr-rhai-extension
-  ref: a7ac6b2a1bb127b6603b6fce6b4020167b459f27
+  ref: 4acdf799b1b72d43af4c50659a2c859814140b33
