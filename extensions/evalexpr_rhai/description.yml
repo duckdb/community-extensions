@@ -1,0 +1,14 @@
+extension:
+  name: evalexpr_rhai
+  description: Evaluate the Rhai scripting language in DuckDB.
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - rustyconover
+  excluded_platforms: "windows_amd64_rtools;windows_amd64"
+
+repo:
+  github: rustyconover/duckdb-evalexpr-rhai-extension
+  ref: 4acdf799b1b72d43af4c50659a2c859814140b33
