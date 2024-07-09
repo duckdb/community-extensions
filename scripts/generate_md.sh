@@ -14,8 +14,8 @@ DOCS=build/docs
 rm -rf $DOCS
 mkdir -p $DOCS
 
-echo "Extension repository docs" > $DOCS/README.md
-
+EXTENSIONS_CSV=$DOCS/community_extensions.csv
+echo "name, repo, ref, description" > $EXTENSIONS_CSV
 for extension_file in build/extension_dir/$version/$platform/*.duckdb_extension;
 do
     extension_full=$(basename -- $extension_file)
@@ -69,6 +69,7 @@ do
     if [ -s "extensions/$extension/description.yml" ]; then
        echo -n "  " >> $EXTENSION_README
        cat extensions/$extension/description.yml | yq -r ".extension.description" >> $EXTENSION_README
+       cat extensions/$extension/description.yml | yq '.extension.name, .repo.github, .repo.ref, .extension.description' | xargs printf "%s,%s,%s,\"%s\"\n" >> $EXTENSIONS_CSV
        echo "" >> $EXTENSION_README
        cat extensions/$extension/description.yml >> $EXTENSION_README
        echo "" >> $EXTENSION_README
@@ -82,11 +83,15 @@ do
     if [ -s "$DOCS/$extension/functions.md" ]; then
        echo "### Added Functions" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_functions_table\"></div>" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
        cat $DOCS/$extension/functions.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
     fi
     if [ -s "$DOCS/$extension/functions_overloads.md" ]; then
        echo "### Overloaded Functions" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_functions_table\"></div>" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
        cat $DOCS/$extension/functions_overloads.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
@@ -94,11 +99,15 @@ do
     if [ -s "$DOCS/$extension/types.md" ]; then
        echo "### Added Types" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_types_table\"></div>" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
        cat $DOCS/$extension/types.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
     fi
     if [ -s "$DOCS/$extension/settings.md" ]; then
        echo "### Added Settings" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_settings_table\"></div>" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
        cat $DOCS/$extension/settings.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
