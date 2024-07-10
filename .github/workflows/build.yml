@@ -40,7 +40,7 @@ jobs:
 
   build:
     needs: prepare
-    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.0.0
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: v1.0.0
@@ -75,6 +75,7 @@ jobs:
       ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
 
   docs_all:
+    if: ${{ (github.head_ref || github.ref_name) == 'main' }}
     needs:
      - deploy
     uses: ./.github/workflows/generate_docs.yml

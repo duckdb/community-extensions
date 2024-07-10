@@ -22,9 +22,9 @@ docs:
         Person
       )
     EDGE TABLES (
-      Person_knows_person SOURCE KEY (Person1Id) REFERENCES Person (id)
-                          DESTINATION KEY (Person2Id) REFERENCES Person (id)
-                          LABEL Knows
+	Person_knows_person 	SOURCE KEY (Person1Id) REFERENCES Person (id)
+				DESTINATION KEY (Person2Id) REFERENCES Person (id)
+		  		LABEL Knows
     );
 
     FROM GRAPH_TABLE (snb
@@ -38,6 +38,6 @@ docs:
     DROP PROPERTY GRAPH snb; 
 
   extended_description: |
-    The DuckPGQ extension provides support for the SQL/PGQ syntax part of the official SQL:2023 standard developed by ISO. 
+    The DuckPGQ extension supports the SQL/PGQ syntax part of the official SQL:2023 standard developed by ISO. 
     Specifically, it introduces visual graph pattern matching and more concise syntax for path-finding.
     The extension is an ongoing research project and a work in progress.

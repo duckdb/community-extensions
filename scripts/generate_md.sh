@@ -14,8 +14,8 @@ DOCS=build/docs
 rm -rf $DOCS
 mkdir -p $DOCS
 
-echo "Extension repository docs" > $DOCS/README.md
-
+EXTENSIONS_CSV=$DOCS/community_extensions.csv
+echo "name, repo, ref, description" > $EXTENSIONS_CSV
 for extension_file in build/extension_dir/$version/$platform/*.duckdb_extension;
 do
     extension_full=$(basename -- $extension_file)
@@ -64,39 +64,57 @@ do
     echo "---" > $EXTENSION_README
     echo "layout: community_extension" >> $EXTENSION_README
     echo "title: $extension" >> $EXTENSION_README
+    echo "excerpt: |" >> $EXTENSION_README
+    echo "  DuckDB Community Extensions" >> $EXTENSION_README
     if [ -s "extensions/$extension/description.yml" ]; then
+       echo -n "  " >> $EXTENSION_README
+       cat extensions/$extension/description.yml | yq -r ".extension.description" >> $EXTENSION_README
+       cat extensions/$extension/description.yml | yq '.extension.name, .repo.github, .repo.ref, .extension.description' | xargs printf "%s,%s,%s,\"%s\"\n" >> $EXTENSIONS_CSV
+       echo "" >> $EXTENSION_README
        cat extensions/$extension/description.yml >> $EXTENSION_README
        echo "" >> $EXTENSION_README
        echo -n "extension_star_count: " >> $EXTENSION_README
        python3 scripts/get_stars.py extensions/$extension/description.yml $1 >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
     fi
     echo "---" >> $EXTENSION_README
     cat layout/default.md >> $EXTENSION_README
 
     if [ -s "$DOCS/$extension/functions.md" ]; then
-       echo "### Added functions" >> $EXTENSION_README
+       echo "### Added Functions" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_functions_table\"></div>" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
        cat $DOCS/$extension/functions.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
     fi
     if [ -s "$DOCS/$extension/functions_overloads.md" ]; then
-       echo "### Added function overloads" >> $EXTENSION_README
+       echo "### Overloaded Functions" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_functions_table\"></div>" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
        cat $DOCS/$extension/functions_overloads.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
     fi
     if [ -s "$DOCS/$extension/types.md" ]; then
-       echo "### Added types" >> $EXTENSION_README
+       echo "### Added Types" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_types_table\"></div>" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
        cat $DOCS/$extension/types.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
     fi
     if [ -s "$DOCS/$extension/settings.md" ]; then
-       echo "### Added settings" >> $EXTENSION_README
+       echo "### Added Settings" >> $EXTENSION_README
+       echo "" >> $EXTENSION_README
+       echo "<div class=\"extension_settings_table\"></div>" >> $EXTENSION_README
        echo "" >> $EXTENSION_README
        cat $DOCS/$extension/settings.md >> $EXTENSION_README
        echo "" >> $EXTENSION_README
     fi
+    echo "" >> $EXTENSION_README
+    echo "" >> $EXTENSION_README
+    echo "---" >> $EXTENSION_README
     echo "" >> $EXTENSION_README
 
     rm -rf $DOCS/$extension
