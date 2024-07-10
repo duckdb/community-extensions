@@ -18,11 +18,11 @@ docs:
     CREATE TABLE Person_knows_person as select * from 'https://gist.githubusercontent.com/Dtenwolde/81c32c9002d4059c2c3073dbca155275/raw/8b440e810a48dcaa08c07086e493ec0e2ec6b3cb/person_knows_person-sf0.003.csv';
 
     CREATE PROPERTY GRAPH snb
-      VERTEX TABLES (
+      VERTEX sABLES (
         Person
       )
     EDGE TABLES (
-	  Person_knows_person SOURCE KEY (Person1Id) REFERENCES Person (id)
+      Person_knows_person SOURCE KEY (Person1Id) REFERENCES Person (id)
                           DESTINATION KEY (Person2Id) REFERENCES Person (id)
                           LABEL Knows
     );
@@ -40,4 +40,4 @@ docs:
   extended_description: |
     The DuckPGQ extension provides support for the SQL/PGQ syntax part of the official SQL:2023 standard developed by ISO. 
     Specifically, it introduces visual graph pattern matching and more concise syntax for path-finding.
-    The extension is an ongoing research project and a work in progess. 
+    The extension is an ongoing research project and a work in progress.
