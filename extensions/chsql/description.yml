@@ -1,6 +1,6 @@
 extension:
   name: chsql
-  description: Clickhouse SQL Macros for DuckDB
+  description: ClickHouse SQL Macros for DuckDB
   version: 1.0.0
   language: SQL & C++
   build: cmake
@@ -16,4 +16,4 @@ docs:
   hello_world: |
     SELECT toString('world') as hello, toInt8OrZero('world') as zero;
   extended_description: |
-    This extension provides a growing number of Clickhouse SQL Macros for DuckDB. 
+    This extension provides a growing number of ClickHouse SQL Macros for DuckDB. 
