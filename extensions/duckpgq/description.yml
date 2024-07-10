@@ -22,9 +22,9 @@ docs:
         Person
       )
     EDGE TABLES (
-	Person_knows_person 	SOURCE KEY (Person1Id) REFERENCES Person (id)
-				DESTINATION KEY (Person2Id) REFERENCES Person (id)
-		  		LABEL Knows
+      Person_knows_person 	SOURCE KEY (Person1Id) REFERENCES Person (id)
+       DESTINATION KEY (Person2Id) REFERENCES Person (id)
+       LABEL Knows
     );
 
     FROM GRAPH_TABLE (snb
