@@ -18,7 +18,7 @@ docs:
     CREATE TABLE Person_knows_person as select * from 'https://gist.githubusercontent.com/Dtenwolde/81c32c9002d4059c2c3073dbca155275/raw/8b440e810a48dcaa08c07086e493ec0e2ec6b3cb/person_knows_person-sf0.003.csv';
 
     CREATE PROPERTY GRAPH snb
-      VERTEX sABLES (
+      VERTEX TABLES (
         Person
       )
     EDGE TABLES (
@@ -33,11 +33,16 @@ docs:
     )
     LIMIT 1;
 
-    from local_clustering_coefficient(snb, person, knows);
+    FROM local_clustering_coefficient(snb, person, knows);
 
     DROP PROPERTY GRAPH snb; 
 
-  extended_description: |
-    The DuckPGQ extension supports the SQL/PGQ syntax part of the official SQL:2023 standard developed by ISO. 
-    Specifically, it introduces visual graph pattern matching and more concise syntax for path-finding.
-    The extension is an ongoing research project and a work in progress.
+  extended_description: >
+    The DuckPGQ extension supports the SQL/PGQ syntax as part of the official SQL:2023 standard developed by ISO.
+    
+    
+    It introduces visual graph pattern matching and a more concise syntax for path-finding.
+    For more information, please see the [DuckPGQ documentation](https://www.notion.so/duckpgq/b8ac652667964f958bfada1c3e53f1bb?v=3b47a8d44bdf4e0c8b503bf23f1b76f2).
+    
+
+    *Disclaimer*: As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.
