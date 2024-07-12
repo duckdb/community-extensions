@@ -4,6 +4,8 @@ extension:
   version: 0.0.1
   language: C++
   build: cmake
+  # Note that quack doesn't actually need any extra toolchains, but they are added since quack is used to test community-extensions CI
+  requires_toolchains: "rust"
   license: MIT
   maintainers:
     - hannes

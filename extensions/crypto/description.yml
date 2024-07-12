@@ -3,6 +3,7 @@ extension:
   description: Cryptographic hash functions and HMAC
   version: 1.0.0
   language: C++
+  requires_toolchains: "rust"
   build: cmake
   license: MIT
   excluded_platforms: "windows_amd64_rtools;windows_amd64"
