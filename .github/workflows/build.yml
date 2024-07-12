@@ -45,7 +45,6 @@ jobs:
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: v1.0.0
-      enable_rust: true
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
