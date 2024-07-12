@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cwida/duckpgq-extension
-  ref: 3fd5f814f998982d2c3f1653a30d01d6f45c6bb7
+  ref: 6c06589fb8fe3293bf3b31f5d8e89177504edf5f
 
 docs:
   hello_world: |
@@ -22,15 +22,21 @@ docs:
         Person
       )
     EDGE TABLES (
-	Person_knows_person 	SOURCE KEY (Person1Id) REFERENCES Person (id)
-				DESTINATION KEY (Person2Id) REFERENCES Person (id)
-		  		LABEL Knows
+      Person_knows_person 	SOURCE KEY (Person1Id) REFERENCES Person (id)
+                            DESTINATION KEY (Person2Id) REFERENCES Person (id)
+      LABEL Knows
     );
 
     FROM GRAPH_TABLE (snb
       MATCH (a:Person)-[k:knows]->(b:Person)
       COLUMNS (a.id, b.id)
     )
+    LIMIT 1;
+
+    FROM GRAPH_TABLE (snb 
+      MATCH p = ANY SHORTEST (a:person)-[k:knows]->{1,3}(b:Person) 
+      COLUMNS (a.id, b.id, path_length(p))
+    ) 
     LIMIT 1;
 
     FROM local_clustering_coefficient(snb, person, knows);
@@ -46,3 +52,4 @@ docs:
     
 
     *Disclaimer*: As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.
+
