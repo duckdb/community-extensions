@@ -5,6 +5,7 @@ extension:
   language: C++
   build: cmake
   license: Apache-2.0
+  requires_toolchains: "rust"
   maintainers:
     - rustyconover
 
