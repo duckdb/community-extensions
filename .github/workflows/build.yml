@@ -15,6 +15,7 @@ jobs:
       COMMUNITY_EXTENSION_REF: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REF }}
       COMMUNITY_EXTENSION_DEPLOY: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_DEPLOY }}
       COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
+      COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -44,8 +45,8 @@ jobs:
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: v1.0.0
-      enable_rust: true
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
+      extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
       override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
