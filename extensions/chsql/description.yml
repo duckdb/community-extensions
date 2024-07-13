@@ -17,4 +17,4 @@ docs:
     SELECT toString('world') as hello, toInt8OrZero('world') as zero;
   extended_description: |
     This extension provides a growing number of ClickHouse SQL Macros for DuckDB. 
-    For a list of supported functions, please refer to extension release notes.
+    For a list of supported functions, please refer to [latest release notes](https://github.com/lmangani/duckdb-extension-clickhouse-sql/releases).
