@@ -57,4 +57,10 @@ jobs:
       repository: ${{ matrix.COMMUNITY_EXTENSION_GITHUB }}
       ref: ${{ matrix.COMMUNITY_EXTENSION_REF }}
 
-
+  clean_cache:
+     needs:
+       - deploy
+     uses: ./.github/workflows/clean_caches.yml
+     secrets: inherit
+     with:
+       pattern: '*${{ matrix.COMMUNITY_EXTENSION_NAME }}.duckdb_extension*'
