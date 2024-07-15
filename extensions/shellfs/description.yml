@@ -48,7 +48,7 @@ docs:
     ├──────────────┼────────────┤
     │ UTC          │ 1715983565 │
     └──────────────┴────────────┘
-    ```
+
 
   extended_description: |
     The `shellfs` extension for DuckDB enables the use of Unix pipes for input and output.
