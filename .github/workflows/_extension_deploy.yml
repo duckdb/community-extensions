@@ -131,3 +131,15 @@ jobs:
           export EXT_VERSION=`git tag --points-at HEAD`
           export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
           ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $EXT_VERSION $DUCKDB_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
+
+  clean_cache:
+    needs:
+      - deploy
+      - generate_matrix
+    if: ${{ needs.generate_matrix.outputs.deploy_matrix != '{}' && needs.generate_matrix.outputs.deploy_matrix != '' }}
+    strategy:
+      matrix: ${{fromJson(needs.generate_matrix.outputs.deploy_matrix)}}
+    uses: ./.github/workflows/clean_caches.yml
+    secrets: inherit
+    with:
+      pattern: '*/${{ matrix.COMMUNITY_EXTENSION_NAME }}.duckdb_extension.*'
