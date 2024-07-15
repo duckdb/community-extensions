@@ -19,7 +19,7 @@ on:
 
 jobs:
   clean_caches:
-    name: Deploy
+    name: Clean Caches
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -32,7 +32,7 @@ jobs:
           AWS_DEFAULT_REGION: ${{ secrets.S3_DUCKDB_ORG_REGION }}
           CLOUDFLARE_CACHE_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN }}
           PATTERN: "${{ inputs.pattern }}"
-          DUCKDB_DEPLOY_SCRIPT_MODE: for_real
+          DUCKDB_CLEAN_CACHES_SCRIPT_MODE: for_real
         run: |
           bash ./scripts/clean_caches.sh duckdb-community-extensions community-extensions "$PATTERN"
 

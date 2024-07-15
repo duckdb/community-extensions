@@ -35,14 +35,14 @@ if [ ! -z "$CLOUDFLARE_CACHE_PURGE_TOKEN" ]; then
    if [ "$DUCKDB_CLEAN_CACHES_SCRIPT_MODE" == "for_real" ]; then
      echo "CLOUDFLARE INVALIDATION"
      while IFS= read -r path; do
-       curl  --request POST --url https://api.cloudflare.com/client/v4/zones/84f631c38b77d4631b561207f2477332/purge_cache --header 'Content-Type: application/json' --header "Authorization: Bearer $CLOUDFLARE_CACHE_PURGE_TOKEN" --data "{\"files\": [\"http://$ENDPOINT.duckdb.org$/path\"]}"
+       curl  --request POST --url https://api.cloudflare.com/client/v4/zones/84f631c38b77d4631b561207f2477332/purge_cache --header 'Content-Type: application/json' --header "Authorization: Bearer $CLOUDFLARE_CACHE_PURGE_TOKEN" --data "{\"files\": [\"http://$ENDPOINT.duckdb.org/$path\"]}"
        echo ""
      done
    else
      echo "CLOUDFLARE INVALIDATION (DRY RUN)"
      echo "> Paths:"
      while IFS= read -r path; do
-       echo "    http://$ENDPOINT.duckdb.org$/path"
+       echo "    http://$ENDPOINT.duckdb.org/$path"
      done <<< $ouput
    fi
 else
