@@ -142,4 +142,4 @@ jobs:
     uses: ./.github/workflows/clean_caches.yml
     secrets: inherit
     with:
-      pattern: '*/${{ matrix.COMMUNITY_EXTENSION_NAME }}.duckdb_extension.*'
+      pattern: '*/${{ matrix.duckdb_arch }}/${{ inputs.extension_name }}.duckdb_extension.*'
