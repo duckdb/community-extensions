@@ -15,19 +15,19 @@ CLOUDFRONT_DISTRIBUTION_ID=E2Z28NDMI4PVXP
 
 ouput=$(aws s3 sync s3://$BUCKET . --exclude "*" --include "$PATTERN" --dryrun | awk ' { print $5 } ')
 
-if [ "$DUCKDB_CLEAN_CACHES_SCRIPT_MODE" == "for_real" ]; then
-  echo "CLOUDFRONT INVALIDATION"
-  while IFS= read -r path; do
-    aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "$path"
-  done <<< $ouput
-else
+#if [ "$DUCKDB_CLEAN_CACHES_SCRIPT_MODE" == "for_real" ]; then
+#  echo "CLOUDFRONT INVALIDATION"
+#  while IFS= read -r path; do
+#    aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" --paths "$path"
+#  done <<< $ouput
+#else
   echo "INVALIDATION (DRY RUN)"
   echo "> Domain: $CLOUDFRONT_ORIGINS"
   echo "> Paths:"
   while IFS= read -r path; do
     echo "    $path"
   done <<< $ouput
-fi
+#fi
 
 echo ""
 
