@@ -49,3 +49,8 @@ jobs:
         AWS_DEFAULT_REGION: ${{ secrets.S3_DUCKDB_ORG_REGION }}
       run: |
         aws s3 cp --recursive extensions/ s3://duckdb-community-extensions/extensions --acl public-read
+        aws s3 cp index.html s3://duckdb-community-extensions/ --acl public-read
+        aws s3 cp core_extensions.html s3://duckdb-community-extensions/ --acl public-read
+        aws s3 cp development.html s3://duckdb-community-extensions/ --acl public-read
+        aws s3 cp documentation.html s3://duckdb-community-extensions/ --acl public-read
+        aws s3 cp faq.html s3://duckdb-community-extensions/ --acl public-read
