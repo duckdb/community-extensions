@@ -119,8 +119,6 @@ docs:
 
     ## What is linearization?
 
-    <image align="right" src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Hilbert-curve_rounded-gradient-animated.gif/440px-Hilbert-curve_rounded-gradient-animated.gif" alt="An animation of the Hilbert Curve from Wikipedia" width="200px"/>
-
     [Linearization](https://en.wikipedia.org/wiki/Linearization) maps multi-dimensional data into a one-dimensional sequence while [preserving locality](https://en.wikipedia.org/wiki/Locality_of_reference), enhancing the efficiency of data structures and algorithms for spatial data, such as in databases, GIS, and memory caches.
 
     > "The principle of locality states that programs tend to reuse data and instructions they have used recently."
