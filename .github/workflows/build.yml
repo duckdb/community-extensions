@@ -1,7 +1,17 @@
 name: Community Extension Build
 on:
   pull_request:
+    paths-ignore:
+      - '**'
+      - '!scripts/build.py'
+      - '!.github/workflows/build.yml'
+      - '!extensions/*/description.yml'
   push:
+    paths-ignore:
+      - '**'
+      - '!scripts/build.py'
+      - '!.github/workflows/build.yml'
+      - '!extensions/*/description.yml'
   workflow_dispatch:
     inputs:
       extension_name:
