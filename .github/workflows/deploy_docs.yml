@@ -54,3 +54,4 @@ jobs:
         aws s3 cp development.html s3://duckdb-community-extensions/ --acl public-read
         aws s3 cp documentation.html s3://duckdb-community-extensions/ --acl public-read
         aws s3 cp faq.html s3://duckdb-community-extensions/ --acl public-read
+        aws s3 cp list_of_extensions.html s3://duckdb-community-extensions/ --acl public-read
