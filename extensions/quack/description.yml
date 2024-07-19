@@ -4,11 +4,14 @@ extension:
   version: 0.0.1
   language: C++
   build: cmake
-  # Note that quack doesn't actually need any extra toolchains, but they are added since quack is used to test community-extensions CI
-  requires_toolchains: "rust"
   license: MIT
   maintainers:
     - hannes
+
+  # (Optional) param that specifies required extra toolchains
+  requires_toolchains: "rust"
+  # (Optional) param that specifies a precise vcpkg commit to use
+  vcpkg_commit: "a1a1cbc975abf909a6c8985a6a2b8fe20bbd9bd6"
 
 repo:
   github: hannes/quack
