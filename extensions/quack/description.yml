@@ -15,7 +15,8 @@ extension:
 
 repo:
   github: hannes/quack
-  ref: 09680a975bcf9e93b5a2f46d3eeb68792d5239c6
+  ref:
+    main: 09680a975bcf9e93b5a2f46d3eeb68792d5239c6
 
 docs:
   hello_world: |
