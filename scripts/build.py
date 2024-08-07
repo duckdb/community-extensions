@@ -9,6 +9,11 @@ if 'ALL_CHANGED_FILES' in os.environ:
 else:
 	desc_files = []
 
+if 'DUCKDB_VERSION' in os.environ:
+	duckdb_version = os.environ['DUCKDB_VERSION']
+else:
+	duckdb_version = 'main'
+
 print(f"Files changed: {desc_files}")
 
 if len(desc_files) > 1:
@@ -32,7 +37,19 @@ print(desc)
 
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
-	hdl.write(f"COMMUNITY_EXTENSION_REF={desc['repo']['ref']}\n")
+	if isinstance(desc['repo']['ref'], str):
+		extension_ref = desc['repo']['ref']
+	elif isinstance(desc['repo']['ref'], dict):
+		if duckdb_version in desc['repo']['ref']:
+			extension_ref = desc['repo']['ref'][duckdb_version]
+		elif 'main' in desc['repo']['ref']:
+			extension_ref = desc['repo']['ref']['main']
+		else:
+			raise Error('extension_ref can not be inferred for this extension')
+	else:
+		raise Error('desc[repo][ref] is neither a str or a dict')
+
+	hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
 	requires_toolchains = desc['extension'].get('requires_toolchains')
