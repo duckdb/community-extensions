@@ -1,0 +1,45 @@
+extension:
+  name: bigquery
+  description: Enables seamless integration and querying of BigQuery datasets within DuckDB
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;osx_amd64;linux_arm64"
+  vcpkg_commit: "e01906b2ba7e645a76ee021a19de616edc98d29f"
+  requires_toolchains: "parser_tools"
+  maintainers:
+    - hafenkran
+
+repo:
+  github: hafenkran/duckdb-bigquery
+  ref: 52fddbe35543672513f115263f0eff2aa62b1987
+
+docs:
+  hello_world: |
+    -- Attach to your BigQuery Project
+    D ATTACH 'project=my_gcp_project' as bq (TYPE bigquery, READ_ONLY);
+
+    -- Show all tables in all datasets in the attached BigQuery project
+    D SHOW ALL TABLES;
+    ┌──────────┬──────────────────┬──────────┬──────────────┬───────────────────┬───────────┐
+    │ database │      schema      │   name   │ column_names │   column_types    │ temporary │
+    │ varchar  │     varchar      │  varchar │  varchar[]   │     varchar[]     │  boolean  │
+    ├──────────┼──────────────────┼──────────┼──────────────┼───────────────────┼───────────┤
+    │ bq       │ quacking_dataset │ duck_tbl │ [i, s]       │ [BIGINT, VARCHAR] │ false     │
+    | bq       | barking_dataset  | dog_tbl  | [i, s]       | [BIGINT, VARCHAR] │ false     |
+    └──────────┴──────────────────┴──────────┴──────────────┴───────────────────┴───────────┘
+
+    -- Select data from a specific table in BigQuery
+    D SELECT * FROM bq.quacking_dataset.duck_tbl;
+    ┌───────┬────────────────┐
+    │   i   │       s        │
+    │ int32 │    varchar     │
+    ├───────┼────────────────┤
+    │    12 │ quack 🦆       │
+    │    13 │ quack quack 🦆 │
+    └───────┴────────────────┘
+
+  extended_description: |
+    The DuckDB BigQuery Extension enables DuckDB to integrate seamlessly with Google BigQuery, allowing users to directly access, manage, and manipulate their BigQuery datasets and tables using standard SQL statements. 
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/hafenkran/duckdb-bigquery).
