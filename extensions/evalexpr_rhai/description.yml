@@ -1,7 +1,7 @@
 extension:
   name: evalexpr_rhai
   description: Evaluate the Rhai scripting language in DuckDB
-  version: 1.0.0
+  version: 1.0.1
   language: C++
   build: cmake
   requires_toolchains: "rust"
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: rustyconover/duckdb-evalexpr-rhai-extension
-  ref: 4acdf799b1b72d43af4c50659a2c859814140b33
+  ref: ba9bb6e5f0abd8adece5d51ad6ce242f25f433ee
 
 docs:
   hello_world: |
