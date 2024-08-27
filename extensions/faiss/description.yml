@@ -1,0 +1,24 @@
+extension:
+  name: faiss
+  description: Provides a subset of the faiss API to duckdb
+  version: 0.9.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Jaap Aarts, Arjen P de Vries
+
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "fortran;omp"
+  vcpkg_url: "https://github.com/jaicewizard/vcpkg.git"
+  vcpkg_commit: "4973a339118ad0e2455a7dad1348baa8c27bce16"
+
+repo:
+  github: arjenpdevries/faiss
+  ref: ac09d01af7ce9711f74097012f4bff4b5275147f
+
+docs:
+  hello_world: |
+    -- github.com/arjenpdevries/faiss/blob/main/README.md
+  extended_description: |
+    The FAISS extension allows duckdb users to store vector data in faiss, and query this data, making relable vector search more accessable.
