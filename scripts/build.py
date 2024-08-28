@@ -46,8 +46,7 @@ with open('env.sh', 'w+') as hdl:
 		hdl.write(f"COMMUNITY_EXTENSION_VCPKG_COMMIT={vcpkg_commit}\n")
 	if deploy:
 		hdl.write(f"COMMUNITY_EXTENSION_DEPLOY=1\n")
-
 	if custom_toolchain_script:
-		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT={custom_toolchain_script}\n")
+		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT=trues\n")
 	else:
 		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT=false\n")
