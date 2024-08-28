@@ -47,6 +47,6 @@ with open('env.sh', 'w+') as hdl:
 	if deploy:
 		hdl.write(f"COMMUNITY_EXTENSION_DEPLOY=1\n")
 	if custom_toolchain_script:
-		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT=trues\n")
+		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT=true\n")
 	else:
 		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT=false\n")
