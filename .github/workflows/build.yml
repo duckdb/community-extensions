@@ -59,7 +59,7 @@ jobs:
       duckdb_version: v1.0.0
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
-      custom_toolchain_script: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT == true}}
+      custom_toolchain_script: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT == 'true'}}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
       override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
