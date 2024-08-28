@@ -27,6 +27,7 @@ jobs:
       COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT }}
+      COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
       COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'a1a1cbc975abf909a6c8985a6a2b8fe20bbd9bd6' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
     runs-on: ubuntu-latest
     steps:
@@ -63,6 +64,7 @@ jobs:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
       override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
       override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+      vcpkg_url: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_URL}}
       vcpkg_commit: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT}}
 
   doc_test:
