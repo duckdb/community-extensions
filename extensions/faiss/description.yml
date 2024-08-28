@@ -6,8 +6,8 @@ extension:
   build: cmake
   license: MIT
   maintainers:
-    - Jaap Aarts, Arjen P de Vries
-
+    - JAicewizard
+    - arjenpdevries
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   requires_toolchains: "fortran;omp"
   vcpkg_url: "https://github.com/jaicewizard/vcpkg.git"
