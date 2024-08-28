@@ -12,6 +12,8 @@ extension:
   requires_toolchains: "rust"
   # (Optional) param that specifies a precise vcpkg commit to use
   vcpkg_commit: "a1a1cbc975abf909a6c8985a6a2b8fe20bbd9bd6"
+  # (Optional) this extension requires additional custom toolchain setup
+  custom_toolchain_script: true
 
 repo:
   github: hannes/quack
