@@ -21,4 +21,4 @@ docs:
   hello_world: |
     -- github.com/arjenpdevries/faiss/blob/main/README.md
   extended_description: |
-    The FAISS extension allows duckdb users to store vector data in faiss, and query this data, making relable vector search more accessable.
+    The FAISS extension allows duckdb users to store vector data in faiss, and query this data, making reliable vector search more accessible.
