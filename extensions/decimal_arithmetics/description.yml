@@ -1,0 +1,28 @@
+extension:
+  name: decimal_arithmetics
+  description: Adds UDFs for high-precision decimal arith
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - varunkumar
+
+repo:
+  github: varunkumar/duck-decimal-arithmetics
+  ref: cb68959f3c88565eb77f6dacc9480cfad5ab95d0
+
+docs:
+  hello_world: |
+    -- Decimal Division
+    D SELECT decimal_division(CAST('-13500000.0' AS DECIMAL(38,15)), CAST(0.95 AS DECIMAL(38, 15))) AS result;
+      ┌───────────────────────────┐
+      │          result           │
+      │      decimal(38,15)       │
+      ├───────────────────────────┤
+      │ -14210526.315789473684211 │
+      └───────────────────────────┘
+
+  extended_description: |
+    The DuckDB Decimal Arithmetics Extension enables DuckDB to high-precision decimal operations. 
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/varunkumar/duck-decimal-arithmetics).
