@@ -37,6 +37,9 @@ jobs:
       COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
       COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'a1a1cbc975abf909a6c8985a6a2b8fe20bbd9bd6' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
+    env:
+      DUCKDB_LATEST_STABLE: 'v1.0.0'
+      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.0.0' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -56,6 +59,7 @@ jobs:
         ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
       run: |
         pip install pyyaml
+        # scripts/build.py takes DUCKDB_VERSION from environment
         python scripts/build.py
         cat env.sh >> $GITHUB_OUTPUT
         echo `cat $GITHUB_OUTPUT`

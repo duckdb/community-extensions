@@ -32,7 +32,11 @@ print(desc)
 
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
-	hdl.write(f"COMMUNITY_EXTENSION_REF={desc['repo']['ref']}\n")
+	extension_ref = desc['repo']['ref']
+	if  os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
+		if 'ref_next' in desc['repo']:
+			extension_ref = desc['repo']['ref_next']
+	hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
 	requires_toolchains = desc['extension'].get('requires_toolchains')
