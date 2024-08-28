@@ -16,8 +16,8 @@ extension:
   custom_toolchain_script: true
 
 repo:
-  github: hannes/quack
-  ref: 09680a975bcf9e93b5a2f46d3eeb68792d5239c6
+  github: duckdb/extension-template
+  ref: main
 
 docs:
   hello_world: |
