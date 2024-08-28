@@ -9,7 +9,7 @@ extension:
     - varunkumar
 
 repo:
-  github: varunkumar/duckdb-decimal-arithmetics
+  github: varunkumar/duck-decimal-arithmetics
   ref: cb68959f3c88565eb77f6dacc9480cfad5ab95d0
 
 docs:
@@ -25,4 +25,4 @@ docs:
 
   extended_description: |
     The DuckDB Decimal Arithmetics Extension enables DuckDB to high-precision decimal operations. 
-    For detailed setup and usage instructions, visit the [extension repository](https://github.com/varunkumar/duckdb-decimal-arithmetics).
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/varunkumar/duck-decimal-arithmetics).
