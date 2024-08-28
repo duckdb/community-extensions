@@ -1,0 +1,37 @@
+name: Test all extensions
+on:
+  workflow_dispatch:
+    inputs:
+      duckdb_version:
+        type: string
+
+jobs:
+  collect_extensions:
+    outputs:
+      COMMUNITY_EXTENSION_LIST: ${{ steps.generate_list.outputs.EXTENSION_LIST }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Generate extension list
+      id: generate_list
+      run: |
+        ./scripts/get_extension_list.sh
+        cat extension_list
+        cat extension_list >> $GITHUB_OUTPUT
+      
+  test_all:
+    needs:
+      - collect_extensions
+    strategy:
+      fail-fast: false
+      matrix:
+        extension_name: ${{ fromJson(needs.collect_extensions.outputs.COMMUNITY_EXTENSION_LIST) }}
+    uses: ./.github/workflows/build.yml 
+    with:
+      extension_name: ${{ matrix.extension_name }}
+      duckdb_version: ${{ inputs.duckdb_version }}
+      deploy: 'false'
+      more_excluded: 'windows_amd64_rtools;windows_amd64;wasm_threads;wasm_mvp;linux_arm64;linux_amd64;osx_arm64'
