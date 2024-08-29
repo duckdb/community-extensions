@@ -10,7 +10,7 @@ extension:
     - rustyconover
 
 repo:
-  github: https://github.com/rustyconover/duckdb-fuzzycomplete-extension
+  github: rustyconover/duckdb-fuzzycomplete-extension
   ref: 06f0583a4e78c05c1f6312018d20cf7603db5c32
 
 docs:
