@@ -1,0 +1,21 @@
+name: Community Extension with latest DuckDB
+on:
+  pull_request:
+    paths-ignore:
+      - '**'
+      - '!scripts/build.py'
+      - '!.github/workflows/build_next.yml'
+      - '!extensions/*/description.yml'
+  push:
+    paths-ignore:
+      - '**'
+      - '!scripts/build.py'
+      - '!.github/workflows/build_next.yml'
+      - '!extensions/*/description.yml'
+
+jobs:
+  test_against_latst:
+    uses: ./.github/workflows/build.yml 
+    with:
+      duckdb_version: 'main'
+      deploy: 'false'
