@@ -34,4 +34,3 @@ jobs:
       extension_name: ${{ matrix.extension_name }}
       duckdb_version: ${{ inputs.duckdb_version }}
       deploy: 'false'
-      more_excluded: 'windows_amd64_rtools;windows_amd64;wasm_threads;wasm_mvp;linux_arm64;linux_amd64;osx_arm64'
