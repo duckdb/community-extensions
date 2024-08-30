@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: rustyconover/duckdb-fuzzycomplete-extension
-  ref: 491c135bcbfccf3f5b1017e35168e83e6e384059
+  ref: 199420fcb258562eaa1ffad7a1486cb872386901
 
 docs:
   hello_world: |
