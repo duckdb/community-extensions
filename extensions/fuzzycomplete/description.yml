@@ -1,0 +1,100 @@
+extension:
+  name: fuzzycomplete
+  description: Fuzzy matching based autocompletion
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  requires_toolchains: "rust"
+  maintainers:
+    - rustyconover
+
+repo:
+  github: rustyconover/duckdb-fuzzycomplete-extension
+  ref: 491c135bcbfccf3f5b1017e35168e83e6e384059
+
+docs:
+  hello_world: |
+    # Create some example tables to demonstrate autocompletion behavior
+    CREATE TABLE foobar(first_name text, last_name text);
+    CREATE TABLE automobile_vehicles(serial_number text);
+
+    SELECT suggestion from sql_auto_complete('SELECT * from veh');
+    ┌─────────────────────┐
+    │     suggestion      │
+    │       varchar       │
+    ├─────────────────────┤
+    │ automobile_vehicles │
+    └─────────────────────┘
+
+    select suggestion from sql_auto_complete('SELECT * from auto');
+    ┌──────────────────────────────────────┐
+    │              suggestion              │
+    │               varchar                │
+    ├──────────────────────────────────────┤
+    │ automobile_vehicles                  │
+    │ "system".main.read_csv_auto          │
+    │ "system".main.sql_auto_complete      │
+    │ "system".main.duckdb_temporary_files │
+    │ "system".main.duckdb_extensions      │
+    │ "system".main.duckdb_functions       │
+    └──────────────────────────────────────┘
+
+    SELECT suggestion from sql_auto_complete('SELECT * from bar');
+    ┌──────────────────────────────────────┐
+    │              suggestion              │
+    │               varchar                │
+    ├──────────────────────────────────────┤
+    │ foobar                               │
+    │ "system".main.duckdb_temporary_files │
+    └──────────────────────────────────────┘
+
+    -- Demonstrate completion across databases/catalogs and schemas.
+    SELECT suggestion from sql_auto_complete('SELECT * from table');
+    ┌───────────────────────────────────────────────┐
+    │                  suggestion                   │
+    │                    varchar                    │
+    ├───────────────────────────────────────────────┤
+    │ duckdb_tables                                 │
+    │ information_schema."tables"                   │
+    │ "system".information_schema."tables"          │
+    │ "system".main.duckdb_tables                   │
+    │ "system".main.duckdb_tables                   │
+    │ "temp".information_schema."tables"            │
+    │ "temp".main.duckdb_tables                     │
+    │ information_schema.table_constraints          │
+    │ pg_catalog.pg_tables                          │
+    │ pg_catalog.pg_tablespace                      │
+    │ "system".information_schema.table_constraints │
+    │ "system".main.pragma_table_info               │
+    │ "system".pg_catalog.pg_tables                 │
+    │ "system".pg_catalog.pg_tablespace             │
+    │ "temp".information_schema.table_constraints   │
+    │ "temp".pg_catalog.pg_tables                   │
+    │ "temp".pg_catalog.pg_tablespace               │
+    │ "system".main.duckdb_temporary_files          │
+    ├───────────────────────────────────────────────┤
+    │                    18 rows                    │
+    └───────────────────────────────────────────────┘
+
+  extended_description: |
+    This `fuzzycomplete`` extension serves as an alternative to DuckDB's autocomplete extension, with several key differences:
+
+    **Algorithm:** Unlike the `autocomplete`` extension, which uses edit distance as its metric, the `fuzzycomplete`` extension employs a fuzzy string matching algorithm derived from Visual Studio Code. This provides more intuitive and flexible completion suggestions.
+
+    **Scope:** The `fuzzycomplete`` extension can complete table names across different databases and schemas. It respects the current search path and offers suggestions accordingly, even when multiple databases are attached.
+
+    It may not yet be the best solution for SQL completion, but it has proven to be useful to the author.
+
+    ## Details of the fuzzy matching algorithm
+
+    This extension uses the Rust crate [`code-fuzzy-match`](https://crates.io/crates/code-fuzzy-match).
+
+    The algorithm ensures that characters in the query string appear in the same order in the target string. It handles substring queries efficiently, allowing searches within the middle of the target string without significantly impacting the match score. The algorithm prioritizes matches that occur at the beginning of words, where words are defined as they commonly appear in code (e.g., letters following a separator or in camel case). Sequential matches are also given preference.
+
+    In addition to the basic matching algorithm, matches then scored using this criteria if they have an equal score from `code-fuzzy-match``:
+
+    1. In the event of a tie in the match score, completion results are first ordered by the number of pseudo-words in the candidate strings, favoring shorter completions.
+    2. A standard lexical sorting is then applied.
+
+
