@@ -19,7 +19,6 @@ repo:
 
 docs:
   hello_world: |
-    load faiss;
     -- Generate semi-random input data and queries
     -- Note that the dimensionality of our data will be 5
     CREATE TABLE input AS SELECT i as id, apply(generate_series(1, 5), j-> CAST(hash(i*1000+j) AS FLOAT)/18446744073709551615) as data FROM generate_series(1, 1000) s(i);
