@@ -19,6 +19,19 @@ repo:
 
 docs:
   hello_world: |
-    -- github.com/arjenpdevries/faiss/blob/main/README.md
+    load faiss;
+    -- Generate semi-random input data and queries
+    -- Note that the dimensionality of our data will be 5
+    CREATE TABLE input AS SELECT i as id, apply(generate_series(1, 5), j-> CAST(hash(i*1000+j) AS FLOAT)/18446744073709551615) as data FROM generate_series(1, 1000) s(i);
+    CREATE TABLE queries AS SELECT i as id, apply(generate_series(1, 5), j-> CAST(hash(i*1000+j+8047329823) AS FLOAT)/18446744073709551615) as data FROM generate_series(1, 10) s(i);
+    -- Create the index and insert data into it
+    CALL FAISS_CREATE('name', 5, 'IDMap,HNSW32');
+    CALL FAISS_ADD((SELECT id, data FROM input), 'name');
+    -- Get 10 results with uneven id
+    SELECT id, UNNEST(FAISS_SEARCH_FILTER('name', 10, data, 'id%2==0', 'rowid', 'input')) FROM queries;
+    -- Get 10 results with even id
+    SELECT id, UNNEST(FAISS_SEARCH_FILTER('name', 10, data, 'id%2==0', 'rowid', 'input')) FROM queries;
+    -- Get 10 results
+    SELECT id, UNNEST(FAISS_SEARCH('name', 10, data)) FROM queries;
   extended_description: |
     The FAISS extension allows duckdb users to store vector data in faiss, and query this data, making reliable vector search more accessible.
