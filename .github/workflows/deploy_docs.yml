@@ -30,7 +30,8 @@ jobs:
     - name: Generate docs
       run: |
         ./scripts/generate_md.sh ./duckdb
-        cp build/docs/* web/extensions/.
+        cp build/docs/*.md web/extensions/.
+        cat build/docs/extensions_list.md.tmp >> web/list_of_extensions.md
 
     - name: Setup Ruby
       uses: ruby/setup-ruby@v1
