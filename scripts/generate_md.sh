@@ -124,5 +124,6 @@ do
     rm -rf $DOCS/$extension.db
 done
 
-cd $DOCS
-$1 x.db -markdown -c "SELECT '['||#1||']({% link extensions/'||#1||'.md %})' as Name, '[<span class=github>GitHub</span>](https://github.com/'||#2||')' as GitHub , #4 as Description FROM read_csv('community_extensions.csv');" > extensions_list.md.tmp
+rm -f x.db
+$1 $DOCS/x.db -markdown -c "SELECT '['||#1||']({% link extensions/'||#1||'.md %})' as Name, '[<span class=github>GitHub</span>](https://github.com/'||#2||')' as GitHub , #4 as Description FROM read_csv('build/docs/community_extensions.csv');" > $DOCS/extensions_list.md.tmp
+rm -f x.db
