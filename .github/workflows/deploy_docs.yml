@@ -2,6 +2,8 @@ name: Generate and Deploy Website
 on:
   workflow_dispatch:
   workflow_call:
+  schedule:
+    - cron: "0 */6 * * *"
 
 jobs:
   docs:
