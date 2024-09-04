@@ -96,6 +96,19 @@ jobs:
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
 
+  archive:
+    needs:
+      - doc_test
+      - prepare
+      - build
+    uses: ./.github/workflows/_extension_archive.yml
+    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_DEPLOY != '' }}
+    secrets: inherit
+    with:
+      extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+      repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+
   deploy:
     needs: 
       - doc_test

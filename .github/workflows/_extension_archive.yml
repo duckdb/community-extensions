@@ -1,0 +1,46 @@
+#
+# Reusable workflow that deploys the extensions source code
+
+name: Extension Archieve Sources
+on:
+  workflow_call:
+    inputs:
+      # The name of the extension
+      extension_name:
+        required: true
+        type: string
+      repository:
+        required: false
+        type: string
+        default: ""
+      ref:
+        required: false
+        type: string
+        default: ""
+jobs:
+  fetch_repo:
+    name: Fetch repo and save
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+          submodules: 'true'
+          path: ./repo
+
+      - name: Compress the repository sources
+        run: |
+          zip -9 -r compressed.zip repo
+
+      - name: Deploy the submodule
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_SECRET }}
+          AWS_DEFAULT_REGION: ${{ secrets.S3_DUCKDB_ORG_REGION }}
+          BUCKET_NAME: duckdb-community-extensions
+        run: |
+          python3 -m pip install pip awscli
+          aws s3 cp compressed.zip s3://$BUCKET_NAME/archieved_repo/${{ inputs.extension_name }}/repo_sources_${{ inputs.ref }}.zip
