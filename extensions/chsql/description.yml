@@ -14,7 +14,34 @@ repo:
 
 docs:
   hello_world: |
+    -- Use ClickHouse SQL function macros in DuckDB SQL queries
     SELECT toString('world') as hello, toInt8OrZero('world') as zero;
+
+    ┌─────────┬───────┐
+    │  hello  │ zero  │
+    │ varchar │ int64 │
+    ├─────────┼───────┤
+    │ world   │     0 │
+    └─────────┴───────┘
+
+    SELECT IPv4NumToString(167772161), IPv4StringToNum('10.0.0.1');
+    ┌────────────────────────────┬─────────────────────────────┐
+    │ ipv4numtostring(167772161) │ ipv4stringtonum('10.0.0.1') │
+    │          varchar           │            int32            │
+    ├────────────────────────────┼─────────────────────────────┤
+    │ 10.0.0.1                   │                   167772161 │
+    └────────────────────────────┴─────────────────────────────┘
+
+    -- Query a remote ClickHouse instance via HTTP/S API
+    SELECT * FROM ch_scan("SELECT number * 100 FROM numbers(3)","https://play.clickhouse.com");
+    ┌───────────────────────┐
+    │ multiply(number, 100) │
+    │        varchar        │
+    ├───────────────────────┤
+    │ 0                     │
+    │ 100                   │
+    │ 200                   │
+    └───────────────────────┘
+    
   extended_description: |
-    This extension provides a growing number of ClickHouse SQL Macros for DuckDB. 
-    For a list of supported functions, please refer to [latest release notes](https://github.com/lmangani/duckdb-extension-clickhouse-sql/releases).
+    This extension implements a growing number of [ClickHouse SQL Macros](https://community-extensions.duckdb.org/extensions/chsql.html#added-functions) and functions for DuckDB. 
