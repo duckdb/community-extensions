@@ -11,8 +11,7 @@ extension:
 
 repo:
   github: ywelsch/duckdb-prql
-  ref: 60854f0f1c90a3e90786ff353b0ac99629e26300
-  ref_next: 5dedc86da88c35ab219e2e1ba2c54299160484af
+  ref: 5dedc86da88c35ab219e2e1ba2c54299160484af
 
 docs:
   hello_world: |

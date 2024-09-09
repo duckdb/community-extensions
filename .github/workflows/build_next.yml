@@ -15,6 +15,7 @@ on:
 
 jobs:
   test_against_latest:
+    if: false
     uses: ./.github/workflows/build.yml 
     with:
       duckdb_version: 'main'

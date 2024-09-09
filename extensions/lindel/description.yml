@@ -11,8 +11,7 @@ extension:
 
 repo:
   github: rustyconover/duckdb-lindel-extension
-  ref: 76f5bc78e8bfd1a7953c8cc4c284209b65626216
-  ref_next: 43a8ec9dca2f3a9cbda6c23012859c908cbc7c81
+  ref: 43a8ec9dca2f3a9cbda6c23012859c908cbc7c81
 
 docs:
   hello_world: |
