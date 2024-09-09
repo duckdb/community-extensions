@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: lmangani/duckdb-extension-clickhouse-sql
-  ref: db79a6bcae7fd225dc39d6cce1ee7dabbcf8a328
+  ref: 2e68607ee1ac4da9637be864f1c7a4f837742b34
 
 docs:
   hello_world: |
