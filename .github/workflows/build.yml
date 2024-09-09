@@ -102,7 +102,7 @@ jobs:
       - prepare
       - build
     uses: ./.github/workflows/_extension_archive.yml
-    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_DEPLOY != '' }}
+    if: ${{ (github.head_ref || github.ref_name) == 'main' }}
     secrets: inherit
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
