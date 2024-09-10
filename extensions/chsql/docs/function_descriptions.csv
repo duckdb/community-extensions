@@ -1,4 +1,4 @@
-function,type,description,comment,example
+function_name,function_type,description,comment,example
 "IPv4NumToString","macro","Cast IPv4 address from numeric to string format","","SELECT IPv4NumToString(2130706433);"
 "IPv4StringToNum","macro","Cast IPv4 address from string to numeric format","","SELECT IPv4StringToNum('127.0.0.1');"
 "arrayExists","macro","Check if any element of the array satisfies the condition","","SELECT arrayExists(x -> x = 1, [1, 2, 3]);"
