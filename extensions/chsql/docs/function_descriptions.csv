@@ -68,7 +68,7 @@ function,type,description,comment,example
 "toUInt64OrZero","macro","Converts to an unsigned 64-bit integer or returns zero on failure","","SELECT toUInt64OrZero('abc');"
 "toUInt8","macro","Converts a value to an unsigned 8-bit integer","","SELECT toUInt8('123');"
 "toUInt8OrNull","macro","Converts to an unsigned 8-bit integer or returns NULL on failure","","SELECT toUInt8OrNull('abc');"
-"toUInt8OrZero,"macro"","Converts to an unsigned 8-bit integer or returns zero on failure","","SELECT toUInt8OrZero('abc');"
+"toUInt8OrZero","macro","Converts to an unsigned 8-bit integer or returns zero on failure","","SELECT toUInt8OrZero('abc');"
 "toYYYYMM","macro","Formats a Date to 'YYYYMM' string format","","SELECT toYYYYMM('2023-09-10');"
 "toYYYYMMDD","macro","Formats a Date to 'YYYYMMDD' string format","","SELECT toYYYYMMDD('2023-09-10');"
 "toYYYYMMDDhhmmss","macro","Formats a DateTime to 'YYYYMMDDhhmmss' string format","","SELECT toYYYYMMDDhhmmss(now());"
