@@ -1,0 +1,2 @@
+function,description,comment,example
+"toString","Cast value to string","","SELECT toString(123);"
