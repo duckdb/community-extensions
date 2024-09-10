@@ -22,7 +22,7 @@ function,description,comment,example
 "modulo","Calculates the remainder of division (modulus)","","SELECT modulo(10, 3);"
 "moduloOrZero","Calculates modulus but returns zero instead of error on division by zero","","SELECT moduloOrZero(10, 0);"
 "notEmpty","Check if a string is not empty","","SELECT notEmpty('abc');"
-"numbers","Generates a sequence of numbers starting from 0"."Returns a table with a single column (UInt64)","SELECT * FROM numbers(10);"
+"numbers","Generates a sequence of numbers starting from 0","Returns a table with a single column (UInt64)","SELECT * FROM numbers(10);"
 "parseURL","Extracts parts of a URL","","SELECT parseURL('https://clickhouse.com', 'host');"
 "path","Extracts the path from a URL","","SELECT path('https://clickhouse.com/docs');"
 "plus","Performs addition of two numbers","","SELECT plus(5, 3);"
