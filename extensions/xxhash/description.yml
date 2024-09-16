@@ -1,0 +1,32 @@
+docs:
+  extended_description: "`xxhash` provide xxhash64 functionality to DuckDB"
+  hello_world: '-- Calculate the xxhash value of ''hello''
+
+    SELECT xxhash64(''hello'');
+
+    ┌──────────────────────────────────┐
+
+    │   xxhash64(''hello'')   │
+
+    │             varchar              │
+
+    ├──────────────────────────────────┤
+
+    │ 2794345569481354659 │
+
+    └──────────────────────────────────┘
+    '
+extension:
+  build: cmake
+  description: xxhash function(s)
+  excluded_platforms: windows_amd64;windows_arm64;windows_amd64_rtools;wasm_eh;wasm_threads;wasm_mvp
+  language: Go/C
+  license: MIT
+  maintainers:
+  - ajzo90
+  name: xxhash
+  requires_toolchains: go
+  version: 1.0.0
+repo:
+  github: ajzo90/duckdb-extension-xxhash
+  ref: bc20352e8bf03a32a9dc3e5acc3e30fc5cd24e29

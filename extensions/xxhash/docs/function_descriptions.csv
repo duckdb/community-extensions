@@ -1,0 +1,2 @@
+function,description,comment,example
+"xxhash64","Apply a xxhash function to the data supplied.","","SELECT xxhash64('hello world');"
