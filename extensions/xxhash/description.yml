@@ -26,7 +26,7 @@ extension:
   - ajzo90
   name: xxhash
   requires_toolchains: go
-  version: 1.0.0
+  version: 1.1.0
 repo:
   github: ajzo90/duckdb-extension-xxhash
-  ref: 2853a0d9d3518949bafe92e89c62c4575ae24594
+  ref: 63f5da25f1a7cb89d345e490c5d653ecf39aebe6
