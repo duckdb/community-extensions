@@ -29,4 +29,4 @@ extension:
   version: 1.1.0
 repo:
   github: ajzo90/duckdb-extension-xxhash
-  ref: 6766bb07ed8fd28b4fc9e2c7481d3529f7000ed2
+  ref: f59a0912f430f13a84b105c72615d271623c6f7f
