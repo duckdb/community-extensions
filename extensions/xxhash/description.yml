@@ -20,7 +20,7 @@ extension:
   build: cmake
   description: xxhash function(s)
   excluded_platforms: windows_amd64;windows_arm64;windows_amd64_rtools;wasm_eh;wasm_threads;wasm_mvp
-  language: Go/C
+  language: Go (C-API)
   license: MIT
   maintainers:
   - ajzo90
@@ -29,4 +29,4 @@ extension:
   version: 1.0.0
 repo:
   github: ajzo90/duckdb-extension-xxhash
-  ref: bc20352e8bf03a32a9dc3e5acc3e30fc5cd24e29
+  ref: 2853a0d9d3518949bafe92e89c62c4575ae24594
