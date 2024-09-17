@@ -22,11 +22,15 @@ extension:
   excluded_platforms: windows_amd64;windows_arm64;windows_amd64_rtools;wasm_eh;wasm_threads;wasm_mvp
   language: Go (C-API)
   license: MIT
+
+
   maintainers:
   - ajzo90
   name: xxhash
   requires_toolchains: go
+  custom_toolchain_script: true
+  enable_go: true
   version: 1.1.0
 repo:
   github: ajzo90/duckdb-extension-xxhash
-  ref: f8494e5136746bcff853fb7cc4b55c9757d70eef
+  ref: eff0905e27d08c5a7b0d6df408a4dbcca16a3f88
