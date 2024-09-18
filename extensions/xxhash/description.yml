@@ -1,5 +1,5 @@
 docs:
-  extended_description: "`xxhash` provide xxhash64 functionality to DuckDB  "
+  extended_description: "`xxhash` provide xxhash64 functionality to DuckDB   "
   hello_world: '-- Calculate the xxhash value of ''hello''
 
     SELECT xxhash64(''hello'');
