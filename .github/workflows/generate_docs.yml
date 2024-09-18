@@ -29,7 +29,7 @@ jobs:
     - uses: actions/download-artifact@v3
       if: ${{ inputs.extension_name != '' }}
       with:
-        name: ${{ inputs.extension_name }}-v1.1.0-extension-linux_amd64
+        name: ${{ inputs.extension_name }}-v1.1.0-extension-linux_amd64_gcc4
         path: build/downloaded
 
     - name: Install downloaded extension
@@ -38,6 +38,7 @@ jobs:
         NAME: ${{ inputs.extension_name }} 
       run: |
         ./duckdb -c "SET extension_directory = 'build/extension_dir'; FORCE INSTALL 'build/downloaded/$NAME.duckdb_extension';"
+        ./duckdb -c "SET extension_directory = 'build/extension_dir'; LOAD 'build/downloaded/$NAME.duckdb_extension'; select null::go_defined_type"
 
     - name: Generate docs
       run: |
