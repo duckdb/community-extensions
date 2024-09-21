@@ -32,6 +32,7 @@ jobs:
 
       - name: Compress the repository sources
         run: |
+          rm -rf repo/duckdb
           zip -9 -r compressed.zip repo
 
       - name: Deploy the submodule
