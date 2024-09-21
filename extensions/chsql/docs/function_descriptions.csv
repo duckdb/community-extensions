@@ -85,4 +85,4 @@ function,fun_type,description,comment,example
 "tupleMultiply","macro","Performs element-wise multiplication between two tuples","","SELECT tupleMultiply((10, 20), (2, 5));"
 "tupleMultiplyByNumber","macro","Multiplies each element of a tuple by a number","","SELECT tupleMultiplyByNumber((10, 20), 3);"
 "tuplePlus","macro","Performs element-wise addition between two tuples","","SELECT tuplePlus((1, 2), (3, 4));"
-"url","table_macro","Performs queries against remote URLs using the specified format","","SELECT url('https://urleng.com/test','JSON');"
+"url","table_macro","Performs queries against remote URLs using the specified format","Supports JSON, CSV, PARQUET, TEXT, BLOB","SELECT url('https://urleng.com/test','JSON');"
