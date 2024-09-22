@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: Alex-Monahan/pivot_table
-  ref: d8699fce3edc1c8d39a6346b697d4c9371bd0d3f
+  ref: 3e87d43b4c15a3640b26eb8942ce5e75335c879a
 
 docs:
   hello_world: |
