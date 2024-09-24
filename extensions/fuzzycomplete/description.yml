@@ -173,4 +173,4 @@ extension:
   version: 1.0.0
 repo:
   github: rustyconover/duckdb-fuzzycomplete-extension
-  ref: 8550e1d94274db44a1a030db2a83b4a5fe0469cd
+  ref: 39a61c1c39a2b028101ef635fcb04856883ab498
