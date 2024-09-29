@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: hafenkran/duckdb-bigquery
-  ref: b83ef867d54ddc31b3a0ae9ae04523e965f51201
+  ref: a596c430db1cd6834fcf6fae29bae742645ba91f
 
 docs:
   hello_world: |
