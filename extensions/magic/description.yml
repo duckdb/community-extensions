@@ -1,0 +1,13 @@
+extension:
+  name: magic
+  description: libmagic/file utilities ported to DuckDB
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - carlopi
+
+repo:
+  github: carlopi/duckdb_magic
+  ref: 4568f1813a6e4555beb931349408e5d04b66c99e
