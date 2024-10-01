@@ -1,0 +1,22 @@
+extension:
+  name: magic
+  description: libmagic/file utilities ported to DuckDB
+  version: 0.0.1
+  language: C++
+  build: cmake
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64"
+  license: MIT
+  maintainers:
+    - carlopi
+
+repo:
+  github: carlopi/duckdb_magic
+  ref: 4568f1813a6e4555beb931349408e5d04b66c99e
+
+docs:
+  hello_world: |
+    SELECT file, magic_mime(file), magic_type(file) FROM glob('path/to/folder/**');
+  extended_description: |
+    Very experimental port of libmagic (that powers file UNIX utility), allow to classify files based on the the content of the header, accoring to the libmagic library.
+    Packaged with version 5.45 of the magic library. The magic.mgc database is at the moment statically compiled in the library, so it's the same across platforms but immutable.
+    Currently not available in Windows and Wasm, due to different but likely solvable compile time problems to be sorted out independently.
