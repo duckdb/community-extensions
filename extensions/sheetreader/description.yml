@@ -1,0 +1,75 @@
+extension:
+  name: sheetreader
+  description: Fast XLSX file importer
+  version: 0.1.0
+  language: C++
+  build: cmake
+  excluded_platforms: windows_amd64_rtools
+  license: MIT
+  maintainers:
+    - freddie-freeloader
+
+repo:
+  github: polydbms/sheetreader-duckdb
+  ref: 887013792794aaac8bffd040fcb2439dd797ad53
+
+docs:
+  hello_world: |
+    -- Create table from XLSX file & use default values for parameters
+    CREATE TABLE data AS FROM sheetreader('data.xlsx');
+
+    -- Example usage of available named parameters
+    CREATE TABLE data2 AS FROM sheetreader(
+      'data2.xlsx',
+      sheet_index=1,
+      threads=16,
+      skip_rows=0,
+      has_header=TRUE,
+      types=[BOOLEAN,VARCHAR],
+      coerce_to_string=TRUE,
+      force_types=TRUE
+    );
+
+
+  extended_description: |
+    ## About SheetReader
+
+    `sheetreader` is a DuckDB extension that allows reading XLSX files into DuckDB tables with SheetReader, our blazingly fast XLSX parser (https://github.com/polydbms/sheetreader-core).
+
+    ## Usage
+
+    ### Parameters
+
+    | Name | Description | Type | Default |
+    |:----|:-----------|:----:|:-------|
+    | `sheet_index` | Index of the sheet to read. Starts at 1. | `INTEGER` | `1` |
+    | `sheet_name` | Name of the sheet to read. <br> Only either `sheet_index` or `sheet_name` can be set.  | `VARCHAR` | `""` |
+    | `threads` | Number of threads to use, while parsing | `INTEGER` | Half of available cores; minimum 1 |
+    | `skip_rows` | Number of rows to skip | `INTEGER` | `0` |
+    | `has_header` | Force to treat first row as header row. <br> <ul> <li> If successful, the cell contents are used for column names. </li> <li> If set to `false` (which is the default), the extension will still try to treat the first row as header row. <br> The difference is that it will not fail, if the first row is not usable. </li> </ul> | `BOOLEAN` | `false` |
+    | `types` | List of types for all columns <ul> <li> Types currently available:<br> `VARCHAR`,`BOOLEAN`,`DOUBLE`, `DATE`.</li> <li> Useful in combination with `coerce_to_string` and `force_types`. </li> </ul> | `LIST(VARCHAR)` | Uses types determined by first & second row (after skipped rows) |
+    | `coerce_to_string` | Coerce all cells in column of type `VARCHAR` to string (i.e. `VARCHAR`). | `BOOLEAN` | `false` |
+    | `force_types` | Use `types` even if they are not compatible with types determined by first/second row. <br> Cells, that are not of the column type, are set to `NULL` or coerced to string, if option is set. | `BOOLEAN` | `false` |
+
+    ## More Information
+
+    SheetReader was published in the [Information Systems Journal](https://www.sciencedirect.com/science/article/abs/pii/S0306437923000194)
+
+    ```
+    @article{DBLP:journals/is/GavriilidisHZM23,
+      author       = {Haralampos Gavriilidis and
+                      Felix Henze and
+                      Eleni Tzirita Zacharatou and
+                      Volker Markl},
+      title        = {SheetReader: Efficient Specialized Spreadsheet Parsing},
+      journal      = {Inf. Syst.},
+      volume       = {115},
+      pages        = {102183},
+      year         = {2023},
+      url          = {https://doi.org/10.1016/j.is.2023.102183},
+      doi          = {10.1016/J.IS.2023.102183},
+      timestamp    = {Mon, 26 Jun 2023 20:54:32 +0200},
+      biburl       = {https://dblp.org/rec/journals/is/GavriilidisHZM23.bib},
+      bibsource    = {dblp computer science bibliography, https://dblp.org}
+    }
+    ```
