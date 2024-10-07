@@ -53,4 +53,4 @@ extension:
   version: 1.0.0
 repo:
   github: rustyconover/duckdb-crypto-extension
-  ref: 1d85d1214d10e71becb6e4a037c39311a196ade4
+  ref: c8a64d43bafa559f48dd55730813475eb58c4916

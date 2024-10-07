@@ -1,7 +1,7 @@
 extension:
   name: scrooge
   description: Provides functionality for financial data-analysis, including data scanners for the Ethereum Blockchain and Yahoo Finance
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   excluded_platforms: "windows_amd64_rtools"
   build: cmake
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: pdet/Scrooge-McDuck
-  ref: fc7ef9c9c6aad1406cddd6e98d919a154e5aa1d6
+  ref: c97da6a4bf04352d9f9493df30ef90477bf250e7
 
 docs:
   hello_world: |
