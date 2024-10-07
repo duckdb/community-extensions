@@ -82,7 +82,7 @@ jobs:
 
   build:
     needs: prepare
-    uses: cwida/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: ${{ inputs.duckdb_version || 'v1.1.1' }}
