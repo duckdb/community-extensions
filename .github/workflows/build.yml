@@ -22,6 +22,10 @@ on:
         type: string
       more_excluded:
         type: string
+      skip_tests:
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       extension_name:
@@ -32,6 +36,10 @@ on:
         type: string
       more_excluded:
         type: string
+      skip_tests:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   prepare:
@@ -46,8 +54,8 @@ jobs:
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
       COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'a1a1cbc975abf909a6c8985a6a2b8fe20bbd9bd6' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
     env:
-      DUCKDB_LATEST_STABLE: 'v1.1.0'
-      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.1.0' }}
+      DUCKDB_LATEST_STABLE: 'v1.1.1'
+      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.1.1' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -77,7 +85,8 @@ jobs:
     uses: cwida/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.1.0' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.1.1' }}
+      ci_tools_version: 'main'
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       custom_toolchain_script: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT == 'true'}}
@@ -86,6 +95,7 @@ jobs:
       override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
       vcpkg_url: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_URL}}
       vcpkg_commit: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT}}
+      skip_tests: ${{ inputs.skip_tests || false }}
 
   doc_test:
     if: ${{ inputs.deploy != 'false' }}
@@ -119,7 +129,7 @@ jobs:
     secrets: inherit
     with:
       deploy_latest: true
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.1.0' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.1.1' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
       repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}

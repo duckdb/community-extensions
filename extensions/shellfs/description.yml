@@ -135,7 +135,8 @@ extension:
   maintainers:
   - rustyconover
   name: shellfs
+  requires_toolchains: python3
   version: 1.0.0
 repo:
   github: rustyconover/duckdb-shellfs-extension
-  ref: a3fdd23767429e6254e194f934d692bb7f7998c6
+  ref: 651981d540027681c06252d433e5590370131444

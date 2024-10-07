@@ -1,0 +1,19 @@
+extension:
+  name: pivot_table
+  description: Provides a spreadsheet-style pivot_table function
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Alex-Monahan
+
+repo:
+  github: Alex-Monahan/pivot_table
+  ref: 3e87d43b4c15a3640b26eb8942ce5e75335c879a
+
+docs:
+  hello_world: |
+    FROM pivot_table(['duckdb_databases'], [], ['database_name'], [], []);
+  extended_description: |
+    This extension, pivot_table, allow you to pivot your data using a spreadsheet-like pivot API. It is also similar to the Pandas pivot_table function. It does this solely through SQL macros - there are no C++ functions as a part of this extension.

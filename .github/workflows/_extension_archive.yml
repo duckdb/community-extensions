@@ -32,6 +32,7 @@ jobs:
 
       - name: Compress the repository sources
         run: |
+          rm -rf repo/duckdb
           zip -9 -r compressed.zip repo
 
       - name: Deploy the submodule
@@ -43,4 +44,6 @@ jobs:
           BUCKET_NAME: duckdb-community-extensions
         run: |
           python3 -m pip install pip awscli
-          aws s3 cp compressed.zip s3://$BUCKET_NAME/archived_extension_sources/${{ inputs.extension_name }}/repo_sources_${{ inputs.ref }}.zip
+          if [ "${AWS_SECRET_ACCESS_KEY}" ]; then
+             aws s3 cp compressed.zip s3://${BUCKET_NAME}/archived_extension_sources/${{ inputs.extension_name }}/repo_sources_${{ inputs.ref }}.zip
+          fi
