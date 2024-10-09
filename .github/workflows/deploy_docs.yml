@@ -31,6 +31,7 @@ jobs:
       run: |
         ./scripts/generate_md.sh ./duckdb
         cp build/docs/*.md web/extensions/.
+        cp build/docs/community_extensions.csv web/extensions/community_extensions.csv
         cat build/docs/extensions_list.md.tmp >> web/list_of_extensions.md
 
     - name: Setup Ruby
