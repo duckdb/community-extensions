@@ -1,0 +1,42 @@
+extension:
+  name: psql
+  description: Support for PSQL, a piped SQL dialect for DuckDB
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - ywelsch
+
+repo:
+  github: ywelsch/duckdb-psql
+  ref: 6a29f40d8a3f00a5b60faea0b345c33d1c863edf
+
+docs:
+  hello_world: |
+    from 'https://raw.githubusercontent.com/ywelsch/duckdb-psql/main/example/invoices.csv' |>
+    where invoice_date >= date '1970-01-16' |>
+    select
+      *, 
+      0.8 as transaction_fees,
+      total - transaction_fees as income |>
+    where income > 1 |>
+    select
+      customer_id, 
+      avg(total), 
+      sum(income) as sum_income, 
+      count() as ct
+      group by customer_id |>
+    order by sum_income desc |>
+    limit 10 |>
+    as invoices
+      join 'https://raw.githubusercontent.com/ywelsch/duckdb-psql/main/example/customers.csv'
+        as customers
+      on invoices.customer_id = customers.customer_id |>
+    select
+      customer_id,
+      last_name || ', ' || first_name as name,
+      sum_income,
+      version() as db_version;
+  extended_description: |
+    PSQL extends DuckDB's SQL with a pipe syntax to provide simple composable queries. It's a lightweight variant of piped languages such as PRQL and Kusto, yet leveraging the full power of DuckDB's SQL.
