@@ -27,6 +27,7 @@ function,fun_type,description,comment,example
 "path","macro","Extracts the path from a URL","","SELECT path('https://clickhouse.com/docs');"
 "plus","macro","Performs addition of two numbers","","SELECT plus(5, 3);"
 "protocol","macro","Extracts the protocol from a URL","","SELECT protocol('https://clickhouse.com');"
+"read_parquet_mergetree","function","Merge parquet files using a primary sorting key for fast range queries","experimental","COPY (SELECT * FROM read_parquet_mergetree(['/folder/*.parquet'], 'sortkey') TO 'sorted.parquet';"
 "rightPad","macro","Pads a string on the right to a specified length","","SELECT rightPad('abc', 5, '*');"
 "splitByChar","macro","Splits a string by a given character","","SELECT splitByChar(',', 'a,b,c');"
 "toDayOfMonth","macro","Extracts the day of the month from a date","","SELECT toDayOfMonth('2023-09-10');"
