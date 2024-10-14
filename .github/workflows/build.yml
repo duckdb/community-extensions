@@ -73,6 +73,7 @@ jobs:
       id: parse
       env:
         ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
+        PIP_BREAK_SYSTEM_PACKAGES: 1
       run: |
         pip install pyyaml
         # scripts/build.py takes DUCKDB_VERSION from environment
