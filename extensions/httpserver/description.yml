@@ -26,6 +26,5 @@ docs:
     -- Query your DuckDB HTTP API Server using curl or any other client 
     curl -X POST -d "LOAD chsql; SELECT *, uuid() FROM numbers(10)" http://localhost:9999/
 
-    
   extended_description: |
     This extension is highly experimental and potentially unstable. Do not use it in production.
