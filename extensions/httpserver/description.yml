@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: lmangani/duckdb-extension-httpserver
-  ref: e6d44ba93f2a29fb9dd783759ed7733e52d6c6f2
+  ref: 4122f8d4ca0ece71f8138a0c619b689c880b59aa
 
 docs:
   hello_world: |
