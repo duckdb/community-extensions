@@ -18,6 +18,8 @@ on:
         type: string
       duckdb_version:
         type: string
+      duckdb_tag:
+        type: string
       deploy:
         type: string
       more_excluded:
@@ -31,6 +33,8 @@ on:
       extension_name:
         type: string
       duckdb_version:
+        type: string
+      duckdb_tag:
         type: string
       deploy:
         type: string
@@ -87,6 +91,7 @@ jobs:
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: ${{ inputs.duckdb_version || 'v1.1.1' }}
+      duckdb_tag: ${{ inputs.duckdb_tag || '' }}
       ci_tools_version: 'main'
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
@@ -122,7 +127,6 @@ jobs:
 
   deploy:
     needs: 
-      - doc_test
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
