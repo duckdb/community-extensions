@@ -1,17 +1,18 @@
 extension:
   name: httpserver
-  description: Simple DuckDB HTTP API extension
-  version: 0.1.0
+  description: DuckDB HTTP API Server Extension
+  version: 0.1.1
   language: SQL & C++
   build: cmake
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - lmangani
+    - akvlad
 
 repo:
   github: lmangani/duckdb-extension-httpserver
-  ref: 14cc107770f2c639e217920cbe299bc479db0851
+  ref: e6d44ba93f2a29fb9dd783759ed7733e52d6c6f2
 
 docs:
   hello_world: |
@@ -26,6 +27,8 @@ docs:
 
     -- Query your DuckDB HTTP API Server using curl or any other client 
     curl -X POST -d "LOAD chsql; SELECT *, uuid() FROM numbers(10)" http://localhost:9999/
+
+    -- Browse to your DuckDB HTTP API endpoint to query using the embedded interface
 
   extended_description: |
     This extension is highly experimental and potentially unstable. Do not use it in production.
