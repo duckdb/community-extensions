@@ -5,6 +5,7 @@ extension:
   language: SQL & C++
   build: cmake
   license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - lmangani
 
