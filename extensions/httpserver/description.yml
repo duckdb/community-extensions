@@ -9,7 +9,7 @@ extension:
     - lmangani
 
 repo:
-  github: duckdb-extension-httpserver
+  github: lmangani/duckdb-extension-httpserver
   ref: 14cc107770f2c639e217920cbe299bc479db0851
 
 docs:
