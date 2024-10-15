@@ -25,13 +25,13 @@ docs:
     │ HTTP server started on 0.0.0.0:9999           │
     └───────────────────────────────────────────────┘
 
-    -- Query your DuckDB HTTP API Server using curl or any other client 
+    -- Browse to your DuckDB HTTP API endpoint to Query using the embedded interface
+
+    -- Query your DuckDB HTTP API Server using curl or any other client w/ HTTP Basic Auth
     curl -X POST -d "LOAD chsql; SELECT *, uuid() FROM numbers(10)" "http://user:pass@localhost:9999/"
 
-    -- Query your DuckDB HTTP API Server using curl or any other client 
+    -- Query your DuckDB HTTP API Server using curl or any other client w/ X-API-Key header 
     curl -X POST --header "X-API-Key: secretkey" -d "LOAD chsql; SELECT *, uuid() FROM numbers(10)" "http://localhost:9999/"
-
-    -- Browse to your DuckDB HTTP API endpoint to query using the embedded query interface
 
   extended_description: |
     This extension is experimental and potentially unstable. Do not use it in production.
