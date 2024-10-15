@@ -1,7 +1,7 @@
 extension:
   name: httpserver
   description: DuckDB HTTP API Server Extension
-  version: 0.1.1
+  version: 0.1.2
   language: SQL & C++
   build: cmake
   license: MIT
@@ -12,23 +12,26 @@ extension:
 
 repo:
   github: lmangani/duckdb-extension-httpserver
-  ref: 4122f8d4ca0ece71f8138a0c619b689c880b59aa
+  ref: ec47a4c61904efd3a1a2885343874aa16dc359a4
 
 docs:
   hello_world: |
     -- Start a DuckDB HTTP API Server with parameters
-    D SELECT httpserve_start('0.0.0.0',9999);
-    ┌─────────────────────────────────────┐
-    │  httpserve_start('0.0.0.0', 9999)   │
-    │               varchar               │
-    ├─────────────────────────────────────┤
-    │ HTTP server started on 0.0.0.0:9999 │
-    └─────────────────────────────────────┘
+    D SELECT httpserve_start('0.0.0.0', 9999, 'user:pass');
+    ┌───────────────────────────────────────────────┐
+    │ httpserve_start('0.0.0.0', 9999, 'user:pass') │
+    │                    varchar                    │
+    ├───────────────────────────────────────────────┤
+    │ HTTP server started on 0.0.0.0:9999           │
+    └───────────────────────────────────────────────┘
 
-    -- Query your DuckDB HTTP API Server using curl or any other client 
-    curl -X POST -d "LOAD chsql; SELECT *, uuid() FROM numbers(10)" http://localhost:9999/
+    -- Browse to your DuckDB HTTP API endpoint to Query using the embedded interface
 
-    -- Browse to your DuckDB HTTP API endpoint to query using the embedded interface
+    -- Query your DuckDB HTTP API Server using curl or any other client w/ HTTP Basic Auth
+    curl -X POST -d "LOAD chsql; SELECT *, uuid() FROM numbers(10)" "http://user:pass@localhost:9999/"
+
+    -- Query your DuckDB HTTP API Server using curl or any other client w/ X-API-Key header 
+    curl -X POST --header "X-API-Key: secretkey" -d "LOAD chsql; SELECT *, uuid() FROM numbers(10)" "http://localhost:9999/"
 
   extended_description: |
-    This extension is highly experimental and potentially unstable. Do not use it in production.
+    This extension is experimental and potentially unstable. Do not use it in production.
