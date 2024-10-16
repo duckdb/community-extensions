@@ -45,4 +45,4 @@ docs:
 
     
   extended_description: |
-    This extension implements a growing number of [ClickHouse SQL Macros](https://community-extensions.duckdb.org/extensions/chsql.html#added-functions) and functions for DuckDB. 
+    This extension implements a growing number of [ClickHouse SQL Macros](https://duckdb.org/community_extensions/extensions/chsql#added-functions) and functions for DuckDB.
