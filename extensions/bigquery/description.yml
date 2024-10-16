@@ -18,7 +18,7 @@ repo:
 docs:
   hello_world: |
     -- Attach to your BigQuery Project
-    D ATTACH 'project=my_gcp_project' as bq (TYPE bigquery, READ_ONLY);
+    D ATTACH 'project=my_gcp_project' AS bq (TYPE bigquery, READ_ONLY);
 
     -- Show all tables in all datasets in the attached BigQuery project
     D SHOW ALL TABLES;
