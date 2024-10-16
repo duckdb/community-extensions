@@ -15,7 +15,7 @@ rm -rf $DOCS
 mkdir -p $DOCS
 
 EXTENSIONS_CSV=$DOCS/community_extensions.csv
-echo "name, repo, ref, description" > $EXTENSIONS_CSV
+echo "name,repo,ref,description" > $EXTENSIONS_CSV
 for extension_file in build/extension_dir/$version/$platform/*.duckdb_extension;
 do
     extension_full=$(basename -- $extension_file)
