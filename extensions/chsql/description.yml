@@ -15,7 +15,7 @@ repo:
 docs:
   hello_world: |
     -- Use ClickHouse SQL function macros in DuckDB SQL queries
-    SELECT toString('world') as hello, toInt8OrZero('world') as zero;
+    SELECT toString('world') AS hello, toInt8OrZero('world') AS zero;
 
     ┌─────────┬───────┐
     │  hello  │ zero  │
