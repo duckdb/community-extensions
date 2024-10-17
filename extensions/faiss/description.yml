@@ -27,7 +27,7 @@ docs:
     CALL FAISS_CREATE('name', 5, 'IDMap,HNSW32');
     CALL FAISS_ADD((SELECT id, data FROM input), 'name');
     -- Get 10 results with uneven id
-    SELECT id, UNNEST(FAISS_SEARCH_FILTER('name', 10, data, 'id%2==0', 'rowid', 'input')) FROM queries;
+    SELECT id, UNNEST(FAISS_SEARCH_FILTER('name', 10, data, 'id%2==1', 'rowid', 'input')) FROM queries;
     -- Get 10 results with even id
     SELECT id, UNNEST(FAISS_SEARCH_FILTER('name', 10, data, 'id%2==0', 'rowid', 'input')) FROM queries;
     -- Get 10 results
