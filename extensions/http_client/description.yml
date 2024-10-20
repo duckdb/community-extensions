@@ -15,7 +15,7 @@ repo:
 
 docs:
   hello_world: |
-    -- GET Request Example
+    -- GET Request Example w/ JSON Parsing
     D WITH __input AS (
       SELECT
         http_get(
