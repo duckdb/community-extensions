@@ -1,5 +1,5 @@
 extension:
-  name: httpclient
+  name: http_client
   description: DuckDB HTTP Client Extension
   version: 0.0.1
   language: C++
