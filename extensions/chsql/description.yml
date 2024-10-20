@@ -9,8 +9,8 @@ extension:
     - lmangani
 
 repo:
-  github: lmangani/duckdb-extension-clickhouse-sql
-  ref: 89e1c2fd68c18e018f5afb7ef81b3454abb46dfc
+  github: quackscience/duckdb-extension-clickhouse-sql
+  ref: a000d4f2a5f9e1c13cddcd75ea2d3351466f1706
 
 docs:
   hello_world: |
