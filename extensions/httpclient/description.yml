@@ -1,0 +1,75 @@
+extension:
+  name: httpclient
+  description: DuckDB HTTP Client Extension
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lmangani
+    - ahuarte47
+
+repo:
+  github: quackscience/duckdb-extension-httpclient
+  ref: ec47a4c61904efd3a1a2885343874aa16dc359a4
+
+docs:
+  hello_world: |
+    -- GET Request Example
+    D WITH __input AS (
+      SELECT
+        http_get(
+          'https://httpbin.org/delay/0'
+       ) AS data
+    ),
+    __features AS (
+      SELECT
+        unnest( from_json((data::JSON)->'headers', '{"Host": "VARCHAR"}') )
+        AS features
+      FROM
+        __input
+    )
+    SELECT
+      __features.Host AS host,
+    FROM
+      __features
+    ;
+    ┌─────────────┐
+    │    host     │
+    │   varchar   │
+    ├─────────────┤
+    │ httpbin.org │
+    └─────────────┘
+
+    -- POST Request Example w/ Headers and Parameters
+    WITH __input AS (
+      SELECT
+        http_post(
+          'https://httpbin.org/delay/0',
+          headers => MAP {
+            'accept': 'application/json',
+          }::VARCHAR,
+          params => MAP {}::VARCHAR
+       ) AS data
+    ),
+    __features AS (
+      SELECT
+        unnest( from_json((data::JSON)->'headers', '{"Host": "VARCHAR"}') )
+        AS features
+      FROM
+        __input
+    )
+    SELECT
+      __features.Host AS host,
+    FROM
+      __features
+    ;
+    ┌─────────────┐
+    │    host     │
+    │   varchar   │
+    ├─────────────┤
+    │ httpbin.org │
+    └─────────────┘
+
+  extended_description: |
+    This extension is experimental and potentially unstable. Do not use it in production yet.
