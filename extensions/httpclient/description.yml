@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-httpclient
-  ref: ec47a4c61904efd3a1a2885343874aa16dc359a4
+  ref: d8b7a91fd9e4545f11bdec2dc5b58c017738e1c2
 
 docs:
   hello_world: |
