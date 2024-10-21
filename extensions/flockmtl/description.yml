@@ -1,0 +1,43 @@
+extension:
+  name: flockmtl
+  description: DuckDB HTTP API Server Extension
+  version: 0.1.0
+  language: SQL & C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - dorbanianas
+    - SunnyYasser
+    - queryproc
+
+repo:
+  github: dsg-polymtl/flockmtl
+  ref: XX
+
+docs:
+  hello_world: |
+    -- Call an OpenAI model with a predefined prompt 'Tell me hello world' and default model 'gpt-4o-mini'
+    D SELECT llm_complete(hello_world, default_model);
+    ┌──────────────────────────────────────────┐
+    │ llm_complete(hello_world, default_model) │
+    │                 varchar                  │
+    ├──────────────────────────────────────────┤
+    │                Hello world               │
+    └──────────────────────────────────────────┘
+
+    -- Check the prompts and supported models
+    D SHOW ALL PROMPTS;
+    D SHOW ALL MODELS;
+
+    -- Create a new prompt for summarizing text
+    D CREATE PROMPT(summarize, 'summarize the text into 1 word: {{text}}');
+
+    -- Create a variable name for the model to do the summarizing
+    D CREATE MODEL(summarizer-model, 'gpt-4o');
+
+    -- Summarize text and pass it as parameter 
+    D SELECT llm_complete(summarize, summarizer-model, {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
+
+  extended_description: |
+    This extension is experimental and potentially unstable. Do not use it in production.
