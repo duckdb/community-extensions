@@ -27,8 +27,8 @@ docs:
     └──────────────────────────────────────────┘
 
     -- Check the prompts and supported models
-    D SHOW ALL PROMPTS;
-    D SHOW ALL MODELS;
+    D GET PROMPTS;
+    D GET MODELS;
 
     -- Create a new prompt for summarizing text
     D CREATE PROMPT(summarize, 'summarize the text into 1 word: {{text}}');
