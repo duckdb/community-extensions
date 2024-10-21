@@ -13,10 +13,12 @@ extension:
 
 repo:
   github: dsg-polymtl/flockmtl
-  ref: f46ba8f9c2538e994373ead0f103859316048682
+  ref: 86e32ae7ac5ea4743067d2ddae9a96c7d3a2cd23
 
 docs:
   hello_world: |
+    -- The library loads successfully if an OPENAI_API_KEY is set in the environment
+
     -- Call an OpenAI model with a predefined prompt ('Tell me hello world') and default model ('gpt-4o-mini')
     D SELECT llm_complete('hello-world', 'default');
     ┌──────────────────────────────────────────┐
