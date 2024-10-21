@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-httpclient
-  ref: efab896796e1c6e59781b23b784d7cacf86cfdf5
+  ref: f876fb673770b2108a754dd889b0003602b190b4
 
 docs:
   hello_world: |
@@ -48,8 +48,8 @@ docs:
           'https://httpbin.org/delay/0',
           headers => MAP {
             'accept': 'application/json',
-          }::VARCHAR,
-          params => MAP {}::VARCHAR
+          },
+          params => MAP {}
        ) AS data
     ),
     __features AS (
