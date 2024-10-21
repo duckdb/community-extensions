@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: dsg-polymtl/flockmtl
-  ref: 86e32ae7ac5ea4743067d2ddae9a96c7d3a2cd23
+  ref: 2450acd2b04a4a81342965b6c7eed6fb5899181f
 
 docs:
   hello_world: |
