@@ -5,7 +5,6 @@ extension:
   language: SQL & C++
   build: cmake
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - dorbanianas
     - SunnyYasser
@@ -13,11 +12,11 @@ extension:
 
 repo:
   github: dsg-polymtl/duckdb-flockmtl
-  ref: 2450acd2b04a4a81342965b6c7eed6fb5899181f
+  ref: 1bd8ac0f54f8bf4c7da1c3793b88e73daa127653
 
 docs:
   hello_world: |
-    -- The library loads successfully if an OPENAI_API_KEY is set in the environment
+    -- After loading, any function call will throw an error if an OPENAI_API_KEY environment variable is not set
 
     -- Call an OpenAI model with a predefined prompt ('Tell me hello world') and default model ('gpt-4o-mini')
     D SELECT llm_complete('hello-world', 'default');
