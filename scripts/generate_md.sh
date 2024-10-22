@@ -7,6 +7,8 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+curl -s http://community-extensions.duckdb.org/downloads-last-week.json -o downloads-last-week.json
+
 platform=$($1 -csv -c "PRAGMA platform" | tail -n1)
 version_raw=$($1 -csv -c "PRAGMA version" | tail -n1)
 version=$(echo "$version_raw-,$version_raw" | cut -d '-' -f 2 | cut -d ',' -f 2)
@@ -81,6 +83,8 @@ do
        echo -n "extension_star_count: " >> $EXTENSION_README
        python3 scripts/get_stars.py extensions/$extension/description.yml $1 >> $EXTENSION_README
        echo "" >> $EXTENSION_README
+       echo -n "extension_download_count: " >> $EXTENSION_README
+       cat downloads-last-week.json | jq ".${extension}" >> $EXTENSION_README
     fi
     echo "---" >> $EXTENSION_README
     cat layout/default.md >> $EXTENSION_README
