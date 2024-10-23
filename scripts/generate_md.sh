@@ -88,10 +88,12 @@ do
        echo -n "extension_download_count: " >> $EXTENSION_README
        cat build/downloads-last-week.json | jq ".${extension}" >> $EXTENSION_README
     fi
+    echo "image: '/images/community_extensions/social_preview/preview_community_extension_"$extension".png'" >> $EXTENSION_README
     cat $EXTENSION_README > $EXTENSION_SCREENSHOT
     echo "layout: community_extension_sql_screenshot" >> $EXTENSION_SCREENSHOT
     echo "---" >> $EXTENSION_SCREENSHOT
     cat layout/screenshot.md >> $EXTENSION_SCREENSHOT
+
 
     echo "layout: community_extension_doc" >> $EXTENSION_README
     echo "---" >> $EXTENSION_README
