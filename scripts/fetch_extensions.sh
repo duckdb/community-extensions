@@ -1,4 +1,11 @@
+#!/usr/bin/env bash
+
 set -eo pipefail
+
+if [ $# -lt 1 ]; then
+    echo "Usage: ./scripts/generated_docs_readme.sh path_to_duckdb_binary"
+    exit 1
+fi
 
 rm -rf build
 for extension_folder in extensions/*;
