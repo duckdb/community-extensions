@@ -82,11 +82,16 @@ do
        echo "" >> $EXTENSION_README
        cat extensions/$extension/description.yml >> $EXTENSION_README
        echo "" >> $EXTENSION_README
-       echo -n "extension_star_count: " >> $EXTENSION_README
-       python3 scripts/get_stars.py extensions/$extension/description.yml $1 >> $EXTENSION_README
-       echo "" >> $EXTENSION_README
-       echo -n "extension_download_count: " >> $EXTENSION_README
-       cat build/downloads-last-week.json | jq ".${extension}" >> $EXTENSION_README
+
+       STAR_COUNT=$(python3 scripts/get_stars.py extensions/$extension/description.yml $1)
+       STAR_COUNT_PRETTY=$(echo $STAR_COUNT | python3 scripts/pretty_print.py)
+       echo "extension_star_count: $STAR_COUNT" >> $EXTENSION_README
+       echo "extension_star_count_pretty: $STAR_COUNT_PRETTY" >> $EXTENSION_README
+
+       DOWNLOAD_COUNT=$(cat build/downloads-last-week.json | jq ".${extension}")
+       DOWNLOAD_COUNT_PRETTY=$(echo $DOWNLOAD_COUNT | python3 scripts/pretty_print.py)
+       echo "extension_download_count: $DOWNLOAD_COUNT" >> $EXTENSION_README
+       echo "extension_download_count_pretty: $DOWNLOAD_COUNT_PRETTY" >> $EXTENSION_README
     fi
     echo "image: '/images/community_extensions/social_preview/preview_community_extension_"$extension".png'" >> $EXTENSION_README
     cat $EXTENSION_README > $EXTENSION_SCREENSHOT
