@@ -92,8 +92,6 @@ do
        DOWNLOAD_COUNT_PRETTY=$(echo $DOWNLOAD_COUNT | python3 scripts/pretty_print.py)
        echo "extension_download_count: $DOWNLOAD_COUNT" >> $EXTENSION_README
        echo "extension_download_count_pretty: $DOWNLOAD_COUNT_PRETTY" >> $EXTENSION_README
-
-       cat build/downloads-last-week.json | jq ".$extension" >> $EXTENSION_README
     fi
     echo "image: '/images/community_extensions/social_preview/preview_community_extension_"$extension".png'" >> $EXTENSION_README
     cat $EXTENSION_README > $EXTENSION_SCREENSHOT
