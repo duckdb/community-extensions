@@ -88,7 +88,7 @@ do
        echo "extension_star_count: $STAR_COUNT" >> $EXTENSION_README
        echo "extension_star_count_pretty: $STAR_COUNT_PRETTY" >> $EXTENSION_README
 
-       DOWNLOAD_COUNT=$(cat downloads-last-week.json | jq ".${extension}")
+       DOWNLOAD_COUNT=$(cat build/downloads-last-week.json | jq ".${extension}")
        DOWNLOAD_COUNT_PRETTY=$(echo $DOWNLOAD_COUNT | python3 scripts/pretty_print.py)
        echo "extension_download_count: $DOWNLOAD_COUNT" >> $EXTENSION_README
        echo "extension_download_count_pretty: $DOWNLOAD_COUNT_PRETTY" >> $EXTENSION_README
