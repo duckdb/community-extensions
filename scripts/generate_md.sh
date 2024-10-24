@@ -81,13 +81,13 @@ do
        cat extensions/$extension/description.yml >> $EXTENSION_README
        echo "" >> $EXTENSION_README
 
-       python3 scripts/get_stars.py extensions/$extension/description.yml $1 > $STAR_COUNT
-       echo $STAR_COUNT | python3 -c "import sys; x = int(sys.stdin.readline()); print(x if x < 1000 else f'{x / 1000:.1f}k');" > $STAR_COUNT_PRETTY
+       STAR_COUNT=$(python3 scripts/get_stars.py extensions/$extension/description.yml $1)
+       STAR_COUNT_PRETTY=$(echo $STAR_COUNT | python3 scripts/pretty_print.py)
        echo "extension_star_count: $STAR_COUNT" >> $EXTENSION_README
        echo "extension_star_count_pretty: $STAR_COUNT_PRETTY" >> $EXTENSION_README
 
-       cat downloads-last-week.json | jq ".${extension}" > $DOWNLOAD_COUNT
-       echo $DOWNLOAD_COUNT | python3 -c "import sys; x = int(sys.stdin.readline()); print(x if x < 1000 else f'{x / 1000:.1f}k');" > $DOWNLOAD_COUNT_PRETTY
+       DOWNLOAD_COUNT=$(cat downloads-last-week.json | jq ".${extension}")
+       DOWNLOAD_COUNT_PRETTY=$(echo $DOWNLOAD_COUNT | python3 scripts/pretty_print.py)
        echo "extension_download_count: $DOWNLOAD_COUNT" >> $EXTENSION_README
        echo "extension_download_count_pretty: $DOWNLOAD_COUNT_PRETTY" >> $EXTENSION_README
     fi
