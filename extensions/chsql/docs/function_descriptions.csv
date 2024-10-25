@@ -104,3 +104,4 @@ function,fun_type,description,comment,example
 "greater","macro","Checks if one value is greater than another","","SELECT greater(column_a, column_b);"
 "lessOrEquals","macro","Checks if one value is less than or equal to another","","SELECT lessOrEquals(column_a, column_b);"
 "greaterOrEquals","macro","Checks if one value is greater than or equal to another","","SELECT greaterOrEquals(column_a, column_b);"
+"dictGet","macro","Retrieves an attribute from a VARIABLE string or MAP","","SELECT dictGet('dictionary_name', 'attribute');"
