@@ -29,8 +29,5 @@ docs:
     │ Ducks quacking at dawn, swimming in the light. │
     └────────────────────────────────────────────────┘
 
-  extended_description: |  
-    This extension is in development and potentially unstable. Use at your own risk.
-    
+  extended_description: |      
     For examples and instructions check out the `open_prompt` [README](https://github.com/quackscience/duckdb-extension-openprompt)
-
