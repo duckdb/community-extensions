@@ -1,7 +1,7 @@
 extension:
   name: open_prompt
-  description: Interact with LLMs from a DuckDB Extension
-  version: 0.0.1
+  description: Interact with LLMs with a simple DuckDB Extension
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -11,16 +11,17 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-openprompt
-  ref: a970029b83a35d8b812765220617d9cc14ca472d
+  ref: b734f8274ddb834b81ee7cc287f3c92e98342387
 
 docs:
   hello_world: |
     -- Configure the required extension parameters
-    SELECT set_api_token('your_api_key_here');
-    SELECT set_api_url('http://localhost:11434/v1/chat/completions');
+    SET VARIABLE openprompt_api_url = 'http://localhost:11434/v1/chat/completions';
+    SET VARIABLE openprompt_api_token = 'optional_api_token_here';
+    SET VARIABLE openprompt_model_name = 'qwen2.5:0.5b';
     
     -- Prompt any OpenAI Completions API form your query
-    D SELECT open_prompt('Write a one-line poem about ducks', 'qwen2.5:0.5b') AS response;
+    D SELECT open_prompt('Write a one-line poem about ducks') AS response;
     ┌────────────────────────────────────────────────┐
     │                    response                    │
     │                    varchar                     │
@@ -28,5 +29,8 @@ docs:
     │ Ducks quacking at dawn, swimming in the light. │
     └────────────────────────────────────────────────┘
 
-  extended_description: |
-    This extension is experimental and potentially unstable. Do not use it in production.
+  extended_description: |  
+    This extension is in development and potentially unstable. Use at your own risk.
+    
+    For examples and instructions check out the `open_prompt` [README](https://github.com/quackscience/duckdb-extension-openprompt)
+
