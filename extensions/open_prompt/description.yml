@@ -1,7 +1,7 @@
 extension:
   name: open_prompt
   description: Interact with LLMs with a simple DuckDB Extension
-  version: 0.0.2
+  version: 0.0.3
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-openprompt
-  ref: b734f8274ddb834b81ee7cc287f3c92e98342387
+  ref: 616bdfc4e7b01c4095a2dda8d4104c179922efd6
 
 docs:
   hello_world: |
@@ -28,6 +28,30 @@ docs:
     ├────────────────────────────────────────────────┤
     │ Ducks quacking at dawn, swimming in the light. │
     └────────────────────────────────────────────────┘
+    
+    -- Prompt requesting JSON Structured Output for ChatGPT, LLama3, etc
+    SET VARIABLE openprompt_model_name = 'llama3.2:3b';
+    SELECT open_prompt('I want ice cream', json_schema := '{
+       "type": "object",
+       "properties": {
+         "summary": { "type": "string" },
+         "sentiment": { "type": "string", "enum": ["pos", "neg", "neutral"] }
+       },
+       "required": ["summary", "sentiment"],
+       "additionalProperties": false
+     }');
+
+    -- Use Custom System Prompt to request JSON Output in smaller models
+    SET VARIABLE openprompt_model_name = 'qwen2.5:1.5b';
+    SELECT open_prompt('I want ice cream.', system_prompt:='Response MUST be JSON with the following schema: {
+           "type": "object",
+           "properties": {
+             "summary": { "type": "string" },
+             "sentiment": { "type": "string", "enum": ["pos", "neg", "neutral"] }
+           },
+           "required": ["summary", "sentiment"],
+           "additionalProperties": false
+         }');
 
   extended_description: |      
     For examples and instructions check out the `open_prompt` [README](https://github.com/quackscience/duckdb-extension-openprompt)
