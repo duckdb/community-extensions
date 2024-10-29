@@ -1,5 +1,5 @@
 extension:
-  name: duckfs
+  name: hostfs
   description: Navigate and explore the filesystem using SQL
   version: 0.0.1
   language: C++
@@ -9,7 +9,7 @@ extension:
     - Gropaul
 
 repo:
-  github: gropaul/duckFS
+  github: gropaul/hostFS
   ref: 83f66a15a216baa1ab9b7348663dde4de1db2ba0
 
 docs:
@@ -23,7 +23,7 @@ docs:
     ├───────────────────────────────┤
     │ ./duckdb                      │
     │ ./playground                  │
-    │ ./duckfs                      │
+    │ ./hostfs                      │
     -- Find the files you were working on last
     D SELECT path, file_last_modified(path) AS date FROM ls() WHERE 'csv' IN file_extension(path) ORDER BY date LIMIT 1 ;
     ┌───────────────────────────┬─────────────────────┐
@@ -35,7 +35,7 @@ docs:
     -- List the top 3 file types by total size, with file count, ordered by size.
     D SELECT size, count, file_extension AS "type"
     FROM (
-    SELECT SUM(file_size(path)) AS size_raw, hsize(size_raw) AS size, COUNT(*) AS count, file_extension(path) AS file_extension
+    SELECT SUM(file_size(path)) AS size_raw, format_bytes(size_raw) AS size, COUNT(*) AS count, file_extension(path) AS file_extension
     FROM lsr('/Users/paul/workspace', 10)
     GROUP BY file_extension(path)
     ) AS subquery
@@ -49,5 +49,5 @@ docs:
     │ 26.17 GB  │ 28175 │ .csv    │
     └───────────┴───────┴─────────┘
   extended_description: >
-    The DuckFS extension allows you to navigate and explore the filesystem using SQL. It provides a set of functions to list files, get file metadata, and more. 
-    For more information, please see the [DuckFS documentation](https://github.com/gropaul/duckFS).
+    The HostFS extension allows you to navigate and explore the filesystem using SQL. It provides a set of functions to list files, get file metadata, and more. 
+    For more information, please see the [HostFS documentation](https://github.com/gropaul/hostFS).
