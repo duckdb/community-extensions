@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: gropaul/hostFS
-  ref: 83f66a15a216baa1ab9b7348663dde4de1db2ba0
+  ref: 1aa25bee5eb7b95f6d46504ed72336f90468588a
 
 docs:
   hello_world: |
