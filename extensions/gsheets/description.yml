@@ -10,8 +10,8 @@ extension:
     - archiewood
 
 repo:
-  github: archiewood/duckdb-gsheets
-  ref: xxx
+  github: evidence-dev/duckdb_gsheets
+  ref: 7f7c6e2f85edd9ad9c2f16f2075818627fca8405
 
 docs:
   hello_world: |
