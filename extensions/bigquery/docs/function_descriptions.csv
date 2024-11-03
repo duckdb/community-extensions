@@ -1,0 +1,7 @@
+function,description,comment,example
+bigquery_attach,"Attach to a BigQuery project.","","ATTACH 'project=my_gcp_project' as bq (TYPE bigquery);"
+bigquery_scan,"Scan a single table directly from BigQuery.",,"SELECT * FROM bigquery_scan('my_gcp_project.quacking_dataset.duck_tbl');"
+bigquery_query,"Run a custom GoogleSQL query in BigQuery and read the results.",,"SELECT * FROM bigquery_query('bq', 'SELECT * FROM quacking_dataset.duck_tbl WHERE duck_id = 123');"
+bigquery_execute,"Execute an arbitrary GoogleSQL query in BigQuery.",,"CALL bigquery_execute('bq', 'CREATE SCHEMA deluxe_dataset OPTIONS(location=""us"", default_table_expiration_days=3.75);')"
+bigquery_jobs,"List jobs in a BigQuery project.","","SELECT * FROM bigquery_jobs('bq');"
+bigquery_clear_cache,"Clear the internal caches to refetch the most current project information from BigQuery.","","CALL bigquery_clear_cache();"
