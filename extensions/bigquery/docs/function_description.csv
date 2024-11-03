@@ -1,5 +1,0 @@
-function,description,comment,example
-bigquery_scan,"Query a single table directly from BigQuery using the specified table.",,"SELECT * FROM bigquery_scan('my_gcp_project.quacking_dataset.duck_tbl');"
-bigquery_execute,"Execute arbitrary queries directly in BigQuery using native GoogleSQL.",,"ATTACH 'project=my_gcp_project' AS bq (TYPE bigquery);
-CALL bigquery_execute('bq', 'CREATE SCHEMA deluxe_dataset OPTIONS(location=""us"", default_table_expiration_days=3.75);')"
-bigquery_clear_cache,"Clear the internal caches to refetch the most current project information from BigQuery.","","CALL bigquery_clear_cache();"
