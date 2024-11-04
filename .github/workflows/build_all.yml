@@ -34,6 +34,7 @@ jobs:
       matrix:
         extension_name: ${{ fromJson(needs.collect_extensions.outputs.COMMUNITY_EXTENSION_LIST) }}
     uses: ./.github/workflows/build.yml 
+    secrets: inherit
     with:
       extension_name: ${{ matrix.extension_name }}
       duckdb_version: ${{ inputs.duckdb_version }}
