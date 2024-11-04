@@ -37,5 +37,5 @@ jobs:
     with:
       extension_name: ${{ matrix.extension_name }}
       duckdb_version: ${{ inputs.duckdb_version }}
-      duckdb_version: ${{ inputs.duckdb_tag }}
+      duckdb_tag: ${{ inputs.duckdb_tag }}
       deploy: ${{ inputs.deploy }}
