@@ -2,7 +2,7 @@
 
 This repository collects third-party extensions created for [DuckDB](https://www.duckdb.org).
 
-View the [list of Community Extensions](https://community-extensions.duckdb.org/list_of_extensions.html).
+View the [list of Community Extensions](https://duckdb.org/community_extensions/list_of_extensions).
 
 Visit the [DuckDB Community Extensions website](https://duckdb.org/community_extensions) to learn more about the available extensions.
 
