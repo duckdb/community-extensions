@@ -49,7 +49,7 @@ docs:
     CREATE TABLE automobile_vehicles(serial_number text);
 
 
-    SELECT suggestion from sql_auto_complete(''SELECT * from veh'');
+    SELECT suggestion FROM sql_auto_complete(''SELECT * FROM veh'');
 
     ┌─────────────────────┐
 
@@ -64,7 +64,7 @@ docs:
     └─────────────────────┘
 
 
-    select suggestion from sql_auto_complete(''SELECT * from auto'');
+    SELECT suggestion FROM sql_auto_complete(''SELECT * FROM auto'');
 
     ┌──────────────────────────────────────┐
 
@@ -89,7 +89,7 @@ docs:
     └──────────────────────────────────────┘
 
 
-    SELECT suggestion from sql_auto_complete(''SELECT * from bar'');
+    SELECT suggestion FROM sql_auto_complete(''SELECT * FROM bar'');
 
     ┌──────────────────────────────────────┐
 
@@ -108,7 +108,7 @@ docs:
 
     -- Demonstrate completion across databases/catalogs and schemas.
 
-    SELECT suggestion from sql_auto_complete(''SELECT * from table'');
+    SELECT suggestion FROM sql_auto_complete(''SELECT * FROM table'');
 
     ┌───────────────────────────────────────────────┐
 

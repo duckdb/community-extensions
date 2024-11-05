@@ -57,10 +57,10 @@ docs:
     \ |\n| `UBIGINT`    | 2 | 1: `UBIGINT`<br/>2: `UHUGEINT` |\n| `FLOAT`      | 4\
     \ | 1: `UINTEGER`<br/>2: `UBIGINT`<br/>3-4: `UHUGEINT` |\n| `DOUBLE`     | 2 |\
     \ 1: `UBIGINT`<br/>2: `UHUGEINT` |\n"
-  hello_world: "WITH elements as (\n  SELECT * as id FROM range(3)\n)\nSELECT\n  a.id\
-    \ as a,\n  b.id as b,\n  hilbert_encode([a.id, b.id]::tinyint[2]) as hilbert,\n\
-    \  morton_encode([a.id, b.id]::tinyint[2]) as morton\nFROM\n  elements as a cross\
-    \ join elements as b;\n┌───────┬───────┬─────────┬────────┐\n│   a   │   b   │\
+  hello_world: "WITH elements AS (\n  SELECT * AS id FROM range(3)\n)\nSELECT\n  a.id\
+    \ AS a,\n  b.id AS b,\n  hilbert_encode([a.id, b.id]::tinyint[2]) AS hilbert,\n\
+    \  morton_encode([a.id, b.id]::tinyint[2]) AS morton\nFROM\n  elements AS a CROSS\
+    \ JOIN elements AS b;\n┌───────┬───────┬─────────┬────────┐\n│   a   │   b   │\
     \ hilbert │ morton │\n│ int64 │ int64 │ uint16  │ uint16 │\n├───────┼───────┼─────────┼────────┤\n\
     │     0 │     0 │       0 │      0 │\n│     0 │     1 │       3 │      1 │\n│\
     \     0 │     2 │       4 │      4 │\n│     1 │     0 │       1 │      2 │\n│\
@@ -68,22 +68,22 @@ docs:
     \     2 │     0 │      14 │      8 │\n│     2 │     1 │      13 │      9 │\n│\
     \     2 │     2 │       8 │     12 │\n└───────┴───────┴─────────┴────────┘\n\n\
     -- Encode two 32-bit floats into one uint64\nSELECT hilbert_encode([37.8, .2]::float[2])\
-    \ as hilbert;\n┌─────────────────────┐\n│       hilbert       │\n│       uint64\
+    \ AS hilbert;\n┌─────────────────────┐\n│       hilbert       │\n│       uint64\
     \        │\n├─────────────────────┤\n│ 2303654869236839926 │\n└─────────────────────┘\n\
     \n-- Since doubles use 64 bits of precision the encoding\n-- must result in a\
-    \ uint128\n\nSELECT hilbert_encode([37.8, .2]::double[2]) as hilbert;\n┌────────────────────────────────────────┐\n\
+    \ uint128\n\nSELECT hilbert_encode([37.8, .2]::double[2]) AS hilbert;\n┌────────────────────────────────────────┐\n\
     │                hilbert                 │\n│                uint128         \
     \        │\n├────────────────────────────────────────┤\n│ 42534209309512799991913666633619307890\
     \ │\n└────────────────────────────────────────┘\n\n-- 3 dimensional encoding.\n\
-    SELECT hilbert_encode([1.0, 5.0, 6.0]::float[3]) as hilbert;\n┌──────────────────────────────┐\n\
+    SELECT hilbert_encode([1.0, 5.0, 6.0]::float[3]) AS hilbert;\n┌──────────────────────────────┐\n\
     │           hilbert            │\n│           uint128            │\n├──────────────────────────────┤\n\
     │ 8002395622101954260073409974 │\n└──────────────────────────────┘\n\n-- Demonstrate\
     \ string encoding\nSELECT hilbert_encode([ord(x) for x in split('abcd', '')]::tinyint[4])\
-    \ as hilbert;\n┌───────────┐\n│  hilbert  │\n│  uint32   │\n├───────────┤\n│ 178258816\
+    \ AS hilbert;\n┌───────────┐\n│  hilbert  │\n│  uint32   │\n├───────────┤\n│ 178258816\
     \ │\n└───────────┘\n\n-- Start out just by encoding two values.\nSELECT hilbert_encode([1,\
-    \ 2]::tinyint[2]) as hilbert;\n┌─────────┐\n│ hilbert │\n│ uint16  │\n├─────────┤\n\
+    \ 2]::tinyint[2]) AS hilbert;\n┌─────────┐\n│ hilbert │\n│ uint16  │\n├─────────┤\n\
     │       7 │\n└─────────┘\n\n-- Decode an encoded value\nSELECT hilbert_decode(7::uint16,\
-    \ 2, false, true) as values;\n┌─────────────┐\n│   values    │\n│ utinyint[2]\
+    \ 2, false, true) AS values;\n┌─────────────┐\n│   values    │\n│ utinyint[2]\
     \ │\n├─────────────┤\n│ [1, 2]      │\n└─────────────┘\n\n-- The decoding functions\
     \ take four parameters:\n-- 1. **Value to be decoded:** This is always an unsigned\
     \ integer type.\n-- 2. **Number of elements to decode:** This is a `TINYINT` specifying\
@@ -94,7 +94,7 @@ docs:
     \ return type of these functions is always an array, with the element type determined\
     \ by the number of elements requested and whether \"float\" handling is enabled\
     \ by the third parameter.\n\nSELECT hilbert_decode(hilbert_encode([1, -2]::bigint[2]),\
-    \ 2, false, false) as values;\n┌───────────┐\n│  values   │\n│ bigint[2] │\n├───────────┤\n\
+    \ 2, false, false) AS values;\n┌───────────┐\n│  values   │\n│ bigint[2] │\n├───────────┤\n\
     │ [1, -2]   │\n└───────────┘\n"
 extension:
   build: cmake

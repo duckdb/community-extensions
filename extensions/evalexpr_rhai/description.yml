@@ -51,19 +51,19 @@ docs:
     \ employees (name text, state text, zip integer);\nINSERT INTO employees values\n\
     \  ('Jane', 'FL', 33139),\n  ('John', 'NJ', 08520);\n\n-- Pass the row from the\
     \ employees table in as \"context.row\"\nSELECT evalexpr_rhai(\n  '\n  context.row.name\
-    \ + \" is in \" + context.row.state\n  ',\n  {\n    row: employees\n  }) as result\
+    \ + \" is in \" + context.row.state\n  ',\n  {\n    row: employees\n  }) AS result\
     \ from employees;\n\n┌───────────────────────────────┐\n│            result  \
     \           │\n│ union(ok json, error varchar) │\n├───────────────────────────────┤\n\
     │ \"Jane is in FL\"               │\n│ \"John is in NJ\"               │\n└───────────────────────────────┘\n\
     \n-- To demonstrate how Rhai can be used to implement\n-- a function in DuckDB,\
     \ the next example creates\n-- a macro function that calls a Rhai function\n--\
     \ to calculate the Collatz sequence length.\n\nCREATE MACRO collatz_series_length(n)\
-    \ as\n  evalexpr_rhai('\n    fn collatz_series(n) {\n        let count = 0;\n\
+    \ AS\n  evalexpr_rhai('\n    fn collatz_series(n) {\n        let count = 0;\n\
     \        while n > 1 {\n          count += 1;\n          if n % 2 == 0 {\n   \
     \           n /= 2;\n          } else {\n              n = n * 3 + 1;\n      \
     \    }\n        }\n        return count\n    }\n    collatz_series(context.n)\n\
     \  ', {'n': n});\n\n-- Use the previously defined macro.\nSELECT\n  collatz_series_length(range).ok::bigint\
-    \ as sequence_length,\n  range as starting_value\nFROM\n  range(10000, 20000)\n\
+    \ AS sequence_length,\n  range AS starting_value\nFROM\n  range(10000, 20000)\n\
     ORDER BY 1 DESC limit 10;\n\n┌─────────────────┬────────────────┐\n│ sequence_length\
     \ │ starting_value │\n│      int64      │     int64      │\n├─────────────────┼────────────────┤\n\
     │             278 │          17647 │\n│             278 │          17673 │\n│\

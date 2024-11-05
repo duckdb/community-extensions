@@ -16,14 +16,14 @@ repo:
 docs:
   hello_world: |
     -- Set the RPC Provider
-    set eth_node_url= 'https://mempool.merkle.io/rpc/eth/pk_mbs_0b647b195065b3294a5254838a33d062';
+    SET eth_node_url = 'https://mempool.merkle.io/rpc/eth/pk_mbs_0b647b195065b3294a5254838a33d062';
     -- Query Transfer events of USDT from blocks 20034078 - 20034100 while parallelizing on one block per thread
     FROM read_eth(
-    'USDT',
-    'Transfer',
-    20034078,
-    20034100, 
-    blocks_per_thread=1
+        'USDT',
+        'Transfer',
+        20034078,
+        20034100, 
+        blocks_per_thread = 1
     );
   extended_description: |
     Scrooge McDuck is a third-party financial extension for DuckDB. 

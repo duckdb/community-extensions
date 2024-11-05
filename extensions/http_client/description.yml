@@ -1,0 +1,82 @@
+extension:
+  name: http_client
+  description: DuckDB HTTP Client Extension
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lmangani
+    - ahuarte47
+
+repo:
+  github: quackscience/duckdb-extension-httpclient
+  ref: db0ebb7f8c2688ff7a785b83a387bf782d13afd1
+
+docs:
+  hello_world: |
+    -- GET Request Example w/ JSON Parsing
+    WITH __input AS (
+    SELECT
+      http_get(
+          'https://httpbin.org/delay/0'
+      ) AS res
+    ),
+    __response AS (
+      SELECT
+        (res->>'status')::INT AS status,
+        (res->>'reason') AS reason,
+        unnest( from_json(((res->>'body')::JSON)->'headers', '{"Host": "VARCHAR"}') ) AS features
+      FROM
+        __input
+    )
+    SELECT
+      __response.status,
+      __response.reason,
+      __response.Host AS host,
+    FROM
+      __response
+    ;
+    ┌────────┬─────────┬─────────────┐
+    │ status │ reason  │    host     │
+    │ int32  │ varchar │   varchar   │
+    ├────────┼─────────┼─────────────┤
+    │    200 │ OK      │ httpbin.org │
+    └────────┴─────────┴─────────────┘
+
+    -- POST Request Example w/ Headers and Parameters
+    WITH __input AS (
+    SELECT
+      http_post(
+          'https://httpbin.org/delay/0',
+          headers => MAP {
+            'accept': 'application/json',
+          },
+          params => MAP {
+          }
+      ) AS res
+    ),
+    __response AS (
+      SELECT
+        (res->>'status')::INT AS status,
+        (res->>'reason') AS reason,
+        unnest( from_json(((res->>'body')::JSON)->'headers', '{"Host": "VARCHAR"}') ) AS features
+      FROM
+        __input
+    )
+    SELECT
+      __response.status,
+      __response.reason,
+      __response.Host AS host,
+    FROM
+      __response
+    ;
+    ┌────────┬─────────┬─────────────┐
+    │ status │ reason  │    host     │
+    │ int32  │ varchar │   varchar   │
+    ├────────┼─────────┼─────────────┤
+    │    200 │ OK      │ httpbin.org │
+    └────────┴─────────┴─────────────┘
+
+  extended_description: |
+    The HTTP Client Extension is experimental, use at your own risk!

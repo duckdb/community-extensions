@@ -20,14 +20,14 @@ docs:
 
     -- Example usage of available named parameters
     CREATE TABLE data2 AS FROM sheetreader(
-      'data2.xlsx',
-      sheet_index=1,
-      threads=16,
-      skip_rows=0,
-      has_header=TRUE,
-      types=[BOOLEAN,VARCHAR],
-      coerce_to_string=TRUE,
-      force_types=TRUE
+        'data2.xlsx',
+        sheet_index = 1,
+        threads = 16,
+        skip_rows = 0,
+        has_header = true,
+        types = [BOOLEAN, VARCHAR],
+        coerce_to_string = true,
+        force_types = true
     );
 
 
@@ -55,7 +55,7 @@ docs:
 
     SheetReader was published in the [Information Systems Journal](https://www.sciencedirect.com/science/article/abs/pii/S0306437923000194)
 
-    ```
+    ```bibtex
     @article{DBLP:journals/is/GavriilidisHZM23,
       author       = {Haralampos Gavriilidis and
                       Felix Henze and

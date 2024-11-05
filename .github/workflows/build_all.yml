@@ -1,0 +1,42 @@
+name: Build all extensions
+on:
+  workflow_dispatch:
+    inputs:
+      duckdb_version:
+        type: string
+      duckdb_tag:
+        type: string
+      deploy:
+        type: string
+
+jobs:
+  collect_extensions:
+    outputs:
+      COMMUNITY_EXTENSION_LIST: ${{ steps.generate_list.outputs.EXTENSION_LIST }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Generate extension list
+      id: generate_list
+      run: |
+        ./scripts/get_extension_list.sh
+        cat extension_list
+        cat extension_list >> $GITHUB_OUTPUT
+      
+  build_all:
+    needs:
+      - collect_extensions
+    strategy:
+      fail-fast: false
+      matrix:
+        extension_name: ${{ fromJson(needs.collect_extensions.outputs.COMMUNITY_EXTENSION_LIST) }}
+    uses: ./.github/workflows/build.yml 
+    secrets: inherit
+    with:
+      extension_name: ${{ matrix.extension_name }}
+      duckdb_version: ${{ inputs.duckdb_version }}
+      duckdb_tag: ${{ inputs.duckdb_tag }}
+      deploy: ${{ inputs.deploy }}

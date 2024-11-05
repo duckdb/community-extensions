@@ -14,8 +14,8 @@ repo:
 
 docs:
   hello_world: |
-    CREATE TABLE Person as select * from 'https://gist.githubusercontent.com/Dtenwolde/2b02aebbed3c9638a06fda8ee0088a36/raw/8c4dc551f7344b12eaff2d1438c9da08649d00ec/person-sf0.003.csv';
-    CREATE TABLE Person_knows_person as select * from 'https://gist.githubusercontent.com/Dtenwolde/81c32c9002d4059c2c3073dbca155275/raw/8b440e810a48dcaa08c07086e493ec0e2ec6b3cb/person_knows_person-sf0.003.csv';
+    CREATE TABLE Person AS SELECT * FROM 'https://gist.githubusercontent.com/Dtenwolde/2b02aebbed3c9638a06fda8ee0088a36/raw/8c4dc551f7344b12eaff2d1438c9da08649d00ec/person-sf0.003.csv';
+    CREATE TABLE Person_knows_person AS SELECT * FROM 'https://gist.githubusercontent.com/Dtenwolde/81c32c9002d4059c2c3073dbca155275/raw/8b440e810a48dcaa08c07086e493ec0e2ec6b3cb/person_knows_person-sf0.003.csv';
 
     CREATE PROPERTY GRAPH snb
       VERTEX TABLES (
@@ -24,7 +24,7 @@ docs:
     EDGE TABLES (
       Person_knows_person 	SOURCE KEY (Person1Id) REFERENCES Person (id)
                             DESTINATION KEY (Person2Id) REFERENCES Person (id)
-      LABEL Knows
+      LABEL knows
     );
 
     FROM GRAPH_TABLE (snb
@@ -52,4 +52,3 @@ docs:
     
 
     *Disclaimer*: As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.
-

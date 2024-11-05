@@ -63,7 +63,7 @@ docs:
     \ configuration parameter.\n"
   hello_world: '-- Generate a sequence only return numbers that contain a 2
 
-    SELECT * from read_csv(''seq 1 100 | grep 2 |'');
+    SELECT * FROM read_csv(''seq 1 100 | grep 2 |'');
 
     ┌─────────┐
 
@@ -90,7 +90,7 @@ docs:
 
     -- demonstrate how commands can be chained together
 
-    SELECT * from read_csv(''seq 1 35 | awk "\$1 % 7 == 0" | head -n 2 |'');
+    SELECT * FROM read_csv(''seq 1 35 | awk "\$1 % 7 == 0" | head -n 2 |'');
 
     ┌─────────┐
 
@@ -109,7 +109,7 @@ docs:
 
     -- Do some arbitrary curl
 
-    SELECT abbreviation, unixtime from
+    SELECT abbreviation, unixtime FROM
 
     read_json(''curl -s http://worldtimeapi.org/api/timezone/Etc/UTC  |'');
 

@@ -9,13 +9,13 @@ extension:
     - lmangani
 
 repo:
-  github: lmangani/duckdb-extension-clickhouse-sql
-  ref: 89e1c2fd68c18e018f5afb7ef81b3454abb46dfc
+  github: quackscience/duckdb-extension-clickhouse-sql
+  ref: a000d4f2a5f9e1c13cddcd75ea2d3351466f1706
 
 docs:
   hello_world: |
     -- Use ClickHouse SQL function macros in DuckDB SQL queries
-    SELECT toString('world') as hello, toInt8OrZero('world') as zero;
+    SELECT toString('world') AS hello, toInt8OrZero('world') AS zero;
 
     ┌─────────┬───────┐
     │  hello  │ zero  │
@@ -45,4 +45,4 @@ docs:
 
     
   extended_description: |
-    This extension implements a growing number of [ClickHouse SQL Macros](https://community-extensions.duckdb.org/extensions/chsql.html#added-functions) and functions for DuckDB. 
+    This extension implements a growing number of [ClickHouse SQL Macros](https://duckdb.org/community_extensions/extensions/chsql#added-functions) and functions for DuckDB.

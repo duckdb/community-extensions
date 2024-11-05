@@ -1,0 +1,57 @@
+extension:
+  name: open_prompt
+  description: Interact with LLMs with a simple DuckDB Extension
+  version: 0.0.3
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lmangani
+    - akvlad
+
+repo:
+  github: quackscience/duckdb-extension-openprompt
+  ref: 616bdfc4e7b01c4095a2dda8d4104c179922efd6
+
+docs:
+  hello_world: |
+    -- Configure the required extension parameters
+    SET VARIABLE openprompt_api_url = 'http://localhost:11434/v1/chat/completions';
+    SET VARIABLE openprompt_api_token = 'optional_api_token_here';
+    SET VARIABLE openprompt_model_name = 'qwen2.5:0.5b';
+    
+    -- Prompt any OpenAI Completions API form your query
+    D SELECT open_prompt('Write a one-line poem about ducks') AS response;
+    ┌────────────────────────────────────────────────┐
+    │                    response                    │
+    │                    varchar                     │
+    ├────────────────────────────────────────────────┤
+    │ Ducks quacking at dawn, swimming in the light. │
+    └────────────────────────────────────────────────┘
+    
+    -- Prompt requesting JSON Structured Output for ChatGPT, LLama3, etc
+    SET VARIABLE openprompt_model_name = 'llama3.2:3b';
+    SELECT open_prompt('I want ice cream', json_schema := '{
+       "type": "object",
+       "properties": {
+         "summary": { "type": "string" },
+         "sentiment": { "type": "string", "enum": ["pos", "neg", "neutral"] }
+       },
+       "required": ["summary", "sentiment"],
+       "additionalProperties": false
+     }');
+
+    -- Use Custom System Prompt to request JSON Output in smaller models
+    SET VARIABLE openprompt_model_name = 'qwen2.5:1.5b';
+    SELECT open_prompt('I want ice cream.', system_prompt:='Response MUST be JSON with the following schema: {
+           "type": "object",
+           "properties": {
+             "summary": { "type": "string" },
+             "sentiment": { "type": "string", "enum": ["pos", "neg", "neutral"] }
+           },
+           "required": ["summary", "sentiment"],
+           "additionalProperties": false
+         }');
+
+  extended_description: |      
+    For examples and instructions check out the `open_prompt` [README](https://github.com/quackscience/duckdb-extension-openprompt)
