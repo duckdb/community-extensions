@@ -1,20 +1,21 @@
 extension:
   name: chsql
   description: ClickHouse SQL Macros for DuckDB
-  version: 1.0.5
+  version: 1.0.6
   language: SQL & C++
   build: cmake
   license: MIT
   maintainers:
     - lmangani
+    - akvlad
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-sql
-  ref: a000d4f2a5f9e1c13cddcd75ea2d3351466f1706
+  ref: 9ab2e8118dbb9e429fa8d2a9026ad019f5bf7706
 
 docs:
   hello_world: |
-    -- Use ClickHouse SQL function macros in DuckDB SQL queries
+    -- Use boring ClickHouse SQL function macros in DuckDB SQL queries. Examples:
     SELECT toString('world') AS hello, toInt8OrZero('world') AS zero;
 
     ┌─────────┬───────┐
@@ -32,8 +33,8 @@ docs:
     │ 10.0.0.1                   │                   167772161 │
     └────────────────────────────┴─────────────────────────────┘
 
-    -- Query a remote ClickHouse instance via HTTP/S API
-    SELECT * FROM ch_scan("SELECT number * 100 FROM numbers(3)","https://play.clickhouse.com");
+    -- Query a remote ClickHouse instance via HTTP/S API using multiple formats
+    SELECT * FROM ch_scan("SELECT number * 100 FROM numbers(3)","https://play.clickhouse.com", format := 'Parquet');
     ┌───────────────────────┐
     │ multiply(number, 100) │
     │        varchar        │
