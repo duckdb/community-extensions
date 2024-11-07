@@ -1,0 +1,3 @@
+function,description,comment,example
+read_gsheet,"Read a single sheet directly from a Google Sheet via the sheet URL, or spreadsheet ID.",,"SELECT * FROM read_gsheet('https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=644613997#gid=644613997');"
+"COPY TO","Write data from a table to a Google Sheet via the sheet URL, or spreadsheet ID.",,"COPY <table_name> TO 'https://docs.google.com/spreadsheets/d/11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8/edit?gid=1295634987#gid=1295634987' (FORMAT gsheet);"
