@@ -1,0 +1,22 @@
+extension:
+  name: rusty_quack
+  description: Provides a hello world example demo from the Rust-based extension template
+  version: 0.0.1
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools"
+  requires_toolchains: "rust"
+  maintainers:
+    - samansmink
+
+repo:
+  github: duckdb/extension-template-rs
+  ref: 11388561c1bf27535ec81e2f8c3d3d1b590e7bd0
+
+docs:
+  hello_world: |
+    SELECT rusty_quack('world');
+  extended_description: |
+    The quack extension is based on DuckDB's [Rust Extension Template](https://github.com/duckdb/extension-template-rs/), and it's a great starting point to get started building DuckDB extensions in Rust.
+
