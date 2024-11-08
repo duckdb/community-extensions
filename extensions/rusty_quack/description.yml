@@ -6,7 +6,7 @@ extension:
   build: cargo
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools"
-  requires_toolchains: "rust"
+  requires_toolchains: "rust;python3"
   maintainers:
     - samansmink
 
