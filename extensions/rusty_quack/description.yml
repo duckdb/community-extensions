@@ -16,7 +16,7 @@ repo:
 
 docs:
   hello_world: |
-    SELECT rusty_quack('world');
+    FROM rusty_quack('world');
   extended_description: |
     The quack extension is based on DuckDB's [Rust Extension Template](https://github.com/duckdb/extension-template-rs/), and it's a great starting point to get started building DuckDB extensions in Rust.
 
