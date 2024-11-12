@@ -77,16 +77,9 @@ jobs:
           path: duckdb
           fetch-depth: 0
 
-      - name: Checkout DuckDB to version
-        run: |
-          cd duckdb
-          git checkout ${{ inputs.duckdb_version }}
-
       - id: parse-matrices
         run: |
-          mkdir build
-          make output_distribution_matrix | tail -n +2 > build/distribution_matrix.json
-          python3 ${{ inputs.matrix_parse_script }} --input build/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty
+          python3 ${{ inputs.matrix_parse_script }} --input ./duckdb/.github/config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty
           deploy_matrix="`cat deploy_matrix.json`"
           echo deploy_matrix=$deploy_matrix >> $GITHUB_OUTPUT
           echo `cat $GITHUB_OUTPUT`
