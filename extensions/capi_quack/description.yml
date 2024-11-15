@@ -11,8 +11,8 @@ extension:
     - samansmink
 
 repo:
-  github: duckdb/extension-template-rs
-  ref: b2df5c94f8b85443aaa563fd62687ee0bc62a582
+  github: duckdb/extension-template-c
+  ref: 6764e0901a2ac9e907ecb0937ccf1ee878615388
 
 docs:
   extended_description: |
