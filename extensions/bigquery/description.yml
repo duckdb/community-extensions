@@ -1,7 +1,7 @@
 extension:
   name: bigquery
   description: Integrates DuckDB with Google BigQuery, allowing direct querying and management of BigQuery datasets
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: hafenkran/duckdb-bigquery
-  ref: e5cd4a9ac32ce3380559bc63869c442c14e1fb75
+  ref: 5e62c8ec0d6f764aebbc8480ec393cf5c6695917
 
 docs:
   hello_world: |
