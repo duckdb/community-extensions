@@ -6,11 +6,14 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
-  docs:
+  generate_docs:
+    uses: ./.github/workflows/generate_docs.yml
+
+  deploy_docs:
+    needs:
+      - generate_docs
     runs-on: ubuntu-latest
     steps:
-    - uses: ./.github/workflows/generate_docs.yml
-
     - uses: actions/download-artifact@v4
       with:
         name: generated_markdowns
@@ -22,7 +25,7 @@ jobs:
 
     - name: Generate docs
       run: |
-        unzip generated_markdowns
+        unzip generated_md.zip
         cp build/docs/*.md web/community_extensions/extensions/.
         cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
 
@@ -38,11 +41,16 @@ jobs:
       run: bundle install && bundler exec jekyll build --config _config.yml,_config_exclude_archive.yml
 
     - name: Generate docs
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        cd web
+        git config user.email "some-user@some-domain.com"
+        git config user.name "Quack McQuacker"
         git checkout -B update_community_extensions
         git add community_extensions
         git commit -m "[update docs bot] Update community_extensions"
-        git push origin update_community_extensions
+        git push -f --set-upstream origin update_community_extensions
 
     - name: Deploy website
       working-directory: 'web/_site'
