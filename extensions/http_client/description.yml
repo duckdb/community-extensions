@@ -1,26 +1,33 @@
 extension:
   name: http_client
   description: DuckDB HTTP Client Extension
-  version: 0.0.2
+  version: 0.0.4
   language: C++
   build: cmake
   license: MIT
+  excluded_platforms: "windows_amd64_mingw"
   maintainers:
     - lmangani
     - ahuarte47
 
 repo:
   github: quackscience/duckdb-extension-httpclient
-  ref: db0ebb7f8c2688ff7a785b83a387bf782d13afd1
+  ref: d3a3deee6bb4c914b52a627e6ab1da1b563012c9
 
 docs:
   hello_world: |
     -- GET Request Example w/ JSON Parsing
     WITH __input AS (
-    SELECT
-      http_get(
-          'https://httpbin.org/delay/0'
-      ) AS res
+      SELECT
+        http_get(
+            'https://httpbin.org/delay/0',
+            headers => MAP {
+              'accept': 'application/json',
+            },
+            params => MAP {
+              'limit': 1
+            }
+        ) AS res
     ),
     __response AS (
       SELECT
@@ -33,7 +40,7 @@ docs:
     SELECT
       __response.status,
       __response.reason,
-      __response.Host AS host,
+      __response.Host AS host
     FROM
       __response
     ;
@@ -53,6 +60,7 @@ docs:
             'accept': 'application/json',
           },
           params => MAP {
+            'limit': 1
           }
       ) AS res
     ),
