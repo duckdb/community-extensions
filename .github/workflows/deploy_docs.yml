@@ -22,6 +22,7 @@ jobs:
       with:
         repository: 'duckdb/duckdb-web'
         path: 'web'
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Generate docs
       run: |
