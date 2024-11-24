@@ -7,11 +7,11 @@ extension:
   license: MIT
   maintainers:
     - lmangani
-  excluded_platforms: 'windows_amd64_mingw;windows_amd64;windows_amd64_rtools;osx_amd64;osx_arm64;wasm_threads;wasm_eh;wasm_mvp;'
+  excluded_platforms: 'linux_arm64;windows_amd64_mingw;windows_amd64;windows_amd64_rtools;osx_amd64;osx_arm64;wasm_threads;wasm_eh;wasm_mvp;'
 
 repo:
   github: quackscience/duckdb-extension-wvlet
-  ref: 17278ce6db0e1d2a4dc9745e6841918c26673858
+  ref: 259b313fa7240acdf5b6600cf46d7924f353ff3f
 
 docs:
   hello_world: |
