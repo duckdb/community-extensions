@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-wvlet
-  ref: 175118aade0f3ed5783259aa63232e2f180f8bfe
+  ref: 17278ce6db0e1d2a4dc9745e6841918c26673858
 
 docs:
   hello_world: |
@@ -42,5 +42,5 @@ docs:
     └───────┴───────┘
     
   extended_description: |
-    Wvlet: Cross-SQL flow-style query language for functional data modeling and interactive data analysis
-    https://github.com/wvlet/wvlet
+    -- Wvlet: Cross-SQL flow-style query language for functional data modeling and interactive data analysis
+    -- https://github.com/wvlet/wvlet
