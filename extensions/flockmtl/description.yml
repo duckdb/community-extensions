@@ -11,7 +11,7 @@ extension:
     - queryproc
 
 repo:
-  github: dsg-polymtl/duckdb-flockmtl
+  github: dsg-polymtl/flockmtl-duckdb
   ref: 1bd8ac0f54f8bf4c7da1c3793b88e73daa127653
 
 docs:

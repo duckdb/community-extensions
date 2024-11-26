@@ -1,0 +1,19 @@
+extension:
+  name: capi_quack
+  description: Provides a hello world example demo from the C/C++ C API template
+  version: 0.0.1
+  language: C/C++
+  build: CMake
+  license: MIT
+  requires_toolchains: "python3"
+  maintainers:
+    - samansmink
+
+repo:
+  github: duckdb/extension-template-c
+  ref: 6764e0901a2ac9e907ecb0937ccf1ee878615388
+
+docs:
+  extended_description: |
+    The capi_quack extension is based on DuckDB's [C/C++ C API template](https://github.com/duckdb/extension-template-c/).
+
