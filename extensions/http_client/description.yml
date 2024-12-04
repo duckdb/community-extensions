@@ -1,7 +1,7 @@
 extension:
   name: http_client
   description: DuckDB HTTP Client Extension
-  version: 0.0.4
+  version: 0.0.5
   language: C++
   build: cmake
   license: MIT
@@ -9,10 +9,11 @@ extension:
   maintainers:
     - lmangani
     - ahuarte47
+    
 
 repo:
   github: quackscience/duckdb-extension-httpclient
-  ref: d3a3deee6bb4c914b52a627e6ab1da1b563012c9
+  ref: 4790bc7255e18dfb4db1a383214ff49c0719919b
 
 docs:
   hello_world: |

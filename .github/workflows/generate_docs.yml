@@ -9,6 +9,9 @@ on:
       extension_name:
         type: string
 
+env:
+  GH_TOKEN: ${{ github.token }}
+
 jobs:
   docs:
     runs-on: ubuntu-latest
