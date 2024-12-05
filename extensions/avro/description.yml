@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: hannes/duckdb_avro
-  ref: ead66c7fc04b5fc9d9cc35a896eec87211c55302
+  ref: 48d1fa9ddbc5f80f77a534550c87b57a86a88504
 
 docs:
   hello_world: |
