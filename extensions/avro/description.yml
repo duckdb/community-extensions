@@ -1,0 +1,20 @@
+extension:
+  name: avro
+  description: Read Apache Avro (TM) files form DuckDB
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - hannes
+
+repo:
+  github: hannes/duckdb_avro
+  ref: ead66c7fc04b5fc9d9cc35a896eec87211c55302
+
+docs:
+  hello_world: |
+    FROM read_avro('some_file.avro');
+  extended_description: |
+    This extension provides a scan function for Apache Avro files.
+    For more information and information regarding usage, limitations and performance, see the [README](https://github.com/hannes/duckdb_avro).
