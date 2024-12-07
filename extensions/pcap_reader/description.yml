@@ -1,7 +1,7 @@
 extension:
   name: pcap_reader
   description: Read PCAP files from DuckDB
-  version: 0.0.1
+  version: 0.0.2
   language: Rust
   build: cmake
   license: MIT
@@ -13,11 +13,11 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-pcap
-  ref: 658db756b32a434a144ef3521872bc5727a5f996
+  ref: 254f94f7cf1e3ca512f751abbabb4c3e3ce02161
 
 docs:
   hello_world: |
-    -- Basic PCAP reader
+    -- Basic PCAP reader for local or remote files
     D SELECT * FROM pcap_reader('test.pcap') LIMIT 3;
     ┌────────────┬────────────────┬────────────────┬──────────┬──────────┬──────────┬─────────┬───────────────────────────────────────────┐
     │ timestamp  │     src_ip     │     dst_ip     │ src_port │ dst_port │ protocol │ length  │                 payload                   │
