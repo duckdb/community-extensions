@@ -2,10 +2,11 @@ extension:
   name: pcap_reader
   description: Read PCAP files from DuckDB
   version: 0.0.1
-  language: C++
+  language: Rust
   build: cmake
   license: MIT
-  exclude_platforms: 'windows_amd64_rtools;windows_amd64'
+  excluded_platforms: "windows_amd64_rtools;windows_amd64"
+  requires_toolchains: "rust;python3"
   maintainers:
     - lmangani
     - glongo
