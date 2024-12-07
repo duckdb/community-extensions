@@ -1,0 +1,32 @@
+extension:
+  name: pcap_reader
+  description: Read PCAP files from DuckDB
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lmangani
+    - glongo
+
+repo:
+  github: quackscience/duckdb-extension-pcap
+  ref: 658db756b32a434a144ef3521872bc5727a5f996
+
+docs:
+  hello_world: |
+    -- Basic PCAP reader
+    D SELECT * FROM pcap_reader('test.pcap') LIMIT 3;
+    ┌────────────┬────────────────┬────────────────┬──────────┬──────────┬──────────┬─────────┬───────────────────────────────────────────┐
+    │ timestamp  │     src_ip     │     dst_ip     │ src_port │ dst_port │ protocol │ length  │                 payload                   │
+    │  varchar   │    varchar     │    varchar     │ varchar  │ varchar  │ varchar  │ varchar │                 varchar                   │
+    ├────────────┼────────────────┼────────────────┼──────────┼──────────┼──────────┼─────────┼───────────────────────────────────────────┤
+    │ 1733513420 │ xx.xx.xx.xxx   │ yyy.yyy.yy.yyy │ 64078    │ 5080     │ UDP      │ 756     │ INVITE sip:810442837619024@yyy.yyy.yy.y…  │
+    │ 1733513420 │ yyy.yyy.yy.yyy │ xx.xx.xx.xxx   │ 5080     │ 64078    │ UDP      │ 360     │ SIP/2.0 100 Trying\r\nVia: SIP/2.0/UDP …  │
+    │ 1733513420 │ yyy.yyy.yy.yyy │ xx.xx.xx.xxx   │ 5080     │ 64078    │ UDP      │ 909     │ SIP/2.0 480 Temporarily Unavailable\r\n…  │
+    ├────────────┴────────────────┴────────────────┴──────────┴──────────┴──────────┴─────────┴───────────────────────────────────────────┤
+    │ 3 rows                                                                                                                    8 columns │
+    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  extended_description: |
+    The PCAP Reader Extension is experimental, use at your own risk!
