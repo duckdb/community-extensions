@@ -5,6 +5,7 @@ extension:
   language: C++
   build: cmake
   license: MIT
+  exclude_platforms: 'windows_amd64_rtools;windows_amd64'
   maintainers:
     - lmangani
     - glongo
