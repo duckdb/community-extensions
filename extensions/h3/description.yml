@@ -7,10 +7,11 @@ extension:
   license: Apache-2.0
   maintainers:
     - isaacbrodsky
+  excluded_platforms: "windows_amd64_rtools"
 
 repo:
   github: isaacbrodsky/h3-duckdb
-  ref: 8b1cf401ba2101bfd6560862015a022b05824d60
+  ref: 444cb06e428976ed9b9e9e133e6effac2870a66d
 
 docs:
   hello_world: |
