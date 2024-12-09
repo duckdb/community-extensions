@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: carlopi/duckdb_magic
-  ref: 134b696cb04e2d9cc106dccf2301e415442a1524
+  ref: 63f6e5f30220a3a65cfe168099c3fdbd2d5af4bd
 
 docs:
   hello_world: |
