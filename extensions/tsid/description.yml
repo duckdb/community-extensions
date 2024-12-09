@@ -1,0 +1,52 @@
+extension:
+  name: tsid
+  description: DuckDB Time-Sortable ID generator
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lmangani
+
+repo:
+  github: quackscience/duckdb-extension-tsid
+  ref: 42203135d324143cc3e5d69def36d89b4370ae06
+
+docs:
+  hello_world: |
+    -- Generate a new time-sortable ID (accepts an optional seed string)
+    D SELECT tsid();
+    ┌──────────────────────────────────┐
+    │              tsid()              │
+    │             varchar              │
+    ├──────────────────────────────────┤
+    │ 675716e86985495e9cf575f0b9c4a8db │
+    └──────────────────────────────────┘
+    
+    -- Extract timestamp from a TSID
+    D SELECT tsid_to_timestamp('675716e86985495e9cf575f0b9c4a8db');
+    ┌───────────────────────────────────────────────────────┐
+    │ tsid_to_timestamp('675716e86985495e9cf575f0b9c4a8db') │
+    │                       timestamp                       │
+    ├───────────────────────────────────────────────────────┤
+    │ 2024-12-09 16:12:24.44259                             │
+    └───────────────────────────────────────────────────────┘
+    
+    -- Verify TSID ordering
+    D SELECT 
+          a.id as id1,
+          b.id as id2,
+          tsid_to_timestamp(a.id) as ts1,
+          tsid_to_timestamp(b.id) as ts2
+      FROM 
+          (SELECT tsid('a') as id FROM range(1)) a,
+          (SELECT tsid('b') as id FROM range(1)) b;
+    ┌──────────────────────────────────┬──────────────────────────────────┬────────────────────────────┬────────────────────────────┐
+    │               id1                │               id2                │            ts1             │            ts2             │
+    │             varchar              │             varchar              │         timestamp          │         timestamp          │
+    ├──────────────────────────────────┼──────────────────────────────────┼────────────────────────────┼────────────────────────────┤
+    │ 6757176b9d4640b299be06ff79ed1373 │ 6757176b9d704dcf8a1dce8bb6da51bf │ 2024-12-09 16:14:35.659653 │ 2024-12-09 16:14:35.660354 │
+    └──────────────────────────────────┴──────────────────────────────────┴────────────────────────────┴────────────────────────────┘
+
+extended_description: |
+    The TSID Extension is experimental, use at your own risk!
