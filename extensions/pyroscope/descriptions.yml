@@ -5,7 +5,7 @@ extension:
   language: Rust
   build: cmake
   license: MIT
-  excluded_platforms: "windows_amd64_rtools;windows_amd64;wasm_threads;wasm_eh;wasm_mvp;"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
   requires_toolchains: "rust;python3"
   maintainers:
     - lmangani
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-pyroscope
-  ref: 0b75facf3e7499de37445a7e72efad2d2c96c663
+  ref: 5b727e408b78cd725e6312f1bb8fd2aa84e7f8f8
 
 docs:
   hello_world: |
