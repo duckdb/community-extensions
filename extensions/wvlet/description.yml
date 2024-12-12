@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-wvlet
-  ref: a57b9af887dacfa3d83e5908d5676cc2ba512808
+  ref: 9abc0451f90daf2a98e27e15dbc4c4849a155145
 
 docs:
   hello_world: |
