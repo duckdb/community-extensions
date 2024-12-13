@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-webmacro
-  ref: 2430526cb83249452cb4f9ea749d058152ba59c5
+  ref: ee5657962c2b776ebeaf8c6993fb04151c854c48
 
 docs:
   hello_world: |
@@ -19,7 +19,7 @@ docs:
 
     -- Load your remote macro onto your system using the gist url
     
-    D SELECT load_macro_from_url('https://gist.github.com/lmangani/518215a68e674ac662537d518799b893/raw/5f305480fdd7468f4ecda3686011bab8e8e711bf/bsky.sql') as res;
+    D SELECT load_macro_from_url('https://gist.githubusercontent.com/lmangani/518215a68e674ac662537d518799b893/raw/5f305480fdd7468f4ecda3686011bab8e8e711bf/bsky.sql') as res;
     ┌─────────────────────────────────────────┐
     │                   res                   │
     │                 varchar                 │
