@@ -1,7 +1,7 @@
 extension:
   name: flockmtl
-  description: DuckDB LLM Extension
-  version: 0.1.0
+  description: DuckDB LLM & RAG Extension
+  version: 0.2.0
   language: SQL & C++
   build: cmake
   license: MIT
@@ -11,15 +11,18 @@ extension:
     - queryproc
 
 repo:
-  github: dsg-polymtl/flockmtl-duckdb
-  ref: 1bd8ac0f54f8bf4c7da1c3793b88e73daa127653
+  github: dsg-polymtl/flockmtl
+  ref: b92ae14879322e50196fb14207be936c557b6552
 
 docs:
   hello_world: |
-    -- After loading, any function call will throw an error if an OPENAI_API_KEY environment variable is not set
+    -- After loading, any function call will throw an error if the provider's secret doesn't exist
+
+    -- Create your provider secret by following the [documentation](https://dsg-polymtl.github.io/flockmtl/docs/supported-providers). For example, you can create a default OpenAI API key as follows:
+    D CREATE SECRET (TYPE OPENAI, API_KEY 'your-api-key');
 
     -- Call an OpenAI model with a predefined prompt ('Tell me hello world') and default model ('gpt-4o-mini')
-    D SELECT llm_complete('hello-world', 'default');
+    D SELECT llm_complete({'model_name': 'default'}, {'prompt_name': 'hello-world'});
     ┌──────────────────────────────────────────┐
     │ llm_complete(hello_world, default_model) │
     │                 varchar                  │
@@ -35,10 +38,10 @@ docs:
     D CREATE PROMPT('summarize', 'summarize the text into 1 word: {{text}}');
 
     -- Create a variable name for the model to do the summarizing
-    D CREATE MODEL('summarizer-model', 'gpt-4o', 128000);
+    D CREATE MODEL('summarizer-model', 'gpt-4o', {'context_window': 128000, 'max_output_tokens': 16400);
 
     -- Summarize text and pass it as parameter 
-    D SELECT llm_complete('summarize', 'summarizer-model', {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
+    D SELECT llm_complete({'model_name': 'summarize'}, {'prompt_name': 'summarizer-model'}, {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
 
   extended_description: |
     This extension is experimental and potentially unstable. Do not use it in production.

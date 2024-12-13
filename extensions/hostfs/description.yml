@@ -1,7 +1,7 @@
 extension:
   name: hostfs
   description: Navigate and explore the filesystem using SQL
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: gropaul/hostFS
-  ref: 1aa25bee5eb7b95f6d46504ed72336f90468588a
+  ref: 422dccbdbf5de509e03111ea78afe5f1c35fdde6
 
 docs:
   hello_world: |
