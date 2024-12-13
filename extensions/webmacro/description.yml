@@ -1,16 +1,17 @@
 extension:
   name: webmacro
   description: Load DuckDB Macros from the web
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - lmangani
+    - carlopi
 
 repo:
   github: quackscience/duckdb-extension-webmacro
-  ref: eec600cbbd313453f79c8b271bfe8f576aa851f6
+  ref: 2430526cb83249452cb4f9ea749d058152ba59c5
 
 docs:
   hello_world: |
