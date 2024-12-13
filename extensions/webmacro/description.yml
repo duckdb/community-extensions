@@ -7,7 +7,6 @@ extension:
   license: MIT
   maintainers:
     - lmangani
-    - carlopi
 
 repo:
   github: quackscience/duckdb-extension-webmacro
