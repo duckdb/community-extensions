@@ -1,6 +1,6 @@
 extension:
   name: flockmtl
-  description: DuckDB LLM & RAG Extension
+  description: DuckDB LLM & RAG Extension [(Docs)](https://dsg-polymtl.github.io/flockmtl/docs).
   version: 0.2.0
   language: SQL & C++
   build: cmake
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dsg-polymtl/flockmtl
-  ref: b92ae14879322e50196fb14207be936c557b6552
+  ref: ad676dea98da7a6692438b0242703711474ca78b
 
 docs:
   hello_world: |
@@ -41,7 +41,7 @@ docs:
     D CREATE MODEL('summarizer-model', 'gpt-4o', {'context_window': 128000, 'max_output_tokens': 16400);
 
     -- Summarize text and pass it as parameter 
-    D SELECT llm_complete({'model_name': 'summarize'}, {'prompt_name': 'summarizer-model'}, {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
+    D SELECT llm_complete({'model_name': 'summarizer-model'}, {'prompt_name': 'summarize'}, {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
 
   extended_description: |
     This extension is experimental and potentially unstable. Do not use it in production.
