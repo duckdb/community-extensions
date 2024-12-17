@@ -19,4 +19,4 @@ docs:
     FROM read_avro('some_file.avro');
   extended_description: |
     This extension provides a scan function for Apache Avro files.
-    For more information and information regarding usage, limitations and performance, see the [README](https://github.com/hannes/duckdb_avro).
+    For more information and information regarding usage, limitations and performance, see the [README](https://github.com/hannes/duckdb_avro) and the [announcement blog post](https://duckdb.org/2024/12/09/duckdb-avro-extension).
