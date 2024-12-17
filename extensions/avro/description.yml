@@ -1,6 +1,6 @@
 extension:
   name: avro
-  description: Read Apache Avro (TM) files form DuckDB
+  description: Read Apache Avro (TM) files from DuckDB
   version: 1.0.0
   language: C++
   build: cmake
