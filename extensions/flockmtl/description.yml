@@ -1,6 +1,6 @@
 extension:
   name: flockmtl
-  description: DuckDB LLM & RAG Extension. Docs: https://dsg-polymtl.github.io/flockmtl/docs
+  description: LLM & RAG extension to combine analytics and semantic analysis
   version: 0.2.2
   language: SQL & C++
   build: cmake
