@@ -70,10 +70,12 @@ jobs:
           fetch-depth: 0
           submodules: 'true'
 
-      - name: Checkout DuckDB to version
-        run: |
-          cd duckdb
-          git checkout ${{ inputs.duckdb_version }}
+      - uses: actions/checkout@v3
+        with:
+          repository: 'duckdb/duckdb'
+          ref: ${{ inputs.duckdb_version }}
+          path: duckdb
+          fetch-depth: 0
 
       - id: parse-matrices
         run: |
@@ -105,7 +107,7 @@ jobs:
           path: duckdb
           fetch-depth: 0
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}${{startsWith(matrix.duckdb, 'wasm') && '.wasm' || ''}}
           path: |

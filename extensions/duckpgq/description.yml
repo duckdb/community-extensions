@@ -1,7 +1,7 @@
 extension:
   name: duckpgq
   description: Extension that adds support for SQL/PGQ and graph algorithms
-  version: 0.0.4
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cwida/duckpgq-extension
-  ref: 3cfaaf3f16532c45aef9e939d9098a355815da09
+  ref: fb38a09818121021c268b4328f9fb82500f233d0
 
 docs:
   hello_world: |
@@ -21,11 +21,11 @@ docs:
       VERTEX TABLES (
         Person
       )
-    EDGE TABLES (
-      Person_knows_person 	SOURCE KEY (Person1Id) REFERENCES Person (id)
+      EDGE TABLES (
+        Person_knows_person SOURCE KEY (Person1Id) REFERENCES Person (id)
                             DESTINATION KEY (Person2Id) REFERENCES Person (id)
-      LABEL knows
-    );
+        LABEL knows
+      );
 
     FROM GRAPH_TABLE (snb
       MATCH (a:Person)-[k:knows]->(b:Person)
@@ -51,4 +51,4 @@ docs:
     For more information, please see the [DuckPGQ documentation](https://www.notion.so/duckpgq/b8ac652667964f958bfada1c3e53f1bb?v=3b47a8d44bdf4e0c8b503bf23f1b76f2).
     
 
-    *Disclaimer*: As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.
+    *Disclaimer:* As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.

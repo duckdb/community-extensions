@@ -9,6 +9,4 @@ duckdb = sys.argv[2]
 with open(desc_file, 'r') as stream:
 	desc = yaml.safe_load(stream)
 
-subprocess.run([duckdb, "-c", "COPY (SELECT ' ') TO 'build/stars.csv' (HEADER FALSE);"])
-subprocess.run([duckdb, "-c", "COPY (SELECT stargazers_count FROM read_json('https://api.github.com/repos/" + desc['repo']['github'] + "')) TO 'build/stars.csv' (HEADER FALSE);"])
-subprocess.run(["cat", "build/stars.csv"])
+subprocess.run(["gh", "api", "https://api.github.com/repos/" + desc['repo']['github'], "--jq=.stargazers_count"])

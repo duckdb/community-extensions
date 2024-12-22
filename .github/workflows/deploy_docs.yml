@@ -6,44 +6,41 @@ on:
     - cron: "0 */6 * * *"
 
 jobs:
-  docs:
+  generate_docs:
+    uses: ./.github/workflows/generate_docs.yml
+
+  deploy_docs:
+    needs:
+      - generate_docs
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/download-artifact@v4
+      with:
+        name: generated_markdowns
 
     - uses: actions/checkout@v4
       with:
         repository: 'duckdb/duckdb-web'
-        ref: 'community-extension'
         path: 'web'
-
-    - name: Set up DuckDB
-      run: |
-        wget https://github.com/duckdb/duckdb/releases/download/v1.1.2/duckdb_cli-linux-amd64.zip
-        unzip duckdb_cli-linux-amd64.zip
-        chmod +x duckdb
-
-    - name: Fetch extensions
-      run: |
-        ./scripts/fetch_extensions.sh ./duckdb
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Generate docs
       run: |
-        ./scripts/generate_md.sh ./duckdb
-        cp build/docs/*.md web/extensions/.
-        cp build/docs/community_extensions.csv web/extensions/community_extensions.csv
-        cat build/docs/extensions_list.md.tmp >> web/list_of_extensions.md
+        unzip generated_md.zip
+        cp build/docs/*.md web/community_extensions/extensions/.
+        cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
 
-    - name: Setup Ruby
-      uses: ruby/setup-ruby@v1
-      with:
-         ruby-version: '3.3' # Not needed with a .ruby-version file
-         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-         cache-version: 0 # Increment this number if you need to re-download cached gems
-
-    - name: Build with Jekyll
-      working-directory: 'web'
-      run: bundle install && bundler exec jekyll build --config _config.yml,_config_exclude_archive.yml
+    - name: Upload to duckdb/duckdb-web
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cd web
+        git config user.email "some-user@some-domain.com"
+        git config user.name "Quack McQuacker"
+        git checkout -B update_community_extensions
+        git add community_extensions
+        git commit -m "[update docs bot] Update community_extensions"
+        git push -f --set-upstream origin update_community_extensions
 
     - name: Deploy website
       working-directory: 'web/_site'
@@ -52,10 +49,5 @@ jobs:
         AWS_SECRET_ACCESS_KEY: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_SECRET }}
         AWS_DEFAULT_REGION: ${{ secrets.S3_DUCKDB_ORG_REGION }}
       run: |
-        aws s3 cp --recursive extensions/ s3://duckdb-community-extensions/extensions --acl public-read
-        aws s3 cp index.html s3://duckdb-community-extensions/ --acl public-read
-        aws s3 cp core_extensions.html s3://duckdb-community-extensions/ --acl public-read
-        aws s3 cp development.html s3://duckdb-community-extensions/ --acl public-read
-        aws s3 cp documentation.html s3://duckdb-community-extensions/ --acl public-read
-        aws s3 cp faq.html s3://duckdb-community-extensions/ --acl public-read
-        aws s3 cp list_of_extensions.html s3://duckdb-community-extensions/ --acl public-read
+        aws s3 cp build/docs/community_extensions.csv s3://duckdb-community-extensions/extensions/community_extensions.csv --acl public-read
+        aws s3 cp build/docs/community_extensions.csv s3://duckdb-community-extensions/extensions/list.csv --acl public-read

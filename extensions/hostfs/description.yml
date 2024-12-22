@@ -1,0 +1,53 @@
+extension:
+  name: hostfs
+  description: Navigate and explore the filesystem using SQL
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Gropaul
+
+repo:
+  github: gropaul/hostFS
+  ref: 422dccbdbf5de509e03111ea78afe5f1c35fdde6
+
+docs:
+  hello_world: |
+    -- Navigate to the workspace and list the files
+    D PRAGMA cd('/Users/paul/workspace');
+    D PRAGMA ls;
+    ┌───────────────────────────────┐
+    │             path              │
+    │            varchar            │
+    ├───────────────────────────────┤
+    │ ./duckdb                      │
+    │ ./playground                  │
+    │ ./hostfs                      │
+    -- Find the files you were working on last
+    D SELECT path, file_last_modified(path) AS date FROM ls() WHERE 'csv' IN file_extension(path) ORDER BY date LIMIT 1 ;
+    ┌───────────────────────────┬─────────────────────┐
+    │           path            │        date         │
+    │          varchar          │      timestamp      │
+    ├───────────────────────────┼─────────────────────┤
+    │ ./sketch_results_join.csv │ 2024-07-13 23:25:48 │
+    └───────────────────────────┴─────────────────────┘
+    -- List the top 3 file types by total size, with file count, ordered by size.
+    D SELECT size, count, file_extension AS "type"
+    FROM (
+    SELECT SUM(file_size(path)) AS size_raw, format_bytes(size_raw) AS size, COUNT(*) AS count, file_extension(path) AS file_extension
+    FROM lsr('/Users/paul/workspace', 10)
+    GROUP BY file_extension(path)
+    ) AS subquery
+    ORDER BY size_raw DESC LIMIT 3;
+    ┌───────────┬───────┬─────────┐
+    │   size    │ count │  type   │
+    │  varchar  │ int64 │ varchar │
+    ├───────────┼───────┼─────────┤
+    │ 246.95 GB │    29 │ .duckdb │
+    │ 90.33 GB  │  3776 │ .tmp    │
+    │ 26.17 GB  │ 28175 │ .csv    │
+    └───────────┴───────┴─────────┘
+  extended_description: >
+    The HostFS extension allows you to navigate and explore the filesystem using SQL. It provides a set of functions to list files, get file metadata, and more. 
+    For more information, please see the [HostFS documentation](https://github.com/gropaul/hostFS).
