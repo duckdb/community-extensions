@@ -1,0 +1,62 @@
+extension:
+  name: chsql_native
+  description: ClickHouse Native File reader for chsql
+  version: 0.0.1
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - lmangani
+    - adubovikov
+
+repo:
+  github: quackscience/duckdb-extension-clickhouse-native
+  ref: 0116eb462ec85fa000f1cb15a3b0ee6165711b78
+
+docs:
+  hello_world: |
+    --- This experimental rust extension allows reading ClickHouse Native files with DuckDB
+    --- Test files can be generated with clickhouse-local. See README for full examples.
+    
+    --- Simple Example
+    D SELECT * FROM clickhouse_native('/tmp/numbers.clickhouse');
+    ┌──────────────┬─────────┐
+    │  version()   │ number  │
+    │   varchar    │  int32  │
+    ├──────────────┼─────────┤
+    │ 24.12.1.1273 │ 0       │
+    └──────────────┴─────────┘
+    
+    --- Long Example
+    D SELECT count(*), max(number) FROM clickhouse_native('/tmp/100000.clickhouse');
+    ┌──────────────┬─────────────┐
+    │ count_star() │ max(number) │
+    │    int64     │    int32    │
+    ├──────────────┼─────────────┤
+    │       100000 │       99999 │
+    └──────────────┴─────────────┘
+    
+    --- Wide Example
+    D SELECT * FROM clickhouse_native('/tmp/functions.clickhouse') WHERE alias_to != '' LIMIT 10;
+    ┌────────────────────┬──────────────┬──────────────────┬──────────────────────┬──────────────┬─────────┬───┬─────────┬───────────┬────────────────┬──────────┬────────────┐
+    │        name        │ is_aggregate │ case_insensitive │       alias_to       │ create_query │ origin  │ … │ syntax  │ arguments │ returned_value │ examples │ categories │
+    │      varchar       │    int32     │      int32       │       varchar        │   varchar    │ varchar │   │ varchar │  varchar  │    varchar     │ varchar  │  varchar   │
+    ├────────────────────┼──────────────┼──────────────────┼──────────────────────┼──────────────┼─────────┼───┼─────────┼───────────┼────────────────┼──────────┼────────────┤
+    │ connection_id      │            0 │                1 │ connectionID         │              │ System  │ … │         │           │                │          │            │
+    │ rand32             │            0 │                0 │ rand                 │              │ System  │ … │         │           │                │          │            │
+    │ INET6_ATON         │            0 │                1 │ IPv6StringToNum      │              │ System  │ … │         │           │                │          │            │
+    │ INET_ATON          │            0 │                1 │ IPv4StringToNum      │              │ System  │ … │         │           │                │          │            │
+    │ truncate           │            0 │                1 │ trunc                │              │ System  │ … │         │           │                │          │            │
+    │ ceiling            │            0 │                1 │ ceil                 │              │ System  │ … │         │           │                │          │            │
+    │ replace            │            0 │                1 │ replaceAll           │              │ System  │ … │         │           │                │          │            │
+    │ from_utc_timestamp │            0 │                1 │ fromUTCTimestamp     │              │ System  │ … │         │           │                │          │            │
+    │ mapFromString      │            0 │                0 │ extractKeyValuePairs │              │ System  │ … │         │           │                │          │            │
+    │ str_to_map         │            0 │                1 │ extractKeyValuePairs │              │ System  │ … │         │           │                │          │            │
+    ├────────────────────┴──────────────┴──────────────────┴──────────────────────┴──────────────┴─────────┴───┴─────────┴───────────┴────────────────┴──────────┴────────────┤
+    │ 10 rows                                                                                                                                           12 columns (11 shown) │
+    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    
+  extended_description: |
+    This extension is highly experimental and potentially unstable. All reads are full-scans. Do not use in production.

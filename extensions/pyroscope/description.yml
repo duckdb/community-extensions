@@ -1,0 +1,27 @@
+extension:
+  name: pyroscope
+  description: DuckDB Pyroscope Extension for Continuous Profiling
+  version: 0.0.1
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - lmangani
+    - akvlad
+
+repo:
+  github: quackscience/duckdb-extension-pyroscope
+  ref: 5b727e408b78cd725e6312f1bb8fd2aa84e7f8f8
+
+docs:
+  hello_world: |
+    ---- Start the tracer, requires backend URL
+    D SELECT * FROM trace_start('https://pyroscope:4000');
+    
+    ---- Stop the tracer
+    D SELECT * FROM trace_stop();
+    
+  extended_description: |
+    The Pyroscope Extension is experimental, use at your own risk!
