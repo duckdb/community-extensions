@@ -1,0 +1,31 @@
+extension:
+  name: wvlet
+  description: Execute wvlet scripts in DuckDB
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lmangani
+  excluded_platforms: 'windows_amd64_mingw;windows_amd64;windows_amd64_rtools;osx_amd64;osx_arm64;wasm_threads;wasm_eh;wasm_mvp;linux_arm64'
+
+repo:
+  github: quackscience/duckdb-extension-wvlet
+  ref: adbff4f2fb7b8aecf97095692000954c887d751d
+
+docs:
+  hello_world: |
+    -- EXPERIMENTAL: WVLET IS ONLY AVAILABLE FOR LINUX-AMD64
+    -- Execute a wvlet script using the wvlet() table macro;
+    D select * from wvlet('from [[1]] as numbers(a)');
+    -- wvlet version=0.0.0+1-d1d99f7b, src=01JEVTWDECV00NJH6Z93KYQE8J.wv:1
+    select * from (values (1)) as numbers(a)
+    ┌───────┐
+    │   a   │
+    │ int32 │
+    ├───────┤
+    │     1 │
+    └───────┘
+    
+  extended_description: |
+    Wvlet: Cross-SQL flow-style query language for functional data modeling and interactive data analysis
