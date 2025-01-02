@@ -13,16 +13,15 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-native
-  ref: 7d00778fb5f3ba575e33d975faef7f68527d188a
+  ref: f2e3b6d0c327d71e0989f078b7fc6d13dbac52b9
 
 docs:
   hello_world: |
     --- This experimental rust extension implements Native Clickhouse formats for DuckDB.
-    --- Native Binary Client for chsql
-    --- CLICKHOUSE_URL="tcp://localhost:9000"
-    --- CLICKHOUSE_USER="default"
-
-    --- Simple Example
+    --- ClickHouse Native Binary Client for chsql
+    --- export CLICKHOUSE_URL="tcp://localhost:9000"
+    --- export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
+    --- Simple Query Example
     D SELECT * FROM clickhouse_scan("SELECT version(), 'hello', 123");
     ┌────────────┬─────────┬────────┐
     │ version()  │ 'hello' │  123   │
@@ -31,7 +30,7 @@ docs:
     │ 24.10.2.80 │ hello   │    123 │
     └────────────┴─────────┴────────┘
     
-    --- Wide Example
+    --- Wide Query Example
     D SELECT * FROM clickhouse_scan("SELECT * FROM system.functions WHERE alias_to != '' LIMIT 10");
     ┌────────────────────┬──────────────┬──────────────────┬──────────────────────┬───┬───────────┬────────────────┬──────────┬────────────┐
     │        name        │ is_aggregate │ case_insensitive │       alias_to       │ … │ arguments │ returned_value │ examples │ categories │
