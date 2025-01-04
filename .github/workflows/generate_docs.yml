@@ -9,11 +9,16 @@ on:
       extension_name:
         type: string
 
+env:
+  GH_TOKEN: ${{ github.token }}
+
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        repository: 'duckdb/community-extensions'
 
     - name: Set up DuckDB
       run: |
@@ -42,9 +47,10 @@ jobs:
     - name: Generate docs
       run: |
         ./scripts/generate_md.sh ./duckdb
+        zip -r build/generated_md.zip build/docs
 
     - uses: actions/upload-artifact@v4
       with:
         name: generated_markdowns
         path: |
-          build/docs/*
+          build/generated_md.zip
