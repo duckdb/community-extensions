@@ -1,7 +1,7 @@
 extension:
   name: open_prompt
   description: Interact with LLMs with a simple DuckDB Extension
-  version: 0.0.4
+  version: 0.0.5
   language: C++
   build: cmake
   license: MIT
@@ -11,14 +11,19 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-openprompt
-  ref: e7e54de7cfc0bc61599c7ab018399508077202a5
+  ref: c0d634a723cbd30f78d9b7f50431198b4f74c5da
 
 docs:
   hello_world: |
-    -- Configure the required extension parameters
-    SET VARIABLE openprompt_api_url = 'http://localhost:11434/v1/chat/completions';
-    SET VARIABLE openprompt_api_token = 'optional_api_token_here';
-    SET VARIABLE openprompt_model_name = 'qwen2.5:0.5b';
+    -- Configure the required parameters to access OpenAI Completions compatible APIs
+    D CREATE SECRET IF NOT EXISTS open_prompt (
+          TYPE open_prompt,
+          PROVIDER config,
+          api_token 'your-api-token',
+          api_url 'http://localhost:11434/v1/chat/completions',
+          model_name 'qwen2.5:0.5b',
+          api_timeout '30'
+      );
     
     -- Prompt any OpenAI Completions API form your query
     D SELECT open_prompt('Write a one-line poem about ducks') AS response;
@@ -53,5 +58,40 @@ docs:
            "additionalProperties": false
          }');
 
-  extended_description: |      
-    For examples and instructions check out the `open_prompt` [README](https://github.com/quackscience/duckdb-extension-openprompt)
+  extended_description: |
+    ## Open Prompt Extension
+    The `open_prompt()` community extension is shamelessly inspired by the Motherduck `prompt()` but focused on self-hosted usage.
+    
+    > For examples and instructions check out the `open_prompt()` [README](https://github.com/quackscience/duckdb-extension-openprompt)
+
+    ### Configuration
+    Setup the completions API URL configuration w/ optional auth token and model name
+
+    ```
+    SET VARIABLE openprompt_api_url = 'http://localhost:11434/v1/chat/completions';
+    SET VARIABLE openprompt_api_token = 'your_api_key_here';
+    SET VARIABLE openprompt_model_name = 'qwen2.5:0.5b';
+    ```
+    
+    Alternatively the following ENV variables can be used at runtime
+
+    ```
+    OPEN_PROMPT_API_URL='http://localhost:11434/v1/chat/completions'
+    OPEN_PROMPT_API_TOKEN='your_api_key_here'
+    OPEN_PROMPT_MODEL_NAME='qwen2.5:0.5b'
+    OPEN_PROMPT_API_TIMEOUT='30'
+    ```
+    
+    For persistent usage, configure parameters using DuckDB `SECRETS`
+
+    ```sql
+    CREATE PERSISTENT SECRET IF NOT EXISTS open_prompt (
+          TYPE open_prompt,
+          PROVIDER config,
+          api_token 'your-api-token',
+          api_url 'http://localhost:11434/v1/chat/completions',
+          model_name 'qwen2.5:0.5b',
+          api_timeout '30'
+      );
+    ```
+
