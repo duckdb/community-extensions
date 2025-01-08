@@ -5,7 +5,7 @@ extension:
   language: Rust
   build: cmake
   license: MIT
-  excluded_platforms: "windows_amd64_rtools;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
   requires_toolchains: "rust;python3"
   maintainers:
     - lmangani

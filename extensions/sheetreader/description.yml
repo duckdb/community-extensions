@@ -4,7 +4,7 @@ extension:
   version: 0.1.0
   language: C++
   build: cmake
-  excluded_platforms: windows_amd64_rtools
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
   license: MIT
   maintainers:
     - freddie-freeloader
