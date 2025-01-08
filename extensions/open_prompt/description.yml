@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-openprompt
-  ref: c0d634a723cbd30f78d9b7f50431198b4f74c5da
+  ref: 846b35872916cbcd866f992521a108d47393737d
 
 docs:
   hello_world: |
