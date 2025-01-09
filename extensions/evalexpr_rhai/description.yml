@@ -75,7 +75,7 @@ docs:
 extension:
   build: cmake
   description: Evaluate the Rhai scripting language in DuckDB
-  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;windows_amd64
+  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;windows_amd64;linux_amd64_musl
   language: C++
   license: Apache-2.0
   maintainers:
