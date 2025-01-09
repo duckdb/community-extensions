@@ -6,6 +6,7 @@ extension:
   build: cmake
   requires_toolchains: "rust"
   license: MIT
+  excluded_platforms: "linux_amd64_musl"
   maintainers:
     - ywelsch
 
