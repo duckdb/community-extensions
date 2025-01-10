@@ -1,11 +1,11 @@
 extension:
   name: chsql_native
-  description: ClickHouse Native File reader for chsql
-  version: 0.0.1
+  description: ClickHouse Native Client & File Reader for chsql
+  version: 0.0.2
   language: Rust
   build: cmake
   license: MIT
-  excluded_platforms: "windows_amd64_rtools;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
   requires_toolchains: "rust;python3"
   maintainers:
     - lmangani
@@ -13,12 +13,46 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-native
-  ref: 0116eb462ec85fa000f1cb15a3b0ee6165711b78
+  ref: f2e3b6d0c327d71e0989f078b7fc6d13dbac52b9
 
 docs:
   hello_world: |
-    --- This experimental rust extension allows reading ClickHouse Native files with DuckDB
-    --- Test files can be generated with clickhouse-local. See README for full examples.
+    --- This experimental rust extension implements Native Clickhouse formats for DuckDB.
+    --- ClickHouse Native Binary Client for chsql
+    --- export CLICKHOUSE_URL="tcp://localhost:9000"
+    --- export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
+    --- Simple Query Example
+    D SELECT * FROM clickhouse_scan("SELECT version(), 'hello', 123");
+    ┌────────────┬─────────┬────────┐
+    │ version()  │ 'hello' │  123   │
+    │  varchar   │ varchar │ uint32 │
+    ├────────────┼─────────┼────────┤
+    │ 24.10.2.80 │ hello   │    123 │
+    └────────────┴─────────┴────────┘
+    
+    --- Wide Query Example
+    D SELECT * FROM clickhouse_scan("SELECT * FROM system.functions WHERE alias_to != '' LIMIT 10");
+    ┌────────────────────┬──────────────┬──────────────────┬──────────────────────┬───┬───────────┬────────────────┬──────────┬────────────┐
+    │        name        │ is_aggregate │ case_insensitive │       alias_to       │ … │ arguments │ returned_value │ examples │ categories │
+    │      varchar       │    uint32    │      uint32      │       varchar        │   │  varchar  │    varchar     │ varchar  │  varchar   │
+    ├────────────────────┼──────────────┼──────────────────┼──────────────────────┼───┼───────────┼────────────────┼──────────┼────────────┤
+    │ connection_id      │            0 │                1 │ connectionID         │ … │           │                │          │            │
+    │ rand32             │            0 │                0 │ rand                 │ … │           │                │          │            │
+    │ INET6_ATON         │            0 │                1 │ IPv6StringToNum      │ … │           │                │          │            │
+    │ INET_ATON          │            0 │                1 │ IPv4StringToNum      │ … │           │                │          │            │
+    │ truncate           │            0 │                1 │ trunc                │ … │           │                │          │            │
+    │ ceiling            │            0 │                1 │ ceil                 │ … │           │                │          │            │
+    │ replace            │            0 │                1 │ replaceAll           │ … │           │                │          │            │
+    │ from_utc_timestamp │            0 │                1 │ fromUTCTimestamp     │ … │           │                │          │            │
+    │ mapFromString      │            0 │                0 │ extractKeyValuePairs │ … │           │                │          │            │
+    │ str_to_map         │            0 │                1 │ extractKeyValuePairs │ … │           │                │          │            │
+    ├────────────────────┴──────────────┴──────────────────┴──────────────────────┴───┴───────────┴────────────────┴──────────┴────────────┤
+    │ 10 rows                                                                                                         12 columns (8 shown) │
+    └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+    --- Native File Reader for chsql
+    --- Test files can be generated with clickhouse-local. File reads are full-scans.
     
     --- Simple Example
     D SELECT * FROM clickhouse_native('/tmp/numbers.clickhouse');
@@ -59,4 +93,4 @@ docs:
     └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
     
   extended_description: |
-    This extension is highly experimental and potentially unstable. All reads are full-scans. Do not use in production.
+    This extension is highly experimental and potentially unstable. Do not use in production. See README for full examples.
