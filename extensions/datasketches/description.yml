@@ -75,3 +75,4 @@ extension:
 repo:
   github: rustyconover/duckdb-datasketches
   ref: 4568aa6b47fc8a2339f96287d1f165ae41fed982
+  ref_next: 97ece9c4a4f5e2763de98b48f900e57dfafd895b
