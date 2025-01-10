@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-pcap
-  ref: 3e32261f28ea378b6a49136b99ed4ad328b43afb
+  ref: e4901de24a6f3e2d255f852009e1f781d5070944
 
 docs:
   hello_world: |
