@@ -1,17 +1,17 @@
 extension:
   name: gsheets
   description: Read and write Google Sheets using SQL
-  version: 0.0.3
+  version: 0.0.4
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - archiewood
 
 repo:
   github: evidence-dev/duckdb_gsheets
-  ref: 5352ea30499a7f7f2dbfa45faf622906e0130cfb
+  ref: c4a8413fd1d1ca63cbe37db66a7676fe677da456
 
 docs:
   hello_world: |

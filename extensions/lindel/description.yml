@@ -101,6 +101,7 @@ extension:
   description: Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
   language: C++
   license: Apache-2.0
+  excluded_platforms: "linux_amd64_musl"
   maintainers:
   - rustyconover
   name: lindel
