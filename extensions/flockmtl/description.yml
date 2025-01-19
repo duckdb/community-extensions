@@ -1,12 +1,12 @@
 extension:
   name: flockmtl
   description: LLM & RAG extension to combine analytics and semantic analysis
-  version: 0.2.2
+  version: 0.2.3
   language: SQL & C++
   build: cmake
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
-  
+
   maintainers:
     - dorbanianas
     - SunnyYasser
