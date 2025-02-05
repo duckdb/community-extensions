@@ -10,8 +10,7 @@ extension:
 
 repo:
   github: cwida/duckpgq-extension
-  ref: bac137217a27d519fbcb4678f024393dc7027f37
-  ref_next: ef2409adc75c6df67ef3d457abacc06d84cb9740
+  ref: ef2409adc75c6df67ef3d457abacc06d84cb9740
 
 docs:
   hello_world: |
