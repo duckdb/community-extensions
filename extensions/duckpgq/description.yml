@@ -1,7 +1,7 @@
 extension:
   name: duckpgq
   description: Extension that adds support for SQL/PGQ and graph algorithms
-  version: 0.1.0
+  version: 0.2.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cwida/duckpgq-extension
-  ref: 5dcec704050b15b12a7894172089dd4a79ca1435
+  ref: ef2409adc75c6df67ef3d457abacc06d84cb9740
 
 docs:
   hello_world: |
@@ -48,7 +48,7 @@ docs:
     
     
     It introduces visual graph pattern matching and a more concise syntax for path-finding.
-    For more information, please see the [DuckPGQ documentation](https://www.notion.so/duckpgq/b8ac652667964f958bfada1c3e53f1bb?v=3b47a8d44bdf4e0c8b503bf23f1b76f2).
+    For more information, please see the [DuckPGQ documentation](https://duckpgq.org).
     
 
     *Disclaimer:* As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.

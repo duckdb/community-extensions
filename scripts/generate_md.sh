@@ -138,9 +138,6 @@ do
        echo "" >> $EXTENSION_README
     fi
     echo "" >> $EXTENSION_README
-    echo "" >> $EXTENSION_README
-    echo "---" >> $EXTENSION_README
-    echo "" >> $EXTENSION_README
 
     rm -rf $DOCS/$extension
     rm -rf $DOCS/$extension.db
