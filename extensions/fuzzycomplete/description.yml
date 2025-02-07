@@ -171,6 +171,7 @@ extension:
   name: fuzzycomplete
   requires_toolchains: rust
   version: 1.0.0
+  excluded_platforms: "linux_amd64_musl"
 repo:
   github: rustyconover/duckdb-fuzzycomplete-extension
   ref: 39a61c1c39a2b028101ef635fcb04856883ab498
