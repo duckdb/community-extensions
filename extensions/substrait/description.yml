@@ -1,0 +1,23 @@
+extension:
+  name: substrait
+  description: Allows conversion execution of Substrait query plans
+  version: 1.2.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - anshuldata
+    - cgkiran
+    - EpsilonPrime
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
+
+repo:
+  github: substrait-io/duckdb-substrait-extension
+  ref: 52a0db8f14b4000ec031ca65671f7b2057327a57
+
+docs:
+  hello_world: |
+    .mode line
+    CALL get_substrait('SELECT count(exercise) AS exercise FROM crossfit WHERE difficulty_level <= 5');
+  extended_description: |
+    DuckDB has extensive documentation for the [Substrait extension on their website](https://duckdb.org/docs/extensions/substrait.html).
