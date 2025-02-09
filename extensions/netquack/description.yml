@@ -1,0 +1,32 @@
+extension:
+  name: netquack
+  description: DuckDB extension for parsing, extracting, and analyzing domains, URIs, and paths with ease.
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - hatamiarash7
+
+repo:
+  github: hatamiarash7/duckdb-netquack
+  ref: 12285f67779e044f7250afcbfb1fd3b3b1079521
+
+docs:
+  extended_description: |
+    This extension designed to simplify working with domains, URIs, and web paths directly within your database queries. Whether you're extracting top-level domains (TLDs), parsing URI components, or analyzing web paths, Netquack provides a suite of intuitive functions to handle all your network tasks efficiently. Built for data engineers, analysts, and developers.
+
+    With Netquack, you can unlock deeper insights from your web-related datasets without the need for external tools or complex workflows.
+
+    ### Functions
+
+    - `extract_domain`: Extracting The Main Domain From A URL
+    - `extract_path`: Extracting The Path From A URL
+    - `extract_host`: Extracting The Hostname From A URL
+    - `extract_schema`: Extracting The Schema From A URL
+    - `extract_query_string`: Extracting The Query String From A URL
+    - `extract_tld`: Extracting The Top-Level Domain From A URL
+    - `extract_subdomain`: Extracting The Subdomain From A URL
+    - `get_tranco_rank`: Getting The Tranco Rank Of A Domain
+
+    Check the [documentation](https://github.com/hatamiarash7/duckdb-netquack) for more details on each function.
