@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: hatamiarash7/duckdb-netquack
-  ref: 12285f67779e044f7250afcbfb1fd3b3b1079521
+  ref: d7f4bece8a3d1e5e74af9965a701332bb3a0800d
 
 docs:
   extended_description: |
