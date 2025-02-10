@@ -9,7 +9,7 @@ extension:
     - anshuldata
     - cgkiran
     - EpsilonPrime
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64"
 
 repo:
   github: substrait-io/duckdb-substrait-extension
