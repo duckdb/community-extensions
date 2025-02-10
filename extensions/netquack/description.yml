@@ -18,15 +18,4 @@ docs:
 
     With Netquack, you can unlock deeper insights from your web-related datasets without the need for external tools or complex workflows.
 
-    ### Functions
-
-    - `extract_domain`: Extracting The Main Domain From A URL
-    - `extract_path`: Extracting The Path From A URL
-    - `extract_host`: Extracting The Hostname From A URL
-    - `extract_schema`: Extracting The Schema From A URL
-    - `extract_query_string`: Extracting The Query String From A URL
-    - `extract_tld`: Extracting The Top-Level Domain From A URL
-    - `extract_subdomain`: Extracting The Subdomain From A URL
-    - `get_tranco_rank`: Getting The Tranco Rank Of A Domain
-
-    Check the [documentation](https://github.com/hatamiarash7/duckdb-netquack) for more details on each function.
+    Check the [documentation](https://github.com/hatamiarash7/duckdb-netquack) for more details and examples on each function.
