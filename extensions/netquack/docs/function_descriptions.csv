@@ -1,0 +1,11 @@
+function,description,comment,example
+"extract_domain","Extracting the main domain from a URL","","SELECT extract_domain('a.example.com') as domain;"
+"extract_host","Extracting the hostname from a URL","","SELECT extract_host('https://b.a.example.com/path/path') as host;"
+"extract_path","Extracting the path from a URL","","SELECT extract_path('example.com/path/path/image.png') as path;"
+"extract_query_string","Extracting the query string from a URL","","SELECT extract_query_string('example.com?key=value') as query;"
+"extract_schema","Extracting the schema from a URL","","SELECT extract_schema('mailto:someone@example.com') as schema;"
+"extract_subdomain","Extracting the subdomain from a URL","","SELECT extract_subdomain('test.example.com.ac') as dns_record;"
+"extract_tld","Extracting the top-level domain from a URL","","SELECT extract_tld('a.example.com') as tld;"
+"get_tranco_rank","Getting the Tranco rank of a domain","","SELECT get_tranco_rank('cloudflare.com') as rank;"
+"update_suffixes","Update public suffixes","","SELECT update_suffixes();"
+"update_tranco","Update tranco data","","SELECT update_tranco(true);"
