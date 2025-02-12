@@ -5,14 +5,14 @@ extension:
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
   requires_toolchains: "rust;python3"
   maintainers:
     - samansmink
 
 repo:
   github: duckdb/extension-template-rs
-  ref: f36762f8703f8db63d206c6376b0793f51c6c864
+  ref: 9ce399c26a57e3fbb6d10020dbb56552a7459f58
 
 docs:
   hello_world: |
