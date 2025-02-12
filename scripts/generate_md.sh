@@ -7,10 +7,11 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+DUCKDB_BINARY="$1 -init /dev/null"
 curl -s https://community-extensions.duckdb.org/downloads-last-week.json -o build/downloads-last-week.json
 
-platform=$($1 -csv -c "PRAGMA platform" | tail -n1)
-version_raw=$($1 -csv -c "PRAGMA version" | tail -n1)
+platform=$($DUCKDB_BINARY -csv -c "PRAGMA platform" | tail -n1)
+version_raw=$($DUCKDB_BINARY -csv -c "PRAGMA version" | tail -n1)
 version=$(echo "$version_raw-,$version_raw" | cut -d '-' -f 2 | cut -d ',' -f 2)
 
 DOCS=build/docs
@@ -31,35 +32,35 @@ do
     rm -f pre.db
     rm -f post.db
     for thing in $things; do
-        $1 -unsigned pre.db -c "SET extension_directory = 'build/extensions'; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
+        $DUCKDB_BINARY -unsigned pre.db -c "SET extension_directory = 'build/extensions'; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
         rm -rf temp
-        $1 -unsigned post.db -c "SET extension_directory = 'build/extensions'; FORCE INSTALL $extension FROM 'build/extension_dir'; LOAD $extension; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
+        $DUCKDB_BINARY -unsigned post.db -c "SET extension_directory = 'build/extensions'; FORCE INSTALL $extension FROM 'build/extension_dir'; LOAD $extension; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
         rm -rf temp
     done
 
     mkdir -p $DOCS/$extension
     mkdir -p $DOCS/../screenshot
     
-    $1 post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_no_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, examples FROM (FROM (SELECT function_name, function_type, description, comment, examples FROM functions ORDER BY function_name, function_type) EXCEPT (SELECT function_name, function_type, description, comment, examples FROM pre.functions ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
-    $1 post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_with_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, examples FROM (FROM ( SELECT count(*), function_name, function_type, description, comment, examples FROM functions GROUP BY ALL ORDER BY function_name, function_type) EXCEPT (SELECT count(*), function_name, function_type, description, comment, examples FROM pre.functions GROUP BY ALL ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
-    $1 $DOCS/$extension.db -c "ATTACH 'post.db'; CREATE OR REPLACE TABLE functions AS FROM post.fun_no_overload GROUP BY ALL ORDER BY function_name, function_type;"
-    $1 $DOCS/$extension.db -c "ATTACH 'post.db'; CREATE OR REPLACE TABLE functions_overloads AS FROM post.fun_with_overload EXCEPT FROM post.fun_no_overload GROUP BY ALL ORDER BY function_name, function_type;"
-    $1 $DOCS/$extension.db -c "ATTACH 'pre.db'; ATTACH 'post.db'; CREATE OR REPLACE TABLE new_settings AS FROM ( SELECT * EXCLUDE (value) FROM post.settings ORDER BY name) EXCEPT (SELECT * EXCLUDE (value) FROM pre.settings ORDER BY name) ORDER BY name;"
-    $1 $DOCS/$extension.db -c "ATTACH 'pre.db'; ATTACH 'post.db'; CREATE OR REPLACE TABLE description AS FROM ( SELECT * EXCLUDE (install_path, loaded, installed) FROM post.extensions ORDER BY extension_name) EXCEPT (SELECT * EXCLUDE (install_path, loaded, installed) FROM pre.extensions ORDER BY extension_name) ORDER BY extension_name;"
-    $1 $DOCS/$extension.db -c "ATTACH 'pre.db'; ATTACH 'post.db'; CREATE OR REPLACE TABLE types AS FROM ( SELECT type_name, type_size, logical_type, type_category, internal FROM post.types ORDER BY ALL) EXCEPT (SELECT type_name, type_size, logical_type, type_category, internal FROM pre.types ORDER BY ALL) ORDER BY type_name;"
+    $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_no_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, examples FROM (FROM (SELECT function_name, function_type, description, comment, examples FROM functions ORDER BY function_name, function_type) EXCEPT (SELECT function_name, function_type, description, comment, examples FROM pre.functions ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
+    $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_with_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, examples FROM (FROM ( SELECT count(*), function_name, function_type, description, comment, examples FROM functions GROUP BY ALL ORDER BY function_name, function_type) EXCEPT (SELECT count(*), function_name, function_type, description, comment, examples FROM pre.functions GROUP BY ALL ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
+    $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'post.db'; CREATE OR REPLACE TABLE functions AS FROM post.fun_no_overload GROUP BY ALL ORDER BY function_name, function_type;"
+    $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'post.db'; CREATE OR REPLACE TABLE functions_overloads AS FROM post.fun_with_overload EXCEPT FROM post.fun_no_overload GROUP BY ALL ORDER BY function_name, function_type;"
+    $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'pre.db'; ATTACH 'post.db'; CREATE OR REPLACE TABLE new_settings AS FROM ( SELECT * EXCLUDE (value) FROM post.settings ORDER BY name) EXCEPT (SELECT * EXCLUDE (value) FROM pre.settings ORDER BY name) ORDER BY name;"
+    $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'pre.db'; ATTACH 'post.db'; CREATE OR REPLACE TABLE description AS FROM ( SELECT * EXCLUDE (install_path, loaded, installed) FROM post.extensions ORDER BY extension_name) EXCEPT (SELECT * EXCLUDE (install_path, loaded, installed) FROM pre.extensions ORDER BY extension_name) ORDER BY extension_name;"
+    $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'pre.db'; ATTACH 'post.db'; CREATE OR REPLACE TABLE types AS FROM ( SELECT type_name, type_size, logical_type, type_category, internal FROM post.types ORDER BY ALL) EXCEPT (SELECT type_name, type_size, logical_type, type_category, internal FROM pre.types ORDER BY ALL) ORDER BY type_name;"
 
     if [ -s "extensions/$extension/docs/function_descriptions.csv" ]; then
        cp extensions/$extension/docs/function_descriptions.csv $DOCS/functions.csv
-       $1 $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, [other.example] as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
-       $1 $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, [other.example] as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
+       $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, [other.example] as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
+       $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, [other.example] as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
        rm $DOCS/functions.csv
     fi
 
-    $1 $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
-    $1 $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
-    $1 $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
-    $1 $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
-    $1 $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
+    $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
+    $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
+    $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
+    $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
+    $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
 
     rm -f pre.db
     rm -f post.db
@@ -78,7 +79,7 @@ do
        cat extensions/$extension/description.yml >> $EXTENSION_README
        echo "" >> $EXTENSION_README
 
-       STAR_COUNT=$(python3 scripts/get_stars.py extensions/$extension/description.yml $1)
+       STAR_COUNT=$(python3 scripts/get_stars.py extensions/$extension/description.yml $DUCKDB_BINARY)
        STAR_COUNT_PRETTY=$(echo $STAR_COUNT | python3 scripts/pretty_print.py)
        echo "extension_star_count: $STAR_COUNT" >> $EXTENSION_README
        echo "extension_star_count_pretty: $STAR_COUNT_PRETTY" >> $EXTENSION_README
@@ -139,5 +140,5 @@ do
 done
 
 rm -f x.db
-$1 $DOCS/x.db -markdown -c "SELECT '['||#1||']({% link community_extensions/extensions/'||#1||'.md %})' as Name, '[<span class=github>GitHub</span>](https://github.com/'||#2||')' as GitHub , #4 as Description FROM read_csv('build/docs/community_extensions.csv');" > $DOCS/extensions_list.md.tmp
+$DUCKDB_BINARY $DOCS/x.db -markdown -c "SELECT '['||#1||']({% link community_extensions/extensions/'||#1||'.md %})' as Name, '[<span class=github>GitHub</span>](https://github.com/'||#2||')' as GitHub , #4 as Description FROM read_csv('build/docs/community_extensions.csv');" > $DOCS/extensions_list.md.tmp
 rm -f x.db
