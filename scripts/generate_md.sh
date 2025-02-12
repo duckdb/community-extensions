@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
+# first run scripts/fetch_extensions.md, then invoke this file
+
 set -eo pipefail
 
 if [ $# -lt 1 ]; then
-    echo "Usage: ./scripts/generate_md.sh build/release/duckdb"
+    echo "Usage: ./scripts/generate_md.sh path_to_duckdb_binary"
     exit 1
 fi
 
 DUCKDB_BINARY="$1 -init /dev/null"
+
 curl -s https://community-extensions.duckdb.org/downloads-last-week.json -o build/downloads-last-week.json
 
 platform=$($DUCKDB_BINARY -csv -c "PRAGMA platform" | tail -n1)
