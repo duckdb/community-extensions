@@ -1,6 +1,6 @@
 ```sql
 INSTALL {{ page.extension.name }}
-     FROM community;
+   FROM community;
 
 LOAD {{ page.extension.name }};
 ```
