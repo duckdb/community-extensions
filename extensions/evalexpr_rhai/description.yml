@@ -77,7 +77,7 @@ docs:
 extension:
   build: cmake
   description: Evaluate the Rhai scripting language in DuckDB
-  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;windows_amd64;linux_amd64_musl
+  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;windows_amd64
   language: C++
   license: Apache-2.0
   maintainers:
@@ -87,4 +87,4 @@ extension:
   version: 1.0.2
 repo:
   github: rustyconover/duckdb-evalexpr-rhai-extension
-  ref: 52e2beef4fd369114c067c1f0d94c872e4f0521a
+  ref: 780f14cd20c94e4f06c8d351f6f7ec6c51928155

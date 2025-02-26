@@ -1,7 +1,7 @@
 extension:
   name: gsheets
   description: Read and write Google Sheets using SQL
-  version: 0.0.4
+  version: 0.0.6
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: evidence-dev/duckdb_gsheets
-  ref: c4a8413fd1d1ca63cbe37db66a7676fe677da456
+  ref: 6c7925347c4900ca15b9fc078833fdfd8f1bb5b4
 
 docs:
   hello_world: |
@@ -37,6 +37,9 @@ docs:
     -- Read a spreadsheet with no header row
     SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', headers=false);
     
+    -- Read all values in as varchar, skipping type inference
+    SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', all_varchar=true);
+
     -- Read a sheet other than the first sheet using the sheet name
     SELECT * FROM read_gsheet('11QdEasMWbETbFVxry-SsD8jVcdYIT1zBQszcF84MdE8', sheet='Sheet2');
     

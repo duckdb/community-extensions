@@ -1,7 +1,7 @@
 extension:
   name: avro
   description: Read Apache Avro (TM) files from DuckDB
-  version: 1.1.0
+  version: 1.1.1
   language: C++
   build: cmake
   license: MIT
@@ -12,8 +12,7 @@ extension:
 
 repo:
   github: hannes/duckdb_avro
-  ref: 8796f4979532a3946b850dcc3a85cc52bd708652
-  ref_next: c8941c92ec103f7825eb88207c04512f8a714b23
+  ref: 80fee540409f85fdb9473700bec0d5ca95eb74de
 
 docs:
   hello_world: |
