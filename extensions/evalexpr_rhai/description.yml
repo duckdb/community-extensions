@@ -1,8 +1,9 @@
 docs:
-  extended_description: 'The `evalexpr_rhai` extension provides a single function:
+  extended_description:
+    "The `evalexpr_rhai` extension provides a single function:
 
 
-    `evalexpr_rhai(VARCHAR, JSON) -> UNION[''ok'': JSON, ''error'': VARCHAR]`
+    `evalexpr_rhai(VARCHAR, JSON) -> UNION['ok': JSON, 'error': VARCHAR]`
 
 
     The arguments in order are:
@@ -29,8 +30,9 @@ docs:
 
     element of the expression.
 
-    '
-  hello_world: "-- Calculate the value of an expression\nSELECT evalexpr_rhai('40+2');\n\
+    "
+  hello_world:
+    "-- Calculate the value of an expression\nSELECT evalexpr_rhai('40+2');\n\
     \n┌───────────────────────────────┐\n│     evalexpr_rhai('40+2')     │\n│ union(ok\
     \ json, error varchar) │\n├───────────────────────────────┤\n│ 42            \
     \                │\n└───────────────────────────────┘\n\n-- Expression's return\
@@ -75,14 +77,14 @@ docs:
 extension:
   build: cmake
   description: Evaluate the Rhai scripting language in DuckDB
-  excluded_platforms: windows_amd64_rtools;windows_amd64
+  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;windows_amd64
   language: C++
   license: Apache-2.0
   maintainers:
-  - rustyconover
+    - rustyconover
   name: evalexpr_rhai
   requires_toolchains: rust
   version: 1.0.2
 repo:
   github: rustyconover/duckdb-evalexpr-rhai-extension
-  ref: 7bc848761cdd896a9613ad1db4d43b1c9b8a4b66
+  ref: 780f14cd20c94e4f06c8d351f6f7ec6c51928155

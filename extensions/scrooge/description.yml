@@ -3,7 +3,7 @@ extension:
   description: Provides functionality for financial data-analysis, including data scanners for the Ethereum Blockchain and Yahoo Finance
   version: 0.0.2
   language: C++
-  excluded_platforms: "windows_amd64_rtools"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
   build: cmake
   license: MIT
   maintainers:

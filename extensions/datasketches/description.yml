@@ -1,0 +1,77 @@
+docs:
+  extended_description: |
+    This extension provides an interface to the [Apache DataSketches](https://datasketches.apache.org/) library. This extension enables users to efficiently compute approximate results for large datasets directly within DuckDB, using state-of-the-art streaming algorithms for distinct counting, quantile estimation, and more.
+
+    ## Why use this extension?
+
+    DuckDB already has great implementations of [HyperLogLog](https://en.wikipedia.org/wiki/HyperLogLog)  via `approx_count_distinct(x)`  and [TDigest](https://arxiv.org/abs/1902.04023) via `approx_quantile(x, pos)`, but it doesn't expose the internal state of the aggregates nor allow the the user to tune all of the parameters of the sketches.  This extension allows data sketches to be serialized as `BLOB`s which can be stored and shared across different systems, processes, and environments without loss of fidelity. This makes data sketches highly useful in distributed data processing pipelines.
+
+    This extension has implemented these sketches from Apache DataSketches.
+
+    - Quantile Estimation
+      - [TDigest](https://datasketches.apache.org/docs/tdigest/tdigest.html)
+      - [Classic Quantile](https://datasketches.apache.org/docs/Quantiles/ClassicQuantilesSketch.html)
+      - [Relative Error Quantile (REQ)](https://datasketches.apache.org/docs/REQ/ReqSketch.html)
+      - [KLL](https://datasketches.apache.org/docs/KLL/KLLSketch.html)
+    - Approximate Distinct Count
+      - [Compressed Probability Counting (CPC)](https://datasketches.apache.org/docs/CPC/CpcSketches.html)
+      - [HyperLogLog (HLL)](https://datasketches.apache.org/docs/HLL/HllSketches.html)
+
+    For more information and information regarding usage, see the [README](https://github.com/rustyconover/duckdb-datasketches).
+
+  hello_world: |
+    -- This is just a demonstration of a single sketch type,
+    -- see the README for more sketches.
+    --
+    -- Lets simulate a temperature sensor
+    CREATE TABLE readings(temp integer);
+
+    INSERT INTO readings(temp) select unnest(generate_series(1, 10));
+
+    -- Create a sketch by aggregating id over the readings table.
+    SELECT datasketch_tdigest_rank(datasketch_tdigest(10, temp), 5) from readings;
+    ┌────────────────────────────────────────────────────────────┐
+    │ datasketch_tdigest_rank(datasketch_tdigest(10, "temp"), 5) │
+    │                           double                           │
+    ├────────────────────────────────────────────────────────────┤
+    │                                                       0.45 │
+    └────────────────────────────────────────────────────────────┘
+
+    -- Put some more readings in at the high end.
+    INSERT INTO readings(temp) values (10), (10), (10), (10);
+
+    -- Now the rank of 5 is moved down.
+    SELECT datasketch_tdigest_rank(datasketch_tdigest(10, temp), 5) from readings;
+    ┌────────────────────────────────────────────────────────────┐
+    │ datasketch_tdigest_rank(datasketch_tdigest(10, "temp"), 5) │
+    │                           double                           │
+    ├────────────────────────────────────────────────────────────┤
+    │                                        0.32142857142857145 │
+    └────────────────────────────────────────────────────────────┘
+
+    -- Lets get the cumulative distribution function from the sketch.
+    SELECT datasketch_tdigest_cdf(datasketch_tdigest(10, temp), [1,5,9]) from readings;
+    ┌──────────────────────────────────────────────────────────────────────────────────┐
+    │ datasketch_tdigest_cdf(datasketch_tdigest(10, "temp"), main.list_value(1, 5, 9)) │
+    │                                     double[]                                     │
+    ├──────────────────────────────────────────────────────────────────────────────────┤
+    │ [0.03571428571428571, 0.32142857142857145, 0.6071428571428571, 1.0]              │
+    └──────────────────────────────────────────────────────────────────────────────────┘
+
+    -- The sketch can be persisted and updated later when more data
+    -- arrives without having to rescan the previously aggregated data.
+    SELECT datasketch_tdigest(10, temp) from readings;
+    datasketch_tdigest(10, "temp") = \x02\x01\x14\x0A\x00\x04\x00...
+
+extension:
+  build: cmake
+  description: By utilizing the Apache DataSketches library this extension can efficiently compute approximate distinct item counts and estimations of quantiles, while allowing the sketches to be serialized.
+  language: C++
+  license: MIT
+  maintainers:
+    - rustyconover
+  name: datasketches
+  version: 0.0.2
+repo:
+  github: rustyconover/duckdb-datasketches
+  ref: e6ee0e814a41e15e38536292bc85ff71b33fbcda

@@ -1,0 +1,112 @@
+extension:
+  name: chsql_native
+  description: ClickHouse Native Client & File Reader for chsql
+  version: 0.0.3
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp;linux_amd64_musl;"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - lmangani
+    - adubovikov
+
+repo:
+  github: quackscience/duckdb-extension-clickhouse-native
+  ref: 11eba744ac579b7fccd06217bb71218299f749b9
+
+docs:
+  hello_world: |
+    
+    --- Simple Query Example
+    --- export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
+    D SELECT * FROM clickhouse_scan("SELECT version(), 'hello', 123");
+    ┌────────────┬─────────┬────────┐
+    │ version()  │ 'hello' │  123   │
+    │  varchar   │ varchar │ uint32 │
+    ├────────────┼─────────┼────────┤
+    │ 24.10.2.80 │ hello   │    123 │
+    └────────────┴─────────┴────────┘
+    
+    --- Wide Query Example
+    D SELECT * FROM clickhouse_scan("SELECT * FROM system.functions WHERE alias_to != '' LIMIT 10");
+    ┌────────────────────┬──────────────┬──────────────────┬──────────────────────┬───┬───────────┬────────────────┬──────────┬────────────┐
+    │        name        │ is_aggregate │ case_insensitive │       alias_to       │ … │ arguments │ returned_value │ examples │ categories │
+    │      varchar       │    uint32    │      uint32      │       varchar        │   │  varchar  │    varchar     │ varchar  │  varchar   │
+    ├────────────────────┼──────────────┼──────────────────┼──────────────────────┼───┼───────────┼────────────────┼──────────┼────────────┤
+    │ connection_id      │            0 │                1 │ connectionID         │ … │           │                │          │            │
+    │ rand32             │            0 │                0 │ rand                 │ … │           │                │          │            │
+    │ INET6_ATON         │            0 │                1 │ IPv6StringToNum      │ … │           │                │          │            │
+    │ INET_ATON          │            0 │                1 │ IPv4StringToNum      │ … │           │                │          │            │
+    │ truncate           │            0 │                1 │ trunc                │ … │           │                │          │            │
+    │ ceiling            │            0 │                1 │ ceil                 │ … │           │                │          │            │
+    │ replace            │            0 │                1 │ replaceAll           │ … │           │                │          │            │
+    │ from_utc_timestamp │            0 │                1 │ fromUTCTimestamp     │ … │           │                │          │            │
+    │ mapFromString      │            0 │                0 │ extractKeyValuePairs │ … │           │                │          │            │
+    │ str_to_map         │            0 │                1 │ extractKeyValuePairs │ … │           │                │          │            │
+    ├────────────────────┴──────────────┴──────────────────┴──────────────────────┴───┴───────────┴────────────────┴──────────┴────────────┤
+    │ 10 rows                                                                                                         12 columns (8 shown) │
+    └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+    --- Native File Reader for chsql
+    --- Test files can be generated with clickhouse-local. File reads are full-scans.
+    
+    --- Simple Example
+    D SELECT * FROM clickhouse_native('/tmp/numbers.clickhouse');
+    ┌──────────────┬─────────┐
+    │  version()   │ number  │
+    │   varchar    │  int32  │
+    ├──────────────┼─────────┤
+    │ 24.12.1.1273 │ 0       │
+    └──────────────┴─────────┘
+    
+    --- Long Example
+    D SELECT count(*), max(number) FROM clickhouse_native('/tmp/100000.clickhouse');
+    ┌──────────────┬─────────────┐
+    │ count_star() │ max(number) │
+    │    int64     │    int32    │
+    ├──────────────┼─────────────┤
+    │       100000 │       99999 │
+    └──────────────┴─────────────┘
+    
+    --- Wide Example
+    D SELECT * FROM clickhouse_native('/tmp/functions.clickhouse') WHERE alias_to != '' LIMIT 10;
+    ┌────────────────────┬──────────────┬──────────────────┬──────────────────────┬──────────────┬─────────┬───┬─────────┬───────────┬────────────────┬──────────┬────────────┐
+    │        name        │ is_aggregate │ case_insensitive │       alias_to       │ create_query │ origin  │ … │ syntax  │ arguments │ returned_value │ examples │ categories │
+    │      varchar       │    int32     │      int32       │       varchar        │   varchar    │ varchar │   │ varchar │  varchar  │    varchar     │ varchar  │  varchar   │
+    ├────────────────────┼──────────────┼──────────────────┼──────────────────────┼──────────────┼─────────┼───┼─────────┼───────────┼────────────────┼──────────┼────────────┤
+    │ connection_id      │            0 │                1 │ connectionID         │              │ System  │ … │         │           │                │          │            │
+    │ rand32             │            0 │                0 │ rand                 │              │ System  │ … │         │           │                │          │            │
+    │ INET6_ATON         │            0 │                1 │ IPv6StringToNum      │              │ System  │ … │         │           │                │          │            │
+    │ INET_ATON          │            0 │                1 │ IPv4StringToNum      │              │ System  │ … │         │           │                │          │            │
+    │ truncate           │            0 │                1 │ trunc                │              │ System  │ … │         │           │                │          │            │
+    │ ceiling            │            0 │                1 │ ceil                 │              │ System  │ … │         │           │                │          │            │
+    │ replace            │            0 │                1 │ replaceAll           │              │ System  │ … │         │           │                │          │            │
+    │ from_utc_timestamp │            0 │                1 │ fromUTCTimestamp     │              │ System  │ … │         │           │                │          │            │
+    │ mapFromString      │            0 │                0 │ extractKeyValuePairs │              │ System  │ … │         │           │                │          │            │
+    │ str_to_map         │            0 │                1 │ extractKeyValuePairs │              │ System  │ … │         │           │                │          │            │
+    ├────────────────────┴──────────────┴──────────────────┴──────────────────────┴──────────────┴─────────┴───┴─────────┴───────────┴────────────────┴──────────┴────────────┤
+    │ 10 rows                                                                                                                                           12 columns (11 shown) │
+    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+    
+  extended_description: |
+    ## chsql_native
+    This experimental community extension implements a Native Clickhouse client for DuckDB.
+    
+    ### Client Configuration
+    The extension can be configured the following using ENV variables
+    ```
+    CLICKHOUSE_URL
+    CLICKHOUSE_USER
+    CLICKHOUSE_PASSWORD
+    ```
+
+    Authentication and connection parameters can be included in the URL
+    ```
+    export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
+    ```
+    
+    --- export CLICKHOUSE_URL="tcp://localhost:9000"
+    
+    > This extension is experimental and potentially unstable. Do not use in production. See README for full examples.
