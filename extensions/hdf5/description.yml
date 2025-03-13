@@ -1,0 +1,21 @@
+extension:
+  name: hdf5
+  description: Read HDF5 files from DuckDB
+  version: 0.1.1
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - Berrysoft
+
+repo:
+  github: Berrysoft/duckdb-hdf5
+  ref: 3995c13deec90c09226adebfe1a1cc6d97a3c68e
+
+docs:
+  hello_world: |
+    FROM read_hdf5('some_file.h5', 'dataset');
+  extended_description: |
+    This extension provides a read function for HDF5 files.
