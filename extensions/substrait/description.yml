@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: substrait-io/duckdb-substrait-extension
-  ref: 611d92b9980c3b673ba3755bc10dfdb6f94e7384
+  ref: 2a8739cdceb4b31f52319733acb3521f04274eb2
 
 docs:
   hello_world: |
