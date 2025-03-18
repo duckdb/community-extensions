@@ -19,7 +19,7 @@ docs:
     FROM 'arrow_file.arrows';
     FROM read_arrow('arrow_file.arrow');
 
-    -- Write to an IPC file
+    -- Write a file in Arrow IPC stream format
     CREATE TABLE arrow_libraries AS SELECT 'nanoarrow' as name, '0.6' as version;
     COPY arrow_libraries TO 'test.arrows' (FORMAT ARROWS, BATCH_SIZE 100);
 
