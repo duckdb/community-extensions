@@ -23,9 +23,6 @@ docs:
     CREATE TABLE arrow_libraries AS SELECT 'nanoarrow' as name, '0.6' as version;
     COPY arrow_libraries TO 'test.arrows' (FORMAT ARROWS, BATCH_SIZE 100);
 
-    -- Read from a list of IPC buffer structs in the format: [{pointer,size},...]
-    FROM scan_arrow_ipc([{'ptr': 2591342067712::UBIGINT, 'size': 1984::UBIGINT}])
-
     -- Write to buffers: This returns IPC message BLOBs and indicates which one is the header.
     FROM to_arrow_ipc((FROM arrow_libraries);
 
