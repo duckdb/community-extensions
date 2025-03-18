@@ -14,7 +14,7 @@ repo:
 
 docs:
   hello_world: |
-    -- Read from an IPC file
+    -- Read from a file in Arrow IPC format
     FROM 'arrow_file.arrow';
     FROM 'arrow_file.arrows';
     FROM read_arrow('arrow_file.arrow');
