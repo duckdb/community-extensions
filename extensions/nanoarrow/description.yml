@@ -28,7 +28,7 @@ docs:
 
 
   extended_description: |
-    The Arrow IPC library allows users to read and write IPC data in the Arrow format. 
+    The Arrow IPC library allows users to read and write data in the Arrow IPC stream format. 
     This can be done by either reading and producing `.arrow` files or by directly reading buffers using their pointers and sizes. 
     It is important to note that reading buffers is dangerous, as an incorrect pointer can crash the database system. 
     This process is temporary and will be deprecated in the future, as clients (e.g., the Python DuckDB client) will have a function that internally extracts these buffers from an Arrow stream.
