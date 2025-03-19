@@ -1,0 +1,40 @@
+extension:
+  name: read_stat
+  description: Read data sets from SAS, Stata, and SPSS with ReadStat
+  version: 0.1.0
+  language: C
+  build: cmake
+  license: MIT
+  maintainers:
+    - mettekou
+
+repo:
+  github: mettekou/duckdb-read-stat
+  ref: 8c87a5b7f9dcddae018c715aaa84dbcc519b0e1a
+
+docs:
+  hello_world: |
+    -- Create a table from a SAS .sas7bdat file
+    CREATE TABLE data AS FROM 'data.sas7bdat';
+    -- Create a table from an SPSS .sav or .zsav file
+    CREATE TABLE data AS FROM 'data.sav';
+    CREATE TABLE data AS FROM 'data.zsav';
+    -- Create a table from a Stata .dta file
+    CREATE TABLE data AS FROM 'data.dta';
+    -- If the file extension is not .sas7bdat, .sav, .zsav, or .dta,
+    -- invoke the read_stat function for the right file type
+    CREATE TABLE other_data AS FROM read_stat('data.other_extension', format = 'sas7bdat');
+    CREATE TABLE other_data AS FROM read_stat('data.other_extension', format = 'sav');
+    CREATE TABLE other_data AS FROM read_stat('data.other_extension', format = 'dta');
+    -- Override the character encoding with an `iconv`` encoding name,
+    -- see https://www.gnu.org/software/libiconv/
+    CREATE TABLE other_data AS FROM read_stat('latin1_encoded.sas7bdat', encoding = 'iso-8859-1');
+  extended_description: |
+    ## Usage
+
+    ### Parameters
+
+    | Name | Description | Type | Default |
+    |:----|:-----------|:----:|:-------|
+    | `format` | The format of the input file, when its extension does not indicate it, either `'sas7bdat'`, `'sav'`, or `'dta'` | `VARCHAR` | `NULL` |
+    | `encoding` | The character encoding of the input file, as defined by `iconv`, see https://www.gnu.org/software/libiconv/ | `VARCHAR` | `NULL` |
