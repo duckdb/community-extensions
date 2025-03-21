@@ -9,7 +9,7 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-DUCKDB_BINARY="$1 --nullvalue - --init /dev/null"
+DUCKDB_BINARY="$1 -init /dev/null"
 
 curl -s https://community-extensions.duckdb.org/downloads-last-week.json -o build/downloads-last-week.json
 
