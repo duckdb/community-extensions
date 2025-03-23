@@ -31,6 +31,7 @@ jobs:
         cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
 
     - name: Upload to duckdb/duckdb-web
+      if: github.repository != 'duckdb/duckdb-web'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |

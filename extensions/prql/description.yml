@@ -6,12 +6,13 @@ extension:
   build: cmake
   requires_toolchains: "rust"
   license: MIT
+  excluded_platforms: "linux_amd64_musl"
   maintainers:
     - ywelsch
 
 repo:
   github: ywelsch/duckdb-prql
-  ref: 5dedc86da88c35ab219e2e1ba2c54299160484af
+  ref: ed0cd73d02436b33e85ac107f21cb693f18de416
 
 docs:
   hello_world: |

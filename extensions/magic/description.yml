@@ -4,14 +4,14 @@ extension:
   version: 0.0.1
   language: C++
   build: cmake
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64"
+  excluded_platforms: "linux_amd64_musl;windows_amd64_rtools;windows_amd64_mingw;windows_amd64"
   license: MIT
   maintainers:
     - carlopi
 
 repo:
   github: carlopi/duckdb_magic
-  ref: 134b696cb04e2d9cc106dccf2301e415442a1524
+  ref: 4a6f9342814898609cb6a9f7dcad45904412680a
 
 docs:
   hello_world: |

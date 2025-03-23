@@ -1,18 +1,19 @@
 docs:
-  extended_description: "`crypto` provides two functions:\n\n- `crypto_hash` applies\
+  extended_description:
+    "`crypto` provides two functions:\n\n- `crypto_hash` applies\
     \ cryptographically secure hash functions\nand returns the result as a hex encoded\
     \ value.\n\n- `crypto_hmac` calculates the HMAC using a secret key and a\nspecific\
     \ hash function.\n\nThe supported hash functions are:\n  - `blake2b-512`\n  -\
     \ `keccak224`\n  - `keccak256`\n  - `keccak384`\n  - `keccak512`\n  - `md4`\n\
     \  - `md5`\n  - `sha1`\n  - `sha2-224`\n  - `sha2-256`\n  - `sha2-384`\n  - `sha2-512`\n\
     \  - `sha3-224`\n  - `sha3-256`\n  - `sha3-384`\n  - `sha3-512`"
-  hello_world: '-- Calculate the MD5 hash value of ''abcdef''
+  hello_world: "-- Calculate the MD5 hash value of 'abcdef'
 
-    SELECT crypto_hash(''md5'', ''abcdef'');
+    SELECT crypto_hash('md5', 'abcdef');
 
     ┌──────────────────────────────────┐
 
-    │   crypto_hash(''md5'', ''abcdef'')   │
+    │   crypto_hash('md5', 'abcdef')   │
 
     │             varchar              │
 
@@ -25,11 +26,11 @@ docs:
 
     -- Calculate a HMAC
 
-    SELECT crypto_hmac(''sha2-256'', ''secret key'', ''secret message'');
+    SELECT crypto_hmac('sha2-256', 'secret key', 'secret message');
 
     ┌──────────────────────────────────────────────────────────────────┐
 
-    │     crypto_hmac(''sha2-256'', ''secret key'', ''secret message'')      │
+    │     crypto_hmac('sha2-256', 'secret key', 'secret message')      │
 
     │                             varchar                              │
 
@@ -39,18 +40,18 @@ docs:
 
     └──────────────────────────────────────────────────────────────────┘
 
-    '
+    "
 extension:
   build: cmake
   description: Cryptographic hash functions and HMAC
-  excluded_platforms: windows_amd64_rtools;windows_amd64
   language: C++
   license: MIT
   maintainers:
-  - rustyconover
+    - rustyconover
   name: crypto
   requires_toolchains: rust
-  version: 1.0.0
+  version: 1.0.1
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
 repo:
   github: rustyconover/duckdb-crypto-extension
-  ref: c8a64d43bafa559f48dd55730813475eb58c4916
+  ref: d73e47816d84e132019005411c3f2e5607326c2d

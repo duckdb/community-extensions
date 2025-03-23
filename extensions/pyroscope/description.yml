@@ -1,0 +1,45 @@
+extension:
+  name: pyroscope
+  description: DuckDB Pyroscope Extension for Continuous Profiling
+  version: 0.0.2
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp;linux_amd64_musl;"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - lmangani
+    - akvlad
+
+repo:
+  github: quackscience/duckdb-extension-pyroscope
+  ref: 397556c066614614cf346b0c4fb2d21740c31f29
+
+docs:
+  hello_world: |
+    ---- Start the tracer, requires backend URL
+    D SELECT * FROM trace_start('https://pyroscope:4000');
+    
+    ---- Stop the tracer
+    D SELECT * FROM trace_stop();
+    
+  extended_description: |
+    ### Pyroscope Continuous Profiling
+    This experimental community extension adds pyroscope continuous profiling features to DuckDB
+
+    #### Grafana
+    Create a `Free` account on [Grafana Cloud](https://grafana.com/auth/sign-up/create-user?pg=prod-cloud&plcmt=hero-btn-1) create a Token for Pyroscope profile sending and use the extension:
+    ```sql
+    ---- Start the tracer to Grafana Cloud Pyroscope
+    D SELECT * FROM trace_start('https://user:token@profiles-prod-xxx.grafana.net');
+    ```
+
+    #### Gigapipe
+    Create a `Free` account on [Gigapipe](https://gigapipe.com) create a Token for Pyroscope profile sending and use the extension:
+    ```sql
+    ---- Start the tracer to Grafana Cloud Pyroscope
+    D SELECT * FROM trace_start('https://user:token@your-account.gigapipe.com');
+    ```
+        
+    ![pyroscope_duckdb_large](https://github.com/user-attachments/assets/74fad3ec-3bc3-4880-be4b-8149c5431115)
+

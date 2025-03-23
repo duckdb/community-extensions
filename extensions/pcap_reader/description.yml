@@ -1,0 +1,44 @@
+extension:
+  name: pcap_reader
+  description: Read PCAP files from DuckDB
+  version: 0.0.5
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - lmangani
+    - glongo
+    - kYroL01
+
+repo:
+  github: quackscience/duckdb-extension-pcap
+  ref: 82e6caf23eef9fba4a747c05b00b04b31544675e
+
+docs:
+  hello_world: |
+    -- Basic PCAP reader for local or remote files
+    D SELECT * FROM pcap_reader('test.pcap') LIMIT 3;
+    ┌─────────────────────┬────────────────┬────────────────┬──────────┬──────────┬──────────┬────────┬───────────────────────────────────────────┐
+    │      timestamp      │     src_ip     │     dst_ip     │ src_port │ dst_port │ protocol │ length │                 payload                   │
+    │      timestamp      │    varchar     │    varchar     │ int32    │ int32    │ varchar  │ int32  │                 varchar                   │
+    ├─────────────────────┼────────────────┼────────────────┼──────────┼──────────┼──────────┼────────┼───────────────────────────────────────────┤
+    │ 2024-12-06 19:30:2… │ xx.xx.xx.xxx   │ yyy.yyy.yy.yyy │ 64078    │ 5080     │ UDP      │ 756    │ INVITE sip:810442837619024@yyy.yyy.yy.y…  │
+    │ 2024-12-06 19:30:2… │ yyy.yyy.yy.yyy │ xx.xx.xx.xxx   │ 5080     │ 64078    │ UDP      │ 360    │ SIP/2.0 100 Trying\r\nVia: SIP/2.0/UDP …  │
+    │ 2024-12-06 19:30:2… │ yyy.yyy.yy.yyy │ xx.xx.xx.xxx   │ 5080     │ 64078    │ UDP      │ 909    │ SIP/2.0 480 Temporarily Unavailable\r\n…  │
+    ├─────────────────────┴────────────────┴────────────────┴──────────┴──────────┴──────────┴────────┴───────────────────────────────────────────┤
+    │ 3 rows                                                                                                                            8 columns │
+    └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  extended_description: |
+    ## DuckDB PCAP Reader
+    `pcap_reader` is a DuckDB community extension that empowers network analysts to directly query and analyze IPv4 and IPv6 PCAP files using SQL. 
+    
+    Built with Rust for performance and safety, it leverages the `pcap-parser` crate to efficiently process packet capture data.
+
+    #### Features
+    - Direct PCAP Access: Load PCAP files directly into DuckDB without external tools.
+    - SQL-PCAP Analysis: Use DuckDB to filter, aggregate, and analyze IPv4/IPv6 network traffic.
+    
+    > The PCAP Reader Extension is experimental, use at your own risk!
