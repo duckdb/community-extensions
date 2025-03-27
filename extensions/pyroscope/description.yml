@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-pyroscope
-  ref: 330d6ec04e1a345003e768a7b1a530f527d118c8
+  ref: 9019767c6361f4433fab77171ec93c9531eaf35f
 
 docs:
   hello_world: |
