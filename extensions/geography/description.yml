@@ -1,0 +1,23 @@
+extension:
+  name: geography
+  description: Global spatial data processing on the sphere
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - paleolimbot
+
+repo:
+  github: paleolimbot/duckdb-geography
+  ref: e83725eb4ea245db9d2a5e02887dacfda3eb59a7
+
+docs:
+  hello_world: |
+    SELECT * FROM s2_data_countries();
+  extended_description: |
+    The geography extension provides global spatial indexing and analysis on the sphere
+    using Google's s2geometry library. For full documentation, see the
+    [README](https://github.com/paleolimbot/duckdb-geography/blob/main/README.md)
+    and [function documentation](https://github.com/paleolimbot/duckdb-geography/blob/main/docs/function-reference.md).

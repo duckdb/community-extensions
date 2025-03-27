@@ -1,0 +1,39 @@
+extension:
+  name: pbix
+  description: Extension that allows parsing the data model embedded in PowerBI (pbix) files
+  version: 0.3.0
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  license: MIT
+  maintainers:
+    - Hugoberry
+repo:
+  github: Hugoberry/duckdb-pbix-extension
+  ref: bb98c3942a6cb16a9507fd3ca2238611221ca8fc
+docs:
+  hello_world: |
+    -- Get metadata tables from a PowerBI file
+    SELECT Name FROM pbix_meta('Adventure Works DW 2020.pbix','table') WHERE isHidden=0;
+    
+    -- Read data from a specific table in the PowerBI file
+    SELECT 
+      ResellerKey, 
+      "Business Type", 
+      Reseller, 
+      "Reseller ID" 
+    FROM pbix_read('Adventure Works DW 2020.pbix','Reseller') 
+    LIMIT 10;
+  extended_description: >
+    The PBIX extension allows you to parse the data model embedded in PowerBI (pbix) files directly in DuckDB.
+    
+    
+    It provides two main functions:
+    - `pbix_meta()`: Returns metadata tables for a data model (consult [MS-SSAS-T](https://learn.microsoft.com/en-us/openspecs/sql_server_protocols/ms-ssas-t/f85cd3b9-690c-4bc7-a1f0-a854d7daecd8) for metadata structures)
+    - `pbix_read()`: Returns the contents of a specific table from a pbix file
+    
+    
+    For a pure Python implementation of the pbix parser, check out the [PBIXray](https://github.com/Hugoberry/pbixray) library.
+    
+    
+    *Note:* Current limitations include inability of the WASM version to parse `https` hosted files and that pbix_read() will decompress the entire model in memory.
