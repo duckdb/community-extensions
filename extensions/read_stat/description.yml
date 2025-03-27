@@ -1,7 +1,7 @@
 extension:
   name: read_stat
   description: Read data sets from SAS, Stata, and SPSS with ReadStat
-  version: 0.2.2
+  version: 0.2.3
   language: C
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: mettekou/duckdb-read-stat
-  ref: 11f170f350c53bf0c614813b3aebf61841cdec2c
+  ref: 5253f0b6d9ef56f7ee26c37f555ee7a4881578e6
 
 docs:
   hello_world: |
