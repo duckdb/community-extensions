@@ -1,11 +1,11 @@
 extension:
   name: chsql_native
   description: ClickHouse Native Client & File Reader for chsql
-  version: 0.0.2
+  version: 0.0.4
   language: Rust
   build: cmake
   license: MIT
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp;linux_amd64_musl;"
   requires_toolchains: "rust;python3"
   maintainers:
     - lmangani
@@ -13,15 +13,13 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-native
-  ref: f2e3b6d0c327d71e0989f078b7fc6d13dbac52b9
+  ref: bf54111959faa8f6b119d70af047e7c537de8c91
 
 docs:
   hello_world: |
-    --- This experimental rust extension implements Native Clickhouse formats for DuckDB.
-    --- ClickHouse Native Binary Client for chsql
-    --- export CLICKHOUSE_URL="tcp://localhost:9000"
-    --- export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
+    
     --- Simple Query Example
+    --- export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
     D SELECT * FROM clickhouse_scan("SELECT version(), 'hello', 123");
     ┌────────────┬─────────┬────────┐
     │ version()  │ 'hello' │  123   │
@@ -93,4 +91,22 @@ docs:
     └─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
     
   extended_description: |
-    This extension is highly experimental and potentially unstable. Do not use in production. See README for full examples.
+    ## chsql_native
+    This experimental community extension implements a Native Clickhouse client for DuckDB.
+    
+    ### Client Configuration
+    The extension can be configured the following using ENV variables
+    ```
+    CLICKHOUSE_URL
+    CLICKHOUSE_USER
+    CLICKHOUSE_PASSWORD
+    ```
+
+    Authentication and connection parameters can be included in the URL
+    ```
+    export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
+    ```
+    
+    --- export CLICKHOUSE_URL="tcp://localhost:9000"
+    
+    > This extension is experimental and potentially unstable. Do not use in production. See README for full examples.
