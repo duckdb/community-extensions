@@ -10,7 +10,7 @@ extension:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-msolap-extension
-  ref: 5208115cb441f10bf583b2f109796ed7db6140b7
+  ref: 98061bb47e37c5b1cbb718b442dc7d80bf1b30f8
 docs:
   hello_world: |
     -- Execute a simple DAX query against a local SSAS instance
@@ -24,14 +24,14 @@ docs:
         "Total Sales", SUM(FactInternetSales[SalesAmount])
     )');
   extended_description: >
-    The MSOLAP extension allows DuckDB to connect to Microsoft SQL Server Analysis Services (SSAS) and other OLAP data sources using the MSOLAP provider. It enables querying multidimensional and tabular models with DAX queries directly from DuckDB.
+    The MSOLAP extension allows DuckDB to connect to Microsoft SQL Server Analysis Services (SSAS) and other OLAP data sources using the MSOLAP provider. It enables multidimensional and tabular models with DAX queries to be queried directly from DuckDB.
     
     
-    The extension provides one main function:
+    The extension provides one primary function:
     - `msolap(connection_string, dax_query)`: Execute a custom DAX query against an OLAP source
     
     
-    This extension is particularly useful for data analysts who work with Microsoft Business Intelligence stack (SSAS, Power BI) and want to incorporate this data into their DuckDB workflows.
+    This extension is handy for data analysts who work with the Microsoft Business Intelligence stack (SSAS, Power BI) and want to incorporate this data into their DuckDB workflows.
     
     
-    *Note:* Current limitations include Windows-only support due to COM dependencies, limited data type conversion for complex OLAP types, and limited support for calculated measures and hierarchies. The extension requires Microsoft OLEDB provider for Analysis Services (MSOLAP.8) to be installed.
+    *Note:* Current limitations include Windows-only support due to COM dependencies, limited data type conversion for complex OLAP types, and limited support for calculated measures and hierarchies. The extension requires the installation of the Microsoft OLEDB provider for Analysis Services (MSOLAP.8).
