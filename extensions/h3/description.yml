@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: isaacbrodsky/h3-duckdb
-  ref: 669d8b2bcab8f3cc86dfa3a35606736a4820e397
+  ref: fa144887fb090e0757842c0132d7c4477f65622d
 
 docs:
   hello_world: |
