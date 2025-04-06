@@ -8,7 +8,7 @@ extension:
   excluded_platforms: "windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
 
   maintainers:
-    - dorbanianas
+    - anasdorbani
 
 repo:
   github: dsg-polymtl/flockmtl
