@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: zacMode/duckdb_extension_parser_tools
-  ref: 560bc45b4bdb43d72dd15cab1073756254e6c055
+  ref: 9818c41f1fb2d7ee65486216a1b4576e5b659df9
 
 docs:
   hello_world: |
