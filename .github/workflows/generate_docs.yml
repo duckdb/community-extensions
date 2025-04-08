@@ -22,7 +22,7 @@ jobs:
 
     - name: Set up DuckDB
       run: |
-        wget https://github.com/duckdb/duckdb/releases/download/v1.2.1/duckdb_cli-linux-amd64.zip
+        wget https://github.com/duckdb/duckdb/releases/download/v1.2.2/duckdb_cli-linux-amd64.zip
         unzip duckdb_cli-linux-amd64.zip
         chmod +x duckdb
 
@@ -34,7 +34,7 @@ jobs:
     - uses: actions/download-artifact@v4
       if: ${{ inputs.extension_name != '' }}
       with:
-        name: ${{ inputs.extension_name }}-v1.2.1-extension-linux_amd64_gcc4
+        name: ${{ inputs.extension_name }}-v1.2.2-extension-linux_amd64_gcc4
         path: build/downloaded
 
     - name: Install downloaded extension
