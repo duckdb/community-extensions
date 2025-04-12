@@ -1,0 +1,47 @@
+extension:
+  name: wireduck
+  description: Read and dissect PCAP files from DuckDB
+  version: 0.0.1
+  language: c++
+  build: cmake
+  license: MIT
+  excluded_platforms: "osx_amd64;osx_arm64;windows_amd64;wasm"
+  maintainers:
+    - hyehudai
+
+repo:
+  github: hyehudai/wireduck
+  ref: 1970a7c27360e75acc54beb9e778a6513261296b
+
+docs:
+  hello_world: |
+    -- Basic PCAP reader for local files.
+    D select count(*) , sum ("tcp.len") , "tcp.srcport" ,"tcp.dstport"   from read_pcap('~/wireduck/fix.pcap', protocols:=['ip','tcp'],climit:=100)  group by  "tcp.srcport" ,"tcp.dstport" ;;
+    ┌──────────────┬────────────────┬─────────────┬─────────────┐
+    │ count_star() │ sum("tcp.len") │ tcp.srcport │ tcp.dstport │
+    │    int64     │     int128     │    int64    │    int64    │
+    ├──────────────┼────────────────┼─────────────┼─────────────┤
+    │          429 │         259678 │       11001 │       53867 │
+    │           56 │          19702 │       53867 │       11001 │
+    └──────────────┴────────────────┴─────────────┴─────────────┘
+
+  extended_description: |
+    ### pcap dissector extention
+    Wireduck runs tshark behind the scenes utilizing wireshark's glossary to be able to parse any packet from any supported protocol to its fields. 
+    enabeling network data analysis and analytics.
+
+    ### Features
+    - read_pcap table function.
+    - support any protocol supported by wireshark.
+    - allow push down filters to wireshark using cfilter climit  parameters
+
+    ### Prerequities
+    tshark (installed as part of wireshark) should be installed.
+    validate its exists via
+    ```
+    tshark --version
+    ```
+    > For examples and instructions check out [Readme](https://github.com/hyehudai/wireduck)
+    
+        
+    > Note: Wireduck is still experimental.
