@@ -1,0 +1,15 @@
+extension:
+  name: vortex
+  description: Provides write and scan function for vortex files
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - joseph-isaacs
+    - 0ax1
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: spiraldb/vortex
+  ref: <<>>
