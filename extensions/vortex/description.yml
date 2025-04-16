@@ -9,6 +9,7 @@ extension:
     - joseph-isaacs
     - 0ax1
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust"
 
 repo:
   github: spiraldb/vortex
