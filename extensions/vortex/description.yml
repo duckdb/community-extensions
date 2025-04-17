@@ -13,12 +13,13 @@ extension:
 
 repo:
   github: spiraldb/duckdb-vortex
-  ref: b613e4c2c330e380d8f1f7a4fadfaa04de73132d
+  ref: b0ae8dd4dbd85385fac9fad02ea319a605528986
 
 
 docs:
-  write: |
-    COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX)
+  hello_world: |
+    write a vortex file
+    `COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX);`
 
-  scan: |
-    select * from read_vortex('...');
+    scan a vortex file
+    `select * from read_vortex('...');`
