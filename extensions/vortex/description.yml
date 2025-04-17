@@ -14,3 +14,11 @@ extension:
 repo:
   github: spiraldb/vortex
   ref: 92b7229e88a882225b450d131281deec8bf7ac14
+
+
+docs:
+  write: |
+    COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX)
+
+  scan: |
+    select * from read_vortex('...');
