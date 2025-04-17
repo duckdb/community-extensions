@@ -8,12 +8,12 @@ extension:
   maintainers:
     - joseph-isaacs
     - 0ax1
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;windows_amd64"
   requires_toolchains: "rust"
 
 repo:
   github: spiraldb/duckdb-vortex
-  ref: b0ae8dd4dbd85385fac9fad02ea319a605528986
+  ref: 094a43b4955c4c1a578ae63f3680a965f80a1f89
 
 
 docs:
