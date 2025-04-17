@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: spiraldb/vortex
-  ref: 92b7229e88a882225b450d131281deec8bf7ac14
+  ref: b613e4c2c330e380d8f1f7a4fadfaa04de73132d
 
 
 docs:
