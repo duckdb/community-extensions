@@ -38,15 +38,6 @@ docs:
     
     -- Get a value
     SELECT redis_get('user:1', 'redis') as user_name;
-    
-    -- Set multiple values in a query
-    INSERT INTO users (id, name)
-    SELECT id, redis_set(
-        'user:' || id::VARCHAR,
-        name,
-        'my_redis'
-    )
-    FROM new_users;
 
     -- Set hash fields
     SELECT redis_hset('user:1', 'email', 'john@example.com', 'redis');
@@ -54,20 +45,6 @@ docs:
     
     -- Get hash field
     SELECT redis_hget('user:1', 'email', 'redis') as email;
-    
-    -- Store user profile as hash
-    WITH profile(id, field, value) AS (
-        VALUES 
-            (1, 'name', 'John Doe'),
-            (1, 'email', 'john@example.com'),
-            (1, 'age', '30')
-    )
-    SELECT redis_hset(
-        'user:' || id::VARCHAR,
-        field,
-        value,
-        'redis'
-    )
 
     -- Push items to list
     SELECT redis_lpush('mylist', 'first_item', 'redis');
