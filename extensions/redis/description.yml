@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-redis
-  ref: 0e88222c27324024268be2501c3e6d4cfd0365ed
+  ref: 3ce0c3b637a0c9c6aa5090ed4c9f2d37cd32a2f4
 
 docs:
   hello_world: |
