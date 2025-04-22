@@ -1,7 +1,7 @@
 extension:
   name: zipfs
   description: Read files within zip archives
-  version: 1.1.3
+  version: 1.2.2
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: isaacbrodsky/duckdb-zipfs
-  ref: b920e53ded17076af5559c506ab2a871d9bee624
+  ref: 3d956dcb1222e3d55fea02d554ec142d3c2383cf
 
 docs:
   hello_world: |
