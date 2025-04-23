@@ -1,0 +1,18 @@
+extension:
+  name: ofquack
+  description: The Ofquack extension provides seamless integration between DuckDB and Oracle Fusion via WSDL-based SOAP calls.
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - krokozyab
+
+repo:
+  github: krokozyab/ofquack
+  ref: 4f71175a5c91526795a25e9ad6876608714eae6d
+
+docs:
+  extended_description: |
+    The Ofquack extension provides seamless integration between DuckDB and Oracle Fusion via WSDL-based SOAP calls.
+    It allows you to run arbitrary SQL queries against Oracle Fusion database directly from DuckDB, inferring column names at runtime and returning all data as VARCHAR columns—as native DuckDB tables and as resultsets that can be directly consumed by downstream applications.
