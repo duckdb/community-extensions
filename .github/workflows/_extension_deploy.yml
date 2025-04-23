@@ -105,6 +105,13 @@ jobs:
           fetch-depth: 0
           submodules: 'false'
 
+      - name: Change to relative directory
+        if: ${{ inputs.relative_path != '' }}
+        env:
+          EXTENSION_REPOSITORY_RELATIVE_PATH: ${{ inputs.relative_path }}
+        run: |
+          cd ${{ inputs.relative_path }}
+
       - uses: actions/checkout@v3
         with:
           repository: 'duckdb/duckdb'
