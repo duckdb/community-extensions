@@ -56,6 +56,11 @@ on:
         required: false
         type: string
         default: ""
+      # Overrides the root directory that the repository
+      relative_path:
+        required: false
+        type: string
+        default: "."
 jobs:
   generate_matrix:
     name: Generate matrix

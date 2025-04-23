@@ -40,6 +40,7 @@ with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
 	requires_toolchains = desc['extension'].get('requires_toolchains')
+	relative_path = desc['repo'].get('relative_path')
 	custom_toolchain_script = desc['extension'].get('custom_toolchain_script')
 	vcpkg_url = desc['extension'].get('vcpkg_url')
 	vcpkg_commit = desc['extension'].get('vcpkg_commit')
@@ -51,5 +52,7 @@ with open('env.sh', 'w+') as hdl:
 		hdl.write(f"COMMUNITY_EXTENSION_VCPKG_URL={vcpkg_url}\n")
 	if vcpkg_commit:
 		hdl.write(f"COMMUNITY_EXTENSION_VCPKG_COMMIT={vcpkg_commit}\n")
+	if relative_path:
+		hdl.write(f"COMMUNITY_EXTENSION_RELATIVE_PATH={relative_path}")
 	if deploy:
 		hdl.write(f"COMMUNITY_EXTENSION_DEPLOY=1\n")
