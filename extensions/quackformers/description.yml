@@ -1,0 +1,21 @@
+extension:
+  name: quackformers
+  description: Bert-based embedding extension.
+  version: 0.0.1
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - martin-conur
+
+repo:
+  github: martin-conur/quackformers
+  ref: e97691261cebf2595953d876a40ec2f0bebf7301
+
+docs:
+  hello_world: |
+    FROM embed('this is an embedable sentence');
+  extended_description: |
+    Quackformers, a DuckDB extension for LLM-related tasks. Quackformers is based on DuckDB's [Rust Extension Template](https://github.com/duckdb/extension-template-rs/)
