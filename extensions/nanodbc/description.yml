@@ -42,3 +42,5 @@ docs:
     The extension works on Windows, macOS, and Linux platforms and has been tested with SQL Server, MySQL, 
     PostgreSQL, Snowflake, SQLite, and many other databases. All functions use named parameters for better 
     readability and flexibility.
+
+    
