@@ -1,7 +1,7 @@
 extension:
   name: quackformers
   description: Bert-based embedding extension.
-  version: 0.0.1
+  version: 0.1.1
   language: Rust
   build: cargo
   license: MIT
@@ -12,10 +12,12 @@ extension:
 
 repo:
   github: martin-conur/quackformers
-  ref: e97691261cebf2595953d876a40ec2f0bebf7301
+  ref: c5416cdff9e72b28a6d336c125f7654e65897cb9
 
 docs:
   hello_world: |
-    FROM embed('this is an embedable sentence');
+    SELECT embed('this is an embeddable sentence'); -- This is vanilla BERT (https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
+    SELECT embed_jina('this is an embeddable sentence'); -- This is Jina BERT 
   extended_description: |
-    Quackformers, a DuckDB extension for LLM-related tasks. Quackformers is based on DuckDB's [Rust Extension Template](https://github.com/duckdb/extension-template-rs/)
+    Quackformers, a DuckDB extension embeddings. Intended to be used alongside VSS vector search for RAG-type functionalities.
+    Quackformers is based on DuckDB's [Rust Extension Template](https://github.com/duckdb/extension-template-rs/)
