@@ -1,0 +1,24 @@
+extension:
+  name: vortex
+  description: Provides write and scan function for vortex files
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - joseph-isaacs
+    - 0ax1
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;windows_amd64;linux_arm64"
+  requires_toolchains: "rust"
+
+repo:
+  github: spiraldb/duckdb-vortex
+  ref: 8e779ea539fd86719e3aa1a8fc49a3cbfbdd9aa5
+
+docs:
+  hello_world: |
+    write a vortex file
+    `COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX);`
+
+    scan a vortex file
+    `select * from read_vortex('...');`
