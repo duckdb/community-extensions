@@ -5,11 +5,12 @@ extension:
   language: C++
   build: cmake
   license: MIT
+  requires_toolchains: "python3" 
   maintainers:
     - pdet
 repo:
   github: duckdb/duckdb-extension-alias
-  ref: main
+  ref: dce7fb0831e2b83d41746381c1a99979eecbe401
   canonical_name: nanoarrow
 
 docs:
