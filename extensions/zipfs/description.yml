@@ -7,11 +7,10 @@ extension:
   license: MIT
   maintainers:
     - isaacbrodsky
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
 
 repo:
   github: isaacbrodsky/duckdb-zipfs
-  ref: 6d4f61fb15cb1d6b258492631c885887bed4de14
+  ref: 145ac8252e18921e565ea58846bc9b5bde8e286c
 
 docs:
   hello_world: |
