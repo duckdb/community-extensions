@@ -1,6 +1,7 @@
 docs:
   extended_description: |
      For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_fuzzycomplete.html).
+extension:
   build: cmake
   description: Fuzzy matching based autocompletion
   language: C++
