@@ -14,4 +14,4 @@ extension:
   excluded_platforms: "linux_amd64_musl"
 repo:
   github: query-farm/fuzzycomplete
-  ref: f6bed426156b752c4c6586b140b54a9d381a062e
+  ref: 50f193439dc95153467fe9e5e47ced71a8765ab5
