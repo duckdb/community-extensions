@@ -1,7 +1,7 @@
 extension:
   name: nanoarrow
   description: Allows the consumption and production of the Apache Arrow interprocess communication (IPC) format, both from files and directly from stream buffers.
-  version: 1.3
+  version: 1.3.0
   language: C++
   build: cmake
   license: MIT
