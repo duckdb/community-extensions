@@ -1,6 +1,6 @@
 docs:
   extended_description: |
-    For more information regarding usage, see the [documentation](https://query.farm/https://query.farm/duckdb_extension_shellfs.html).
+    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_shellfs.html).
 extension:
   build: cmake
   description: Allow shell commands to be used for input and output
