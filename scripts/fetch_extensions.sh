@@ -3,7 +3,7 @@
 set -eo pipefail
 
 if [ $# -lt 1 ]; then
-    echo "Usage: ./scripts/generated_docs_readme.sh path_to_duckdb_binary"
+    echo "Usage: ./scripts/fetch_extensions.sh path_to_duckdb_binary"
     exit 1
 fi
 
