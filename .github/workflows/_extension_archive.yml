@@ -1,7 +1,7 @@
 #
 # Reusable workflow that deploys the extensions source code
 
-name: Extension Archieve Sources
+name: Extension Archive Sources
 on:
   workflow_call:
     inputs:
