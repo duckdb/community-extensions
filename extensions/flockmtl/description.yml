@@ -12,14 +12,14 @@ extension:
     - queryproc
 
 repo:
-  github: dsg-polymtl/flockmtl
+  github: dais-polymtl/flockmtl
   ref: 6f0dc7cfe2398b63b517c306b488e80ac44e2fe9
 
 docs:
   hello_world: |
     -- After loading, any function call will throw an error if the provider's secret doesn't exist
 
-    -- Create your provider secret by following the [documentation](https://dsg-polymtl.github.io/flockmtl/docs/supported-providers). For example, you can create a default OpenAI API key as follows:
+    -- Create your provider secret by following the [documentation](https://dais-polymtl.github.io/flockmtl/docs/what-is-flockmtl/). For example, you can create a default OpenAI API key as follows:
     D CREATE SECRET (TYPE OPENAI, API_KEY 'your-api-key');
 
     -- Call an OpenAI model with a predefined prompt ('Tell me hello world') and default model ('gpt-4o-mini')
