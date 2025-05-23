@@ -54,8 +54,8 @@ do
 
     if [ -s "extensions/$extension/docs/function_descriptions.csv" ]; then
        cp extensions/$extension/docs/function_descriptions.csv $DOCS/functions.csv
-       $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, [other.example] as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
-       $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, [other.example] as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
+       $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '\`' || array_to_string(string_to_array(other.example, '\n'), '\`<br><br>\`') || '\`' as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
+       $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '\`' || array_to_string(string_to_array(other.example, '\n'), '\`<br><br>\`') || '\`' as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
        rm $DOCS/functions.csv
     fi
 
