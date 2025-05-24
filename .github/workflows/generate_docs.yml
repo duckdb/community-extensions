@@ -15,7 +15,6 @@ env:
 jobs:
   docs:
     runs-on: ubuntu-latest
-    if: false # Disable docs for now...
     steps:
     - uses: actions/checkout@v4
       with:
