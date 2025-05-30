@@ -8,6 +8,7 @@ extension:
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - lmangani
+    - gigapi
 
 repo:
   github: quackscience/duckdb-extension-redis
