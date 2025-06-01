@@ -23,7 +23,7 @@ docs:
     
     -- Create tables with YAML columns
     CREATE TABLE configs(id INTEGER, config YAML);
-    INSERT INTO configs VALUES (1, 'server: production\nport: 8080\nfeatures: [logging, metrics]');
+    INSERT INTO configs VALUES (1, E'server: production\nport: 8080\nfeatures: [logging, metrics]');
     
     -- Extract data using YAML functions
     SELECT 
@@ -55,14 +55,6 @@ docs:
     - **Error Recovery**: Continue processing valid documents even when some contain errors
     - **JSON Interoperability**: Seamless conversion between YAML and JSON formats
     
-    **Planned Features:**
-    
-    The extension roadmap includes achieving full parity with DuckDB's JSON functionality plus YAML-specific enhancements:
-    - Comprehensive extraction and manipulation functions (`yaml_array_length`, `yaml_keys`, `yaml_each`, etc.)
-    - Construction functions (`yaml_build_object`, `yaml_build_array`, `yaml_agg`)
-    - Advanced operators (`->`, `->>`, `@>`, `||` for path extraction and object operations)
-    - YAML-specific features (anchor resolution, schema validation, multi-document utilities)
-    
     **Example Use Cases:**
     
     - Configuration file management and querying
@@ -72,3 +64,5 @@ docs:
     - Processing Kubernetes manifests and Helm charts
     
     The extension is built using yaml-cpp and follows DuckDB's extension development best practices, ensuring reliable performance and cross-platform compatibility.
+    
+    **Note**: This extension was written primarily using Claude and Claude Code as an exercise in AI-driven development.
