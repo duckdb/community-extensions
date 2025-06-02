@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 
-set -eo pipefail
+set -euo pipefail
+
+trap cleanup SIGINT SIGTERM ERR EXIT
+
+cleanup() {
+    trap - SIGINT SIGTERM ERR EXIT
+    echo "Script interrupted"
+    exit 1
+}
+
 
 if [ $# -lt 1 ]; then
     echo "Usage: ./scripts/fetch_extensions.sh path_to_duckdb_binary"
