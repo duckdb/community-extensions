@@ -2,10 +2,10 @@
 
 set -euo pipefail
 
-trap cleanup SIGINT SIGTERM ERR EXIT
+trap cleanup SIGINT SIGTERM
 
 cleanup() {
-    trap - SIGINT SIGTERM ERR EXIT
+    trap - SIGINT SIGTERM
     echo "Script interrupted"
     exit 1
 }
