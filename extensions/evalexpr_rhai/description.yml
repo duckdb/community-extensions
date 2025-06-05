@@ -1,79 +1,6 @@
 docs:
-  extended_description:
-    "The `evalexpr_rhai` extension provides a single function:
-
-
-    `evalexpr_rhai(VARCHAR, JSON) -> UNION['ok': JSON, 'error': VARCHAR]`
-
-
-    The arguments in order are:
-
-
-    1. The [Rhai](https://rhai.rs) expression to evaluate.
-
-    2. Any context values that will be available to the Rhai expression by
-
-    accessing a variable called context.
-
-
-    The return value is a [union](https://duckdb.org/docs/sql/data_types/union.html)
-    type. The union type is very similar to the
-
-    [Result](https://doc.rust-lang.org/std/result/) type from Rust.
-
-
-    If the Rhai expression was successfully evaluated the JSON result of the
-
-    expression will be returned in the ok element of the union. If there was
-
-    an error evaluating the expression it will be returned in the error
-
-    element of the expression.
-
-    "
-  hello_world:
-    "-- Calculate the value of an expression\nSELECT evalexpr_rhai('40+2');\n\
-    \n┌───────────────────────────────┐\n│     evalexpr_rhai('40+2')     │\n│ union(ok\
-    \ json, error varchar) │\n├───────────────────────────────┤\n│ 42            \
-    \                │\n└───────────────────────────────┘\n\n-- Expression's return\
-    \ type is a union of\n--\n-- ok JSON - the result of the expression as a JSON\
-    \ value\n-- error VARCHAR - the error if any from evaluating the expression\n\n\
-    -- Demonstrate returning a JSON object from Rhai\nSELECT evalexpr_rhai('#{\"apple\"\
-    : 5, \"price\": 3.52}').ok;\n\n┌────────────────────────────────────────────────────┐\n\
-    │ (evalexpr_rhai('#{\"apple\": 5, \"price\": 3.52}')).ok │\n│                \
-    \        json                        │\n├────────────────────────────────────────────────────┤\n\
-    │ {\"apple\":5,\"price\":3.52}                           │\n└────────────────────────────────────────────────────┘\n\
-    \n-- Demonstrate what happens when the expression\n-- cannot be parsed, an error\
-    \ is returned.\nSELECT evalexpr_rhai('#{\"apple: 5}').error;\n\n┌────────────────────────────────────────────────────┐\n\
-    │       (evalexpr_rhai('#{\"apple: 5}')).error        │\n│                   \
-    \   varchar                       │\n├────────────────────────────────────────────────────┤\n\
-    │ Open string is not terminated (line 1, position 3) │\n└────────────────────────────────────────────────────┘\n\
-    \n-- Either .ok or .error will be populated but never both.\n\n-- When evaluating\
-    \ and expression you can also pass in\n-- variables via context.\nCREATE TABLE\
-    \ employees (name text, state text, zip integer);\nINSERT INTO employees values\n\
-    \  ('Jane', 'FL', 33139),\n  ('John', 'NJ', 08520);\n\n-- Pass the row from the\
-    \ employees table in as \"context.row\"\nSELECT evalexpr_rhai(\n  '\n  context.row.name\
-    \ + \" is in \" + context.row.state\n  ',\n  {\n    row: employees\n  }) AS result\
-    \ from employees;\n\n┌───────────────────────────────┐\n│            result  \
-    \           │\n│ union(ok json, error varchar) │\n├───────────────────────────────┤\n\
-    │ \"Jane is in FL\"               │\n│ \"John is in NJ\"               │\n└───────────────────────────────┘\n\
-    \n-- To demonstrate how Rhai can be used to implement\n-- a function in DuckDB,\
-    \ the next example creates\n-- a macro function that calls a Rhai function\n--\
-    \ to calculate the Collatz sequence length.\n\nCREATE MACRO collatz_series_length(n)\
-    \ AS\n  evalexpr_rhai('\n    fn collatz_series(n) {\n        let count = 0;\n\
-    \        while n > 1 {\n          count += 1;\n          if n % 2 == 0 {\n   \
-    \           n /= 2;\n          } else {\n              n = n * 3 + 1;\n      \
-    \    }\n        }\n        return count\n    }\n    collatz_series(context.n)\n\
-    \  ', {'n': n});\n\n-- Use the previously defined macro.\nSELECT\n  collatz_series_length(range).ok::bigint\
-    \ AS sequence_length,\n  range AS starting_value\nFROM\n  range(10000, 20000)\n\
-    ORDER BY 1 DESC limit 10;\n\n┌─────────────────┬────────────────┐\n│ sequence_length\
-    \ │ starting_value │\n│      int64      │     int64      │\n├─────────────────┼────────────────┤\n\
-    │             278 │          17647 │\n│             278 │          17673 │\n│\
-    \             275 │          13255 │\n│             273 │          19593 │\n│\
-    \             273 │          19883 │\n│             270 │          14695 │\n│\
-    \             270 │          15039 │\n│             267 │          10971 │\n│\
-    \             265 │          16457 │\n│             265 │          16777 │\n├─────────────────┴────────────────┤\n\
-    │ 10 rows                2 columns │\n└──────────────────────────────────┘\n"
+  extended_description: |
+     For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_evalexpr_rhai.html).
 extension:
   build: cmake
   description: Evaluate the Rhai scripting language in DuckDB
@@ -86,5 +13,5 @@ extension:
   requires_toolchains: rust
   version: 1.0.2
 repo:
-  github: rustyconover/duckdb-evalexpr-rhai-extension
-  ref: 780f14cd20c94e4f06c8d351f6f7ec6c51928155
+  github: query-farm/evalexpr_rhai
+  ref: 9cbc27c7f89d81c1816d446e0402fe062989afa8

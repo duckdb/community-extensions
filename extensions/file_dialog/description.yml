@@ -1,0 +1,25 @@
+extension:
+  name: file_dialog
+  description: Choose a file via native file dialog
+  version: 0.0.3
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - yutannihilation
+
+repo:
+  github: yutannihilation/duckdb-ext-file-dialog
+  ref: 98e8a095fa4d37aedac7c96d45af29065ad15569
+
+docs:
+  hello_world: |
+    FROM read_csv(choose_file());
+
+    -- Optionally, you can filter files by the extension. For example, this
+    -- makes the dialog list CSV files only
+    FROM read_csv(choose_file('csv'));
+  extended_description: |
+    This extension is a tiny utility to choose a file interactively.
