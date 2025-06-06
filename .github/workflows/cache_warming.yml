@@ -1,0 +1,53 @@
+name: Cache warming
+on:
+  repository_dispatch:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # Every midnight
+
+jobs:
+  duckdb_ccache:
+    name: Warm CCache using DuckDB C++ extension template
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
+    with:
+      duckdb_version: 'v1.3.0'
+      ci_tools_version: 'main' # TODO: this should probably be v1.3.0?
+      extra_toolchains: ''
+      extension_name: 'quack'
+      override_repository: 'duckdb/extension-template'
+      override_ref: 'main'
+      exclude_archs: 'windows_amd64_mingw' # TODO: fixme: extension template fails?
+      skip_tests: true
+      save_cache: true
+    secrets: inherit
+
+  parse_dependency_list:
+    name: Fetch VCPKG dependency list
+    runs-on: ubuntu-latest
+    outputs:
+      dependencies: ${{ steps.read-deps.outputs.dependencies }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: read-deps
+        run: |
+          deps="`cat .github/config/vcpkg_caching/generated_dep_list.json | tr -d '\n'`"
+          echo "dependencies=$deps" >> $GITHUB_OUTPUT
+          echo `cat $GITHUB_OUTPUT`
+
+  duckdb_vcpkg_cache:
+    name: Warm VCPKG Binary Cache
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
+    needs: parse_dependency_list
+    with:
+      duckdb_version: 'v1.3.0'
+      ci_tools_version: 'main' # TODO: this should probably be v1.3.0?
+      extra_toolchains: ';rust;go;fortran;parser_tools;'
+      extension_name: 'capi_quack'
+      override_repository: 'duckdb/extension-template-c'
+      override_ref: 'main'
+      skip_tests: true
+      save_cache: true
+      vcpkg_extra_dependencies: ${{needs.parse_dependency_list.outputs.dependencies}}
+      vcpkg_binary_sources: ${{ vars.VCPKG_BINARY_SOURCES }}
+    secrets: inherit
