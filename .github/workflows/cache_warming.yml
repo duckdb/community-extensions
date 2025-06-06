@@ -11,11 +11,12 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     with:
       duckdb_version: 'v1.3.0'
-      ci_tools_version: 'main'
+      ci_tools_version: 'main' # TODO: this should probably be v1.3.0?
       extra_toolchains: ''
       extension_name: 'quack'
       override_repository: 'duckdb/extension-template'
       override_ref: 'main'
+      exclude_archs: 'windows_amd64_mingw' # TODO: fixme: extension template fails?
       skip_tests: true
       save_cache: true
     secrets: inherit
@@ -40,7 +41,7 @@ jobs:
     needs: parse_dependency_list
     with:
       duckdb_version: 'v1.3.0'
-      ci_tools_version: 'main'
+      ci_tools_version: 'main' # TODO: this should probably be v1.3.0?
       extra_toolchains: ';rust;go;fortran;parser_tools;'
       extension_name: 'capi_quack'
       override_repository: 'duckdb/extension-template-c'
