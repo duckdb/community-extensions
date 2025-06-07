@@ -1,0 +1,3 @@
+function,description,comment,example
+"embed","Embed text using vanilla BERT implementation, 384 output dim float32","","SELECT embed('Quack Quack Quack!');"
+"embed_jina","Embed text using Jina BERT implementation, 768 output dim float32","","SELECT embed_jina('Quack Quack Quack!');"

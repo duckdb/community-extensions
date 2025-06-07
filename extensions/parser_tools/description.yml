@@ -1,0 +1,91 @@
+extension:
+  name: parser_tools
+  description: Exposes functions for parsing referenced tables and usage context from SQL queries using DuckDB's native parser.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - zacMode
+
+repo:
+  github: zacMode/duckdb_extension_parser_tools
+  ref: 9818c41f1fb2d7ee65486216a1b4576e5b659df9
+
+docs:
+  hello_world: |
+    -- Extract table references from a simple query
+    SELECT * FROM parse_tables('SELECT * FROM my_table');
+    ┌─────────┬───────────┬─────────┐
+    │ schema  │  table    │ context │
+    │ varchar │  varchar  │ varchar │
+    ├─────────┼───────────┼─────────┤
+    │ main    │ my_table  │ from    │
+    └─────────┴───────────┴─────────┘
+
+    -- Parse a query with a CTE and a join
+    SELECT * FROM parse_tables($$
+        WITH recent_users AS (SELECT * FROM users WHERE created_at > now() - INTERVAL '7 days')
+        SELECT * FROM recent_users r JOIN logins l ON r.id = l.user_id
+    $$);
+    ┌─────────┬──────────────┬────────────┐
+    │ schema  │    table     │ context    │
+    │ varchar │   varchar    │ varchar    │
+    ├─────────┼──────────────┼────────────┤
+    │         │ recent_users │ cte        │
+    │ main    │ users        │ from       │
+    │ main    │ logins       │ join_right │
+    │ main    │ recent_users │ from_cte   │
+    └─────────┴──────────────┴────────────┘
+
+    -- Return a list of table names from a query
+    SELECT parse_table_names('SELECT * FROM orders JOIN customers ON orders.customer_id = customers.id');
+    ┌────────────────────────────────────┐
+    │           parse_table_names        │
+    │             varchar[]              │
+    ├────────────────────────────────────┤
+    │ ['orders', 'customers']            │
+    └────────────────────────────────────┘
+
+    -- Parse queries from a csv file
+    SELECT parse_table_names(query) AS tables FROM 'user_queries.csv';
+    ┌───────────────────────────────┐
+    │            tables             │
+    │          varchar[]            │
+    ├───────────────────────────────┤
+    │ ['users']                     │
+    │ ['orders', 'customers']       │
+    └───────────────────────────────┘
+
+    -- Structured output as a list of table references
+    SELECT parse_tables('SELECT * FROM products p JOIN inventory i ON p.sku = i.sku');
+    ┌────────────────────────────────────────────────────────────────────────────┐
+    │                              parse_tables                                  │
+    │ list<struct<schema: varchar, table: varchar, context: varchar>>            │
+    ├────────────────────────────────────────────────────────────────────────────┤
+    │ [{'schema': 'main', 'table': 'products',  'context': 'from'},              │
+    │  {'schema': 'main', 'table': 'inventory', 'context': 'join_right'}]        │
+    └────────────────────────────────────────────────────────────────────────────┘
+
+    -- Detect invalid sql
+    SELECT query, is_parsable(query) AS valid
+    FROM (VALUES
+        ('SELECT * FROM good_table'),
+        ('BAD SQL SELECT *'),
+        ('WITH cte AS (SELECT 1) SELECT * FROM cte')
+    ) AS t(query);
+    ┌───────────────────────────────────────────────┬────────┐
+    │                    query                      │ valid  │
+    │                   varchar                     │ boolean│
+    ├───────────────────────────────────────────────┼────────┤
+    │ SELECT * FROM good_table                      │ true   │
+    │ BAD SQL SELECT *                              │ false  │
+    │ WITH cte AS (SELECT 1) SELECT * FROM cte      │ true   │
+    └───────────────────────────────────────────────┴────────┘
+
+
+  extended_description: |
+    `parser_tools` is a DuckDB extension that enables SQL query introspection using DuckDB’s native parser.
+    It allows you to analyze SQL queries and extract structural information directly in SQL. 
+    Future versions may expose additional aspects of the parsed query structure.
+    For more details and examples, visit the [extension repository](https://github.com/zacMode/duckdb_extension_parser_tools).

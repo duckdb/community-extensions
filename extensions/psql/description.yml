@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: ywelsch/duckdb-psql
-  ref: 119c6a7b0e044853e7503e3d004009d76e39ce20
+  ref: 21d37708ce02819f5601279a67ee05e1ad1397cc
 
 docs:
   hello_world: |

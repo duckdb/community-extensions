@@ -28,10 +28,10 @@ jobs:
       run: |
         unzip generated_md.zip
         cp build/docs/*.md web/community_extensions/extensions/.
-        cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
+        # TODO: re-enable cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
 
     - name: Upload to duckdb/duckdb-web
-      if: github.repository != 'duckdb/duckdb-web'
+      if: false
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
@@ -44,6 +44,7 @@ jobs:
         git push -f --set-upstream origin update_community_extensions
 
     - name: Deploy website
+      if: github.repository == 'duckdb/duckdb-web'
       working-directory: 'web/_site'
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ID }}
