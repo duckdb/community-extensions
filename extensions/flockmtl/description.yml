@@ -12,14 +12,14 @@ extension:
     - queryproc
 
 repo:
-  github: dsg-polymtl/flockmtl
-  ref: 6f0dc7cfe2398b63b517c306b488e80ac44e2fe9
+  github: dais-polymtl/flockmtl
+  ref: 3de4a715ec98ea5e87068d0cf1d96a95da8ab698
 
 docs:
   hello_world: |
     -- After loading, any function call will throw an error if the provider's secret doesn't exist
 
-    -- Create your provider secret by following the [documentation](https://dsg-polymtl.github.io/flockmtl/docs/supported-providers). For example, you can create a default OpenAI API key as follows:
+    -- Create your provider secret by following the [documentation](https://dais-polymtl.github.io/flockmtl/docs/what-is-flockmtl/). For example, you can create a default OpenAI API key as follows:
     D CREATE SECRET (TYPE OPENAI, API_KEY 'your-api-key');
 
     -- Call an OpenAI model with a predefined prompt ('Tell me hello world') and default model ('gpt-4o-mini')
@@ -51,6 +51,6 @@ docs:
 
     FlockMTL is designed for rapid prototyping of LLM-based analytics and is optimized with batching and caching features for better performance.
 
-    📄 For more details and examples, see the [FlockMTL documentation](https://dsg-polymtl.github.io/flockmtl/docs/what-is-flockmtl).
+    📄 For more details and examples, see the [FlockMTL documentation](https://dais-polymtl.github.io/flockmtl/docs/what-is-flockmtl).
 
-    > *Note:* FlockMTL is part of ongoing research by the [Data Systems Group @ Polytechnique Montréal](https://dsg-polymtl.github.io/). It is under active development, and some features may evolve. Feedback and contributions are welcome!
+    > *Note:* FlockMTL is part of ongoing research by the [Data & AI Systems (DAIS) Laboratory @ Polytechnique Montréal](https://dais-polymtl.github.io/). It is under active development, and some features may evolve. Feedback and contributions are welcome!
