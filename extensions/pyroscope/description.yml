@@ -1,7 +1,7 @@
 extension:
   name: pyroscope
   description: DuckDB Pyroscope Extension for Continuous Profiling
-  version: 0.1.2
+  version: 0.1.3
   language: Rust
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-pyroscope
-  ref: c37fa6a207eeb7144b994ce4db82fefd7296f642
+  ref: e72cf4cdbfbe79476f55adb2a98aec2792d72f68
 
 docs:
   hello_world: |
