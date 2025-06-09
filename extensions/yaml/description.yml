@@ -1,0 +1,68 @@
+extension:
+  name: yaml
+  description: Read YAML files into DuckDB with native YAML type support, comprehensive extraction functions, and seamless JSON interoperability
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+  
+repo:
+  github: teaguesterling/duckdb_yaml
+  ref: main
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD yaml;
+    
+    -- Query YAML files directly
+    SELECT * FROM 'config.yaml';
+    SELECT * FROM 'data/*.yml' WHERE active = true;
+    
+    -- Create tables with YAML columns
+    CREATE TABLE configs(id INTEGER, config YAML);
+    INSERT INTO configs VALUES (1, E'server: production\nport: 8080\nfeatures: [logging, metrics]');
+    
+    -- Extract data using YAML functions
+    SELECT 
+        yaml_extract_string(config, '$.server') AS environment,
+        yaml_extract(config, '$.port') AS port,
+        yaml_extract(config, '$.features[0]') AS first_feature
+    FROM configs;
+    
+    -- Convert between YAML and JSON
+    SELECT yaml_to_json(config) AS json_config FROM configs;
+    SELECT value_to_yaml({name: 'John', age: 30}) AS yaml_person;
+    
+    -- Write query results to YAML
+    COPY (SELECT * FROM users) TO 'output.yaml' (FORMAT yaml, STYLE block);
+
+  extended_description: |
+    The YAML extension brings comprehensive YAML support to DuckDB, enabling seamless integration of YAML data within SQL queries. 
+    
+    **Key Features:**
+    
+    - **Native YAML Type**: Full YAML type support with automatic casting between YAML, JSON, and VARCHAR
+    - **File Reading**: Read YAML files with `read_yaml()` and `read_yaml_objects()` functions supporting multi-document files, top-level sequences, and robust error handling
+    - **Direct File Querying**: Query YAML files directly using `FROM 'file.yaml'` syntax
+    - **Extraction Functions**: Query YAML data with `yaml_extract()`, `yaml_type()`, `yaml_exists()`, and path-based extraction
+    - **Type Detection**: Comprehensive automatic type detection for temporal types (DATE, TIME, TIMESTAMP), optimal numeric types, and boolean values
+    - **Column Type Specification**: Explicitly define column types when reading YAML files for schema consistency
+    - **YAML Output**: Write query results to YAML files using `COPY TO` with configurable formatting styles
+    - **Multi-Document Support**: Handle files with multiple YAML documents separated by `---`
+    - **Error Recovery**: Continue processing valid documents even when some contain errors
+    - **JSON Interoperability**: Seamless conversion between YAML and JSON formats
+    
+    **Example Use Cases:**
+    
+    - Configuration file management and querying
+    - Log file analysis and processing  
+    - Data migration between YAML and relational formats
+    - Integration with YAML-based CI/CD pipelines
+    - Processing Kubernetes manifests and Helm charts
+    
+    The extension is built using yaml-cpp and follows DuckDB's extension development best practices, ensuring reliable performance and cross-platform compatibility.
+    
+    **Note**: This extension was written primarily using Claude and Claude Code as an exercise in AI-driven development.

@@ -1,7 +1,7 @@
 extension:
   name: file_dialog
   description: Choose a file via native file dialog
-  version: 0.0.2
+  version: 0.0.3
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: yutannihilation/duckdb-ext-file-dialog
-  ref: 6b44c5f21cdb1b22625f6d332837dc8cb0020cc3
+  ref: 98e8a095fa4d37aedac7c96d45af29065ad15569
 
 docs:
   hello_world: |
