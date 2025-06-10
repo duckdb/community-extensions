@@ -110,6 +110,7 @@ jobs:
     uses: ./.github/workflows/generate_docs.yml
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.3.0' }}
 
   archive:
     needs:
