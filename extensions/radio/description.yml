@@ -13,4 +13,4 @@ extension:
   version: 1.0.0
 repo:
   github: query-farm/radio
-  ref: 4132f9564c5399dac41bef256546aa4d3d1cceb0
+  ref: 766f92777d3935e9c25e113f3257b305c313e7c1
