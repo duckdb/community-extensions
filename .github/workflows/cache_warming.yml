@@ -42,7 +42,7 @@ jobs:
     with:
       duckdb_version: 'v1.3.1'
       ci_tools_version: 'main' # TODO: this should probably be v1.3.1?
-      extra_toolchains: ';rust;go;fortran;parser_tools;downgraded_aws_cli;'
+      extra_toolchains: ';rust;go;fortran;parser_tools;'
       extension_name: 'capi_quack'
       override_repository: 'duckdb/extension-template-c'
       override_ref: 'main'
