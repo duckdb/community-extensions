@@ -10,7 +10,7 @@ extension:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-pbix-extension
-  ref: bb98c3942a6cb16a9507fd3ca2238611221ca8fc
+  ref: 22d1d12b15c5b26b2053e7b07a25dad192e16c40
 docs:
   hello_world: |
     -- Get metadata tables from a PowerBI file
