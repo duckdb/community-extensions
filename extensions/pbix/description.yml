@@ -36,4 +36,4 @@ docs:
     For a pure Python implementation of the pbix parser, check out the [PBIXray](https://github.com/Hugoberry/pbixray) library.
     
     
-    *Note:* Current limitations include inability of the WASM version to parse `https` hosted files and that pbix_read() will decompress the entire model in memory.
+    *Note:* Current limitations include inability of the WASM version to parse `https` hosted files and that pbix_read() will decompress the entire model in memory. 
