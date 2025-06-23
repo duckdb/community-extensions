@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-quickjs
-  ref: 869bf9d0f21262cee77f39745f9b93a22c6ac6ab
+  ref: 66b28ca6c9037fdc1ed3daac979448a9dcf39e34
 
 docs:
   hello_world: |
