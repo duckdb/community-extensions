@@ -10,10 +10,11 @@ extension:
 
 repo:
   github: quackscience/duckdb-quickjs
-  ref: 393d79ef3c552d7420c661fa2167a0da25610470
+  ref: 83906e2486de7823b10aabcca931533feadfe23c
 
 docs:
   hello_world: |
+    -- Quack JS with QuickJS
     -- Scalar
     D SELECT quickjs('2+2');
     ┌────────────────┐
@@ -33,21 +34,21 @@ docs:
     └───────────────────────────────────────┘
 
     -- Table Eval
-    D SELECT * FROM quickjs('[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].filter(x => x % 2 === 0)');
+    D SELECT * FROM quickjs('parsed_arg0.map(x => x * arg1)', '[1, 2, 3, 4, 5]', 3);
     ┌────────┐
     │ result │
     │  json  │
     ├────────┤
-    │ 2      │
-    │ 4      │
+    │ 3      │
     │ 6      │
-    │ 8      │
-    │ 10     │
+    │ 9      │
+    │ 12     │
+    │ 15     │
     └────────┘
 
   extended_description: |
     ## QuickJS DuckDB Extension
-    This extension provides an embedded QuickJS engine for DuckDB. It allows you to execute JavaScript code directly within your SQL queries. 
-    > QuickJS is a small, fast, and embeddable JavaScript engine that supports modern JavaScript features including ES2020.
+    This extension provides an embedded QuickJS-NG engine for DuckDB. It allows executing JavaScript code directly within your SQL queries. 
+    > QuickJS-NG is a small, fast, and embeddable JavaScript engine that supports modern JavaScript features including ES2020.
     
     This extension is experimental and potentially unstable. Do not use it in production.
