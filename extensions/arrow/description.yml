@@ -27,7 +27,6 @@ docs:
     -- Write to buffers: This returns IPC message BLOBs and indicates which one is the header.
     FROM to_arrow_ipc((FROM arrow_libraries));
 
-
   extended_description: |
     The Arrow IPC library allows users to read and write data in the Arrow IPC stream format. 
     This can be done by either reading and producing `.arrow` files or by directly reading buffers using their pointers and sizes. 
