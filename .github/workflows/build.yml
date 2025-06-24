@@ -100,6 +100,7 @@ jobs:
       vcpkg_url: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_URL}}
       vcpkg_commit: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT}}
       skip_tests: ${{ inputs.skip_tests || false }}
+      save_cache: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME == 'quack' && github.event_name != 'pull_request' }}
 
   doc_test:
     if: ${{ inputs.deploy != 'false' }}
@@ -109,6 +110,7 @@ jobs:
     uses: ./.github/workflows/generate_docs.yml
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.3.0' }}
 
   archive:
     needs:

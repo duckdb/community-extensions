@@ -4,9 +4,13 @@ on:
     inputs:
       extension_name:
         type: string
+      duckdb_version:
+        type: string
   workflow_call:
     inputs:
       extension_name:
+        type: string
+      duckdb_version:
         type: string
 
 env:
@@ -34,7 +38,7 @@ jobs:
     - uses: actions/download-artifact@v4
       if: ${{ inputs.extension_name != '' }}
       with:
-        name: ${{ inputs.extension_name }}--extension-linux_amd64
+        name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version}}-extension-linux_amd64
         path: build/downloaded
 
     - name: Install downloaded extension

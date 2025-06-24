@@ -76,7 +76,13 @@ do
     if [ -s "extensions/$extension/description.yml" ]; then
        echo -n "  " >> $EXTENSION_README
        cat extensions/$extension/description.yml | yq -r ".extension.description" >> $EXTENSION_README
-       cat extensions/$extension/description.yml | yq '.extension.name, .repo.github, .repo.ref' | xargs printf '%s,%s,%s,"' >> $EXTENSIONS_CSV
+
+       REPOSITORY=$(cat extensions/$extension/description.yml | yq -r ".repo.github")
+       if [[ "${REPOSITORY}" == "duckdb/duckdb-extension-alias" ]]; then
+          extension=$(cat extensions/$extension/description.yml | yq -r ".repo.canonical_name")
+       fi
+       cat extensions/$extension/description.yml | yq ".extension.name, .repo.github, .repo.ref" | xargs printf '%s,%s,%s,"' >> $EXTENSIONS_CSV
+
        cat extensions/$extension/description.yml | yq -r '.extension.description' | sed 's/$/"/'  >> $EXTENSIONS_CSV
        echo "" >> $EXTENSION_README
        cat extensions/$extension/description.yml >> $EXTENSION_README
