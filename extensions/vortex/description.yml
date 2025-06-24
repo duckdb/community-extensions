@@ -1,7 +1,7 @@
 extension:
   name: vortex
-  description: Provides write and scan function for vortex files
-  version: 0.36.1
+  description: Provides write and scan functions for Vortex files
+  version: 0.36.2
   language: C++,Rust
   build: cmake
   license: Apache-2.0
@@ -14,8 +14,7 @@ extension:
 
 repo:
   github: spiraldb/duckdb-vortex
-  ref: d9f354bfe87b8ee8bc1f4ea1d51801e44c212c9b
-
+  ref: bcf816009d4d80e93fd03c26cc2f8e85273422f6
 
 docs:
   hello_world: |
