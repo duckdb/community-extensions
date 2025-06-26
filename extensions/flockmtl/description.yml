@@ -1,24 +1,25 @@
 extension:
   name: flockmtl
   description: LLM & RAG extension to combine analytics and semantic analysis
-  version: 0.2.3
+  version: 0.2.5
   language: SQL & C++
   build: cmake
   license: MIT
   excluded_platforms: "windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
 
   maintainers:
-    - dorbanianas
+    - anasdorbani
+    - queryproc
 
 repo:
-  github: dsg-polymtl/flockmtl
-  ref: 5c4d40bcd6e9918227a6b4e5b897c880e749355e
+  github: dais-polymtl/flockmtl
+  ref: da740bb111250aabfab028aa2d2158907e7ea394
 
 docs:
   hello_world: |
     -- After loading, any function call will throw an error if the provider's secret doesn't exist
 
-    -- Create your provider secret by following the [documentation](https://dsg-polymtl.github.io/flockmtl/docs/supported-providers). For example, you can create a default OpenAI API key as follows:
+    -- Create your provider secret by following the [documentation](https://dais-polymtl.github.io/flockmtl/docs/what-is-flockmtl/). For example, you can create a default OpenAI API key as follows:
     D CREATE SECRET (TYPE OPENAI, API_KEY 'your-api-key');
 
     -- Call an OpenAI model with a predefined prompt ('Tell me hello world') and default model ('gpt-4o-mini')
@@ -44,4 +45,12 @@ docs:
     D SELECT llm_complete({'model_name': 'summarizer-model'}, {'prompt_name': 'summarize'}, {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
 
   extended_description: |
-    This extension is experimental and potentially unstable. Do not use it in production.
+    **FlockMTL** is an experimental DuckDB extension that enables seamless integration of large language models (LLMs) and retrieval-augmented generation (RAG) directly within SQL.
+
+    It introduces `MODEL` and `PROMPT` objects as first-class SQL entities, making it easy to define, manage, and reuse LLM interactions. Core functions like `llm_complete`, `llm_filter`, and `llm_rerank` allow you to perform generation, semantic filtering, and ranking—all from SQL.
+
+    FlockMTL is designed for rapid prototyping of LLM-based analytics and is optimized with batching and caching features for better performance.
+
+    📄 For more details and examples, see the [FlockMTL documentation](https://dais-polymtl.github.io/flockmtl/docs/what-is-flockmtl).
+
+    > *Note:* FlockMTL is part of ongoing research by the [Data & AI Systems (DAIS) Laboratory @ Polytechnique Montréal](https://dais-polymtl.github.io/). It is under active development, and some features may evolve. Feedback and contributions are welcome!

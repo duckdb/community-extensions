@@ -1,7 +1,7 @@
 extension:
   name: chsql_native
   description: ClickHouse Native Client & File Reader for chsql
-  version: 0.0.3
+  version: 0.1.3
   language: Rust
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-native
-  ref: 11eba744ac579b7fccd06217bb71218299f749b9
+  ref: 46c3cc58327d6ebaa569dfea6062165e555e4d27
 
 docs:
   hello_world: |
@@ -105,8 +105,7 @@ docs:
     Authentication and connection parameters can be included in the URL
     ```
     export CLICKHOUSE_URL="tcp://user:pass@remote:9440/?secure=true&skip_verify=true"
+    -- export CLICKHOUSE_URL="tcp://localhost:9000"
     ```
-    
-    --- export CLICKHOUSE_URL="tcp://localhost:9000"
     
     > This extension is experimental and potentially unstable. Do not use in production. See README for full examples.

@@ -32,6 +32,8 @@ print(desc)
 
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
+	if 'canonical_name' in desc.get('repo', {}):
+		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
 	extension_ref = desc['repo']['ref']
 	if  os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
 		if 'ref_next' in desc['repo']:

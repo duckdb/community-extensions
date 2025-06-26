@@ -1,0 +1,46 @@
+extension:
+  name: nanodbc
+  description: Connect to any ODBC-compatible database and query data directly from DuckDB
+  version: 0.2.0
+  language: C++
+  build: cmake
+  excluded_platforms: "linux_amd64;linux_arm64;linux_amd64_musl;osx_amd64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  license: MIT
+  maintainers:
+    - Hugoberry
+repo:
+  github: Hugoberry/duckdb-nanodbc-extension
+  ref: 25bf0edb450f160fb045ca559eae8cdd72284167
+docs:
+  hello_world: |
+    -- Query a table using DSN
+    SELECT * FROM odbc_scan(table_name='customers', connection='MyODBCDSN');
+    
+    -- Execute custom SQL with connection string
+    SELECT * FROM odbc_query(
+        connection='Driver={SQL Server};Server=localhost;Database=mydb;',
+        query='SELECT id, name, amount FROM sales WHERE amount > 1000'
+    );
+    
+    -- Attach all tables from an ODBC source
+    CALL odbc_attach(connection='MyODBCDSN');
+  extended_description: >
+    The ODBC extension allows DuckDB to seamlessly connect to any database that provides an ODBC driver,
+    enabling you to query and analyze data from a wide variety of data sources without leaving the DuckDB ecosystem.
+    
+    
+    Key features:
+    - `odbc_scan()`: Query tables from any ODBC data source
+    - `odbc_query()`: Execute custom SQL queries against external databases
+    - `odbc_exec()`: Execute DDL/DML statements without returning results
+    - `odbc_attach()`: Attach all tables from an ODBC source as views in DuckDB
+    - Cross-platform character encoding support
+    - Automatic type conversion between ODBC and DuckDB types
+    - Support for DSNs and direct connection strings
+    
+    
+    The extension works on Windows, macOS, and Linux platforms and has been tested with SQL Server, MySQL, 
+    PostgreSQL, Snowflake, SQLite, and many other databases. All functions use named parameters for better 
+    readability and flexibility.
+
+    

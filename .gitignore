@@ -1,3 +1,4 @@
 build/
 downloads-last-week.json
 *.db
+.DS_Store

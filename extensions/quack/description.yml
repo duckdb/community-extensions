@@ -11,13 +11,13 @@ extension:
   # (Optional) param that specifies required extra toolchains
   requires_toolchains: "rust"
   # (Optional) param that specifies a precise vcpkg commit to use
-  vcpkg_commit: "5e5d0e1cd7785623065e77eff011afdeec1a3574"
+  vcpkg_commit: "ce613c41372b23b1f51333815feb3edd87ef8a8b"
   # (Optional) this extension requires additional custom toolchain setup
   custom_toolchain_script: true
 
 repo:
   github: duckdb/extension-template
-  ref: f89d2663d9788dc27f3a77bcdf638ace6357a459
+  ref: 07c9a0d9acf8da9b62e546dc1419d62c0a930244
 
 docs:
   hello_world: |
