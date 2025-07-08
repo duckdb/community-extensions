@@ -1,7 +1,7 @@
 extension:
   name: h3
   description: Hierarchical hexagonal indexing for geospatial data
-  version: 1.3.1
+  version: 1.3.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: isaacbrodsky/h3-duckdb
-  ref: 9ec80c407cfdc4ec792ca21ea776a794c52204bf
+  ref: efb8a575c7d59f7cb91246cc57f5d08a2fb29fcf
 
 docs:
   hello_world: |
