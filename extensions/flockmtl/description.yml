@@ -1,7 +1,7 @@
 extension:
   name: flockmtl
   description: LLM & RAG extension to combine analytics and semantic analysis
-  version: 0.2.5
+  version: 0.3.0
   language: SQL & C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: dais-polymtl/flockmtl
-  ref: da740bb111250aabfab028aa2d2158907e7ea394
+  ref: 303249fb63aac23cda35a2f4d590796a12b75ca4
 
 docs:
   hello_world: |
@@ -39,7 +39,7 @@ docs:
     D CREATE PROMPT('summarize', 'summarize the text into 1 word: {{text}}');
 
     -- Create a variable name for the model to do the summarizing
-    D CREATE MODEL('summarizer-model', 'gpt-4o', {'context_window': 128000, 'max_output_tokens': 16400});
+    D CREATE MODEL('summarizer-model', 'gpt-4o', 'openai');
 
     -- Summarize text and pass it as parameter 
     D SELECT llm_complete({'model_name': 'summarizer-model'}, {'prompt_name': 'summarize'}, {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
