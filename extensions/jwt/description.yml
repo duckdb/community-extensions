@@ -1,0 +1,43 @@
+extension:
+  name: jwt
+  description: Decode and work with JWT (JSON Web Token) in SQL queries
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - GalvinGao
+
+repo:
+  github: GalvinGao/duckdb_jwt
+  ref: 9511967148dd532b45e4088182501187559f1829
+
+docs:
+  decode_jwt: |
+    -- Decode a JWT token payload
+    SELECT jwt_decode_payload('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c') AS payload;
+  
+  extract_claim: |
+    -- Extract the 'sub' claim from a JWT token
+    SELECT 
+      json_extract(
+        jwt_decode_payload('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'),
+        '$.sub'
+      ) AS subject;
+  
+  extended_description: |
+    The JWT extension provides functionality to decode and work with JWT (JSON Web Token) directly in DuckDB SQL queries. 
+    
+    ## Features
+    
+    - `jwt_decode_payload(token)`: Decodes the payload part of a JWT token and returns it as a JSON string
+    - Base64 URL-safe decoding for JWT token components
+    
+    ## Use Cases
+    
+    - Analyzing JWT tokens in your data
+    - Extracting claims from authentication tokens
+    - Debugging JWT-based authentication systems
+    - Working with JWT tokens in data pipelines
+    
+    You can combine the JWT functions with DuckDB's built-in JSON functionality to extract specific claims from tokens. 
