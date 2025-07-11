@@ -1,0 +1,86 @@
+extension:
+  name: markdown
+  description: Read and analyze Markdown files with comprehensive content extraction and document processing capabilities
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+  
+repo:
+  github: teaguesterling/duckdb_markdown
+  ref: main
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD markdown;
+    
+    -- Read Markdown files with glob patterns
+    SELECT content FROM read_markdown('docs/**/*.md');
+    
+    -- Read documentation sections with hierarchy
+    SELECT title, level, content 
+    FROM read_markdown_sections('README.md', include_content := true);
+    
+    -- Extract code blocks from Markdown text
+    SELECT cb.language, cb.code 
+    FROM (
+      SELECT UNNEST(md_extract_code_blocks('```python\nprint("Hello, World!")\n```')) as cb
+    );
+    
+    -- Analyze documentation repositories
+    SELECT 
+      len(md_extract_code_blocks(content)) as code_examples,
+      len(md_extract_links(content)) as external_links,
+      len(md_extract_images(content)) as images
+    FROM read_markdown('**/*.md');
+    
+    -- Use replacement scan syntax for convenience
+    SELECT * FROM '*.md';
+    SELECT * FROM 'docs/**/*.md';
+
+  extended_description: |
+    The Markdown extension adds comprehensive Markdown processing capabilities to DuckDB, enabling structured analysis of Markdown documents and content extraction for documentation analysis, content auditing, and knowledge base processing.
+    
+    **Key Features:**
+    
+    - **File Reading Functions**: Read Markdown files with `read_markdown()` and `read_markdown_sections()` supporting glob patterns, metadata extraction, and hierarchical section parsing
+    - **Content Extraction**: Extract code blocks, links, images, and tables from Markdown content using structured LIST<STRUCT> return types
+    - **Document Processing**: Convert markdown to HTML/text, validate content, extract metadata, and generate document statistics
+    - **Replacement Scan Support**: Query Markdown files directly using `FROM '*.md'` syntax with full glob pattern support
+    - **Native MARKDOWN Type**: Custom MARKDOWN type with automatic VARCHAR casting for seamless integration
+    - **Cross-Platform Support**: Works on Linux, macOS, and WebAssembly (Windows support in development)
+    - **GitHub Flavored Markdown**: Uses cmark-gfm for accurate parsing of modern Markdown features
+    - **High Performance**: Process thousands of documents efficiently with 4,000+ sections/second processing rate
+    - **Comprehensive Parameter System**: Flexible file processing with customizable options for content inclusion, size limits, and metadata extraction
+    
+    **Core Functions:**
+    
+    - `read_markdown()` - Read Markdown files with comprehensive parameter support
+    - `read_markdown_sections()` - Parse files into hierarchical sections with filtering options
+    - `md_extract_code_blocks()` - Extract code blocks with language and metadata
+    - `md_extract_links()` - Extract links with text, URL, and title information
+    - `md_extract_images()` - Extract images with alt text and metadata
+    - `md_extract_tables_json()` - Extract tables as structured JSON
+    - `md_to_html()` - Convert markdown content to HTML
+    - `md_to_text()` - Convert markdown to plain text for full-text search
+    - `md_stats()` - Get document statistics (word count, reading time, etc.)
+    - `md_extract_metadata()` - Extract frontmatter metadata as JSON
+    
+    **Example Use Cases:**
+    
+    - Documentation analysis across entire repositories
+    - Content quality assessment and auditing
+    - Large-scale documentation search and indexing
+    - Code example extraction and analysis
+    - Link validation and external reference tracking
+    - Knowledge base processing and content management
+    - Technical writing analytics and reporting
+    
+    **Performance Benchmarks:**
+    
+    Real-world performance: Processing 287 Markdown files (2,699 sections, 1,137 code blocks, 1,174 links) in 603ms on typical hardware.
+    
+    The extension is built using cmark-gfm and includes a comprehensive test suite with 218+ passing assertions, ensuring reliable performance and accuracy for production use.
