@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: duckdb/extension-template-rs
-  ref: 9d488943d532b81f57031a26c23303c2aaec9c0d
+  ref: ecd8397290ce9f788dc9b6e81d8bb54ce03a32bb
 
 docs:
   hello_world: |
