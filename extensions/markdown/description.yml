@@ -12,6 +12,9 @@ repo:
   github: teaguesterling/duckdb_markdown
   ref: main
 
+# cmark-gfm not in default vcpkg release
+vcpkg_commit: bffcbb75f71553824aa948a7e7b4f798662a6fa7
+
 docs:
   hello_world: |
     -- Load the extension
