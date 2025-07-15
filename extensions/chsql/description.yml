@@ -1,7 +1,7 @@
 extension:
   name: chsql
   description: ClickHouse SQL Macros for DuckDB
-  version: 1.0.12
+  version: 1.0.132
   language: SQL & C++
   build: cmake
   license: MIT
