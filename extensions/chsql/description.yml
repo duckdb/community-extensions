@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-sql
-  ref: b992342a09fad4f45be67cab7972d72a824267b6
+  ref: f056022f4a9d20e280059d66458d907f4a080cdd
 
 docs:
   hello_world: |
