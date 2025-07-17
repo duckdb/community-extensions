@@ -1,0 +1,23 @@
+extension:
+  name: splink_udfs
+  description: Record linkage functions for use in Splink
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - RobinL
+
+repo:
+  github: moj-analytical-services/splink_udfs
+  ref: 08cc43c05af5cfeaa885f4fcad2da335e2e3856f
+
+docs:
+  hello_world: |
+    LOAD splink_udfs;
+    SELECT soundex('Robert');  -- returns 'R163'
+  extended_description: |
+    The initial version of the splink_udfs extension provides
+    a scalar function `soundex(VARCHAR) → VARCHAR` implementing
+    the Soundex phonetic algorithm. Other record linkage-related
+    functions will be added to this extension as it develops.
