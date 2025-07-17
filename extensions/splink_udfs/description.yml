@@ -6,7 +6,7 @@ extension:
   build: cmake
   license: MIT
   maintainers:
-    - "Robin Linacre <robinlinacre@hotmail.com>"
+    - RobinL
 
 repo:
   github: moj-analytical-services/splink_udfs
