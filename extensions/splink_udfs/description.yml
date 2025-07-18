@@ -1,7 +1,7 @@
 extension:
   name: splink_udfs
-  description: Record linkage functions for use in Splink
-  version: 0.0.1
+  description: Phonetic and text normalization functions for record linkage.
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -10,14 +10,14 @@ extension:
 
 repo:
   github: moj-analytical-services/splink_udfs
-  ref: 08cc43c05af5cfeaa885f4fcad2da335e2e3856f
+  ref: 6e4ccbe4d0a92d134fc16ef19503a20663299d75
 
 docs:
   hello_world: |
     LOAD splink_udfs;
-    SELECT soundex('Robert');  -- returns 'R163'
+    SELECT soundex(unaccent('Jürgen'));  -- returns 'J625'
   extended_description: |
-    The initial version of the splink_udfs extension provides
-    a scalar function `soundex(VARCHAR) → VARCHAR` implementing
-    the Soundex phonetic algorithm. Other record linkage-related
-    functions will be added to this extension as it develops.
+    The splink_udfs extension provides functions for data cleaning and phonetic matching.
+
+    Includes `soundex(str)`, `strip_diacritics(str)`, and `unaccent(str)`. For best
+    results, it is recommended to combine them, e.g. `soundex(unaccent(str))`.
