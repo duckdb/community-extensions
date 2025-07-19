@@ -11,6 +11,7 @@ extension:
     - rustyconover
   name: airport
   version: 0.0.2
+  requires_toolchains: "parser_tools"
 repo:
   github: query-farm/airport
   ref: 7aac16dc0a8d0a38601b7975ec3fe9d0fe8d1027
