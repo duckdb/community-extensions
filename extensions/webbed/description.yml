@@ -10,7 +10,7 @@ extension:
   maintainers:
     - teaguesterling
 repo:
-  github: teaguesterling/duckdb_xml
+  github: teaguesterling/duckdb_webbed
   ref: main
 
 docs:
