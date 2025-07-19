@@ -6,7 +6,7 @@ extension:
   build: cmake
   license: MIT
   requires_toolchains: "vcpkg"
-  excluded_platforms: "windows_amd64_mingw"
+  excluded_platforms: "windows_amd64_mingw;windows_amd64_rtools;windows_amd64"
   maintainers:
     - teaguesterling
 repo:
