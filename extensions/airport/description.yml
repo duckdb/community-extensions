@@ -14,4 +14,4 @@ extension:
   requires_toolchains: "parser_tools"
 repo:
   github: query-farm/airport
-  ref: 7aac16dc0a8d0a38601b7975ec3fe9d0fe8d1027
+  ref: 2e4de573044ff6beda5edb506ca1aee976a632f0
