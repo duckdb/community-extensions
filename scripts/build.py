@@ -1,7 +1,6 @@
 import os
 import sys
 import yaml
-
 # TODO: check prefix, needs to be in installation dir
 
 if 'ALL_CHANGED_FILES' in os.environ:
@@ -45,6 +44,7 @@ with open('env.sh', 'w+') as hdl:
 	custom_toolchain_script = desc['extension'].get('custom_toolchain_script')
 	vcpkg_url = desc['extension'].get('vcpkg_url')
 	vcpkg_commit = desc['extension'].get('vcpkg_commit')
+	test_config = desc['extension'].get('test_config')
 	if excluded_platforms:
 		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
 	if requires_toolchains:
@@ -55,3 +55,6 @@ with open('env.sh', 'w+') as hdl:
 		hdl.write(f"COMMUNITY_EXTENSION_VCPKG_COMMIT={vcpkg_commit}\n")
 	if deploy:
 		hdl.write(f"COMMUNITY_EXTENSION_DEPLOY=1\n")
+	if test_config:
+		escaped_config =test_config.replace("\n", "")
+		hdl.write(f"COMMUNITY_EXTENSION_TEST_CONFIG={escaped_config}\n")

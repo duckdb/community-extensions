@@ -55,6 +55,7 @@ jobs:
       COMMUNITY_EXTENSION_DEPLOY: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_DEPLOY }}
       COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS: ${{ inputs.more_excluded }}${{ steps.parse.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
+      COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
       COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'ce613c41372b23b1f51333815feb3edd87ef8a8b' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
     env:
@@ -94,6 +95,7 @@ jobs:
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
       ci_tools_version: 'main'
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
+      test_config: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
       extension_canonical: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CANONICAL_NAME }}
       extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
