@@ -12,7 +12,7 @@ extension:
   name: airport
   version: 0.0.2
   requires_toolchains: "parser_tools"
-  test_config: |
+  test_config: >
     {"test_env_variables":
       {
         "AIRPORT_TEST_SERVER": "grpc+tls://airport-ci.query.farm"
