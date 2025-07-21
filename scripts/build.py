@@ -1,7 +1,6 @@
 import os
 import sys
 import yaml
-import shlex
 # TODO: check prefix, needs to be in installation dir
 
 if 'ALL_CHANGED_FILES' in os.environ:
@@ -57,5 +56,5 @@ with open('env.sh', 'w+') as hdl:
 	if deploy:
 		hdl.write(f"COMMUNITY_EXTENSION_DEPLOY=1\n")
 	if test_config:
-		escaped_config = shlex.quote(yaml.dump(test_config))
+		escaped_config =test_config.replace("\n", "")
 		hdl.write(f"COMMUNITY_EXTENSION_TEST_CONFIG={escaped_config}\n")
