@@ -8,6 +8,7 @@ extension:
   maintainers:
     - lmangani
     - akvlad
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;"
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-sql
