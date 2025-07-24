@@ -1,7 +1,7 @@
 extension:
   name: vortex
   description: Provides write and scan functions for Vortex files
-  version: 0.36.2
+  version: 1.42.0
   language: C++,Rust
   build: cmake
   license: Apache-2.0
@@ -9,12 +9,12 @@ extension:
     - joseph-isaacs
     - 0ax1
     - gatesn
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;windows_amd64;linux_arm64"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;windows_amd64;linux_amd64_musl"
   requires_toolchains: "rust"
 
 repo:
   github: spiraldb/duckdb-vortex
-  ref: ad8c0cb47a82653f6ec6d280f5e45c882696757b
+  ref: dd1e61f375d0fff7841102594ace30f7af9e17ac
 
 docs:
   hello_world: |
