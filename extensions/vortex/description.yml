@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: spiraldb/duckdb-vortex
-  ref: dd1e61f375d0fff7841102594ace30f7af9e17ac
+  ref: 2bf3cfbcbd54fff6c49284a2cda70212eb2893c2
 
 docs:
   hello_world: |
