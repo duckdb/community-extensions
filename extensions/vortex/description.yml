@@ -1,7 +1,7 @@
 extension:
   name: vortex
   description: Provides write and scan functions for Vortex files
-  version: 1.42.0
+  version: 0.42.0
   language: C++,Rust
   build: cmake
   license: Apache-2.0
