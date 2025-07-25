@@ -13,7 +13,7 @@ extension:
   requires_toolchains: "rust"
 
 repo:
-  github: spiraldb/duckdb-vortex
+  github: vortex-data/duckdb-vortex
   ref: de4fe4b9478029a620c0b7889ea634b5e0254ebe
 
 docs:
