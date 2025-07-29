@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: vortex-data/duckdb-vortex
-  ref: de4fe4b9478029a620c0b7889ea634b5e0254ebe
+  ref: ccccee8cb386d52e28323d1c124ecf3e369b8990
 
 docs:
   hello_world: |
