@@ -1,7 +1,7 @@
 extension:
   name: splink_udfs
-  description: Phonetic and text normalization functions for record linkage.
-  version: 0.0.3
+  description: Phonetic, text normalization and fuzzy matching functions for record linkage.
+  version: 0.0.5
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: moj-analytical-services/splink_udfs
-  ref: 00f6fb3678c26504fd316ad71691a8523c48f74f
+  ref: cb048a1cdb5bf85d1c7db032e7bdaba3fc5876ac
 
 docs:
   hello_world: |
@@ -19,5 +19,6 @@ docs:
   extended_description: |
     The splink_udfs extension provides functions for data cleaning and phonetic matching.
 
-    Includes `soundex(str)`, `strip_diacritics(str)`, `double_metaphone` and `unaccent(str)`.
-    For best results, it is recommended to combine them, e.g. `soundex(unaccent(str))`.
+    Includes `soundex(str)`, `strip_diacritics(str)`, `unaccent(str)`,
+    `ngrams(list,n)`, `double_metaphone(str)`
+    and faster versions of `levenshtein` and `damerau_levenshtein`.
