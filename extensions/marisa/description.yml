@@ -1,0 +1,15 @@
+docs:
+  extended_description: |
+    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_marisa.html).
+extension:
+  build: cmake
+  description: Adds MARISA (Matching Algorithm with Recursively Implemented StorAge) trie functionality for DuckDB. MARISA is a static and space-efficient trie data structure that enables fast string lookups, prefix searches, and predictive text operations.
+  language: C++
+  license: MIT
+  maintainers:
+    - rustyconover
+  name: marisa
+  version: 1.0.1
+repo:
+  github: query-farm/marisa
+  ref: 3b45275ba8574679ca342ecb9bb06ccffa597e68
