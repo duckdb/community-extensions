@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duck-read-cache-fs
-  ref: 5f3930cd66edee8756b9069c2e749fc6079f2f85
+  ref: 2f2709cbcf594029559aba69706b31b70d6578aa
 
 docs:
   hello_world: |
