@@ -6,7 +6,7 @@ extension:
   build: cmake
   license: MIT
   maintainers:
-    - zacMode
+    - zfarrell
 
 repo:
   github: zfarrell/duckdb_extension_parser_tools
