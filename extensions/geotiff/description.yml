@@ -8,7 +8,7 @@ extension:
   maintainers:
     - babaknaimi
   excluded_platforms:
-    - wasm
+    - windows_amd64_mingw
 
 repo:
   github: babaknaimi/duckdb-geotiff
