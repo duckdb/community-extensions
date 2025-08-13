@@ -1,17 +1,17 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) that enables SQL-native analysis of structured documents with intelligent schema inference, XPath-based data extraction, and powerful HTML table parsing capabilities.
-  version: 1.0.1
+  version: 1.0.2
   language: C++
   build: cmake
   license: MIT
   requires_toolchains: "vcpkg"
-  excluded_platforms: "windows_amd64_mingw;windows_amd64_rtools;windows_amd64"
   maintainers:
     - teaguesterling
+  vcpkg_commit: 'dd3097e305afa53f7b4312371f62058d2e665320'
 repo:
   github: teaguesterling/duckdb_webbed
-  ref: main
+  ref: d17300c27f5e5534919c32030cc1d5d4a2429812
 
 docs:
   hello_world: |
