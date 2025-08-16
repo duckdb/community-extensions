@@ -1,7 +1,7 @@
 extension:
   name: highs
   description: HiGHS - High Performance Optimization Software
-  version: 1.11.0
+  version: 1.7.2
   language: C++
   build: cmake
   license: MIT
@@ -14,7 +14,7 @@ repo:
 
 docs:
   hello_world: |
-    SELECT highs_version('Test');;
+    SELECT highs_version('Test');
   extended_description: |
     HiGHS is software for the definition, modification and solution of large scale sparse linear optimization models.
 
