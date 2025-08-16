@@ -1,0 +1,24 @@
+extension:
+  name: geotiff
+  description: Read GeoTIFF rasters as (cell_id, value) via GDAL
+  version: 0.1.0
+  language: C++
+  build: cmake
+  licence: MIT
+  maintainers:
+    - babaknaimi
+  excluded_platforms: "windows_amd64_mingw"
+
+repo:
+  github: babaknaimi/duckdb-geotiff
+  ref: d17a4bf3a0f6bd04699636290ec9668b424fb710
+  
+
+docs:
+  hello_world: |
+    INSTALL geotiff FROM community;
+    LOAD geotiff;
+    SELECT * FROM read_geotiff('example.tif', band := 1) LIMIT 5;
+  extended_description: |
+    Adds a streaming GeoTIFF reader returning (cell_id BIGINT, value DOUBLE).
+    Suitable for very large rasters; integrates with DuckDB SQL & indices.
