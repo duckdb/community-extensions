@@ -1,7 +1,7 @@
 extension:
   name: flockmtl
   description: LLM & RAG extension to combine analytics and semantic analysis
-  version: 0.3.2
+  version: 0.4.0
   language: SQL & C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: dais-polymtl/flockmtl
-  ref: be6192f51a780beeaa48db6ec60b689ddccdeffd
+  ref: 0b0e4ddd6d98ac4192f44148bae0bce3012a9123
 
 docs:
   hello_world: |
@@ -42,7 +42,7 @@ docs:
     D CREATE MODEL('summarizer-model', 'gpt-4o', 'openai');
 
     -- Summarize text and pass it as parameter 
-    D SELECT llm_complete({'model_name': 'summarizer-model'}, {'prompt_name': 'summarize'}, {'text': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'});
+    D SELECT llm_complete({'model_name': 'summarizer-model'}, {'prompt_name': 'summarize','context_columns': [{'data': 'We support more functions and approaches to combine relational analytics and semantic analysis. Check our repo for documentation and examples.'}}]);
 
   extended_description: |
     **FlockMTL** is an experimental DuckDB extension that enables seamless integration of large language models (LLMs) and retrieval-augmented generation (RAG) directly within SQL.
