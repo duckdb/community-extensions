@@ -28,7 +28,7 @@ jobs:
       run: |
         unzip generated_md.zip
         cp build/docs/*.md web/community_extensions/extensions/.
-        # TODO: re-enable cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
+        cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
 
     - name: Upload to duckdb/duckdb-web
       if: false
