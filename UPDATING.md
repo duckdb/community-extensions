@@ -1,16 +1,19 @@
-# Community Extension update guide
-This guide aims to provide some guidelines on updating a community extension. This guide currently only applies to extensions that have been built with the [C++ extension template](https://github.com/duckdb/extension-template).
+# Community Extension Update Guide
+
+This guide provides instructions for updating a community extension. Currently, these instructions apply only to extensions
+built with the [C++ extension template](https://github.com/duckdb/extension-template).
 
 Extensions based on the [C++ extension template](https://github.com/duckdb/extension-template) are strongly tied to a
 specific DuckDB version. Additionally, the C++ API against which these extensions are built is not a stable API, meaning
 that it can change between DuckDB releases. For Community Extension maintainers, this means that there might be some
 work required to make their extension compatible with a new version of DuckDB.
 
-In this document we explain the process to make updating as easy as possible. Note that in most cases, you won't need to do anything at all!
+This document outlines the update process to make it as straightforward as possible. In most cases, no changes will be
+required for your extension.
 
 ## The DuckDB release cycle
 
-To start, let's quickly go over the DuckDB release cycle. DuckDB follows a release cycle that looks roughly like this:
+Let's begin by reviewing the DuckDB release cycle, which follows these main steps:
 
 - Releases are scheduled and marked in the [calendar](https://duckdb.org/release_calendar.html)
 - ~2 weeks before the release, a phase called "feature freeze" starts
@@ -26,9 +29,9 @@ To start, let's quickly go over the DuckDB release cycle. DuckDB follows a relea
 ### Example extension
 To illustrate the community extension release cycle, we're going to assume you are maintaining an extension that has been cloned from the [C++ extension template](https://github.com/duckdb/extension-template) and has it's CI closely resembling what is in the template.
 
-So to start, let's take a look at
+First, let's examine
 the [distribution workflow](https://github.com/duckdb/extension-template/blob/main/.github/workflows/MainDistributionPipeline.yml)
-from the template that describes how the extension is built. It might look something like:
+from the template that defines the extension build process. A typical configuration looks like this:
 
 ```yaml
 duckdb-stable-build:
@@ -89,7 +92,8 @@ When a new DuckDB version is (about to be) released, there are two states your e
 
 For state 1, no action is required. Your extension will be released automatically as part of the upcoming DuckDB release.
 
-State 2 means that something changed in DuckDB's API, buildsystem, or CI which requires changes to your extension's repository to remain compatible. This means that action is required to make your extension available in for the upcoming release.
+State 2 indicates that changes in DuckDB's API, build system, or CI require updates to your extension's repository to
+maintain compatibility. Action is needed to prepare your extension for the upcoming release.
 
 ### Update path: Before DuckDB release 
 Whenever your extension is in state 2 **before** a release, we recommend following the following steps to ensure your extension is available on release day.
@@ -109,7 +113,7 @@ duckdb-stable-build:
 
 **Step 2:** check out the duckdb submodule also to the `vx.y-codename` branch, and commit the updated workflow and submodule change.
 
-**Step 3:** Check out the [upgrade instructions](https://github.com/duckdb/community-extensions/blob/main/UPGRADING.md) for the relevant update. And apply any fixes to the extension repository in the `vx.y-codename` branch.
+**Step 3:** Apply all fixes to the extension repository in the `vx.y-codename` branch.
 
 **Step 4:** PR the latest commit of your `vx.y-codename` branch in to community-extensions by adding a `repo.ref_next` field to your descriptor:
 
@@ -122,8 +126,8 @@ repo:
 
 ### Update path: After DuckDB release
 
-If the DuckDB release has already happened before you had the chance to update your extension, no worries - the update
-path has only become easier. The path is similar to the previous path, but simpler:
+If you're updating your extension after a DuckDB release, the process is more straightforward. Follow these simplified
+steps:
 
 **Step 1:** Check out the upgrade instructions for the relevant update. Apply fixes directly on `main` branch of extension
 
