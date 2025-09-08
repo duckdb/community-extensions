@@ -1,0 +1,44 @@
+extension:
+  name: snowflake
+  description: Integrates DuckDB with Snowflake, allowing direct querying and management of Snowflake databases using Arrow ADBC drivers
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - iqea-ai
+
+repo:
+  github: iqea-ai/duckdb-snowflake
+  ref: 6b80fdc34cd3715a8c6167dfac2f662001351e60
+
+docs:
+  hello_world: |
+    -- Install and load the extension
+    INSTALL snowflake FROM community;
+    LOAD snowflake;
+    
+    -- Create a Snowflake profile
+    CREATE SECRET my_snowflake_secret (
+        TYPE snowflake,
+        ACCOUNT 'your_account.snowflakecomputing.com',
+        USER 'your_username',
+        PASSWORD 'your_password',
+        DATABASE 'your_database',
+        WAREHOUSE 'your_warehouse'
+    );
+    
+    -- Query Snowflake data using pass through query
+    SELECT * FROM snowflake_scan(
+        'SELECT * FROM customers WHERE state = ''CA''',
+        'my_snowflake_secret'
+    );
+    
+    -- Attach Snowflake database for direct SQL access
+    ATTACH '' AS snow_db (TYPE snowflake, SECRET my_snowflake_secret, READ_ONLY);
+    SELECT * FROM snow_db.schema.customers WHERE state = 'CA';
+
+  extended_description: |
+    This community-maintained extension allows DuckDB to connect to Snowflake using Arrow ADBC drivers. 
+    It enables users to read data from their Snowflake databases directly from DuckDB using standard SQL queries.
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/iqea-ai/duckdb-snowflake).
