@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: iqea-ai/duckdb-snowflake
-  ref: 6b80fdc34cd3715a8c6167dfac2f662001351e60
+  ref: 82a1fac62130046eda51dc75e9e9abdf89e956f5
+  ref_next: eaa953343f5cc0d1e53704b751fea5e70f556bf4
 
 docs:
   hello_world: |
