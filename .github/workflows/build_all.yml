@@ -25,21 +25,16 @@ jobs:
         fetch-depth: 0
 
     - name: Generate extension list
-      if: ${{ inputs.build_extensions == ''}}
       id: generate_list
       run: |
-        ./scripts/get_extension_list.sh
-        cat extension_list
-        cat extension_list >> $GITHUB_OUTPUT
+        if [[ "${{inputs.build_extensions}}" == "" ]]; then
+          ./scripts/get_extension_list.sh
+          cat extension_list
+          cat extension_list >> $GITHUB_OUTPUT
+        else
+          echo "EXTENSION_LIST=${{inputs.build_extensions}}" >> $GITHUB_OUTPUT
+        fi
 
-    - name: Override extension list
-      if: ${{ inputs.build_extensions != ''}}
-      id: generate_list
-      env:
-        EXTENSION_LIST: ${{inputs.build_extensions}}
-      run: |
-        echo EXTENSION_LIST=$EXTENSION_LIST >> $GITHUB_OUTPUT
-      
   build_all:
     needs:
       - collect_extensions
