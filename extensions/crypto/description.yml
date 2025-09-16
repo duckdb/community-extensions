@@ -10,7 +10,7 @@ extension:
     - rustyconover
   name: crypto
   requires_toolchains: rust
-  version: 1.0.1
+  version: 2025091601
   excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
 repo:
   github: query-farm/crypto
