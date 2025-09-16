@@ -12,4 +12,4 @@ extension:
   version: 0.0.2
 repo:
   github: query-farm/datasketches
-  ref: 2e3860733b06e8d6188354ba47670dc42ffcca9d
+  ref: 1b1090ca4850f9049c904b2ec27937f5417ddc36
