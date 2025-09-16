@@ -11,7 +11,7 @@ extension:
   name: lindel
   requires_toolchains: rust
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
-  version: 1.0.1
+  version: 2025091601
 repo:
   github: query-farm/lindel
-  ref: a4d74bb68e9fab243d257326a6e9da9945884c19
+  ref: 8f7bf33a11062a071f129ec0ff9e8c8cda045d00
