@@ -9,7 +9,6 @@ extension:
   maintainers:
     - rustyconover
   name: hashfuncs
-  version: 1.0.1
 repo:
   github: query-farm/hashfuncs
   ref: a4d74bb68e9fab243d257326a6e9da9945884c19
