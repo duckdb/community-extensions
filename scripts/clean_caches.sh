@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
   echo "Usage ./clean-caches.sh <bucket> <endpoint> <pattern>"
   exit 1
