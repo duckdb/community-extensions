@@ -14,4 +14,4 @@ extension:
   excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
 repo:
   github: query-farm/crypto
-  ref: 966917228fd3f5d9e4f6287b715d9c49950f982d
+  ref: 790c098c3ce8be48cfb50e215947580bed6d16c9
