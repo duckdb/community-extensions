@@ -1,7 +1,7 @@
 extension:
   name: nanodbc
   description: Connect to any ODBC-compatible database and query data directly from DuckDB
-  version: 0.3.2
+  version: 0.3.3
   language: C++
   build: cmake
   excluded_platforms: "linux_amd64_musl;osx_amd64;wasm_mvp;wasm_eh;wasm_threads"
@@ -10,8 +10,7 @@ extension:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-nanodbc-extension
-  ref: 5f48a24cbd0857666cc3b264c5e71d6f55d15396
-  ref_next: c08096f1ab80a1f1028117aa83bb478d82bfe230
+  ref: 22897668b2cca0fdf76d585afff3e9c8ba79be22
 docs:
   hello_world: |
     -- Query a table using DSN

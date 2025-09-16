@@ -18,6 +18,10 @@ on:
       duckdb_version:
         required: true
         type: string
+      # Extension CI tools version to use
+      ci_tools_version:
+        required: true
+        type: string
       # ';' separated list of architectures to exclude, for example: 'linux_amd64;osx_arm64'
       exclude_archs:
         required: false
@@ -43,11 +47,6 @@ on:
         required: false
         type: string
         default: "./duckdb/scripts/extension-upload-single.sh"
-      # Override the default matrix parse script with a custom script
-      matrix_parse_script:
-        required: false
-        type: string
-        default: "./duckdb/scripts/modify_distribution_matrix.py"
       repository:
         required: false
         type: string
@@ -65,21 +64,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          repository: ${{ inputs.repository }}
-          ref: ${{ inputs.ref }}
-          fetch-depth: 0
-          submodules: 'true'
-
-      - uses: actions/checkout@v3
-        with:
-          repository: 'duckdb/duckdb'
-          ref: ${{ inputs.duckdb_version }}
-          path: duckdb
+          repository: 'duckdb/extension-ci-tools'
+          ref: ${{ inputs.ci_tools_version }}
+          path: extension-ci-tools
           fetch-depth: 0
 
       - id: parse-matrices
         run: |
-          python3 ${{ inputs.matrix_parse_script }} --input ./duckdb/.github/config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty
+          python3 ./extension-ci-tools/scripts/modify_distribution_matrix.py --input ./extension-ci-tools/config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty
           deploy_matrix="`cat deploy_matrix.json`"
           echo deploy_matrix=$deploy_matrix >> $GITHUB_OUTPUT
           echo `cat $GITHUB_OUTPUT`

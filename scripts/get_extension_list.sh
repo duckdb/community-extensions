@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 set -eo pipefail
 
 echo -n "EXTENSION_LIST=[" > extension_list

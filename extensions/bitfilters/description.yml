@@ -12,4 +12,4 @@ extension:
   version: 1.0.1
 repo:
   github: query-farm/bitfilters
-  ref: c706048a3f7ac37c84068280c76df071a1a9e97e
+  ref: 4b3a69ae8616083e3506cfce3f5526bbcf9d16d2
