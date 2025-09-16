@@ -14,4 +14,4 @@ extension:
   version: 1.0.0
 repo:
   github: query-farm/shellfs
-  ref: ae31efcb4d299d39d68fd2941a57f4bd0d1b5d1e
+  ref: ee2ce42e3689fc6be35f88cfefc7cf80f2e7648e
