@@ -66,11 +66,12 @@ jobs:
         with:
           repository: 'duckdb/extension-ci-tools'
           ref: ${{ inputs.ci_tools_version }}
+          path: extension-ci-tools
           fetch-depth: 0
 
       - id: parse-matrices
         run: |
-          python3 ./scripts/modify_distribution_matrix.py --input ./config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty
+          python3 ./extension-ci-tools/scripts/modify_distribution_matrix.py --input ./extension-ci-tools/config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --pretty
           deploy_matrix="`cat deploy_matrix.json`"
           echo deploy_matrix=$deploy_matrix >> $GITHUB_OUTPUT
           echo `cat $GITHUB_OUTPUT`
