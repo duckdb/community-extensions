@@ -9,7 +9,6 @@ extension:
   maintainers:
     - rustyconover
   name: rapidfuzz
-  version: 1.0.1
 repo:
   github: query-farm/rapidfuzz
-  ref: 497f0a66a889e76df39d66d3b8b7d51025089804
+  ref: 36ab36362092c05942e9128f898eba550d322bc3
