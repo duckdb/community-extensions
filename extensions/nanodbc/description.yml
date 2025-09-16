@@ -10,8 +10,7 @@ extension:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-nanodbc-extension
-  ref: 5f48a24cbd0857666cc3b264c5e71d6f55d15396
-  ref_next: 22897668b2cca0fdf76d585afff3e9c8ba79be22
+  ref: 22897668b2cca0fdf76d585afff3e9c8ba79be22
 docs:
   hello_world: |
     -- Query a table using DSN
