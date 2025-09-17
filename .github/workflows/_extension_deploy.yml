@@ -110,7 +110,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_SECRET }}
-          AWS_DEFAULT_REGION: ${{ secrets.S3_DUCKDB_ORG_REGION }}
+          AWS_ENDPOINT_URL: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ENDPOINT }}
           BUCKET_NAME: duckdb-community-extensions
           DUCKDB_EXTENSION_SIGNING_PK: ${{ secrets.S3_DUCKDB_ORG_COMMUNITY_SIGNING_PK }}
           DUCKDB_DEPLOY_SCRIPT_MODE: for_real
