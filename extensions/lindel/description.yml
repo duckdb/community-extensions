@@ -10,8 +10,8 @@ extension:
     - rustyconover
   name: lindel
   requires_toolchains: rust
-  version: 1.0.1
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  version: 2025091601
 repo:
   github: query-farm/lindel
-  ref: aa1deef9d0950a9fd9c346e47cd3910066406347
+  ref: 8f7bf33a11062a071f129ec0ff9e8c8cda045d00

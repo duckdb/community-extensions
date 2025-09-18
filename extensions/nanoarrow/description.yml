@@ -1,16 +1,17 @@
 extension:
   name: nanoarrow
   description: Allows the consumption and production of the Apache Arrow interprocess communication (IPC) format, both from files and directly from stream buffers.
-  version: 1.3.0
+  version: 1.4.0
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - paleolimbot 
     - pdet
+    - evertlammerts
 repo:
   github: paleolimbot/duckdb-nanoarrow
-  ref: 8d76db91a3d375262e0d425a8a85fd8645b31ae9
+  ref: 81ec79bc35090c65f6a7c9066bd373b5dd3b7e73
 
 docs:
   hello_world: |
