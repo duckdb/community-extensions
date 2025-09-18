@@ -10,8 +10,21 @@ extension:
 
 repo:
   github: iqea-ai/duckdb-snowflake
-  ref: 0e0520ca2d54b071922594d8cc9ea56174fb37d2
-  ref_next: c3196bfc034ad7e5390ace326e9df6de1431523d
+  ref: 9f5f5495c97419432795695c228b9feb424acf23
+  ref_next: c6816276ccd58ef860bf0b5d0c97a7174f6c5369
+
+install_notes: |
+  **Important:** This extension requires the Apache Arrow ADBC Snowflake driver to function properly.
+  
+  The driver is not included in the extension package and must be downloaded and installed separately.
+  
+  For complete installation instructions including platform-specific driver setup, please refer to:
+  https://github.com/iqea-ai/duckdb-snowflake#adbc-driver-setup
+  
+  Quick reference for driver placement:
+  - Linux: ~/.duckdb/extensions/v1.3.2/linux_amd64/
+  - macOS: ~/.duckdb/extensions/v1.3.2/osx_arm64/ (or osx_amd64)
+  - Windows: C:\Users\<username>\.duckdb\extensions\v1.3.2\windows_amd64\
 
 docs:
   hello_world: |
@@ -41,4 +54,7 @@ docs:
 
   extended_description: |
     This community-maintained extension allows DuckDB to connect to Snowflake using Arrow ADBC drivers. 
+    It provides both pass-through querying and direct database attachment capabilities for seamless Snowflake integration.
+    
+    **Prerequisites:** The Apache Arrow ADBC Snowflake driver must be installed separately before using this extension.
     For detailed setup and usage instructions, visit the [extension repository](https://github.com/iqea-ai/duckdb-snowflake).
