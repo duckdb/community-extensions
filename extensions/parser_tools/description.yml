@@ -1,7 +1,7 @@
 extension:
   name: parser_tools
   description: Exposes functions for parsing referenced tables and usage context from SQL queries using DuckDB's native parser.
-  version: 0.3.0
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: zfarrell/duckdb_extension_parser_tools
-  ref: e4da80260800088d95104553c16203f3970fb4fb
+  ref: da3e91e673cfb3497b7a9498545fbbaba43a0ecd
 
 docs:
   hello_world: |
