@@ -1,0 +1,30 @@
+extension:
+  name: chaos
+  description: Creates chaos! ⋆✴︎˚｡⋆ duckdb-chaos allows you to throw any type of DuckDB exception, or to raise a SIGSEGV, SIGABRT, or SIGBUS signal.
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - taniabogatsch
+repo:
+  github: taniabogatsch/duckdb-chaos
+  ref: e112242b794466d2a4a577af0a92fce836708a71
+
+docs:
+  hello_world: |
+    -- Throw exceptions!
+    SELECT duckdb_chaos_exception('hello', 'CATALOG');
+    SELECT duckdb_chaos_exception('hello', 'INTERNAL');
+    SELECT duckdb_chaos_exception('hello', 'FATAL');
+
+    -- Raise signals!
+    SELECT duckdb_chaos_signal('SIGSEGV');
+    SELECT duckdb_chaos_signal('SIGABRT');
+    SELECT duckdb_chaos_signal('SIGBUS');
+
+  extended_description: |
+    Creates chaos! ⋆✴︎˚｡⋆ duckdb-chaos allows you to throw any type of DuckDB exception, or to raise a SIGSEGV, SIGABRT, or SIGBUS signal.
+    Signals do not work on Windows.
+
+
