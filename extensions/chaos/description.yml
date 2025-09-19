@@ -9,7 +9,7 @@ extension:
     - taniabogatsch
 repo:
   github: taniabogatsch/duckdb-chaos
-  ref: 1643522264d5d8606e761b24acc13fe8d658f28c
+  ref: e112242b794466d2a4a577af0a92fce836708a71
 
 docs:
   hello_world: |
