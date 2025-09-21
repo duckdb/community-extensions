@@ -20,5 +20,5 @@ docs:
     This extension provides observability to duckdb filesystems.
     It supports a few key features:
     - 100% compatible with duckdb httpfs
-    - Provides both process-wise and bucket-wise latency stats
+    - Provides both process-wise and bucket-wise latency stats (including histogram and quantile estimation)
     - Allows registering ANY duckdb compatible filesystems (i.e., azure filesystem)
