@@ -1,0 +1,2 @@
+function,description,comment,example
+"st_read_multi","Read multiple geospatial files. Currently, only GeoJSON and GeoPackages are supported.","","FROM ST_Read_Multi('path/to/*.geojson');"

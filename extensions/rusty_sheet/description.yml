@@ -1,0 +1,44 @@
+extension:
+  name: rusty_sheet
+  description: An Excel/OpenDocument Spreadsheets file reader for DuckDB
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - redraiment
+
+repo:
+  github: redraiment/rusty-sheet
+  ref: 3cc700798071238763b9dc84ed0d16b42ab1e57d
+
+docs:
+  hello_world: |
+    -- Read entire spreadsheet with headers
+    FROM read_sheet('data.xlsx');
+    
+    -- Read specific worksheet
+    FROM read_sheet('workbook.xlsx', sheet_name='Sheet2');
+    
+    -- Override specific column types (others auto-detected)
+    FROM read_sheet('data.xlsx',
+      columns={'id': 'bigint'}
+    );
+    
+    -- Read specific data range (Excel-style notation)
+    FROM read_sheet('data.xlsx', range='A2:E100');
+    
+    -- Read without headers
+    FROM read_sheet('data.xlsx',
+      header=false,
+      columns={'column1': 'varchar', 'column2': 'bigint'}
+    );
+    
+    -- Analyze column types
+    FROM analyze_sheet('data.xlsx', analyze_rows=20);
+
+  extended_description: |
+    The DuckDB rusty-sheet extension that enables reading Excel and OpenDocument spreadsheet files directly within SQL queries. This extension provides seamless integration for analyzing spreadsheet data using DuckDB's powerful SQL engine.
+    For detailed setup and usage instructions, visit the docs at [rusty-sheet](https://github.com/redraiment/rusty-sheet).

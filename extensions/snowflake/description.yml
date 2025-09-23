@@ -1,0 +1,60 @@
+extension:
+  name: snowflake
+  description: Integrates DuckDB with Snowflake, allowing direct querying and management of Snowflake databases using Arrow ADBC drivers
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - iqea-ai
+
+repo:
+  github: iqea-ai/duckdb-snowflake
+  ref: 75ab20e7349beaff184fcd3f98efbd90bcd7d812
+  ref_next: 75ab20e7349beaff184fcd3f98efbd90bcd7d812
+
+install_notes: |
+  **Important:** This extension requires the Apache Arrow ADBC Snowflake driver to function properly.
+  
+  The driver is not included in the extension package and must be downloaded and installed separately.
+  
+  For complete installation instructions including platform-specific driver setup, please refer to:
+  https://github.com/iqea-ai/duckdb-snowflake#adbc-driver-setup
+  
+  Quick reference for driver placement:
+  - Linux: ~/.duckdb/extensions/v1.3.2/linux_amd64/
+  - macOS: ~/.duckdb/extensions/v1.3.2/osx_arm64/ (or osx_amd64)
+  - Windows: C:\Users\<username>\.duckdb\extensions\v1.3.2\windows_amd64\
+
+docs:
+  hello_world: |
+    -- Install and load the extension
+    INSTALL snowflake FROM community;
+    LOAD snowflake;
+    
+    -- Create a Snowflake profile
+    CREATE SECRET my_snowflake_secret (
+        TYPE snowflake,
+        ACCOUNT 'your_account.snowflakecomputing.com',
+        USER 'your_username',
+        PASSWORD 'your_password',
+        DATABASE 'your_database',
+        WAREHOUSE 'your_warehouse'
+    );
+    
+    -- Query Snowflake data using pass through query
+    SELECT * FROM snowflake_scan(
+        'SELECT * FROM customers WHERE state = ''CA''',
+        'my_snowflake_secret'
+    );
+    
+    -- Attach Snowflake database for direct SQL access
+    ATTACH '' AS snow_db (TYPE snowflake, SECRET my_snowflake_secret, READ_ONLY);
+    SELECT * FROM snow_db.schema.customers WHERE state = 'CA';
+
+  extended_description: |
+    This community-maintained extension allows DuckDB to connect to Snowflake using Arrow ADBC drivers. 
+    It provides both pass-through querying and direct database attachment capabilities for seamless Snowflake integration.
+    
+    **Prerequisites:** The Apache Arrow ADBC Snowflake driver must be installed separately before using this extension.
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/iqea-ai/duckdb-snowflake).
