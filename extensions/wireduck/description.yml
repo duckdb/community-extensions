@@ -1,7 +1,7 @@
 extension:
   name: wireduck
   description: Read and dissect PCAP files from DuckDB
-  version: 0.0.1
+  version: 0.0.2
   language: c++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: hyehudai/wireduck
-  ref: 1970a7c27360e75acc54beb9e778a6513261296b
+  ref: 19c4018cc8ebad08547d621bcdc25df86294ca2b
 
 docs:
   hello_world: |
