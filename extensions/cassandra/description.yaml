@@ -12,7 +12,6 @@ extension:
 repo:
   github: dioptre/duckdb-cassandra
   ref: main
-  canonical_name: cassandra
 
 docs:
   hello_world: |
