@@ -1,0 +1,16 @@
+docs:
+  extended_description: |
+    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_tributary.html).
+extension:
+  build: cmake
+  description: Enable DuckDB to interact with Apache Kafka
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;
+  language: C++
+  license: MIT
+  maintainers:
+    - rustyconover
+  name: tributary
+  version: 2025091601
+repo:
+  github: query-farm/tributary
+  ref: d1409bccd6b1fdc85c84020780ed79d1e90dd675

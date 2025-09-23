@@ -50,15 +50,17 @@ jobs:
     outputs:
       COMMUNITY_EXTENSION_NAME: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_NAME }}
       COMMUNITY_EXTENSION_GITHUB: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      COMMUNITY_EXTENSION_CANONICAL_NAME: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_CANONICAL_NAME}}
       COMMUNITY_EXTENSION_REF: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REF }}
       COMMUNITY_EXTENSION_DEPLOY: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_DEPLOY }}
       COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS: ${{ inputs.more_excluded }}${{ steps.parse.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
+      COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
-      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && '5e5d0e1cd7785623065e77eff011afdeec1a3574' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
+      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'ce613c41372b23b1f51333815feb3edd87ef8a8b' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
     env:
-      DUCKDB_LATEST_STABLE: 'v1.2.2'
-      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.2.2' }}
+      DUCKDB_LATEST_STABLE: 'v1.4.0'
+      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.4.0' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -89,10 +91,12 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.2.2' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.4.0' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
       ci_tools_version: 'main'
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
+      test_config: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
+      extension_canonical: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CANONICAL_NAME }}
       extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
       override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
@@ -100,6 +104,7 @@ jobs:
       vcpkg_url: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_URL}}
       vcpkg_commit: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT}}
       skip_tests: ${{ inputs.skip_tests || false }}
+      save_cache: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME == 'quack' && github.event_name != 'pull_request' }}
 
   doc_test:
     if: ${{ inputs.deploy != 'false' }}
@@ -109,6 +114,7 @@ jobs:
     uses: ./.github/workflows/generate_docs.yml
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.4.0' }}
 
   archive:
     needs:
@@ -128,11 +134,12 @@ jobs:
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
-    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_DEPLOY != '' }}
+    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_DEPLOY != '' && inputs.deploy != 'false' }}
     secrets: inherit
     with:
       deploy_latest: true
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.2.2' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.4.0' }}
+      ci_tools_version: 'main'
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
       repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}

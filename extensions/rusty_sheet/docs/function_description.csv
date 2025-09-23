@@ -1,0 +1,3 @@
+function,description,comment,example
+read_sheet,"Read spreadsheet data and make it available for SQL queries in DuckDB.",,"FROM read_sheet('data.xlsx');"
+analyze_sheet,"Analyze spreadsheet files and return column type information.",,"FROM analyze_sheet('data.xlsx', analyze_rows=20);"
