@@ -4,13 +4,13 @@ extension:
   version: 0.1.2
   language: C++
   build: cmake
-  excluded_platforms: "linux_amd64;linux_arm64;linux_amd64_musl;osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  excluded_platforms: "linux_arm64;linux_amd64_musl;osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
   license: MIT
   maintainers:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-msolap-extension
-  ref: a35dcecb20794a26534b028cc1f8bd0209f28c8d
+  ref: 84e1b00e2e42a905c0efd5eb55f8bef1cefa6173
 docs:
   hello_world: |
     -- Execute a simple DAX query against a local SSAS instance
