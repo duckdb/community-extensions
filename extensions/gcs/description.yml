@@ -1,0 +1,30 @@
+extension:
+  name: gcs
+  description: DuckDB GCS Extension
+  extended_description: A native GCS extension with support for standard Google auth methods
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64"
+  maintainers:
+    - northpolesec
+
+repo:
+  github: northpolesec/duckdb-gcs
+  ref: b0b3bd3e896417308800a04116cf60a129de7e0c
+
+docs:
+  hello_world: |
+    -- Add auth credentials using Application Default Creds
+    D CREATE SECRET secret (TYPE gcp, PROVIDER credential_chain);
+
+    -- Read a file from GCS
+    D SELECT * FROM read_text('gcss://rah-public-gcs-testing/quack.txt');
+    ┌─────────────────────────────────────────┬─────────┬───────┬──────────────────────────┐
+    │                filename                 │ content │ size  │      last_modified       │
+    │                 varchar                 │ varchar │ int64 │ timestamp with time zone │
+    ├─────────────────────────────────────────┼─────────┼───────┼──────────────────────────┤
+    │ gcss://rah-public-gcs-testing/quack.txt │ 🦆      │   4   │ 2025-09-23 16:20:03-04   │
+    └─────────────────────────────────────────┴─────────┴───────┴──────────────────────────┘
+
