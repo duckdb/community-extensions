@@ -10,7 +10,7 @@ extension:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-msolap-extension
-  ref: d6ddb18e7894025b4dd79f9737c13a5214709a5a
+  ref: 84e1b00e2e42a905c0efd5eb55f8bef1cefa6173
 docs:
   hello_world: |
     -- Execute a simple DAX query against a local SSAS instance
