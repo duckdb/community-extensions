@@ -9,7 +9,7 @@ extension:
   maintainers:
     - rustyconover
   name: datasketches
-  version: 2025091601
+  version: 2025092701
 repo:
   github: query-farm/datasketches
-  ref: 1b1090ca4850f9049c904b2ec27937f5417ddc36
+  ref: 0ce0e1f898b57a59b5053569b5c60c9988af352d
