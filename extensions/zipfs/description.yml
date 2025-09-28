@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: isaacbrodsky/duckdb-zipfs
-  ref: 189d9ab4696bb340867f278dcadf1e35810365b3
+  ref: 0c1f313e5294bed9d28d6d86531dee7997f7f243
 
 docs:
   hello_world: |
