@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/miniplot
-  ref: main
+  ref: eeac5620ecd16948034c8511e1f8a589a48ffbae
 
 docs:
   hello_world: |
