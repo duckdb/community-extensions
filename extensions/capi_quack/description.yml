@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: duckdb/extension-template-c
-  ref: 7463f669f6ea6705876dee047114f6484ba6ef6f
+  ref: 7f71365c5ce61b2b346717af07c9d448cfc9d3c3
 
 docs:
   extended_description: |

@@ -8,6 +8,11 @@ on:
         type: string
       deploy:
         type: string
+      build_extensions:
+        description: "List of extensions to build, formatted as: `['ext1', 'ext2']`"
+        type: string
+        required: false
+        default: ''
 
 jobs:
   collect_extensions:
@@ -22,10 +27,14 @@ jobs:
     - name: Generate extension list
       id: generate_list
       run: |
-        ./scripts/get_extension_list.sh
-        cat extension_list
-        cat extension_list >> $GITHUB_OUTPUT
-      
+        if [[ "${{inputs.build_extensions}}" == "" ]]; then
+          ./scripts/get_extension_list.sh
+          cat extension_list
+          cat extension_list >> $GITHUB_OUTPUT
+        else
+          echo "EXTENSION_LIST=${{inputs.build_extensions}}" >> $GITHUB_OUTPUT
+        fi
+
   build_all:
     needs:
       - collect_extensions

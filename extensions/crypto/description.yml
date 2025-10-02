@@ -1,56 +1,17 @@
 docs:
-  extended_description: "`crypto` provides two functions:\n\n- `crypto_hash` applies\
-    \ cryptographically secure hash functions\nand returns the result as a hex encoded\
-    \ value.\n\n- `crypto_hmac` calculates the HMAC using a secret key and a\nspecific\
-    \ hash function.\n\nThe supported hash functions are:\n  - `blake2b-512`\n  -\
-    \ `keccak224`\n  - `keccak256`\n  - `keccak384`\n  - `keccak512`\n  - `md4`\n\
-    \  - `md5`\n  - `sha1`\n  - `sha2-224`\n  - `sha2-256`\n  - `sha2-384`\n  - `sha2-512`\n\
-    \  - `sha3-224`\n  - `sha3-256`\n  - `sha3-384`\n  - `sha3-512`"
-  hello_world: '-- Calculate the MD5 hash value of ''abcdef''
-
-    SELECT crypto_hash(''md5'', ''abcdef'');
-
-    ┌──────────────────────────────────┐
-
-    │   crypto_hash(''md5'', ''abcdef'')   │
-
-    │             varchar              │
-
-    ├──────────────────────────────────┤
-
-    │ e80b5017098950fc58aad83c8c14978e │
-
-    └──────────────────────────────────┘
-
-
-    -- Calculate a HMAC
-
-    SELECT crypto_hmac(''sha2-256'', ''secret key'', ''secret message'');
-
-    ┌──────────────────────────────────────────────────────────────────┐
-
-    │     crypto_hmac(''sha2-256'', ''secret key'', ''secret message'')      │
-
-    │                             varchar                              │
-
-    ├──────────────────────────────────────────────────────────────────┤
-
-    │ 2df792e08cefdc0ea9900c67c93cbe66b98231b829a5dccd3857a03baac35963 │
-
-    └──────────────────────────────────────────────────────────────────┘
-
-    '
+  extended_description: |
+    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_crypto.html).
 extension:
   build: cmake
   description: Cryptographic hash functions and HMAC
-  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;windows_amd64;linux_amd64_musl
   language: C++
   license: MIT
   maintainers:
-  - rustyconover
+    - rustyconover
   name: crypto
   requires_toolchains: rust
-  version: 1.0.0
+  version: 2025091601
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;"
 repo:
-  github: rustyconover/duckdb-crypto-extension
-  ref: c8a64d43bafa559f48dd55730813475eb58c4916
+  github: query-farm/crypto
+  ref: d82ced3066b4934bf8a81f939f53361f6dcb1f43

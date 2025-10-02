@@ -1,0 +1,160 @@
+extension:
+  name: parser_tools
+  description: Exposes functions for parsing referenced tables and usage context from SQL queries using DuckDB's native parser.
+  version: 0.5.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - zfarrell
+
+repo:
+  github: zfarrell/duckdb_extension_parser_tools
+  ref: 0c74f1b24610d324d6254fce6b32755f734e3df7
+
+docs:
+  hello_world: |
+    -- Extract table references from a simple query
+    SELECT * FROM parse_tables('SELECT * FROM my_table');
+    ┌─────────┬───────────┬─────────┐
+    │ schema  │  table    │ context │
+    │ varchar │  varchar  │ varchar │
+    ├─────────┼───────────┼─────────┤
+    │ main    │ my_table  │ from    │
+    └─────────┴───────────┴─────────┘
+
+    -- Parse a query with a CTE and a join
+    SELECT * FROM parse_tables($$
+        WITH recent_users AS (SELECT * FROM users WHERE created_at > now() - INTERVAL '7 days')
+        SELECT * FROM recent_users r JOIN logins l ON r.id = l.user_id
+    $$);
+    ┌─────────┬──────────────┬────────────┐
+    │ schema  │    table     │ context    │
+    │ varchar │   varchar    │ varchar    │
+    ├─────────┼──────────────┼────────────┤
+    │         │ recent_users │ cte        │
+    │ main    │ users        │ from       │
+    │ main    │ logins       │ join_right │
+    │ main    │ recent_users │ from_cte   │
+    └─────────┴──────────────┴────────────┘
+
+    -- Return a list of table names from a query
+    SELECT parse_table_names('SELECT * FROM orders JOIN customers ON orders.customer_id = customers.id');
+    ┌────────────────────────────────────┐
+    │           parse_table_names        │
+    │             varchar[]              │
+    ├────────────────────────────────────┤
+    │ ['orders', 'customers']            │
+    └────────────────────────────────────┘
+
+    -- Parse queries from a csv file
+    SELECT parse_table_names(query) AS tables FROM 'user_queries.csv';
+    ┌───────────────────────────────┐
+    │            tables             │
+    │          varchar[]            │
+    ├───────────────────────────────┤
+    │ ['users']                     │
+    │ ['orders', 'customers']       │
+    └───────────────────────────────┘
+
+    -- Structured output as a list of table references
+    SELECT parse_tables('SELECT * FROM products p JOIN inventory i ON p.sku = i.sku');
+    ┌────────────────────────────────────────────────────────────────────────────┐
+    │                              parse_tables                                  │
+    │ list<struct<schema: varchar, table: varchar, context: varchar>>            │
+    ├────────────────────────────────────────────────────────────────────────────┤
+    │ [{'schema': 'main', 'table': 'products',  'context': 'from'},              │
+    │  {'schema': 'main', 'table': 'inventory', 'context': 'join_right'}]        │
+    └────────────────────────────────────────────────────────────────────────────┘
+
+    -- Detect invalid sql
+    SELECT query, is_parsable(query) AS valid
+    FROM (VALUES
+        ('SELECT * FROM good_table'),
+        ('BAD SQL SELECT *'),
+        ('WITH cte AS (SELECT 1) SELECT * FROM cte')
+    ) AS t(query);
+    ┌───────────────────────────────────────────────┬────────┐
+    │                    query                      │ valid  │
+    │                   varchar                     │ boolean│
+    ├───────────────────────────────────────────────┼────────┤
+    │ SELECT * FROM good_table                      │ true   │
+    │ BAD SQL SELECT *                              │ false  │
+    │ WITH cte AS (SELECT 1) SELECT * FROM cte      │ true   │
+    └───────────────────────────────────────────────┴────────┘
+
+    -- Extract WHERE conditions from a query
+    SELECT * FROM parse_where('SELECT * FROM MyTable WHERE time > 1 AND time < 100');
+    ┌────────────────┬────────────┬─────────┐
+    │   condition    │ table_name │ context │
+    │    varchar     │  varchar   │ varchar │
+    ├────────────────┼────────────┼─────────┤
+    │ ("time" > 1)   │ MyTable    │ WHERE   │
+    │ ("time" < 100) │ MyTable    │ WHERE   │
+    └────────────────┴────────────┴─────────┘
+    
+    -- Return detailed condition breakdown from a query
+    SELECT * FROM parse_where_detailed('SELECT * FROM MyTable WHERE time > 1 AND time < 100');
+    ┌─────────────┬───────────────┬─────────┬────────────┬─────────┐
+    │ column_name │ operator_type │  value  │ table_name │ context │
+    │   varchar   │    varchar    │ varchar │  varchar   │ varchar │
+    ├─────────────┼───────────────┼─────────┼────────────┼─────────┤
+    │ time        │ >             │ 1       │ MyTable    │ WHERE   │
+    │ time        │ <             │ 100     │ MyTable    │ WHERE   │
+    └─────────────┴───────────────┴─────────┴────────────┴─────────┘
+    
+    -- Parse a query with a BETWEEN condition
+    SELECT * FROM parse_where('SELECT * FROM MyTable WHERE time BETWEEN 1 AND 100');
+    ┌────────────────────────────┬────────────┬─────────┐
+    │         condition          │ table_name │ context │
+    │          varchar           │  varchar   │ varchar │
+    ├────────────────────────────┼────────────┼─────────┤
+    │ ("time" BETWEEN 1 AND 100) │ MyTable    │ WHERE   │
+    └────────────────────────────┴────────────┴─────────┘
+    
+    -- Detailed parsing of a BETWEEN condition
+    SELECT * FROM parse_where_detailed('SELECT * FROM MyTable WHERE time BETWEEN 1 AND 100');
+    ┌─────────────┬───────────────┬─────────┬────────────┬─────────┐
+    │ column_name │ operator_type │  value  │ table_name │ context │
+    │   varchar   │    varchar    │ varchar │  varchar   │ varchar │
+    ├─────────────┼───────────────┼─────────┼────────────┼─────────┤
+    │ time        │ >=            │ 1       │ MyTable    │ WHERE   │
+    │ time        │ <=            │ 100     │ MyTable    │ WHERE   │
+    └─────────────┴───────────────┴─────────┴────────────┴─────────┘
+    
+    -- Extract function calls
+    SELECT * FROM parse_functions('SELECT upper(name), count(*) FROM users WHERE length(email) > 0');
+    ┌───────────────┬─────────┬─────────┐
+    │ function_name │ schema  │ context │
+    │    varchar    │ varchar │ varchar │
+    ├───────────────┼─────────┼─────────┤
+    │ upper         │ main    │ select  │
+    │ count_star    │ main    │ select  │
+    │ length        │ main    │ where   │
+    └───────────────┴─────────┴─────────┘
+
+    -- Parse multi-statement as table
+    SELECT * from  parse_statements('SELECT 42; INSERT INTO log VALUES (1); SELECT 43;') as statements;
+    ┌──────────────────────────────┐
+    │          statement           │
+    │           varchar            │
+    ├──────────────────────────────┤
+    │ SELECT 42                    │
+    │ INSERT INTO log (VALUES (1)) │
+    │ SELECT 43                    │
+    └──────────────────────────────┘
+
+    -- Count statements
+    SELECT num_statements('SELECT 1; SELECT 2; SELECT 3;');
+    ┌────────────────┐
+    │ num_statements │
+    │     int64      │
+    ├────────────────┤
+    │       3        │
+    └────────────────┘
+
+  extended_description: |
+    `parser_tools` is a DuckDB extension that enables SQL query introspection using DuckDB’s native parser.
+    It allows you to analyze SQL queries and extract structural information directly in SQL. 
+    Future versions may expose additional aspects of the parsed query structure.
+    For more details and examples, visit the [extension repository](https://github.com/zacMode/duckdb_extension_parser_tools).

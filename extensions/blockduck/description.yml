@@ -1,7 +1,7 @@
 extension:
   name: blockduck
   description: Live SQL Queries on Blockchain
-  version: 0.6.0
+  version: 0.7.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: luohaha/BlockDuck
-  ref: a3b9dd692ff06488e1b85c1f74220d21bda9ab67
+  ref: 074b7b1fe81fcc0464358636754cefc23d798cb5
 
 docs:
   https://yixins-organization.gitbook.io/blockduck-docs
