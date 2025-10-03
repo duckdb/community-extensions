@@ -1,4 +1,4 @@
-# DuckDB Community Extensions Repository
+# DuckDB Community Extensions Repository 
 
 This repository collects third-party extensions created for [DuckDB](https://www.duckdb.org).
 
