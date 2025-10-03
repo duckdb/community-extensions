@@ -15,12 +15,12 @@ repo:
 docs:
   hello_world: |
   -- Install the Psyduck Extension
-	INSTALL psyduck
-	LOAD psyduck
+  INSTALL psyduck
+  LOAD psyduck
   
   -- Create a table of pokémon and return... A duck
   CREATE TABLE pokemon as SELECT * FROM list_pokemon();
-	SELECT name FROM pokemon where is_duck = 1 and name like '%Psyduck%';
+  SELECT name FROM pokemon where is_duck = 1 and name like '%Psyduck%';
 
   -- Select the top 10 pokémon
   SELECT * FROM list_pokemon() where number <= 10;
