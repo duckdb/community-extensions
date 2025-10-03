@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-curl-filesystem
-  ref: b177bb28cf4aa2b71ef691a77b5be5a5f6392e3f
+  ref: a2e6b7eb76843a423130fa46f9ea7f10beb2338e
 
 docs:
   hello_world: |
