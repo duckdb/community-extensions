@@ -1,7 +1,7 @@
 function,description,comment,example
 EEA_CoordXY2GridNum,"Returns the EEA Reference Grid code to a given XY coordinate (EPSG:3035).","","SELECT EEA_CoordXY2GridNum(5078600, 2871400);"
-EEA_GridNum2CoordX,"Returns the X-coordinate (EPSG:3035) of the grid cell corresponding to a given EEA Reference Grid code.","","SELECT EEA_GridNum2CoordX(23090257455218688);"
-EEA_GridNum2CoordY,"Returns the Y-coordinate (EPSG:3035) of the grid cell corresponding to a given EEA Reference Grid code.","","SELECT EEA_GridNum2CoordY(23090257455218688);"
+EEA_GridNum2CoordX,"Returns the X-coordinate (EPSG:3035) of the grid cell corresponding to a given EEA Reference Grid code, optionally truncating the value to a specified resolution.","","SELECT EEA_GridNum2CoordX(23090257455218688);"
+EEA_GridNum2CoordY,"Returns the Y-coordinate (EPSG:3035) of the grid cell corresponding to a given EEA Reference Grid code, optionally truncating the value to a specified resolution.","","SELECT EEA_GridNum2CoordY(23090257455218688);"
 EEA_GridNumAt100m,"Returns the Grid code at 100 m resolution given an EEA reference Grid code.","","SELECT EEA_GridNumAt100m(23090257455218688);"
 EEA_GridNumAt10km,"Returns the Grid code at 10 km resolution given an EEA reference Grid code.","","SELECT EEA_GridNumAt10km(23090257455218688);"
 EEA_GridNumAt1km,"Returns the Grid code at 1 km resolution given an EEA reference Grid code.","","SELECT EEA_GridNumAt1km(23090257455218688);"
