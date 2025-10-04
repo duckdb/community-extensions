@@ -123,7 +123,7 @@ SELECT EEA_GridNumAt10km(23090257455218688); -> 23090255284404224
 
 ----
 
-### EEA_GridNumAt1kmº
+### EEA_GridNumAt1km
 
 
 #### Signature
