@@ -1,0 +1,151 @@
+extension:
+  name: dns
+  description: The DNS Extension enables DNS lookups and reverse DNS lookups from within DuckDB
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - tobilg
+
+repo:
+  github: tobilg/duckdb-dns
+  ref: e92947bf37bcf58bd67e11d2f7231f0c64259b9f
+
+docs:
+  hello_world: |
+    ## A DuckDB extension for performing DNS lookups and reverse DNS lookups, written in pure Rust using the DuckDB C Extension API.
+
+    ## Functions
+
+    ### `dns_lookup(hostname)`
+
+    Performs a forward DNS lookup to resolve a hostname to its first IPv4 address.
+
+    **Parameters:**
+    - `hostname` (VARCHAR): The hostname to resolve
+
+    **Returns:** VARCHAR - The first resolved IPv4 address, or NULL on error
+
+    **Example:**
+    ```sql
+    SELECT dns_lookup('google.com');
+    -- Returns: 142.250.181.206 (or similar)
+    ```
+
+    ### `dns_lookup_all(hostname)`
+
+    Performs a forward DNS lookup to resolve a hostname to all its IPv4 addresses.
+
+    **Parameters:**
+    - `hostname` (VARCHAR): The hostname to resolve
+
+    **Returns:** VARCHAR[] - An array of all resolved IPv4 addresses, or NULL on error
+
+    **Example:**
+    ```sql
+    SELECT dns_lookup_all('cloudflare.com');
+    -- Returns: [104.16.132.229, 104.16.133.229] (or similar)
+
+    -- Unnest to get individual IPs
+    SELECT unnest(dns_lookup_all('google.com')) as ip;
+    ```
+
+    ### `reverse_dns_lookup(ip_address)`
+
+    Performs a reverse DNS lookup to resolve an IPv4 address to a hostname.
+
+    **Parameters:**
+    - `ip_address` (VARCHAR): The IPv4 address to resolve (must be valid IPv4 format)
+
+    **Returns:** VARCHAR - The resolved hostname, or NULL on error
+
+    **Example:**
+    ```sql
+    SELECT reverse_dns_lookup('8.8.8.8');
+    -- Returns: dns.google
+    ```
+    
+  extended_description: |
+    > This extension is experimental and potentially unstable. Do not use in production. See README for full examples.
+
+    ## Usage Examples
+
+    ### Basic DNS Lookup
+
+    ```sql
+    -- Look up IP for a domain
+    SELECT dns_lookup('github.com') as ip;
+
+    -- Use in WHERE clause
+    SELECT * FROM users WHERE ip_address = dns_lookup('example.com');
+    ```
+
+    ### Basic Reverse DNS Lookup
+
+    ```sql
+    -- Look up hostname for an IP
+    SELECT reverse_dns_lookup('1.1.1.1') as hostname;
+
+    -- Check if hostname matches
+    SELECT reverse_dns_lookup('8.8.8.8') = 'dns.google' as is_google_dns;
+    ```
+
+    ### Advanced Queries
+
+    ```sql
+    -- Look up multiple domains
+    SELECT
+        'google.com' as domain,
+        dns_lookup('google.com') as ip
+    UNION ALL
+    SELECT
+        'cloudflare.com' as domain,
+        dns_lookup('cloudflare.com') as ip;
+
+    -- Get all IPs for multiple domains
+    SELECT
+        domain,
+        dns_lookup_all(domain) as all_ips,
+        len(dns_lookup_all(domain)) as ip_count
+    FROM (VALUES ('google.com'), ('cloudflare.com'), ('github.com')) AS domains(domain);
+
+    -- Unnest all IPs from multiple domains
+    SELECT
+        domain,
+        unnest(dns_lookup_all(domain)) as ip
+    FROM (VALUES ('google.com'), ('cloudflare.com')) AS domains(domain);
+
+    -- Look up multiple IPs with table
+    SELECT
+        ip,
+        reverse_dns_lookup(ip) as hostname
+    FROM (VALUES
+        ('8.8.8.8'),
+        ('1.1.1.1'),
+        ('208.67.222.222')
+    ) AS ips(ip);
+
+    -- Filter NULL results (failed lookups)
+    SELECT
+        ip,
+        reverse_dns_lookup(ip) as hostname
+    FROM (VALUES ('8.8.8.8'), ('999.999.999.999')) AS ips(ip)
+    WHERE reverse_dns_lookup(ip) IS NOT NULL;
+
+    -- Use in computed columns
+    SELECT
+        server_name,
+        ip_address,
+        reverse_dns_lookup(ip_address) as hostname
+    FROM servers
+    WHERE dns_lookup(server_name) = ip_address;
+
+    -- Check if specific IP is in DNS results
+    SELECT
+        domain,
+        list_contains(dns_lookup_all(domain), '142.250.181.206') as has_google_ip
+    FROM (VALUES ('google.com')) AS domains(domain);
+    ```
