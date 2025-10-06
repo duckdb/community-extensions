@@ -1,0 +1,57 @@
+extension:
+  name: miniplot
+  description: Replace pandas + matplotlib with just DuckDB - instant data visualization from SQL
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/miniplot
+  ref: 16a2abcccad15f203b9645788e85b94d83622fbc
+
+docs:
+  hello_world: |
+    -- Bar chart example
+    SELECT bar_chart(
+        LIST_VALUE('Q1', 'Q2', 'Q3', 'Q4'),
+        LIST_VALUE(100, 150, 200, 180),
+        'Quarterly Sales'
+    );
+
+    -- Line chart example
+    SELECT line_chart(
+        LIST_VALUE('Mon', 'Tue', 'Wed', 'Thu', 'Fri'),
+        LIST_VALUE(5000, 6500, 4800, 7200, 8500),
+        'Weekly Revenue Trend'
+    );
+
+    -- Scatter plot example
+    SELECT scatter_chart(
+        LIST_VALUE(1, 2, 3, 4, 5, 6, 7, 8),
+        LIST_VALUE(10, 25, 30, 45, 60, 75, 85, 95),
+        'Performance vs Time'
+    );
+
+    -- Area chart example
+    SELECT area_chart(
+        LIST_VALUE('Jan', 'Feb', 'Mar', 'Apr', 'May'),
+        LIST_VALUE(1000, 1500, 1200, 1800, 2100),
+        'Monthly Growth'
+    );
+
+  extended_description: |
+    Interactive chart visualization extension for DuckDB - bringing pandas + matplotlib 
+    style data visualization directly to SQL, without leaving your database.
+
+    **Mission: Replace pandas + matplotlib with just DuckDB**
+
+    Features:
+    - Bar, Line, Scatter, and Area charts
+    - Native GUI rendering using Rust/Iced
+    - Simple SQL interface for direct visualization
+    - Cross-platform support (macOS, Linux, Windows)
+
+    Note: Requires graphical environment. Charts open in separate native windows.
