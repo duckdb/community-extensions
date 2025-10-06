@@ -10,7 +10,7 @@ extension:
     - pdet
 repo:
   github: duckdb/duckdb-extension-alias
-  ref: dce7fb0831e2b83d41746381c1a99979eecbe401
+  ref: 7e7a9c0dd16ad46b3c2da4e96dedbfbce4aa67ae
   canonical_name: nanoarrow
 
 docs:
