@@ -1,6 +1,6 @@
 extension:
   name: cassandra
-  description: Connect to Apache Cassandra, ScyllaDB, and DataStax Astra databases directly from DuckDB. Query Cassandra tables using SQL with support for all major Cassandra data types, SSL/TLS connections, and cloud deployments.
+  description: Connect to Apache Cassandra, ScyllaDB, and DataStax Astra databases directly from DuckDB. Query Cassandra tables using SQL with support for all major Cassandra data types, SSL/TLS connections, and cloud deployments. 
   version: 1.0.0
   language: C++
   build: cmake
