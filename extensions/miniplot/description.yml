@@ -7,7 +7,8 @@ extension:
   license: MIT
   maintainers:
     - nkwork9999
-
+  requires_toolchains:
+    - rust
 repo:
   github: nkwork9999/miniplot
   ref: 2f3c5f14f168e753ea7ea5d0780ea0dff5ee67e8
