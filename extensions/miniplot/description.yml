@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/miniplot
-  ref: 16a2abcccad15f203b9645788e85b94d83622fbc
+  ref: 2f3c5f14f168e753ea7ea5d0780ea0dff5ee67e8
 
 docs:
   hello_world: |
@@ -48,10 +48,17 @@ docs:
 
     **Mission: Replace pandas + matplotlib with just DuckDB**
 
-    Features:
+    **New in v0.0.2:**
+    - 🔄 Complete rewrite using Plotly.js for better compatibility
+    - 🌐 Charts open in browser (no native window dependencies)
+    - 📦 Fully offline - Plotly.js embedded (no internet required)
+    - ✨ Interactive features: zoom, pan, hover, export to PNG
+
+    **Features:**
     - Bar, Line, Scatter, and Area charts
-    - Native GUI rendering using Rust/Iced
+    - Interactive Plotly.js-based rendering
     - Simple SQL interface for direct visualization
     - Cross-platform support (macOS, Linux, Windows)
+    - Fully offline operation
 
-    Note: Requires graphical environment. Charts open in separate native windows.
+    **Note:** Charts open in your default web browser.
