@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 0eed4ca61966dcb3c3cffd0c8f7d36e295bc293e
+  ref: 392c98bc20553786b2599450bc0efa5aa8453313
 
 docs:
   hello_world: |
