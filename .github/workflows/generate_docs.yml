@@ -26,7 +26,7 @@ jobs:
 
     - name: Set up DuckDB
       run: |
-        wget https://github.com/duckdb/duckdb/releases/download/v1.4.0/duckdb_cli-linux-amd64.zip
+        wget https://github.com/duckdb/duckdb/releases/download/v1.4.1/duckdb_cli-linux-amd64.zip
         unzip duckdb_cli-linux-amd64.zip
         chmod +x duckdb
 
