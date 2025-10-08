@@ -1,7 +1,7 @@
 extension:
   name: boilstream
   description: Mounts boilstream server as a secure Remote Secrets Storage
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,15 +10,18 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 392c98bc20553786b2599450bc0efa5aa8453313
+  ref: b7a212eaa8c805682682ca00e6b3b7ba2fbe08ed
 
 docs:
   hello_world: |
-    PRAGMA duckdb_secrets_boilstream_endpoint('https://localhost:443/secrets:ffe14a7a000000010000000168e4f9a5bcca736c3adaaf0f63e735f881adc397db6da85f1b9e231f70bbf6f71db4ef9fad837bc8');
+    INSTALL httpfs; LOAD httpfs; INSTALL boilstream FROM community; LOAD boilstream;
+    PRAGMA duckdb_secrets_boilstream_endpoint('https://localhost:443/secrets:ffe14a..71db4ef9fad837bc8');
+    SELECT * FROM duckdb_secrets(); -- Fetches secrets from remote host
   extended_description: |
-    This extension implements secure remote secrets storage on compatible REST API endpoints.
+    This extension implements secure remote secrets storage on compatible REST API endpoints. It uses a one-time short lived bootstrap token provided through PRAGMA and runs PKCE token exchange for longer living session token with refreshing.
     Required REST API on the server endpoint: https://github.com/dforsber/boilstream-extension/blob/main/src/README.md
     As an example with boilstream server provided REST API:
     - Download and run boilstream server, go to https://your-server/, register user with MFA
+    - INSTALL httpfs; LOAD httpfs; INSTALL boilstream FROM community; LOAD boilstream;
     - Vend web token and pass it along with the PRAGMA duckdb_secrets_boilstream_endpoint('https://your-server/secrets:TOKEN')
     - FROM duckdb_secrets();
