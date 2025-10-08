@@ -1,0 +1,6 @@
+function,fun_type,description,comment,example
+"dns_lookup","scalar","Performs a forward DNS lookup to resolve a hostname to its first IPv4 address, or to the first record of a specified DNS record type as second parameter.","","SELECT dns_lookup('google.com');"
+"dns_lookup_all","scalar","Performs a forward DNS lookup to resolve a hostname to all its IPv4 addresses, or to all records of a specified DNS record type second parameter.","","SELECT dns_lookup_all('cloudflare.com');"
+"reverse_dns_lookup","scalar","Performs a reverse DNS lookup to resolve an IPv4 address given as a parameter to a hostname.","","SELECT reverse_dns_lookup('8.8.8.8');"
+"set_dns_config","scalar","Updates the DNS resolver configuration for all subsequent DNS queries.","","SELECT set_dns_config('google');"
+"corey","table","Queries all TXT records for a hostname and returns them as a table with one row per TXT record.","","SELECT * FROM corey('lastweekinaws.com');"
