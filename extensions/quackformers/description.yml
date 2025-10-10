@@ -1,18 +1,18 @@
 extension:
   name: quackformers
   description: Bert-based embedding extension.
-  version: 0.1.3
+  version: 0.1.4
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
   requires_toolchains: "rust;python3"
   maintainers:
     - martin-conur
 
 repo:
   github: martin-conur/quackformers
-  ref: b77a7939f290a6feb3e218d9a5f4f8cb18e11426
+  ref: efa6753b16ffe7d97c0855894251a519d95d9034
 
 docs:
   hello_world: |
