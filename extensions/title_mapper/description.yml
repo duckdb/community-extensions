@@ -1,6 +1,6 @@
 extension:
   name: title_mapper
-  description: Fast TF-IDF implementation for scraped job titles standarization to BLS (Bureau of Labor Statistics) standard titles.
+  description: Efficiently standardizes scraped job titles to Bureau of Labor Statistics (BLS) titles using a high-performance TF-IDF algorithm.
   version: 1.4.1.0
   language: Rust
   build: cargo
