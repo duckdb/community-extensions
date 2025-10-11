@@ -1,0 +1,80 @@
+extension:
+  name: cassandra
+  description: Connect to Apache Cassandra, ScyllaDB, and DataStax Astra databases directly from DuckDB. Query Cassandra tables using SQL with support for all major Cassandra data types, SSL/TLS connections, and cloud deployments. 
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: "cmake, openssl"
+  maintainers:
+    - dioptre
+    
+repo:
+  github: dioptre/duckdb-cassandra
+  ref: e7f0f3541db572c5b4ebb49b0d3c507dfb75e233
+  canonical_name: cassandra
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD 'cassandra';
+
+    -- Connect to local Cassandra
+    SELECT * FROM cassandra_scan('my_keyspace.my_table', host='127.0.0.1', port=9042);
+    
+    -- Execute custom CQL queries
+    SELECT * FROM cassandra_query('SELECT * FROM my_keyspace.users WHERE status = ''active''', host='127.0.0.1');
+    
+    -- Attach a Cassandra database for persistent access
+    ATTACH 'host=127.0.0.1 port=9042 keyspace=my_keyspace' AS cass_db (TYPE cassandra);
+    SELECT * FROM cass_db.users LIMIT 10;
+
+  extended_description: |
+    The Cassandra extension enables DuckDB to connect to Apache Cassandra, ScyllaDB, and DataStax Astra databases.
+    It supports three connection methods:
+    
+    **1. Direct Table Scanning** - Query specific tables with `cassandra_scan()`
+    **2. Custom CQL Queries** - Execute any CQL query with `cassandra_query()`  
+    **3. Database Attachment** - Attach entire keyspaces with `ATTACH` for persistent access
+    
+    **Supported Databases:**
+    - Apache Cassandra (local and remote)
+    - DataStax Astra (cloud Cassandra)
+    - ScyllaDB (Cassandra-compatible)
+    - Any Cassandra-compatible database
+    
+    **Security Features:**
+    - SSL/TLS encryption with custom certificates
+    - Username/password authentication
+    - DataStax Astra token-based authentication
+    - Base64 and hex-encoded certificate support
+    
+    **Data Type Support:**
+    - All primitive types (text, int, bigint, double, boolean, etc.)
+    - UUID and TimeUUID with proper conversion
+    - Timestamp with timezone support
+    - Collections (list, set, map) as JSON strings
+    - Blob data with binary support
+    - NULL value handling
+    
+    **Connection Examples:**
+    ```sql
+    -- SSL connection with certificates
+    SELECT * FROM cassandra_scan('keyspace.table', 
+        host='secure-cluster.com', 
+        ssl=true, 
+        certfile_b64='LS0tLS1CRU...',
+        usercert_b64='LS0tLS1CRU...',
+        userkey_b64='LS0tLS1CRU...'
+    );
+    
+    -- DataStax Astra connection
+    SELECT * FROM cassandra_query('SELECT * FROM users', 
+        client_id='your-client-id',
+        client_secret='your-client-secret',
+        astra_host='your-db-id-region.apps.astra.datastax.com',
+        astra_ca_cert_b64='LS0tLS1CRU...',
+        astra_client_cert_b64='LS0tLS1CRU...',
+        astra_client_key_b64='LS0tLS1CRU...'
+    );
+    ```
