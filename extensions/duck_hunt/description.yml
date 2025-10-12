@@ -1,0 +1,115 @@
+extension:
+  name: duck_hunt
+  description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 44+ development tools and formats
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duck_hunt
+  ref: d9433e9ba1817d89797fc01231cb6d2316054e74
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD duck_hunt;
+
+    -- Parse test results with automatic format detection
+    SELECT tool_name, status, COUNT(*) as count
+    FROM read_test_results('pytest_output.json', 'auto')
+    GROUP BY tool_name, status;
+
+    -- Analyze compilation errors from build logs
+    SELECT file_path, line_number, message, category
+    FROM read_test_results('build.log', 'auto')
+    WHERE status = 'ERROR' AND category = 'compilation'
+    ORDER BY file_path, line_number;
+
+    -- Parse CI/CD workflow logs hierarchically
+    SELECT workflow_name, job_name, step_name, step_status, duration
+    FROM read_workflow_logs('github_actions.log', 'github_actions')
+    WHERE hierarchy_level >= 2
+    ORDER BY event_id;
+
+    -- Find error patterns across multiple builds
+    SELECT pattern_id, COUNT(*) as occurrences,
+           ANY_VALUE(message) as representative_error
+    FROM read_test_results('logs/**/*.log', 'auto')
+    WHERE pattern_id != -1
+    GROUP BY pattern_id
+    ORDER BY occurrences DESC;
+
+    -- Analyze linting issues across multiple tools
+    SELECT tool_name, error_code, COUNT(*) as violations,
+           ANY_VALUE(suggestion) as fix_suggestion
+    FROM read_test_results('lint_results.json', 'auto')
+    WHERE status IN ('ERROR', 'WARNING')
+    GROUP BY tool_name, error_code
+    ORDER BY violations DESC;
+
+  extended_description: |
+    Duck Hunt is a comprehensive DuckDB extension for parsing and analyzing test results, build outputs, and DevOps pipeline data from 44+ development tools. Perfect for automated workflows, CI/CD analysis, and agent-driven development.
+
+    **Key Features:**
+
+    - **44+ Supported Formats**: Parse outputs from test frameworks, linters, build systems, CI/CD platforms, and debugging tools
+    - **Automatic Format Detection**: Smart content-based detection when format is set to 'auto'
+    - **Standardized Schema**: All parsers output a unified schema with 38+ fields optimized for analysis
+    - **Error Pattern Clustering**: Advanced error fingerprinting and similarity scoring to group related failures
+    - **Workflow Hierarchy**: Parse CI/CD logs with hierarchical structure (workflow → job → step → tool output)
+    - **Multi-File Analysis**: Glob patterns and batch processing for analyzing entire build directories
+    - **Agent-Optimized**: Structured output perfect for AI agents and automated remediation
+
+    **Supported Tools:**
+
+    *Test Frameworks (9)*: pytest, Go test, Cargo test, JUnit, RSpec, Mocha/Chai, Google Test, NUnit/xUnit, DuckDB test
+
+    *Linting & Static Analysis (16)*: ESLint, RuboCop, SwiftLint, PHPStan, Shellcheck, Stylelint, Clippy, Markdownlint, yamllint, Bandit, SpotBugs, ktlint, Hadolint, lintr, sqlfluff, tflint
+
+    *Build Systems (9)*: CMake, Make, Python builds, Node.js builds, Cargo, Maven, Gradle, MSBuild, kube-score
+
+    *CI/CD Workflow Engines (4)*: GitHub Actions, GitLab CI, Jenkins, Docker Build
+
+    *Debugging Tools (2)*: Valgrind (Memcheck, Helgrind, Cachegrind, Massif, DRD), GDB/LLDB
+
+    **Core Functions:**
+
+    - `read_test_results(file_path, format := 'AUTO')` - Parse test results and build outputs from files
+    - `parse_test_results(content, format := 'AUTO')` - Parse test results from strings
+    - `read_workflow_logs(file_path, format := 'AUTO')` - Parse CI/CD logs with hierarchical structure
+
+    **Schema Fields (38 total):**
+
+    *Core Fields*: event_id, tool_name, event_type, file_path, line_number, column_number, function_name, status, severity, category, message, suggestion, error_code, test_name, execution_time, raw_output, structured_data
+
+    *Error Analysis*: error_fingerprint, similarity_score, pattern_id, root_cause_category
+
+    *Metadata*: source_file, build_id, environment, file_index
+
+    *Workflow Fields*: workflow_name, job_name, step_name, workflow_run_id, job_id, step_id, workflow_status, job_status, step_status, started_at, completed_at, duration, workflow_type, hierarchy_level, parent_id
+
+    **Example Use Cases:**
+
+    - **CI/CD Analysis**: Parse and analyze GitHub Actions, GitLab CI, Jenkins, and Docker build logs
+    - **Build Failure Debugging**: Extract compilation errors, linking issues, and configuration problems
+    - **Test Result Aggregation**: Combine test outputs from multiple frameworks and languages
+    - **Quality Gate Enforcement**: SQL queries to enforce error thresholds and quality standards
+    - **Error Pattern Detection**: Identify recurring failures and group similar errors
+    - **Agent-Driven Development**: Provide structured error data for AI agents and automated remediation
+    - **Performance Analysis**: Track test execution times and identify bottlenecks
+    - **Cross-Platform Comparison**: Analyze build results across different environments
+
+    **Advanced Features:**
+
+    - **Error Fingerprinting**: Normalized error signatures for pattern detection
+    - **Similarity Scoring**: Cosine similarity to pattern cluster centroids (0.0-1.0)
+    - **Root Cause Analysis**: Automatic categorization of error types (network, permission, config, etc.)
+    - **Pipeline Integration**: Stream build logs directly from stdin for real-time analysis
+    - **Hierarchical Parsing**: Workflow logs parsed into workflow → job → step → line structure
+
+    Duck Hunt is optimized for DevOps workflows, CI/CD pipeline analysis, and agent-driven development. It provides a unified SQL interface to analyze development tool outputs, making it easy to build quality gates, track error trends, and automate remediation.
+
+    **Note**: This extension was developed with Claude and Claude Code as an exercise in AI-assisted development.
