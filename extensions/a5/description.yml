@@ -1,0 +1,17 @@
+docs:
+  extended_description: |
+    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_a5.html).
+extension:
+  build: cmake
+  description: Hierarchical pentagonial indexing for geospatial data that is equal-area and millimeter accurate.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+    - rustyconover
+  name: a5
+  requires_toolchains: rust
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;"
+  version: 2025101102
+repo:
+  github: query-farm/a5
+  ref: b61ebc04de40e9e36d150c9743f4e80a518ca99a

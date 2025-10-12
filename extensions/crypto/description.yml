@@ -1,17 +1,16 @@
 docs:
-  extended_description: |
-    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_crypto.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_crypto.html).
 extension:
   build: cmake
   description: Cryptographic hash functions and HMAC
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;
   language: C++
   license: MIT
   maintainers:
-    - rustyconover
+  - rustyconover
   name: crypto
   requires_toolchains: rust
-  version: 2025091601
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;"
+  version: '2025101201'
 repo:
   github: query-farm/crypto
-  ref: d82ced3066b4934bf8a81f939f53361f6dcb1f43
+  ref: ee7e10a49288776187317bacad77bd0c504b9696
