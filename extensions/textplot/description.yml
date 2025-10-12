@@ -1,15 +1,16 @@
 docs:
-  extended_description: |
-    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_textplot.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_textplot.html).
 extension:
   build: cmake
-  description: Enables text-based data visualization directly in SQL queries, including ASCII/Unicode bar charts, density plots, and sparklines for lightweight analytics and dashboards.
+  description: Enables text-based data visualization directly in SQL queries, including
+    ASCII/Unicode bar charts, density plots, and sparklines for lightweight analytics
+    and dashboards.
   language: C++
   license: Apache-2.0
   maintainers:
-    - rustyconover
+  - rustyconover
   name: textplot
-  version: 2025091602
+  version: '2025101201'
 repo:
   github: query-farm/textplot
-  ref: a703a5f37370f37b834b47f63318681ef8350989
+  ref: 8e9a6d3fec77389ca557484da79f68b029a44c7e
