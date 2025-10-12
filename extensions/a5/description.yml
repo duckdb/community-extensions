@@ -11,7 +11,7 @@ extension:
   name: a5
   requires_toolchains: rust
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;"
-  version: 2025101101
+  version: 2025101102
 repo:
   github: query-farm/a5
-  ref: a1276b7ca2fcfd1d3cc2ee444739b6161dc755b5
+  ref: b61ebc04de40e9e36d150c9743f4e80a518ca99a
