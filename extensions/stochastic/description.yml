@@ -13,4 +13,4 @@ extension:
   version: '2025101201'
 repo:
   github: query-farm/stochastic
-  ref: 9b0cbd2d5131c0d003c4f608b7592c774b42f2da
+  ref: a754224fc67f16ab2e176cce8d89a15868cd1256
