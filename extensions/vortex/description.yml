@@ -18,8 +18,14 @@ repo:
 
 docs:
   hello_world: |
-    write a vortex file
-    `COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX);`
+    Write a Vortex file:
 
-    scan a vortex file
-    `select * from read_vortex('...');`
+    ```sql
+    COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX);
+    ```
+
+    Scan a Vortex file:
+
+    ```sql
+    SELECT * FROM read_vortex('...');
+    ```
