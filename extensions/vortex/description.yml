@@ -19,7 +19,7 @@ repo:
 docs:
   hello_world: |
     -- Write a Vortex file:
-    COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX);
+    COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT vortex);
 
     -- Scan a Vortex file:
     SELECT * FROM read_vortex('...');
