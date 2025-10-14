@@ -7,6 +7,7 @@ extension:
   license: MIT
   maintainers:
     - dforsber
+  requires_toolchains: rust
 
 repo:
   github: dforsber/boilstream-extension
