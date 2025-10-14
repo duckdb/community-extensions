@@ -24,8 +24,8 @@ docs:
     COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX);
     ```
 
-    Scan a Vortex file:
+-----Write a Vortex file:
+COPY (SELECT * from generate_series(0, 4)) TO 'FILENAME.vortex' (FORMAT VORTEX);
 
-    ```sql
-    SELECT * FROM read_vortex('...');
-    ```
+---- Scan a Vortex file:
+SELECT * FROM read_vortex('...');
