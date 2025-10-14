@@ -10,8 +10,7 @@ extension:
     - rustyconover
   name: a5
   requires_toolchains: rust
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;"
-  version: 2025101102
+  version: 2025101401
 repo:
   github: query-farm/a5
-  ref: b61ebc04de40e9e36d150c9743f4e80a518ca99a
+  ref: 0b77efd2cea42838160c58474a00b11960dccbae
