@@ -10,7 +10,7 @@ extension:
   - rustyconover
   name: evalexpr_rhai
   requires_toolchains: rust
-  version: '2025101201'
+  version: '2025101401'
 repo:
   github: query-farm/evalexpr_rhai
-  ref: d2b943f54a2901b55a4d15eb802fc427d85b9b60
+  ref: a8fb6c6970006c3e9b657374f72fd82d862abbdd
