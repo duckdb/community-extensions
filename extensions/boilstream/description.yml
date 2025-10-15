@@ -1,7 +1,7 @@
 extension:
   name: boilstream
   description: Mounts boilstream server as a secure Remote Secrets Storage
-  version: 0.3.0
+  version: 0.3.1
   language: C++, Rust
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 07b1c961c10fa6ac179369b222f5e8e855b9c411
+  ref: 14d166e423cad20c88604a0edd62de6e55e818aa
 
 docs:
   hello_world: |
