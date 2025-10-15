@@ -1,9 +1,9 @@
 function,description,comment,example
 a5_area,Return the area of an A5 cell,"",""
 a5_boundary,Return a set of points which are the boundary of an A5 cell,"",""
-a5_cell,Returns the A5 cell for a longitude, latitude and resolution,"",""
+a5_cell,Returns the A5 cell for a latitude, longitude and resolution,"",""
 a5_children,Returns a list of A5 cells which are the children of the passed A5 cell and resolution,"",""
-a5_lon_lat,Returns the center longitude and latitude of an A5 cell,"",""
+a5_lat_lon,Returns the center longitude and latitude of an A5 cell,"",""
 a5_num_cells,Returns the number of cells at a specified resolution,"",""
 a5_parent,Returns the parent of the passed A5 cell at the passed resolution,"",""
 a5_res0_cells,Returns all A5 cells at resolution 0.,"",""
