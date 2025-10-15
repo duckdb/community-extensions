@@ -1,7 +1,7 @@
 extension:
   name: miniplot
   description: Replace pandas + matplotlib with just DuckDB - instant data visualization from SQL
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -10,35 +10,35 @@ extension:
 
 repo:
   github: nkwork9999/miniplot
-  ref: 16a2abcccad15f203b9645788e85b94d83622fbc
+  ref: 6197f14cf803e4234b69ddc279ee64eec79bea73
 
 docs:
   hello_world: |
     -- Bar chart example
     SELECT bar_chart(
         LIST_VALUE('Q1', 'Q2', 'Q3', 'Q4'),
-        LIST_VALUE(100, 150, 200, 180),
+        LIST_VALUE(100.0, 150.0, 200.0, 180.0),
         'Quarterly Sales'
     );
 
     -- Line chart example
     SELECT line_chart(
         LIST_VALUE('Mon', 'Tue', 'Wed', 'Thu', 'Fri'),
-        LIST_VALUE(5000, 6500, 4800, 7200, 8500),
+        LIST_VALUE(5000.0, 6500.0, 4800.0, 7200.0, 8500.0),
         'Weekly Revenue Trend'
     );
 
     -- Scatter plot example
     SELECT scatter_chart(
-        LIST_VALUE(1, 2, 3, 4, 5, 6, 7, 8),
-        LIST_VALUE(10, 25, 30, 45, 60, 75, 85, 95),
+        LIST_VALUE(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0),
+        LIST_VALUE(10.0, 25.0, 30.0, 45.0, 60.0, 75.0, 85.0, 95.0),
         'Performance vs Time'
     );
 
     -- Area chart example
     SELECT area_chart(
         LIST_VALUE('Jan', 'Feb', 'Mar', 'Apr', 'May'),
-        LIST_VALUE(1000, 1500, 1200, 1800, 2100),
+        LIST_VALUE(1000.0, 1500.0, 1200.0, 1800.0, 2100.0),
         'Monthly Growth'
     );
 
@@ -48,10 +48,27 @@ docs:
 
     **Mission: Replace pandas + matplotlib with just DuckDB**
 
-    Features:
+    **New in v0.0.2:**
+    - 🔄 Complete C++-only rewrite (no Rust dependencies)
+    - 🌐 Charts open in browser (universal compatibility)
+    - 📦 Fully offline - Plotly.js embedded (no CDN, no internet required)
+    - ✨ Interactive features: zoom, pan, hover, export to PNG
+    - 🎨 Clean white theme with subtle shadows
+    - 🚀 Works in DuckDB Community Extensions (worker thread compatible)
+
+    **Features:**
     - Bar, Line, Scatter, and Area charts
-    - Native GUI rendering using Rust/Iced
+    - Interactive Plotly.js-based rendering
     - Simple SQL interface for direct visualization
     - Cross-platform support (macOS, Linux, Windows)
+    - Zero external dependencies at runtime
+    - Fully offline operation (3MB Plotly.js embedded)
 
-    Note: Requires graphical environment. Charts open in separate native windows.
+    **Technical Details:**
+    - Pure C++ implementation
+    - Plotly.js (~3MB) embedded at compile time
+    - Charts rendered as standalone HTML files
+    - Opens in default browser automatically
+    - No native GUI dependencies
+
+    **Note:** Charts open in your default web browser as standalone HTML files.

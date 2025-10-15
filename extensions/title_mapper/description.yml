@@ -1,0 +1,46 @@
+extension:
+  name: title_mapper
+  description: Efficiently standardizes scraped job titles to Bureau of Labor Statistics (BLS) titles using a high-performance TF-IDF algorithm.
+  version: 1.4.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - martin-conur
+
+repo:
+  github: martin-conur/duckdb-title-mapper
+  ref: 48519d2d38eda1103d8cc3261c84fbbd4dc90b18
+
+docs:
+  hello_world: |
+    -- Standardize a column
+    SELECT standardize_title(scraped_title_column) FROM your_table;
+
+    -- Standardize tech job titles
+    SELECT standardize_title('Sr. Software Eng') AS standardized_title;
+    -- Result: 'Software Engineer - Software Developers'
+
+    -- Standardize healthcare titles
+    SELECT standardize_title('RN - Emergency Room') AS standardized_title;
+    -- Result: 'Registered Nurse - Registered Nurses'
+  extended_description: |
+    # DuckDB Title Mapper
+    `duckdb-title-mapper` is a highly optimized DuckDB extension written in Rust. It standardizes scraped job titles to BLS (Bureau of Labor Statistics) standard titles using a fast TF-IDF implementation.
+
+    ## What It Does
+
+    This extension transforms messy, inconsistent job titles from various sources into standardized BLS titles:
+
+    | Scraped Title (Input) | Standardized Title (Output) |
+    |------------------------|------------------------------|
+    | Sr. Software Eng | Software Engineer |
+    | Registered Nurse - ICU | Registered Nurse |
+    | Accountant III | Accountant |
+    | Sales Rep (B2B) | Sales Representative |
+    | Elementary School Teacher - 3rd Grade | Elementary School Teacher |
+    | Exec. Chef | Executive Chef |
+    | Marketing Coordinator/Specialist | Marketing Specialist |
+    | Licensed Practical Nurse (LPN) | Licensed Practical Nurse |

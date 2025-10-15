@@ -1,17 +1,15 @@
 docs:
-  extended_description: |
-    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_lindel.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_lindel.html).
 extension:
   build: cmake
   description: Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
   language: C++
   license: Apache-2.0
   maintainers:
-    - rustyconover
+  - rustyconover
   name: lindel
   requires_toolchains: rust
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;"
-  version: 2025091601
+  version: '2025101201'
 repo:
   github: query-farm/lindel
-  ref: 37ab86240b0d8ad0febd3e343343272489388ed0
+  ref: 78da538fa9f50f3514d18af9066c54000964e640
