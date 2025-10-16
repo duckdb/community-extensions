@@ -1,7 +1,7 @@
 extension:
   name: cache_httpfs
   description: Read cached filesystem for httpfs
-  version: 0.7.2
+  version: 0.8.0
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duck-read-cache-fs
-  ref: e618d72b02e955ecac5c6f3f881d47a2fdf6404b
+  ref: b0054da8f2f8153cb62ac239cb14afc943a74334
 
 docs:
   hello_world: |
