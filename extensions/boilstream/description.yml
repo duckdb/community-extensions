@@ -1,16 +1,17 @@
 extension:
   name: boilstream
   description: Mounts boilstream server as a secure Remote Secrets Storage
-  version: 0.2.0
-  language: C++
+  version: 0.3.1
+  language: C++, Rust
   build: cmake
   license: MIT
   maintainers:
     - dforsber
+  requires_toolchains: rust
 
 repo:
   github: dforsber/boilstream-extension
-  ref: b7a212eaa8c805682682ca00e6b3b7ba2fbe08ed
+  ref: 14d166e423cad20c88604a0edd62de6e55e818aa
 
 docs:
   hello_world: |
@@ -18,7 +19,7 @@ docs:
     PRAGMA duckdb_secrets_boilstream_endpoint('https://localhost:443/secrets:ffe14a..71db4ef9fad837bc8');
     SELECT * FROM duckdb_secrets(); -- Fetches secrets from remote host
   extended_description: |
-    This extension implements secure remote secrets storage on compatible REST API endpoints. It uses a one-time short lived bootstrap token provided through PRAGMA and runs PKCE token exchange for longer living session token with refreshing.
+    This extension implements Secure Remote Secrets Storage on compatible REST API endpoints. It uses industrial grade security with Facebook's audited OPAQUE PAKE, along with OAuth2 based token management and HKDF-SHA256 key derivations and application level integrity protection and secrets encryption (e.g. AES GCM) from server to client. Thus, it provides even protection for mitm TLS attacks without breaking secrets confidentiality or message integrity. Bootstrapping is also anonymous with one-time bootstrap tokens vended from server. Full SECURITY_SPECIFICATION.md is provided with test vectors and proven interworking with two independent impelementations with Rust and C++.
     Required REST API on the server endpoint: https://github.com/dforsber/boilstream-extension/blob/main/src/README.md
     As an example with boilstream server provided REST API:
     - Download and run boilstream server, go to https://your-server/, register user with MFA
