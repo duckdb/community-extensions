@@ -16,7 +16,7 @@ repo:
 
 docs:
   hello_world: |
-    SELECT cache_httpfs_get_cache_size();
+    SELECT cache_httpfs_get_ondisk_data_cache_size();
   extended_description: |
     This extension adds a read cache filesystem to DuckDB, which acts as a wrapper of httpfs extention. 
     It supports a few key features:
