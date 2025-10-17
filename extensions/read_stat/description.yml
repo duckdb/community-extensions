@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: mettekou/duckdb-read-stat
-  ref: 5253f0b6d9ef56f7ee26c37f555ee7a4881578e6
+  ref: d66821b3626caddbc8da7794617747e079f2ff64
 
 docs:
   hello_world: |
