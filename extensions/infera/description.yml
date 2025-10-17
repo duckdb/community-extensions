@@ -2,7 +2,7 @@ extension:
   name: infera
   description: A DuckDB extension for in-database inference
   version: 0.2.0
-  language: C++
+  language: Rust & C++
   build: cmake
   license: MIT OR Apache-2.0
   maintainers:
