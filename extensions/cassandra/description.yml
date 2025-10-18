@@ -11,7 +11,7 @@ extension:
     
 repo:
   github: dioptre/duckdb-cassandra
-  ref: 5fde513bcdf59de66646977831fb38ba2a17751d
+  ref: 8227d73a5368c601c79e981b26fa6cfa6e986861
   canonical_name: cassandra
 
 docs:
