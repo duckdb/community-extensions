@@ -34,5 +34,9 @@ docs:
     select infera_get_version();
 
   extended_description: |
-    This extension is experimental at the moment, so it is not recommended for production use.
-    For more information, like API references and examples, visit the project's GitHub repository: https://github.com/CogitatorTech/infera
+    Infera extension allows users to use machine learning models directly in SQL queries to perform inference on data stored in DuckDB tables.
+    It is developed in Rust and uses [Tract](https://github.com/snipsco/tract) as the backend inference engine.
+    Infera supports loading and running models in [ONNX](https://onnx.ai/) format.
+    Check out the [ONNX Model Zoo](https://huggingface.co/onnxmodelzoo) repository on Hugging Face for a large collection of ready-to-use models that can be used with Infera.
+    
+    For more information, like API references and usage example, visit the project's [GitHub repository](https://github.com/CogitatorTech/infera).
