@@ -4,7 +4,7 @@ extension:
   version: 1.0.0
   language: C++
   build: cmake
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;"
   license: MIT
   requires_toolchains: "cmake, openssl"
   maintainers:
