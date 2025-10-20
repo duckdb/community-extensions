@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-filesystem-observability
-  ref: 4af6cecdeddefeb5c3352bc52c24044fce2ca724
+  ref: bdfe80b65e192ce6d24b64e890c15817120065bb
 
 docs:
   hello_world: |
@@ -20,5 +20,6 @@ docs:
     This extension provides observability to duckdb filesystems.
     It supports a few key features:
     - 100% compatible with duckdb httpfs
-    - Provides both process-wise and bucket-wise latency stats (including histogram and quantile estimation)
+    - Provides both process-wise and bucket-wise latency stats (including histogram and quantile estimation) to all read operations
+    - Provides cache access insight to duckdb external file cache
     - Allows registering ANY duckdb compatible filesystems (i.e., azure filesystem)
