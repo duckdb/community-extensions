@@ -1,7 +1,7 @@
 extension:
   name: rusty_sheet
-  description: An Excel/OpenDocument Spreadsheets file reader for DuckDB
-  version: 0.1.0
+  description: An Excel/WPS/OpenDocument Spreadsheets file reader for DuckDB
+  version: 0.2.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,33 +12,43 @@ extension:
 
 repo:
   github: redraiment/rusty-sheet
-  ref: 3cc700798071238763b9dc84ed0d16b42ab1e57d
+  ref: ff11910c9018923895e87cac4d1ce1dff3844351
 
 docs:
   hello_world: |
-    -- Read entire spreadsheet with headers
+    -- Read first sheet of spreadsheet with headers
     FROM read_sheet('data.xlsx');
     
+    -- Read without headers
+    FROM read_sheet('data.xlsx', header=false);
+    
     -- Read specific worksheet
-    FROM read_sheet('workbook.xlsx', sheet_name='Sheet2');
+    FROM read_sheet('workbook.xlsx', sheet='Sheet2');
+    
+    -- Analyze more rows (deafult 10) to detect column types
+    FROM analyze_sheet('data.xlsx', analyze_rows=20);
     
     -- Override specific column types (others auto-detected)
-    FROM read_sheet('data.xlsx',
-      columns={'id': 'bigint'}
-    );
+    FROM read_sheet('data.xlsx', columns={'id': 'bigint'});
     
     -- Read specific data range (Excel-style notation)
     FROM read_sheet('data.xlsx', range='A2:E100');
     
-    -- Read without headers
-    FROM read_sheet('data.xlsx',
-      header=false,
-      columns={'column1': 'varchar', 'column2': 'bigint'}
-    );
+    -- Read all worksheets in multiple file types with different extensions
+    FROM read_sheets(['*.xlsx', '*.ods', '*.et']);
     
-    -- Analyze column types
-    FROM analyze_sheet('data.xlsx', analyze_rows=20);
+    -- Analyze with wildcard pattern
+    FROM analyze_sheets(['*.xlsx'], sheets=['Sheet*']);
+    
+    -- Match specific worksheets only in specific file types
+    FROM read_sheets(['*.xlsx'], sheets=['*.xlsx=Sheet*']);
+    
+    -- Track data sources with custom column names
+    FROM read_sheets(['*.xlsx'], file_name_column='file', sheet_name_column='sheet');
+    
+    -- Union data by column name instead of position
+    FROM read_sheets(['*.xlsx'], union_by_name=true);
 
   extended_description: |
-    The DuckDB rusty-sheet extension that enables reading Excel and OpenDocument spreadsheet files directly within SQL queries. This extension provides seamless integration for analyzing spreadsheet data using DuckDB's powerful SQL engine.
+    The DuckDB rusty-sheet extension that enables reading Excel, WPS and OpenDocument spreadsheet files directly within SQL queries. This extension provides seamless integration for analyzing spreadsheet data using DuckDB's powerful SQL engine.
     For detailed setup and usage instructions, visit the docs at [rusty-sheet](https://github.com/redraiment/rusty-sheet).
