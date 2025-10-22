@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: redraiment/rusty-sheet
-  ref: ff11910c9018923895e87cac4d1ce1dff3844351
+  ref: b864536c57efdc7da06b63126fe7cbd349000ee7
 
 docs:
   hello_world: |
