@@ -1,5 +1,5 @@
 extension:
-  name: eddelbuettel
+  name: mlpack
   description: Machine learning library in C++
   version: 0.0.1
   language: C++
