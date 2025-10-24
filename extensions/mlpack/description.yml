@@ -5,8 +5,8 @@ extension:
   language: C++
   build: cmake
   license: MIT
-  exclude_archs: "windows_amd64_mingw;windows_amd64;osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads"
-  extra_toolchains: "fortran;omp"    
+  excluded_platforms: "windows_amd64_mingw;windows_amd64;osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "fortran;omp"    
   maintainers:
     - eddelbuettel
 
