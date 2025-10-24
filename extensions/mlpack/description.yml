@@ -1,0 +1,16 @@
+extension:
+  name: mlpack
+  description: Machine learning library in C++
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw;windows_amd64;osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "fortran;omp"    
+  maintainers:
+    - eddelbuettel
+
+repo:
+  github: eddelbuettel/duckdb-mlpack
+  ref: c2d0c83b24501fa6912765ccdb03685f021d2b86
+  
