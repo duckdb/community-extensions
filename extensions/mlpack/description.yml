@@ -1,0 +1,14 @@
+extension:
+  name: eddelbuettel
+  description: Machine learning library in C++
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - eddelbuettel
+
+repo:
+  github: eddelbuettel/duckdb-mlpack
+  ref: c2d0c83b24501fa6912765ccdb03685f021d2b86
+  
