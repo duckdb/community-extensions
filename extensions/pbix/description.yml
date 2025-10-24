@@ -1,7 +1,7 @@
 extension:
   name: pbix
   description: Extension that allows parsing the data model embedded in PowerBI (pbix) files
-  version: 0.5.2
+  version: 0.5.3
   language: C++
   build: cmake
   excluded_platforms: "linux_amd64_musl"
@@ -10,7 +10,7 @@ extension:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-pbix-extension
-  ref: 4c3e162d35234da490ced843e5929fa064f31f8a
+  ref: 3d863fc006d22e9a6dcfae59fbf4a46edca8fd13
 docs:
   hello_world: |
     -- Get metadata tables from a PowerBI file
