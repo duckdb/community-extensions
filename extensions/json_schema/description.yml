@@ -9,7 +9,7 @@ extension:
   maintainers:
     - rustyconover
   name: json_schema
-  version: 2025102401
+  version: 2025102402
 repo:
   github: query-farm/json_schema
   ref: 4fc27e93fc6c2e3f6458de2dd47b40e56339cac7
