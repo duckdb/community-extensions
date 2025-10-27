@@ -5,6 +5,8 @@ extension:
   language: C++
   build: cmake
   license: MIT
+  # needed for protobuf
+  vcpkg_commit: 35c82bb582adab830e1d14f9c4100d251b30aff4
   excluded_platforms: ""
   maintainers:
     - smithclay
@@ -86,4 +88,3 @@ docs:
 
     - [OpenTelemetry Protocol (OTLP)](https://opentelemetry.io/docs/specs/otlp/)
     - [OpenTelemetry ClickHouse Exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/clickhouseexporter)
-  
