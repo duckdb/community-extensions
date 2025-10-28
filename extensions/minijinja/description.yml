@@ -8,7 +8,7 @@ extension:
   license: Apache-2.0
   maintainers:
     - rustyconover
-  name: tera
+  name: minijinja
   requires_toolchains: rust
   version: 2025102701
 repo:
