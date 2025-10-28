@@ -46,7 +46,8 @@ docs:
     Following a model fit (or training), a prediction (or classification) can be made using "M" and new
     predictor values as shown in the example.
 
-    The implementation is still stressing the 'minimal' part of 'a MVP demo': currently only Linux is supported.
-    It should be considered experimental, interfaces may change while we work out how to automate interface generation from the mlpack-side.
+    The implementation is still stressing the 'minimal' part of 'a MVP demo'.
+    It wraps two machine learning methods, and provides Linux and macOS builds.
+    As interfaces may change while we may work out how to automate interface generation from the mlpack-side, so it should be considered experimental.
 
-    For more, see the [repo](https://github.com/eddelbuettel/duckdb-mlpack).
+    For more, please see the [repo](https://github.com/eddelbuettel/duckdb-mlpack).
