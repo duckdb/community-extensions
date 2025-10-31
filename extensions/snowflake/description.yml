@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: iqea-ai/duckdb-snowflake
-  ref: 3f39f2b1fea94a8a955f1796d3a5772d249cda97
-  ref_next: 3f39f2b1fea94a8a955f1796d3a5772d249cda97
+  ref: abf57bcc2512dae834257310af4dedddd72f6ce2
+  ref_next: abf57bcc2512dae834257310af4dedddd72f6ce2
 
 install_notes: |
   **Important:** This extension requires the Apache Arrow ADBC Snowflake driver to function properly.
