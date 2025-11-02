@@ -1,0 +1,52 @@
+extension:
+  name: bvh2sql
+  description: BVH (BioVision Hierarchy) motion capture file parser for DuckDB
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/bvh2sql
+  ref: 2049f108b4aa083f96556f0f65ac1168f678a58d
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD bvh2sql;
+
+    -- Read BVH file and get absolute joint positions
+    SELECT frame_id, time, joint_name, world_x, world_y, world_z
+    FROM bvh_absolute_positions('motion.bvh')
+    WHERE joint_name = 'Hips'
+    LIMIT 10;
+
+    -- Analyze joint movement over time
+    SELECT 
+      joint_name,
+      AVG(world_y) as avg_height,
+      MAX(world_y) - MIN(world_y) as height_range
+    FROM bvh_absolute_positions('motion.bvh')
+    GROUP BY joint_name
+    ORDER BY avg_height DESC;
+
+  extended_description: |
+    The BVH2SQL extension allows you to read BioVision Hierarchy (BVH) motion capture files
+    directly into DuckDB for analysis and processing.
+
+    **Features:**
+    - Parse BVH hierarchy structure with joint offsets
+    - Calculate absolute world positions for all joints using matrix transformations
+    - Support for position channels (Xposition, Yposition, Zposition)
+    - Support for rotation channels (Xrotation, Yrotation, Zrotation)
+    - Efficient frame-by-frame processing
+    - Returns data as a standard SQL table with columns: frame_id, time, joint_name, world_x, world_y, world_z, rot_x, rot_y, rot_z
+
+    **Use Cases:**
+    - Motion capture data analysis
+    - Animation retargeting preparation
+    - Character movement statistics
+    - Biomechanics research
+    - Game development data pipeline
