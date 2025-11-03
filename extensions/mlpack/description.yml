@@ -1,0 +1,53 @@
+extension:
+  name: mlpack
+  description: Machine learning library in C++
+  version: 0.0.3
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw;windows_amd64;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "fortran;omp"    
+  maintainers:
+    - eddelbuettel
+
+repo:
+  github: eddelbuettel/duckdb-mlpack
+  ref: f9bb8d53f37f23455a51c2e894a918e6a4aa6d6c
+  
+docs:
+  hello_world: |
+    -- Perform adaBoost (using weak learner 'Perceptron' by default)
+    -- Read 'features' into 'X', 'labels' into 'Y', use optional parameters
+    -- from 'Z', and prepare model storage in 'M'
+    CREATE TABLE X AS SELECT * FROM read_csv("https://eddelbuettel.github.io/duckdb-mlpack/data/iris.csv");
+    CREATE TABLE Y AS SELECT * FROM read_csv("https://eddelbuettel.github.io/duckdb-mlpack/data/iris_labels.csv");
+    CREATE TABLE Z (name VARCHAR, value VARCHAR);
+    INSERT INTO Z VALUES ('iterations', '50'), ('tolerance', '1e-7');
+    CREATE TABLE M (key VARCHAR, json VARCHAR);
+
+    -- Train model for 'Y' on 'X' using parameters 'Z', store in 'M'
+    CREATE TEMP TABLE A AS SELECT * FROM mlpack_adaboost("X", "Y", "Z", "M");
+
+    -- Count by predicted group
+    SELECT COUNT(*) as n, predicted FROM A GROUP BY predicted;
+
+    -- Model 'M' can be used to predict
+    CREATE TABLE N (x1 DOUBLE, x2 DOUBLE, x3 DOUBLE, x4 DOUBLE);
+    -- inserting approximate column mean values
+    INSERT INTO N VALUES (5.843, 3.054, 3.759, 1.199);
+    -- inserting approximate column mean values, min values, max values
+    INSERT INTO N VALUES (5.843, 3.054, 3.759, 1.199), (4.3, 2.0, 1.0, 0.1), (7.9, 4.4, 6.9, 2.5);
+    -- and this predict one element each
+    SELECT * FROM mlpack_adaboost_pred("N", "M");
+
+  extended_description: |
+    The mlpack extension allows to fit (or train) and predict (or classify) from the models implemented, currently adaBoost and (regularized) linear regression.
+    The format is the same for both: four tables, say, "X", "Y", "Z" and "M" provide input for, respectively, features "X", labels "Y", optional parameters varying by model in "Z" as well as an output table "M" for the JSON-serialized model.
+    Following a model fit (or training), a prediction (or classification) can be made using "M" and new
+    predictor values as shown in the example.
+
+    The implementation is still stressing the 'minimal' part of 'a MVP demo'.
+    It wraps two machine learning methods, and provides Linux and macOS builds.
+    As interfaces may change while we may work out how to automate interface generation from the mlpack-side, so it should be considered experimental.
+
+    For more, please see the [repo](https://github.com/eddelbuettel/duckdb-mlpack).

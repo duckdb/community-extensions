@@ -1,3 +1,5 @@
-function,description,comment,example
-read_sheet,"Read spreadsheet data and make it available for SQL queries in DuckDB.",,"FROM read_sheet('data.xlsx');"
-analyze_sheet,"Analyze spreadsheet files and return column type information.",,"FROM analyze_sheet('data.xlsx', analyze_rows=20);"
+function,fun_type,description,comment,example
+analyze_sheet,table_function,"Analyzes a single spreadsheet sheet to detect column names and data types.",,"FROM analyze_sheet('data.xlsx', analyze_rows=20);"
+analyze_sheets,table_function,"Analyzes multiple spreadsheet sheets across files to detect column structures.",,"FROM analyze_sheets(['*.xls']);"
+read_sheet,table_function,"Reads data from a single spreadsheet sheet into a DuckDB table.",,"FROM read_sheet('data.ods');"
+read_sheets,table_function,"Reads data from multiple spreadsheet sheets across files into DuckDB tables.",,"FROM read_sheets(['*.et'], union_by_name=true);"

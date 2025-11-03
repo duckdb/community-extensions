@@ -1,7 +1,7 @@
 extension:
   name: dns
   description: The DNS Extension enables DNS lookups and reverse DNS lookups from within DuckDB
-  version: 0.3.0
+  version: 0.4.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-dns
-  ref: 783eccdbe63ab4f4024ee0e6f2d3746f3302d55c
+  ref: b95577b43190fb67d0a723a0acf25cac5b769ff6
 
 docs:
   hello_world: |
@@ -78,6 +78,15 @@ docs:
     ├───────────────────────────────────────┤
     │ DNS concurrency limit updated to 250  │
     └───────────────────────────────────────┘
+
+    -- Set DNS cache size to 8192 (default: 1000)
+    D SELECT set_dns_cache_size(8192);
+    ┌────────────────────────────────┐
+    │    set_dns_cache_size(8192)    │
+    │            varchar             │
+    ├────────────────────────────────┤
+    │ DNS cache size updated to 8192 │
+    └────────────────────────────────┘
     
   extended_description: |
     This community extension implements DNS (reverse) lookup functions for DuckDB.
@@ -207,6 +216,28 @@ docs:
     -- Set concurrency limit to 500 for high-throughput scenarios
     SELECT set_dns_concurrency_limit(500);
     -- Returns: Concurrency limit updated to 500
+    ```
+
+    ### `set_dns_cache_size(size)`
+
+    Updates the DNS cache size for the resolver. The cache stores DNS query results to improve performance by avoiding repeated lookups for the same queries. Each cache entry stores the results for a unique DNS query (hostname + record type combination).
+
+    **Parameters:**
+    - `size` (BIGINT): The maximum number of cached DNS queries (must be greater than 0)
+
+    **Returns:** VARCHAR - A success or error message
+
+    **Default:** 4096 cached queries
+
+    **Examples:**
+    ```sql
+    -- Set cache size to 8192 for larger workloads
+    SELECT set_dns_cache_size(8192);
+    -- Returns: DNS cache size updated to 8192
+
+    -- Set cache size to 2048 for smaller memory footprint
+    SELECT set_dns_cache_size(2048);
+    -- Returns: DNS cache size updated to 2048
     ```
 
     ### `corey(hostname)` - Table Function
