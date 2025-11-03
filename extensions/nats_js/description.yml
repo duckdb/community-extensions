@@ -6,7 +6,6 @@ extension:
   build: cmake
   license: MIT
   excluded_platforms: "linux_amd64_musl;windows_amd64_mingw"
-  vcpkg_commit: "a42af01b72c28a8e1d7b48107b33e4f286a55ef6"
   maintainers:
     - brannn
 
