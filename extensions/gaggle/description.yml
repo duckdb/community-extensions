@@ -1,6 +1,6 @@
 extension:
   name: gaggle
-  description: A DuckDB extension for in-database inference
+  description: A DuckDB extension for working with Kaggle datasets
   version: 0.1.0-alpha.3
   language: Rust & C++
   build: cmake
