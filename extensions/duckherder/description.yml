@@ -6,12 +6,13 @@ extension:
   build: cmake
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  requires_toolchains: parser_tools
   maintainers:
     - dentiny
 
 repo:
   github: dentiny/duckdb-distributed-execution
-  ref: 16ae241e4ea444f51b692e0903973b70939d356e
+  ref: 02f33a09885fd06cdca2884bc8735900041de22c
 
 docs:
   hello_world: |
