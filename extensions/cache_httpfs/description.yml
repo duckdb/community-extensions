@@ -1,7 +1,7 @@
 extension:
   name: cache_httpfs
   description: Read cached filesystem for httpfs
-  version: 0.9.1
+  version: 0.9.2
   language: C++
   build: cmake
   license: MIT
