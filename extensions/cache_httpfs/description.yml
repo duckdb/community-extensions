@@ -1,7 +1,7 @@
 extension:
   name: cache_httpfs
   description: Read cached filesystem for httpfs
-  version: 0.7.1
+  version: 0.9.2
   language: C++
   build: cmake
   license: MIT
@@ -12,11 +12,11 @@ extension:
 
 repo:
   github: dentiny/duck-read-cache-fs
-  ref: 0f34e568176536cd96226794e24b068a765a0bfb
+  ref: 075e8f7c04bd2c4ea1cab2d655b0fee3826a37a5
 
 docs:
   hello_world: |
-    SELECT cache_httpfs_get_cache_size();
+    SELECT cache_httpfs_get_ondisk_data_cache_size();
   extended_description: |
     This extension adds a read cache filesystem to DuckDB, which acts as a wrapper of httpfs extention. 
     It supports a few key features:

@@ -1,0 +1,44 @@
+extension:
+  name: gaggle
+  description: A DuckDB extension for working with Kaggle datasets
+  version: 0.1.0-alpha.3
+  language: Rust & C++
+  build: cmake
+  license: MIT OR Apache-2.0
+  maintainers:
+    - habedi
+  excluded_platforms: "windows_amd64_mingw;osx_amd64;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: rust
+
+repo:
+  github: CogitatorTech/gaggle
+  ref: d231ba606456c9addfe33f660591ea5c0f3d935d
+
+docs:
+  hello_world: |
+    -- 0. Assuming the extension is already installed and loaded
+    
+    -- 1. Get extension version
+    SELECT gaggle_version();
+  
+    -- 2. List files in the dataset
+    SELECT * FROM gaggle_ls('habedi/flickr-8k-dataset-clean') LIMIT 5;
+    
+    -- 3. Read a Parquet file FROM local cache using a prepared statement
+    PREPARE rp as SELECT * FROM read_parquet(?) LIMIT 10;
+    EXECUTE rp(gaggle_file_path('habedi/flickr-8k-dataset-clean', 'flickr8k.parquet'));
+    
+    -- 4. Alternatively, we can use a replacement scan to read directly via `kaggle:` prefix
+    SELECT COUNT(*) FROM 'kaggle:habedi/flickr-8k-dataset-clean/flickr8k.parquet';
+    
+    -- 5. Check cache info
+    SELECT gaggle_cache_info();
+    
+    -- 6. Check if cached dataset is current (is the newest version?)
+    SELECT gaggle_is_current('habedi/flickr-8k-dataset-clean');
+
+  extended_description: |
+    Gaggle is a DuckDB extension that uses the Kaggle API to let you query Kaggle datasets directly with SQL.
+    It aims to simplify the data science workflows by hiding the complexity of manually downloading, extracting, and managing dataset files from Kaggle.
+    
+    For more information, like API references and usage examples, visit the project's [GitHub repository](https://github.com/CogitatorTech/gaggle).
