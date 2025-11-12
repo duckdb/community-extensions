@@ -7,9 +7,10 @@ extension:
   license: MIT
   maintainers:
     - achrafcei
+  excluded_platforms: "windows_amd64_mingw"
 repo:
   github: datumnova/duckdb_onelake.git
-  ref: a3bd9d89eff2f80aed230a74fb538d29e9b2e41f
+  ref: a5532dc9c8a32bfab297424a4b90a596dd8c9e18
   canonical_name: onelake
 
 docs:
