@@ -1,0 +1,46 @@
+extension:
+  name: lsh
+  description: Extension for locality-sensitive hashing (LSH)
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: GPL-3.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - yoonspark
+    - ericmanning
+
+repo:
+  github: princeton-ddss/lsh
+  ref: a94e28799beafec686a1b3344ee3005715cd5181
+
+docs:
+  hello_world: |
+    -- Install and load the extension
+    INSTALL lsh FROM community;
+    LOAD lsh;
+
+    -- Create toy data
+    CREATE TEMPORARY TABLE temp_names AS
+    SELECT * FROM (
+        VALUES
+            ('Alice Johnson'),
+            ('Robert Smith'),
+            (NULL),
+            ('Charlotte Brown'),
+            ('David Martinez'),
+            ('Emily Davis'),
+            ('Michael Wilson'),
+            ('Sophia Taylor'),
+            (NULL),
+            ('James Anderson'),
+            ('Olivia Thomas'),
+            ('Benjamin Lee')
+    ) AS t(name);
+
+    -- Apply MinHash
+    SELECT lsh_min(name, 2, 3, 2, 123) AS hash FROM temp_names;
+
+  extended_description: |
+    For more information regarding usage, see the [documentation](https://github.com/princeton-ddss/lsh).
