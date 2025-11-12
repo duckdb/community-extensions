@@ -10,7 +10,7 @@ extension:
     - rustyconover
   name: inflector
   requires_toolchains: rust
-  version: 2025110901
+  version: 2025111201
 repo:
   github: query-farm/inflector
-  ref: dd7189746d6ac63cc447aa830ec90b5ef4e50b61
+  ref: 973052ba08aeec5380f79254d3d3b4d805c0b8b3
