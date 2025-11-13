@@ -1,7 +1,7 @@
 extension:
   name: observefs
   description: Provides IO observability to filesystem
-  version: 0.3.3
+  version: 0.4.1
   language: C++
   build: cmake
   license: MIT
