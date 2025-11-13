@@ -63,7 +63,6 @@ docs:
     This extension enables DuckDB to connect to Microsoft Fabric OneLake workspaces and lakehouses, allowing users to query data stored in OneLake directly from DuckDB. 
     It supports authentication via service principals or credential chains (e.g., Azure CLI) and provides seamless integration with OneLake's data storage capabilities.
     For detailed setup and usage instructions, visit the [extension repository](https://github.com/datumnova/duckdb_onelake).
+    
     Current limitations:
     - Only read access is supported; write operations are not implemented.
-
-
