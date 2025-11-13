@@ -10,7 +10,7 @@ extension:
   excluded_platforms: "windows_amd64_mingw"
 repo:
   github: datumnova/duckdb_onelake
-  ref: f512fc5b1be2c6746bbb67b9dae7380fbd09a98e
+  ref: 20647375647e2bf62f31f7fb0b926f1ff65d10a6
   canonical_name: onelake
 
 docs:
