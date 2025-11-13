@@ -1,7 +1,7 @@
 extension:
   name: mlpack
-  description: Machine learning library in C++
-  version: 0.0.3
+  description: Connecting duckdb to the mlpack C++ machine learning library 
+  version: 0.0.4
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: eddelbuettel/duckdb-mlpack
-  ref: f9bb8d53f37f23455a51c2e894a918e6a4aa6d6c
+  ref: b4ba25b96a4c12e7b7843966db0793b60d5949c2
   
 docs:
   hello_world: |
@@ -41,13 +41,15 @@ docs:
     SELECT * FROM mlpack_adaboost_pred("N", "M");
 
   extended_description: |
-    The mlpack extension allows to fit (or train) and predict (or classify) from the models implemented, currently adaBoost and (regularized) linear regression.
-    The format is the same for both: four tables, say, "X", "Y", "Z" and "M" provide input for, respectively, features "X", labels "Y", optional parameters varying by model in "Z" as well as an output table "M" for the JSON-serialized model.
-    Following a model fit (or training), a prediction (or classification) can be made using "M" and new
-    predictor values as shown in the example.
-
-    The implementation is still stressing the 'minimal' part of 'a MVP demo'.
-    It wraps two machine learning methods, and provides Linux and macOS builds.
+    The mlpack extension allows to fit (or train) and predict (or classify) from the models implemented, currently adaBoost, random forests as well as (regularized) linear and logistic regression.
+    The format is the same for all four methods: four tables, say, "X", "Y", "Z" and "M" provide input for, respectively, features "X", labels "Y", optional parameters varying by model in "Z" as well as an output table "M" for the JSON-serialized model.
+    For all four methods, following a model fit (or training), a prediction (or classification) can be made using "M" and new predictor values "N" as shown in the example.
+    All "fit" (or "train") methods take four parameter tables, all "predict" methods take two.
+    A parmater "mlpack_verbose" can also be set.
+    
+    The implementation continues to stress the 'minimal' part of 'a MVP demo'.
+    It wraps four machine learning methods, and provides Linux and macOS builds.
+    More methods, options or parameters can be added quite easily.
     As interfaces may change while we may work out how to automate interface generation from the mlpack-side, so it should be considered experimental.
 
     For more, please see the [repo](https://github.com/eddelbuettel/duckdb-mlpack).
