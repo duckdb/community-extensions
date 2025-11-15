@@ -1,0 +1,68 @@
+extension:
+  name: onelake
+  description: This extension allows you to connect DuckDB to Microsoft Fabric OneLake workspaces and lakehouses, enabling you to query data stored in OneLake directly from DuckDB.
+  version: 1.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - achrafcei
+  excluded_platforms: "windows_amd64_mingw"
+repo:
+  github: datumnova/duckdb_onelake
+  ref: 20647375647e2bf62f31f7fb0b926f1ff65d10a6
+  canonical_name: onelake
+
+docs:
+  hello_world: |
+    -- First, create a secret to authenticate with OneLake.
+    -- You can use either a service principal or the credential chain (e.g., Azure CLI).
+    -- Uncomment the desired method and provide the necessary credentials.
+    set azure_transport_option_type = 'curl';
+    CREATE SECRET  (
+        TYPE azure,
+        PROVIDER service_principal,
+        TENANT_ID '<your_tenant_id>',
+        CLIENT_ID '<your_client_id>',
+        CLIENT_SECRET '<your_client_secret>'
+    );
+    -- CREATE SECRET  (
+    --     TYPE azure,
+    --     PROVIDER credential_chain,
+    --     CHAIN 'cli'
+    -- );
+
+    CREATE SECRET onelake (
+        TYPE ONELAKE,
+        TENANT_ID '<your_tenant_id>',
+        CLIENT_ID '<your_client_id>',
+        CLIENT_SECRET '<your_client_secret>'
+    );
+
+    -- CREATE SECRET  onelake(
+    --     TYPE ONELAKE,
+    --     PROVIDER credential_chain,
+    --     CHAIN 'cli'
+    -- );
+
+    -- Attach to your OneLake workspace and lakehouse
+    ATTACH '<your_workspace_name>/<your_lakehouse_name>.Lakehouse'
+        AS <your_connection_name>
+        (TYPE ONELAKE);
+
+    USE <your_connection_name>.<your_schema_name>; -- e.g., dbo
+
+    SHOW TABLES;
+
+    SELECT * FROM <your_table_name> LIMIT 10 ; -- USING ICEBERG;
+
+   
+
+
+  extended_description: |
+    This extension enables DuckDB to connect to Microsoft Fabric OneLake workspaces and lakehouses, allowing users to query data stored in OneLake directly from DuckDB. 
+    It supports authentication via service principals or credential chains (e.g., Azure CLI) and provides seamless integration with OneLake's data storage capabilities.
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/datumnova/duckdb_onelake).
+    
+    Current limitations:
+    - Only read access is supported; write operations are not implemented.
