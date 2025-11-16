@@ -23,6 +23,3 @@ docs:
     - Provides both process-wise and bucket-wise latency stats (including histogram and quantile estimation) to all read operations
     - Provides cache access insight to duckdb external file cache
     - Allows registering ANY duckdb compatible filesystems (i.e., azure filesystem)
-
-
-
