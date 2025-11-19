@@ -1,17 +1,16 @@
 docs:
-  extended_description: |
-     For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_fuzzycomplete.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_fuzzycomplete.html).
 extension:
   build: cmake
   description: Fuzzy matching based autocompletion
+  excluded_platforms: linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;
   language: C++
   license: Apache-2.0
   maintainers:
   - rustyconover
   name: fuzzycomplete
   requires_toolchains: rust
-  version: 1.0.0
-  excluded_platforms: "linux_amd64_musl"
+  version: '2025101201'
 repo:
   github: query-farm/fuzzycomplete
-  ref: 2ac9b48856c6cf0bdbc9411805596526943a2f56
+  ref: 0289e3e5c2e454fad1ef9ca51379460563d2b6f0

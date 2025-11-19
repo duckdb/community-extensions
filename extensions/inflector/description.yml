@@ -1,0 +1,16 @@
+docs:
+  extended_description: |
+    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_inflector.html).
+extension:
+  build: cmake
+  description: Powerful string case transformation and inflection capabilities directly to your SQL queries.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+    - rustyconover
+  name: inflector
+  requires_toolchains: rust
+  version: 2025111201
+repo:
+  github: query-farm/inflector
+  ref: 973052ba08aeec5380f79254d3d3b4d805c0b8b3

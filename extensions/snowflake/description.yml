@@ -1,7 +1,7 @@
 extension:
   name: snowflake
-  description: Integrates DuckDB with Snowflake, allowing direct querying and management of Snowflake databases using Arrow ADBC drivers
-  version: 0.1.0
+  description: Snowflake data source extension - query Snowflake databases directly from DuckDB
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,25 @@ extension:
 
 repo:
   github: iqea-ai/duckdb-snowflake
-  ref: 0e0520ca2d54b071922594d8cc9ea56174fb37d2
-  ref_next: c3196bfc034ad7e5390ace326e9df6de1431523d
+  ref: a30a5c684f19b030f9f56b561fee67ed94b644b1
+
+install_notes: |
+  **Important:** This extension requires DuckDB 1.4.2 and the Apache Arrow ADBC Snowflake driver to function properly.
+  
+  **You must install the ADBC driver separately after installing this extension.** The extension will not work without the driver.
+  
+  For complete installation instructions, platform-specific setup, and troubleshooting, please refer to the official documentation:
+  
+  **[ADBC Driver Installation Guide](https://github.com/iqea-ai/duckdb-snowflake#adbc-driver-setup)**
+  
+  The documentation includes:
+  - Step-by-step installation instructions for all platforms
+  - Automated setup scripts
+  - Manual installation procedures
+  - Driver location requirements
+  - Troubleshooting common issues
+  
+  Please visit the [extension repository](https://github.com/iqea-ai/duckdb-snowflake) for installation instructions and setup options.
 
 docs:
   hello_world: |
@@ -19,26 +36,39 @@ docs:
     INSTALL snowflake FROM community;
     LOAD snowflake;
     
-    -- Create a Snowflake profile
-    CREATE SECRET my_snowflake_secret (
+    -- Create a Snowflake secret with password authentication
+    CREATE SECRET my_snowflake (
         TYPE snowflake,
-        ACCOUNT 'your_account.snowflakecomputing.com',
-        USER 'your_username',
-        PASSWORD 'your_password',
-        DATABASE 'your_database',
-        WAREHOUSE 'your_warehouse'
+        ACCOUNT 'your-account',
+        USER 'your-username',
+        PASSWORD 'your-password',
+        DATABASE 'your-database'
     );
     
-    -- Query Snowflake data using pass through query
-    SELECT * FROM snowflake_scan(
+    -- Query Snowflake data using pass-through query function
+    SELECT * FROM snowflake_query(
         'SELECT * FROM customers WHERE state = ''CA''',
-        'my_snowflake_secret'
+        'my_snowflake'
     );
     
     -- Attach Snowflake database for direct SQL access
-    ATTACH '' AS snow_db (TYPE snowflake, SECRET my_snowflake_secret, READ_ONLY);
-    SELECT * FROM snow_db.schema.customers WHERE state = 'CA';
+    ATTACH '' AS sf (TYPE snowflake, SECRET my_snowflake, READ_ONLY);
+    SELECT * FROM sf.schema.customers WHERE state = 'CA';
 
   extended_description: |
     This community-maintained extension allows DuckDB to connect to Snowflake using Arrow ADBC drivers. 
-    For detailed setup and usage instructions, visit the [extension repository](https://github.com/iqea-ai/duckdb-snowflake).
+    It provides seamless connectivity between DuckDB and Snowflake, supporting multiple authentication methods 
+    (password, external browser/SSO, key pair), predicate pushdown optimization, and comprehensive SQL operations.
+    
+    **Features:**
+    - Multiple authentication methods (Password, External Browser/SSO, Key Pair)
+    - Direct SQL passthrough via `snowflake_query()` function
+    - ATTACH support for mounting Snowflake databases as DuckDB catalogs
+    - Predicate pushdown optimization (optional)
+    - Hybrid queries: join Snowflake tables with local DuckDB tables
+    - Full DML read operations: SELECT with WHERE, JOIN, aggregations, subqueries
+    
+    **Prerequisites:** The Apache Arrow ADBC Snowflake driver must be installed separately. 
+    **See the [ADBC Driver Installation Guide](https://github.com/iqea-ai/duckdb-snowflake#adbc-driver-setup) 
+    for complete setup instructions.** For comprehensive usage examples, authentication methods, and 
+    advanced features, visit the [extension repository](https://github.com/iqea-ai/duckdb-snowflake).

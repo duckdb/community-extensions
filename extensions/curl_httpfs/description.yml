@@ -1,0 +1,24 @@
+extension:
+  name: curl_httpfs
+  description: httpfs with connection pool, HTTP/2 and async IO. 
+  version: 0.2.2
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-curl-filesystem
+  ref: 378e0698e0636d26834bc7caff0d8e11be805d37
+
+docs:
+  hello_world: |
+    SELECT length(content) AS char_count FROM read_text('https://raw.githubusercontent.com/dentiny/duck-read-cache-fs/main/test/data/stock-exchanges.csv');
+  extended_description: |
+    This extension rewrites HTTP layer for httpfs based on libcurl and epoll, it provides a few features:
+    - 100% compatible with httpfs; use curl-based implementation by default, but also allows users to fallback to httplib.
+    - Enable HTTP/2 by default.
+    - Implements TCP connection pool.
+    - All network IO operations are performed in asynchronously.

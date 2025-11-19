@@ -1,17 +1,16 @@
 docs:
-  extended_description: |
-     For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_evalexpr_rhai.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_evalexpr_rhai.html).
 extension:
   build: cmake
   description: Evaluate the Rhai scripting language in DuckDB
-  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;windows_amd64
+  excluded_platforms: windows_amd64_rtools;windows_amd64_mingw;
   language: C++
   license: Apache-2.0
   maintainers:
-    - rustyconover
+  - rustyconover
   name: evalexpr_rhai
   requires_toolchains: rust
-  version: 1.0.2
+  version: '2025101401'
 repo:
   github: query-farm/evalexpr_rhai
-  ref: 3c80c12717d587aacfdbb42fd2af3ef2d095cbfd
+  ref: a8fb6c6970006c3e9b657374f72fd82d862abbdd

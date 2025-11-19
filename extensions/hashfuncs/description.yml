@@ -1,15 +1,14 @@
 docs:
-  extended_description: |
-    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_hashfuncs.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_hashfuncs.html).
 extension:
   build: cmake
   description: Non-cryptographic hash functions, xxHash, rapidhash and Murmurhash3
   language: C++
   license: Apache-2.0
   maintainers:
-    - rustyconover
+  - rustyconover
   name: hashfuncs
-  version: 1.0.1
+  version: '2025101201'
 repo:
   github: query-farm/hashfuncs
-  ref: c4b516011f02170f55036ef855aa11eb128bd2a2
+  ref: d07e4e8878b5bb27624be71f5012c64b507b5b60

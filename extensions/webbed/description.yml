@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) that enables SQL-native analysis of structured documents with intelligent schema inference, XPath-based data extraction, and powerful HTML table parsing capabilities.
-  version: 1.0.2
+  version: 1.1.1
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
   vcpkg_commit: 'dd3097e305afa53f7b4312371f62058d2e665320'
 repo:
   github: teaguesterling/duckdb_webbed
-  ref: d17300c27f5e5534919c32030cc1d5d4a2429812
+  ref: f2e49ff826ac9ecc084968eaf8e64269c1f82361
 
 docs:
   hello_world: |
@@ -61,10 +61,12 @@ docs:
     
     **Key HTML Functions**:
     - `read_html(pattern)` - Read HTML files into tables
-    - `html_extract_tables(html)` - Extract HTML tables as structured data
+    - `html_extract_tables(html)` - Extract HTML tables as structured data (this will often require post-processing given the possible complexity of HTML tables)
     - `html_extract_links(html)` - Extract all links with metadata
     - `html_extract_images(html)` - Extract images with attributes
     - `html_extract_text(html, xpath)` - XPath-based HTML text extraction
     - `parse_html(content)` - Parse HTML strings into structured format
+
+    See: https://github.com/teaguesterling/duckdb_webbed/blob/main/README.md for more examples and details.
     
     Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling, memory-safe RAII implementation, and 100% test coverage. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
