@@ -1,7 +1,7 @@
 extension:
   name: boilstream
-  description: Mounts boilstream server as a secure Remote Secrets Storage
-  version: 0.3.4
+  description: Secure remote secrets storage with OPAQUE PAKE authentication, encrypted secrets, and automatic ducklake mounting
+  version: 0.3.5
   language: C++, Rust
   build: cmake
   license: MIT
@@ -11,18 +11,77 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 88e0b56a40b0cba836b31050acb0775813640c20
+  ref: 5a0fafa707a6be3e76bf46960549ad2a796421cb
 
 docs:
   hello_world: |
-    INSTALL httpfs; LOAD httpfs; INSTALL boilstream FROM community; LOAD boilstream;
-    PRAGMA duckdb_secrets_boilstream_endpoint('https://localhost:443/secrets:ffe14a..71db4ef9fad837bc8');
-    SELECT * FROM duckdb_secrets(); -- Fetches secrets from remote host
+    -- Setup: Install and authenticate with boilstream server
+    INSTALL httpfs; LOAD httpfs;
+    INSTALL boilstream FROM community;
+    LOAD boilstream;
+
+    -- Authenticate with one-time bootstrap token (auto-attaches ducklakes)
+    PRAGMA duckdb_secrets_boilstream_endpoint('https://localhost/secrets:TOKEN');
+    ┌────────────────────────┬─────────────────────┬────────────────────┐
+    │         status         │     expires_at      │ ducklakes_attached │
+    ├────────────────────────┼─────────────────────┼────────────────────┤
+    │ Session token obtained │ 2025-11-19 23:30:00 │                  2 │
+    └────────────────────────┴─────────────────────┴────────────────────┘
+
+    -- List all available ducklakes
+    FROM boilstream_ducklakes();
+    ┌──────────────┬──────────────┬─────────────────┐
+    │ catalog_id   │ catalog_name │   description   │
+    ├──────────────┼──────────────┼─────────────────┤
+    │ 5a805647-... │ my_analytics │ Sales analytics │
+    └──────────────┴──────────────┴─────────────────┘
+
+    -- List all cached secrets with expiration
+    FROM boilstream_secrets();
+    ┌─────────────────────┬──────────┬─────────────────────┐
+    │        name         │   type   │     expires_at      │
+    ├─────────────────────┼──────────┼─────────────────────┤
+    │ my_analytics        │ ducklake │ 2026-11-19 20:00:00 │
+    │ my_analytics_s3     │ s3       │ 2026-11-19 20:00:00 │
+    │ my_analytics_pg     │ postgres │ 2026-11-19 20:00:00 │
+    └─────────────────────┴──────────┴─────────────────────┘
+
+    -- Create new ducklake
+    PRAGMA boilstream_create_ducklake('new_catalog', 'My new ducklake');
+
+    -- Query ducklake (automatically attached)
+    USE my_analytics;
+    SHOW TABLES;
+
   extended_description: |
-    This extension implements Secure Remote Secrets Storage on compatible REST API endpoints. It uses industrial grade security with Facebook's audited OPAQUE PAKE, along with OAuth2 based token management and HKDF-SHA256 key derivations and application level integrity protection and secrets encryption (e.g. AES GCM) from server to client. Thus, it provides even protection for mitm TLS attacks without breaking secrets confidentiality or message integrity. Bootstrapping is also anonymous with one-time bootstrap tokens vended from server. Full SECURITY_SPECIFICATION.md is provided with test vectors and proven interworking with two independent impelementations with Rust and C++.
-    Required REST API on the server endpoint: https://github.com/dforsber/boilstream-extension/blob/main/src/README.md
-    As an example with boilstream server provided REST API:
-    - Download and run boilstream server, go to https://your-server/, register user with MFA
-    - INSTALL httpfs; LOAD httpfs; INSTALL boilstream FROM community; LOAD boilstream;
-    - Vend web token and pass it along with the PRAGMA duckdb_secrets_boilstream_endpoint('https://your-server/secrets:TOKEN')
-    - FROM duckdb_secrets();
+    Boilstream extension provides enterprise-grade remote secrets storage for multi-tenant DuckDB deployments.
+
+    **Features:**
+    - 🔐 **OPAQUE PAKE Authentication** - Password-less authentication (IETF RFC 9807)
+    - 🔒 **End-to-end Encryption** - AES-256-GCM/ChaCha20-Poly1305 for secrets and responses
+    - 🔑 **Cryptographic Key Derivation** - HKDF-SHA256 with domain separation
+    - 🛡️ **Defense in Depth** - HMAC verification before AEAD decryption
+    - 🎯 **Session Protection** - Lock-step sequence protocol prevents hijacking
+    - 🗄️ **Ducklake Support** - Auto-attach multi-tenant data catalogs
+    - 🌐 **SSO Integration** - Bootstrap token exchange for web environments
+
+    **Security:**
+    - Facebook's audited OPAQUE implementation (Rust + C++ FFI)
+    - Protects against MITM attacks even if TLS is compromised
+    - One-time bootstrap tokens with anonymous authentication
+    - Session resumption with encrypted refresh tokens
+    - Comprehensive test vectors and security specification
+
+    **API Functions:**
+    - `PRAGMA duckdb_secrets_boilstream_endpoint(url)` - Authenticate and auto-attach ducklakes
+    - `boilstream_ducklakes()` - List available ducklakes
+    - `boilstream_secrets()` - List cached secrets with expiration
+    - `PRAGMA boilstream_create_ducklake(name, description)` - Create new ducklake
+
+    **Requirements:**
+    - httpfs extension (auto-loaded)
+    - postgres_scanner extension (auto-loaded)
+    - ducklake extension (auto-loaded)
+    - Compatible REST API server (see [API specification](https://github.com/dforsber/boilstream-extension/blob/main/src/README.md))
+
+    For detailed documentation, security specification, and setup instructions, visit the [extension repository](https://github.com/dforsber/boilstream-extension).
