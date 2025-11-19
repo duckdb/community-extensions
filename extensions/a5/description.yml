@@ -10,7 +10,7 @@ extension:
     - rustyconover
   name: a5
   requires_toolchains: rust
-  version: 2025101601
+  version: 2025111001
 repo:
   github: query-farm/a5
-  ref: 75b4022f805815d624a0027376d8787b08c7de16
+  ref: 821a3a86d38ce9f62739adeae7ad9496e582aa5b

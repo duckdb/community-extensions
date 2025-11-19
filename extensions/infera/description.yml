@@ -2,7 +2,7 @@ extension:
   name: infera
   description: A DuckDB extension for in-database inference
   version: 0.2.0
-  language: C++
+  language: Rust & C++
   build: cmake
   license: MIT OR Apache-2.0
   maintainers:
@@ -19,20 +19,24 @@ docs:
     -- 0. Assuming the extension is already installed and loaded
     
     -- 1. Load a simple linear model from a remote URL
-    select infera_load_model('linear_model',
+    SELECT infera_load_model('linear_model',
     'https://github.com/CogitatorTech/infera/raw/refs/heads/main/test/models/linear.onnx');
     
     -- 2. Run a prediction using a very simple linear model
     -- Model: y = 2*x1 - 1*x2 + 0.5*x3 + 0.25
-    select infera_predict('linear_model', 1.0, 2.0, 3.0);
+    SELECT infera_predict('linear_model', 1.0, 2.0, 3.0);
     -- Expected output: 1.75
     
     -- 3. Unload the model when we're done with it
-    select infera_unload_model('linear_model');
+    SELECT infera_unload_model('linear_model');
     
     -- 4. Check the Infera version
-    select infera_get_version();
+    SELECT infera_get_version();
 
   extended_description: |
-    This extension is experimental at the moment, so it is not recommended for production use.
-    For more information, like API references and examples, visit the project's GitHub repository: https://github.com/CogitatorTech/infera
+    Infera extension allows users to use machine learning models directly in SQL queries to perform inference on data stored in DuckDB tables.
+    It is developed in Rust and uses [Tract](https://github.com/snipsco/tract) as the backend inference engine.
+    Infera supports loading and running models in [ONNX](https://onnx.ai/) format.
+    Check out the [ONNX Model Zoo](https://huggingface.co/onnxmodelzoo) repository on Hugging Face for a large collection of ready-to-use models that can be used with Infera.
+    
+    For more information, like API references and usage examples, visit the project's [GitHub repository](https://github.com/CogitatorTech/infera).
