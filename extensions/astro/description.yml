@@ -1,0 +1,53 @@
+extension:
+  name: astro
+  description: "Comprehensive astronomical calculations and coordinate transformations for DuckDB with Arrow, Spatial, and Catalog integration"
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - bjoernbethge
+
+repo:
+  github: bjoernbethge/astro-duck
+  ref: main
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD astro;
+    
+    -- Calculate angular separation between two stars
+    SELECT angular_separation(45.0, 30.0, 46.0, 31.0) as separation_degrees;
+    
+    -- Convert coordinates with enhanced metadata
+    SELECT radec_to_cartesian(45.0, 30.0, 10.0) as coords_json;
+    
+    -- Create celestial geometry point
+    SELECT celestial_point(45.0, 30.0, 10.0) as wkt_geometry;
+
+  extended_description: |
+    The Astro extension provides a comprehensive suite of astronomical 
+    calculations for DuckDB, including:
+    
+    **Coordinate Transformations:**
+    - RA/Dec to Cartesian conversion with full metadata
+    - Angular separation calculations
+    - Celestial geometry point creation (WKT format)
+    
+    **Photometric Functions:**
+    - Magnitude to flux conversion
+    - Distance modulus calculations
+    
+    **Cosmological Functions:**
+    - Luminosity distance calculations
+    - Redshift to age conversion
+    
+    **Integration Features:**
+    - Arrow format support for efficient data exchange
+    - Spatial extension compatibility
+    - Catalog metadata management
+    - Enhanced JSON output with coordinate system information
+    
+    Perfect for astronomical data analysis, sky surveys, and 
+    scientific computing workflows.
