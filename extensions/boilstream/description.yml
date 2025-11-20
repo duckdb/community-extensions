@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: de09646c68b2725738c77aac15f60b24539d1bb5
+  ref: 64972c641fc72b8753872592af8636f60c55ad93
 
 docs:
   hello_world: |
