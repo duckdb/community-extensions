@@ -1,7 +1,7 @@
 extension:
   name: boilstream
-  description: Secure remote secrets storage with OPAQUE PAKE authentication, encrypted secrets, and automatic ducklake mounting
-  version: 0.3.5
+  description: Secure remote secrets storage with OPAQUE PAKE authentication, email/password registration, MFA login, and automatic ducklake mounting
+  version: 0.4.0
   language: C++, Rust
   build: cmake
   license: MIT
@@ -11,21 +11,30 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 64972c641fc72b8753872592af8636f60c55ad93
+  ref: 980fb47f9276c04c1aec04868f79974921e7488d
 
 docs:
   hello_world: |
-    -- Setup: Install and authenticate with boilstream server
+    -- Setup: Install and load boilstream extension
     INSTALL httpfs; LOAD httpfs;
     INSTALL boilstream FROM community;
     LOAD boilstream;
 
-    -- Authenticate with one-time bootstrap token (auto-attaches ducklakes)
-    PRAGMA duckdb_secrets_boilstream_endpoint('https://localhost/secrets:TOKEN');
+    -- Option 1: Login with email/password/MFA (establishes OPAQUE session)
+    --     NOTE: Remember to clean up your ~/.duckdb/history
+    PRAGMA boilstream_login('https://api.example.com/user@example.com', 'password', '123456');
     ┌────────────────────────┬─────────────────────┬────────────────────┐
     │         status         │     expires_at      │ ducklakes_attached │
     ├────────────────────────┼─────────────────────┼────────────────────┤
-    │ Session token obtained │ 2025-11-19 23:30:00 │                  2 │
+    │ Session token obtained │ 2025-11-21 10:30:00 │                  2 │
+    └────────────────────────┴─────────────────────┴────────────────────┘
+
+    -- Option 2: Authenticate with bootstrap token (from SSO/web UI)
+    PRAGMA boilstream_bootstrap_session('https://api.example.com/secrets:TOKEN');
+    ┌────────────────────────┬─────────────────────┬────────────────────┐
+    │         status         │     expires_at      │ ducklakes_attached │
+    ├────────────────────────┼─────────────────────┼────────────────────┤
+    │ Session token obtained │ 2025-11-21 10:30:00 │                  2 │
     └────────────────────────┴─────────────────────┴────────────────────┘
 
     -- List all available ducklakes
@@ -73,10 +82,14 @@ docs:
     - Comprehensive test vectors and security specification
 
     **API Functions:**
-    - `PRAGMA duckdb_secrets_boilstream_endpoint(url)` - Authenticate and auto-attach ducklakes
+    - `PRAGMA boilstream_register_user(url_with_email, password)` - Register new user with MFA (displays QR code)
+    - `PRAGMA boilstream_verify_mfa(totp_code)` - Complete registration and get backup codes
+    - `PRAGMA boilstream_login(url_with_email, password, mfa_code)` - Email/password/MFA login
+    - `PRAGMA boilstream_bootstrap_session(url_with_token)` - Authenticate with bootstrap token
     - `boilstream_ducklakes()` - List available ducklakes
     - `boilstream_secrets()` - List cached secrets with expiration
     - `PRAGMA boilstream_create_ducklake(name, description)` - Create new ducklake
+    - `PRAGMA boilstream_help` - Show all available commands
 
     **Requirements:**
     - httpfs extension (auto-loaded)
