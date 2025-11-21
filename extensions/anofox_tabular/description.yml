@@ -3,7 +3,7 @@ extension:
   description: A duckdb extension which combines data quality and data preparation tools for tabular data.
   language: C++
   build: cmake
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;"
   license: BSL 1.1
   maintainers:
     - jrosskopf
