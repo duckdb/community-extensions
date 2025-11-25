@@ -1,0 +1,77 @@
+extension:
+  name: poached
+  description: SQL parsing and introspection for IDEs, editors, and developer tools
+  version: 0.1.0
+  language: C/C++
+  build: cmake
+  license: MIT
+  requires_toolchains: "python3"
+  maintainers:
+    - sidequery
+
+repo:
+  github: sidequery/poached
+  ref: e080f90af0e766df034703f8f9a12910dec9a30c
+
+docs:
+  hello_world: |
+    -- Tokenize SQL for syntax highlighting (with byte positions)
+    SELECT * FROM tokenize_sql('SELECT * FROM users WHERE id = 1');
+    ┌───────────────┬──────────────────┐
+    │ byte_position │     category     │
+    ├───────────────┼──────────────────┤
+    │             0 │ KEYWORD          │
+    │             7 │ OPERATOR         │
+    │             9 │ KEYWORD          │
+    │            14 │ IDENTIFIER       │
+    │            20 │ KEYWORD          │
+    │            26 │ IDENTIFIER       │
+    │            29 │ OPERATOR         │
+    │            31 │ NUMERIC_CONSTANT │
+    └───────────────┴──────────────────┘
+
+    -- Validate SQL and get error messages
+    SELECT is_valid_sql('SELECT * FROM'), sql_error_message('SELECT * FROM');
+    ┌──────────────┬────────────────────────────────────────────┐
+    │ is_valid_sql │            sql_error_message               │
+    ├──────────────┼────────────────────────────────────────────┤
+    │ false        │ Parser Error: syntax error at end of input │
+    └──────────────┴────────────────────────────────────────────┘
+
+    -- Get result column types without executing
+    SELECT * FROM parse_columns('SELECT 1 AS num, ''hello'' AS str', 0);
+    ┌───────────┬──────────┬──────────┐
+    │ col_index │ col_name │ col_type │
+    ├───────────┼──────────┼──────────┤
+    │         0 │ num      │ INTEGER  │
+    │         1 │ str      │ VARCHAR  │
+    └───────────┴──────────┴──────────┘
+
+    -- Extract function calls with type info
+    SELECT * FROM parse_functions('SELECT COUNT(*), UPPER(name) FROM t');
+    ┌───────────────┬───────────────┐
+    │ function_name │ function_type │
+    ├───────────────┼───────────────┤
+    │ count_star    │ aggregate     │
+    │ upper         │ scalar        │
+    └───────────────┴───────────────┘
+
+    -- Get full query plan as JSON
+    SELECT sql_parse_json('SELECT 1 + 2 AS result');
+
+  extended_description: |
+    `poached` is a DuckDB extension for SQL parsing and introspection, designed for building IDEs, SQL editors, query analyzers, and developer tools.
+
+    **Tokenization**: `tokenize_sql()` returns tokens with byte positions and categories (KEYWORD, IDENTIFIER, OPERATOR, NUMERIC_CONSTANT, STRING_CONSTANT, COMMENT, ERROR) for accurate syntax highlighting.
+
+    **Validation**: `is_valid_sql()` and `sql_error_message()` for parse error detection and reporting.
+
+    **Schema introspection**: `parse_columns()`, `parse_column_types()`, `parse_type_info()` to get result column names and types without executing queries.
+
+    **Query analysis**: `parse_tables()`, `parse_functions()`, `parse_where()` to extract structural information from queries.
+
+    **Parameters**: `parse_parameters()` to extract prepared statement parameters.
+
+    **JSON output**: `sql_parse_json()` for full query plan access as JSON.
+
+    For more details, visit the [extension repository](https://github.com/sidequery/poached).
