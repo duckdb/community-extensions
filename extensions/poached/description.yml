@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: sidequery/poached
-  ref: e080f90af0e766df034703f8f9a12910dec9a30c
+  ref: c866935e8ae2d455e321bebd72de7e1fb751af10
 
 docs:
   hello_world: |
