@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-pdal
-  ref: 24bcf7fe974ed83c3714432ab0abed25d0688ec4
+  ref: af7e0f70ceed6b6fac0ac6da8404eb09127b90d3
 
 docs:
   hello_world: |
