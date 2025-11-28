@@ -13,7 +13,8 @@ extension:
 
 repo:
   github: coginiti-dev/QuackStore
-  ref: 0cf83e4024b5fa0e45d8475f152b4166cf938001
+  ref: 4646572622c226a41011d74ebab5254afa3fbb3d
+  ref_next: b03909034d49a77540772d592c7efa6849b3521b
 
 docs:
   extended_description: |
