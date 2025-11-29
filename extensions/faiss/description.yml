@@ -1,7 +1,7 @@
 extension:
   name: faiss
   description: Provides access to faiss indices from DuckDB.
-  version: 0.12.0
+  version: 0.12.1
   language: C++
   build: cmake
   license: MIT
@@ -11,11 +11,11 @@ extension:
   excluded_platforms: "osx_amd64;wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
   requires_toolchains: "fortran;omp"
   vcpkg_url: "https://github.com/jaicewizard/vcpkg.git"
-  vcpkg_commit: 3f1a0e1b63fc4c1fb811f17c9c79d985cd42e732 
+  vcpkg_commit: dfed91ee008f9496ad95d60a2a81d52d3b87eb6d 
 
 repo:
   github: duckdb-faiss-ext/duckdb-faiss-ext
-  ref: 9ccd224c66ae16f55693d633040e5c756e414cbf
+  ref: fc3f78831e982247b1ebc5d81fb6e07c66e89949
 
 docs:
   hello_world: |
