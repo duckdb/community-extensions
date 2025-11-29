@@ -8,6 +8,7 @@ extension:
   maintainers:
     - achrafcei
   excluded_platforms: "windows_amd64_mingw"
+  requires_toolchains: "rust"
 repo:
   github: datumnova/duckdb_onelake
   ref: 59c131bc6e81f2edc5d08f71a4cc521f1c51d39e
