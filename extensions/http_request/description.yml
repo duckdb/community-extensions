@@ -1,0 +1,44 @@
+extension:
+  name: http_request
+  description: HTTP client extension for DuckDB with GET/POST/PUT/PATCH/DELETE and byte-range requests
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb_http_request
+  ref: dcacd19e733c159462d678c4777a1e33795ca49b
+
+docs:
+  hello_world: |
+    -- Simple GET request
+    SELECT http_get('https://example.com/');
+
+    -- GET with custom headers
+    SELECT http_get('https://httpbin.org/get', headers := {'Accept': 'application/json'}).body;
+
+    -- POST with custom body
+    SELECT http_post('https://httpbin.org/get', params := {'limit': 10});
+
+    -- Byte-range request for partial content
+    SELECT http_get(
+        'https://example.com/largefile.gz',
+        {'Range': byte_range(0, 1024)}
+    );
+
+  extended_description: |
+    HTTP client extension providing scalar and table functions for making HTTP requests.
+
+    Features:
+    - All HTTP methods: GET, HEAD, POST, PUT, PATCH, DELETE
+    - Custom headers via STRUCT parameter
+    - Query parameters via STRUCT
+    - Byte-range requests with helper function
+    - Auto-decompression of gzip/zstd responses
+    - Form-encoded POST with http_post_form()
+    - Respects duckdb http and proxy settings
+
+    Uses DuckDB's built-in httplib for HTTP connections.
