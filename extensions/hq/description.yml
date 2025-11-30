@@ -1,0 +1,115 @@
+extension:
+  name: hq
+  description: Query HTML using CSS selectors, extract JSON from LD+JSON and JavaScript variables
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/hq
+  ref: 4cfe05dbd9551d2f9509fa193b9131804bffcd55
+
+docs:
+  hello_world: |
+    -- Extract text using CSS selectors
+    SELECT html_query('<html><title>Hello World</title></html>', 'title', true);
+    ┌─────────────┐
+    │ html_query  │
+    │   varchar   │
+    ├─────────────┤
+    │ Hello World │
+    └─────────────┘
+
+    -- Extract JSON from LD+JSON scripts (decodes HTML entities)
+    SELECT html_extract_json(
+      '<script type="application/ld+json">{"name":"Product","price":"29.99"}</script>',
+      'script[type="application/ld+json"]'
+    );
+    ┌───────────────────────────────────────┐
+    │           html_extract_json           │
+    │                varchar                │
+    ├───────────────────────────────────────┤
+    │ {"name":"Product","price":"29.99"}    │
+    └───────────────────────────────────────┘
+
+    -- Extract JavaScript variables (handles JSON.parse with hex escapes)
+    SELECT html_extract_json(
+      '<script>var config = {"debug": true};</script>',
+      'script',
+      'var config'
+    );
+    ┌─────────────────────┐
+    │  html_extract_json  │
+    │       varchar       │
+    ├─────────────────────┤
+    │ {"debug":true}      │
+    └─────────────────────┘
+
+  extended_description: |
+    HQ (HTML Query) is a DuckDB extension for querying HTML using CSS selectors, similar to jq for JSON.
+
+    ## Functions
+
+    ### `html_query(html, selector, text_only)`
+
+    Extract HTML elements using CSS selectors.
+
+    **Parameters:**
+    - `html` (VARCHAR): HTML content to parse
+    - `selector` (VARCHAR, optional): CSS selector (default: `:root`)
+    - `text_only` (BOOLEAN, optional): Extract text only (default: false)
+
+    **Returns:** VARCHAR - Matched HTML or text content
+
+    **Examples:**
+    ```sql
+    -- Extract title text
+    SELECT html_query(html, 'title', true) FROM pages;
+
+    -- Get last paragraph
+    SELECT html_query(html, 'p:last-child', true) FROM pages;
+
+    -- Extract by class
+    SELECT html_query(html, '.content', true) FROM pages;
+    ```
+
+    ### `html_extract_json(html, selector, var_pattern)`
+
+    Extract JSON from HTML scripts. Supports LD+JSON and JavaScript variables.
+
+    **Parameters:**
+    - `html` (VARCHAR): HTML content
+    - `selector` (VARCHAR): CSS selector for script element
+    - `var_pattern` (VARCHAR, optional): JS variable pattern (e.g., `'var jobs'`)
+
+    **Returns:** VARCHAR - JSON string
+
+    **Examples:**
+    ```sql
+    -- Extract LD+JSON (decodes HTML entities like &amp; &lt; &gt;)
+    SELECT html_extract_json(html, 'script[type="application/ld+json"]') FROM pages;
+
+    -- Extract JS variable (decodes hex escapes like \x22)
+    SELECT html_extract_json(html, 'script', 'var jobs') FROM pages;
+
+    -- Parse and query JSON fields
+    SELECT json_extract_string(
+      html_extract_json(html, 'script[type="application/ld+json"]'),
+      '$.title'
+    ) FROM pages;
+    ```
+
+    ## CSS Selectors
+
+    Supports standard CSS selectors:
+    - Tag: `div`, `p`, `a`
+    - Class: `.classname`
+    - ID: `#idname`
+    - Attribute: `[href]`, `[type="application/ld+json"]`
+    - Pseudo: `:first-child`, `:last-child`, `:nth-child(n)`
+    - Combinators: `div > p`, `div p`
