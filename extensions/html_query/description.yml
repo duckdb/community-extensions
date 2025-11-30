@@ -1,5 +1,5 @@
 extension:
-  name: hq
+  name: html_query
   description: Query HTML using CSS selectors, extract JSON from LD+JSON and JavaScript variables
   version: 0.1.0
   language: Rust
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/hq
-  ref: 4cfe05dbd9551d2f9509fa193b9131804bffcd55
+  ref: 1806e5036c0c5dd8184eddbde23edc873c0150f1
 
 docs:
   hello_world: |
