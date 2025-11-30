@@ -12,11 +12,11 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb_html_query
-  ref: c62e6561cf282ff79f1a61a6ccb1effc26438e6f
+  ref: 72e8f6ddd8c0c0b9c2685be1440444ab66e2a211
 
 docs:
   hello_world: |
-    -- Extract text using CSS selectors
+    -- Extract first matching element
     SELECT html_query('<html><title>Hello World</title></html>', 'title', true);
     ┌─────────────┐
     │ html_query  │
@@ -25,88 +25,84 @@ docs:
     │ Hello World │
     └─────────────┘
 
-    -- Extract JSON from LD+JSON scripts (decodes HTML entities)
+    -- Extract all matching elements as JSON array
+    SELECT html_query_all('<div><p>First</p><p>Second</p></div>', 'p', true);
+    ┌────────────────────┐
+    │   html_query_all   │
+    │      varchar       │
+    ├────────────────────┤
+    │ ["First","Second"] │
+    └────────────────────┘
+
+    -- Extract JSON from LD+JSON scripts (returns array)
     SELECT html_extract_json(
-      '<script type="application/ld+json">{"name":"Product","price":"29.99"}</script>',
+      '<script type="application/ld+json">{"name":"Product"}</script>',
       'script[type="application/ld+json"]'
     );
-    ┌───────────────────────────────────────┐
-    │           html_extract_json           │
-    │                varchar                │
-    ├───────────────────────────────────────┤
-    │ {"name":"Product","price":"29.99"}    │
-    └───────────────────────────────────────┘
-
-    -- Extract JavaScript variables (handles JSON.parse with hex escapes)
-    SELECT html_extract_json(
-      '<script>var config = {"debug": true};</script>',
-      'script',
-      'var config'
-    );
-    ┌─────────────────────┐
-    │  html_extract_json  │
-    │       varchar       │
-    ├─────────────────────┤
-    │ {"debug":true}      │
-    └─────────────────────┘
+    ┌──────────────────────────┐
+    │    html_extract_json     │
+    │         varchar          │
+    ├──────────────────────────┤
+    │ [{"name":"Product"}]     │
+    └──────────────────────────┘
 
   extended_description: |
-    HQ (HTML Query) is a DuckDB extension for querying HTML using CSS selectors, similar to jq for JSON.
+    html_query is a DuckDB extension for querying HTML using CSS selectors.
 
     ## Functions
 
+    | Function | Returns | Description |
+    |----------|---------|-------------|
+    | `html_query(html, selector?, text_only?)` | VARCHAR | First matching element |
+    | `html_query_all(html, selector?, text_only?)` | JSON array | All matching elements |
+    | `html_extract_json(html, selector, var_pattern?)` | JSON array | JSON from script tags |
+
     ### `html_query(html, selector, text_only)`
 
-    Extract HTML elements using CSS selectors.
+    Extract first HTML element matching CSS selector.
 
     **Parameters:**
     - `html` (VARCHAR): HTML content to parse
     - `selector` (VARCHAR, optional): CSS selector (default: `:root`)
     - `text_only` (BOOLEAN, optional): Extract text only (default: false)
 
-    **Returns:** VARCHAR - Matched HTML or text content
+    **Returns:** VARCHAR - First matched element, or NULL if no match
 
     **Examples:**
     ```sql
-    -- Extract title text
     SELECT html_query(html, 'title', true) FROM pages;
-
-    -- Get last paragraph
     SELECT html_query(html, 'p:last-child', true) FROM pages;
+    ```
 
-    -- Extract by class
-    SELECT html_query(html, '.content', true) FROM pages;
+    ### `html_query_all(html, selector, text_only)`
+
+    Extract all HTML elements matching CSS selector as JSON array.
+
+    **Examples:**
+    ```sql
+    SELECT html_query_all(html, 'p', true) FROM pages;
+    -- Returns: ["First paragraph", "Second paragraph"]
+
+    SELECT html_query_all(html, 'a', true)->>0 FROM pages;
+    -- Access first element
     ```
 
     ### `html_extract_json(html, selector, var_pattern)`
 
     Extract JSON from HTML scripts. Supports LD+JSON and JavaScript variables.
-
-    **Parameters:**
-    - `html` (VARCHAR): HTML content
-    - `selector` (VARCHAR): CSS selector for script element
-    - `var_pattern` (VARCHAR, optional): JS variable pattern (e.g., `'var jobs'`)
-
-    **Returns:** VARCHAR - JSON string
+    Always returns a JSON array.
 
     **Examples:**
     ```sql
-    -- Extract LD+JSON (decodes HTML entities like &amp; &lt; &gt;)
-    SELECT html_extract_json(html, 'script[type="application/ld+json"]') FROM pages;
+    -- Extract LD+JSON (decodes HTML entities)
+    SELECT html_extract_json(html, 'script[type="application/ld+json"]')->0 FROM pages;
 
     -- Extract JS variable (decodes hex escapes like \x22)
-    SELECT html_extract_json(html, 'script', 'var jobs') FROM pages;
-
-    -- Parse and query JSON fields
-    SELECT json_extract_string(
-      html_extract_json(html, 'script[type="application/ld+json"]'),
-      '$.title'
-    ) FROM pages;
+    SELECT html_extract_json(html, 'script', 'var config')->0 FROM pages;
     ```
 
     ## CSS Selectors
 
-    Supports standard CSS selectors:
     - Tag: `div`, `p`, `a`
     - Class: `.classname`
     - ID: `#idname`
