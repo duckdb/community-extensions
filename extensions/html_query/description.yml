@@ -11,8 +11,8 @@ extension:
     - onnimonni
 
 repo:
-  github: midwork-finds-jobs/hq
-  ref: 1806e5036c0c5dd8184eddbde23edc873c0150f1
+  github: midwork-finds-jobs/duckdb_html_query
+  ref: c62e6561cf282ff79f1a61a6ccb1effc26438e6f
 
 docs:
   hello_world: |
