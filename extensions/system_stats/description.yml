@@ -23,5 +23,11 @@ docs:
 
     -- Get disk information
     SELECT * FROM sys_disk_info();
+
+    -- Get network information
+    SELECT * FROM sys_network_info();
+
+    -- Get OS information
+    SELECT * FROM sys_os_info();
   extended_description: |
     The system_stats extension provides table functions to access system-level statistics (including memory, CPU, and disk) that can be used for monitoring.
