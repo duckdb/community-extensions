@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/system_stats
-  ref: 9696cb7e5599e4ef249de3f09a7549c9c065fff4
+  ref: b00d6206fe26fc5ebf88448629438b25bcb14b31
 
 docs:
   hello_world: |
