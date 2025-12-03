@@ -13,4 +13,4 @@ extension:
   version: '2025120301'
 repo:
   github: query-farm/crypto
-  ref: 606582f537935ad115f28e052ecec1242a4127bd
+  ref: f0ecb5f55259011f0d83703f2071911791ada338
