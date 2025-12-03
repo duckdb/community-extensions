@@ -14,6 +14,11 @@ on:
         required: false
         default: ''
 
+
+# #
+# WARNING: BUILDING ALL EXTENSIONS AT ONCE IS NOT RECOMMENDED, USE `scripts/create_build_all_invocation.py` TO SPLIT THE BUILD INTO PARTS
+# #
+
 jobs:
   collect_extensions:
     outputs:
