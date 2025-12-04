@@ -6,10 +6,10 @@ extension:
   license: MIT
   maintainers:
     - onnimonni
-  name: cloudfront_auth
+  name: cloudfront
   vcpkg_url: https://github.com/microsoft/vcpkg.git
   vcpkg_commit: ce613c41372b23b1f51333815feb3edd87ef8a8b
   version: 0.1.0
 repo:
   github: midwork-finds-jobs/duckdb-cloudfront
-  ref: 3aaa4052c146278a4a518ea21c49fb7cbacb88aa
+  ref: e6b2ff5e933c296ffbe1cb7403cac688f8e41e97
