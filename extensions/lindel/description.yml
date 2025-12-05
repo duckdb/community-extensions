@@ -9,7 +9,7 @@ extension:
   - rustyconover
   name: lindel
   requires_toolchains: rust
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/lindel
-  ref: 78da538fa9f50f3514d18af9066c54000964e640
+  ref: 3f9906c71e7883e0f2ee8696d9e8648750bdb76b
