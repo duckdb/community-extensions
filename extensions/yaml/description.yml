@@ -7,10 +7,13 @@ extension:
   license: MIT
   maintainers:
     - teaguesterling
+
+  # yaml package issues for windows in previous vcpkg
+  vcpkg_commit: "656be05781442d5c4cb14978f6c7bf47b6e12b32"
   
 repo:
   github: teaguesterling/duckdb_yaml
-  ref: 6ae4f53abffceb4cbd5098179539acd39063c3a4
+  ref: "6ae4f53abffceb4cbd5098179539acd39063c3a4"
 
 docs:
   hello_world: |
