@@ -11,7 +11,7 @@ extension:
   maintainers:
   - rustyconover
   name: marisa
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/marisa
-  ref: 62a09ef28fab1d81c18bafe143eaed935b4abf08
+  ref: 6e81aadaa0a41901218fcf02ff39d8ff2594ffa7
