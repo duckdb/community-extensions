@@ -1,98 +1,61 @@
+docs:
+  extended_description: "## Open Prompt Extension\nThe `open_prompt()` community extension\
+    \ is shamelessly inspired by the Motherduck `prompt()` but focused on self-hosted\
+    \ usage.\n\n> For examples and instructions check out the `open_prompt()` [README](https://github.com/quackscience/duckdb-extension-openprompt)\n\
+    \n### Configuration\nSetup the completions API URL configuration w/ optional auth\
+    \ token and model name\n\n```\nSET VARIABLE openprompt_api_url = 'http://localhost:11434/v1/chat/completions';\n\
+    SET VARIABLE openprompt_api_token = 'your_api_key_here';\nSET VARIABLE openprompt_model_name\
+    \ = 'qwen2.5:0.5b';\n```\n\nAlternatively the following ENV variables can be used\
+    \ at runtime\n\n```\nOPEN_PROMPT_API_URL='http://localhost:11434/v1/chat/completions'\n\
+    OPEN_PROMPT_API_TOKEN='your_api_key_here'\nOPEN_PROMPT_MODEL_NAME='qwen2.5:0.5b'\n\
+    OPEN_PROMPT_API_TIMEOUT='30'\n```\n\nFor persistent usage, configure parameters\
+    \ using DuckDB `SECRETS`\n\n```sql\nCREATE PERSISTENT SECRET IF NOT EXISTS open_prompt\
+    \ (\n      TYPE open_prompt,\n      PROVIDER config,\n      api_token 'your-api-token',\n\
+    \      api_url 'http://localhost:11434/v1/chat/completions',\n      model_name\
+    \ 'qwen2.5:0.5b',\n      api_timeout '30'\n  );\n```"
+  hello_world: "-- Configure the required parameters to access OpenAI Completions\
+    \ compatible APIs\nD CREATE SECRET IF NOT EXISTS open_prompt (\n      TYPE open_prompt,\n\
+    \      PROVIDER config,\n      api_token 'your-api-token',\n      api_url 'http://localhost:11434/v1/chat/completions',\n\
+    \      model_name 'qwen2.5:0.5b',\n      api_timeout '30'\n  );\n\n-- Prompt any\
+    \ OpenAI Completions API form your query\nD SELECT open_prompt('Write a one-line\
+    \ poem about ducks') AS response;\n\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2510\n\u2502                    response                    \u2502\
+    \n\u2502                    varchar                     \u2502\n\u251C\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 Ducks quacking at dawn,\
+    \ swimming in the light. \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2518\n\n-- Prompt requesting JSON Structured Output for ChatGPT,\
+    \ LLama3, etc\nSET VARIABLE openprompt_model_name = 'llama3.2:3b';\nSELECT open_prompt('I\
+    \ want ice cream', json_schema := '{\n   \"type\": \"object\",\n   \"properties\"\
+    : {\n     \"summary\": { \"type\": \"string\" },\n     \"sentiment\": { \"type\"\
+    : \"string\", \"enum\": [\"pos\", \"neg\", \"neutral\"] }\n   },\n   \"required\"\
+    : [\"summary\", \"sentiment\"],\n   \"additionalProperties\": false\n }');\n\n\
+    -- Use Custom System Prompt to request JSON Output in smaller models\nSET VARIABLE\
+    \ openprompt_model_name = 'qwen2.5:1.5b';\nSELECT open_prompt('I want ice cream.',\
+    \ system_prompt:='Response MUST be JSON with the following schema: {\n       \"\
+    type\": \"object\",\n       \"properties\": {\n         \"summary\": { \"type\"\
+    : \"string\" },\n         \"sentiment\": { \"type\": \"string\", \"enum\": [\"\
+    pos\", \"neg\", \"neutral\"] }\n       },\n       \"required\": [\"summary\",\
+    \ \"sentiment\"],\n       \"additionalProperties\": false\n     }');\n"
 extension:
-  name: open_prompt
-  description: Interact with LLMs with a simple DuckDB Extension
-  version: 0.0.5
-  language: C++
   build: cmake
+  description: Interact with LLMs with a simple DuckDB Extension
+  excluded_platforms: windows_amd64_rtools
+  language: C++
   license: MIT
-  excluded_platforms: "windows_amd64_rtools"
   maintainers:
-    - lmangani
-    - akvlad
-
+  - lmangani
+  - akvlad
+  name: open_prompt
+  version: '2025120401'
 repo:
   github: quackscience/duckdb-extension-openprompt
-  ref: 846b35872916cbcd866f992521a108d47393737d
-
-docs:
-  hello_world: |
-    -- Configure the required parameters to access OpenAI Completions compatible APIs
-    D CREATE SECRET IF NOT EXISTS open_prompt (
-          TYPE open_prompt,
-          PROVIDER config,
-          api_token 'your-api-token',
-          api_url 'http://localhost:11434/v1/chat/completions',
-          model_name 'qwen2.5:0.5b',
-          api_timeout '30'
-      );
-    
-    -- Prompt any OpenAI Completions API form your query
-    D SELECT open_prompt('Write a one-line poem about ducks') AS response;
-    ┌────────────────────────────────────────────────┐
-    │                    response                    │
-    │                    varchar                     │
-    ├────────────────────────────────────────────────┤
-    │ Ducks quacking at dawn, swimming in the light. │
-    └────────────────────────────────────────────────┘
-    
-    -- Prompt requesting JSON Structured Output for ChatGPT, LLama3, etc
-    SET VARIABLE openprompt_model_name = 'llama3.2:3b';
-    SELECT open_prompt('I want ice cream', json_schema := '{
-       "type": "object",
-       "properties": {
-         "summary": { "type": "string" },
-         "sentiment": { "type": "string", "enum": ["pos", "neg", "neutral"] }
-       },
-       "required": ["summary", "sentiment"],
-       "additionalProperties": false
-     }');
-
-    -- Use Custom System Prompt to request JSON Output in smaller models
-    SET VARIABLE openprompt_model_name = 'qwen2.5:1.5b';
-    SELECT open_prompt('I want ice cream.', system_prompt:='Response MUST be JSON with the following schema: {
-           "type": "object",
-           "properties": {
-             "summary": { "type": "string" },
-             "sentiment": { "type": "string", "enum": ["pos", "neg", "neutral"] }
-           },
-           "required": ["summary", "sentiment"],
-           "additionalProperties": false
-         }');
-
-  extended_description: |
-    ## Open Prompt Extension
-    The `open_prompt()` community extension is shamelessly inspired by the Motherduck `prompt()` but focused on self-hosted usage.
-    
-    > For examples and instructions check out the `open_prompt()` [README](https://github.com/quackscience/duckdb-extension-openprompt)
-
-    ### Configuration
-    Setup the completions API URL configuration w/ optional auth token and model name
-
-    ```
-    SET VARIABLE openprompt_api_url = 'http://localhost:11434/v1/chat/completions';
-    SET VARIABLE openprompt_api_token = 'your_api_key_here';
-    SET VARIABLE openprompt_model_name = 'qwen2.5:0.5b';
-    ```
-    
-    Alternatively the following ENV variables can be used at runtime
-
-    ```
-    OPEN_PROMPT_API_URL='http://localhost:11434/v1/chat/completions'
-    OPEN_PROMPT_API_TOKEN='your_api_key_here'
-    OPEN_PROMPT_MODEL_NAME='qwen2.5:0.5b'
-    OPEN_PROMPT_API_TIMEOUT='30'
-    ```
-    
-    For persistent usage, configure parameters using DuckDB `SECRETS`
-
-    ```sql
-    CREATE PERSISTENT SECRET IF NOT EXISTS open_prompt (
-          TYPE open_prompt,
-          PROVIDER config,
-          api_token 'your-api-token',
-          api_url 'http://localhost:11434/v1/chat/completions',
-          model_name 'qwen2.5:0.5b',
-          api_timeout '30'
-      );
-    ```
-
+  ref: 5328a2ff7100887263259ccc5ad8c03b8c6bc58a
