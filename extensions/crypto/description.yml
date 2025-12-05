@@ -10,7 +10,7 @@ extension:
   - rustyconover
   name: crypto
   requires_toolchains: rust
-  version: '2025120301'
+  version: '2025120401'
 repo:
   github: query-farm/crypto
-  ref: f0ecb5f55259011f0d83703f2071911791ada338
+  ref: 9308fe3e74a56b3dd5b046533bac582532bdc7bd
