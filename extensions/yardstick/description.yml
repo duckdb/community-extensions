@@ -1,7 +1,7 @@
 extension:
   name: yardstick
   description: Measure-aware SQL implementing Julian Hyde's "Measures in SQL" paper
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: sidequery/yardstick
-  ref: f84a6c0548addf4e5f192c2b823bd5fc914ae40b
+  ref: d367006b40e54d4fa29e278f75e917467667726f
 
 docs:
   hello_world: |
