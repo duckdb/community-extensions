@@ -1,7 +1,7 @@
 extension:
   name: fakeit
   description: The FakeIt Extension enables generation of realistic fake/test data directly in SQL queries
-  version: 0.2.0
+  version: 0.2.1
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-fakeit
-  ref: effe166028663b1e91f35699495ca01530d98ca4
+  ref: 37aef6603e01abfc91cd9ce7e4f254a9a05f9686
 
 docs:
   hello_world: |
