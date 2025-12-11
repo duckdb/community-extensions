@@ -2,14 +2,15 @@ docs:
   extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_adbc_scanner.html).
 extension:
   build: cmake
-  description: An ADBC client extension for DuckDB that can access ADBC provided data sources.
+  description: An ADBC client extension for DuckDB that can access ADBC provided data
+    sources.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
   language: C++
   license: Apache-2.0
   maintainers:
   - rustyconover
   name: adbc_scanner
-  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
   version: '2025120801'
 repo:
   github: query-farm/adbc_scanner
-  ref: c7db636522539af2a8e82a45e1f5bab48244d70b
+  ref: afefd18d1ea9063c77a213082f597378d63fc74f
