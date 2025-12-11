@@ -41,4 +41,4 @@ docs:
     Gaggle is a DuckDB extension that uses the Kaggle API to let you query Kaggle datasets directly with SQL.
     It aims to simplify the data science workflows by hiding the complexity of manually downloading, extracting, and managing dataset files from Kaggle.
     
-    For more information, like API references and usage examples, visit the project's [GitHub repository](https://github.com/CogitatorTech/gaggle). 
+    For more information, like API references and usage examples, visit the project's [GitHub repository](https://github.com/CogitatorTech/gaggle).
