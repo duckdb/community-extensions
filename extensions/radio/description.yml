@@ -10,7 +10,7 @@ extension:
   maintainers:
   - rustyconover
   name: radio
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/radio
-  ref: 8c9d85cc7632c8ed4172a5413b3168bb158971ee
+  ref: 0ace6af84ec2289c23944857fd9aded06e65ec9c

@@ -10,7 +10,7 @@ extension:
   maintainers:
   - rustyconover
   name: bitfilters
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/bitfilters
-  ref: feb75dd1f5fe7837422a03c6cddde70988b7cad1
+  ref: 1acc412f932a9b88f1504bf76fc0cbdd891b97f3

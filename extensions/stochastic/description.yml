@@ -10,7 +10,7 @@ extension:
   maintainers:
   - rustyconover
   name: stochastic
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/stochastic
-  ref: a754224fc67f16ab2e176cce8d89a15868cd1256
+  ref: 020205b1862e9ab919ad58b1a4a496058a478519

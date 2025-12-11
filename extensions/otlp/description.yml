@@ -1,7 +1,7 @@
 extension:
   name: otlp
-  description: Query OpenTelemetry data with SQL using OTLP file readers and ClickHouse-compatible schemas
-  version: 0.1.0
+  description: Read OpenTelemetry metrics, logs and traces from JSON or protobuf with a ClickHouse-inspired schema
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: smithclay/duckdb-otlp
-  ref: 78c9430f5767889348d62b3333b96817567298b8
+  ref: 37754c54f7fa371dcfec2b1312dd88c2def2c061
 
 docs:
   hello_world: |
@@ -44,6 +44,7 @@ docs:
     # OpenTelemetry for DuckDB
 
     Query OpenTelemetry data with SQL using ClickHouse-compatible strongly-typed schemas.
+    Works with OTLP data exported from the OpenTelemetry collector's File Exporter.
 
     ## Features
 
@@ -80,7 +81,6 @@ docs:
 
     ## Limitations
 
-    - Live gRPC ingestion has been removed; the extension focuses on file workloads
     - **WASM builds support JSON format only**; protobuf parsing requires native builds with the protobuf runtime
     - Large protobuf files are processed batch-by-batch; continuous streaming is not yet supported
 

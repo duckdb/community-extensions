@@ -1,22 +1,25 @@
 extension:
   name: duckherder
   description: Run duckdb query on remote server
-  version: 0.0.2
+  version: 0.0.5
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw;osx_amd64;osx_arm64"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
   requires_toolchains: parser_tools
   maintainers:
     - dentiny
 
 repo:
   github: dentiny/duckdb-distributed-execution
-  ref: 1a251b4d62abc66b747fa5f6e6054bba432307f3
+  ref: 02f60de8d45c9d3547b1795d4bc7d0b5c1bcf14f
 
 docs:
   hello_world: |
     SELECT duckherder_start_local_server(8815); ATTACH DATABASE 'dh' (TYPE duckherder, server_host 'localhost', server_port 8815);
   extended_description: |
     This extension is built on storage extension, to execute query on remote server and transfer data back with arrow flight.
+    For remote and distributed execution, there're two key components: driver and worker(s).
+    As their names suggest, driver node is the control plane, and worker nodes do the real execution tasks.
+    Users are allowed to implement their own driver and worker(s), and register to the duckdb client-side, as long they speaks duckherder dialect (i.e., grpc stubs and arrow flight).
     From users' perspective, all DML and DDL SQL statements should be used exactly the same as local duckdb.
