@@ -1,7 +1,7 @@
 extension:
   name: pdal
   description: Extension that adds support for manipulating point cloud data using SQL.
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-pdal
-  ref: c90f11dae18d2444281f16ec3523725046e4b935
+  ref: d75507f8fb74331d24ce27809f20b37e1502a687
 
 docs:
   hello_world: |
