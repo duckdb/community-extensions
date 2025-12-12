@@ -40,6 +40,7 @@ with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
+	opt_in_platforms = desc['extension'].get('opt_in_platforms')
 	requires_toolchains = desc['extension'].get('requires_toolchains')
 	custom_toolchain_script = desc['extension'].get('custom_toolchain_script')
 	vcpkg_url = desc['extension'].get('vcpkg_url')
@@ -47,6 +48,8 @@ with open('env.sh', 'w+') as hdl:
 	test_config = desc['extension'].get('test_config')
 	if excluded_platforms:
 		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
+	if opt_in_platforms:
+		hdl.write(f"COMMUNITY_EXTENSION_OPT_IN_PLATFORMS={opt_in_platforms}\n")
 	if requires_toolchains:
 		hdl.write(f"COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS={requires_toolchains}\n")
 	if vcpkg_url:

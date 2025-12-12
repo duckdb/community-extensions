@@ -1,0 +1,6 @@
+function,description,comment,example
+PDAL_Drivers,"Returns the list of supported stage types of a PDAL Pipeline.","","SELECT * FROM PDAL_Drivers();"
+PDAL_Read,"Read and import a variety of point cloud data file formats using the PDAL library.","","SELECT * FROM PDAL_Read('./test/data/autzen_trim.laz');"
+PDAL_Info,"Read the metadata from point cloud file[s].","","SELECT * FROM PDAL_Info('./test/data/autzen_trim.la*');"
+PDAL_Pipeline,"Read and import a point cloud data file, applying also a custom processing pipeline to the data.","","SELECT * FROM PDAL_Pipeline('path/to/your/filename.las', 'path/to/your/pipeline.json');"
+COPY_TO_PDAL,"Write collection of data points to a point cloud data file.","","COPY ( ... ) TO './test/data/autzen_new.laz' WITH (FORMAT PDAL, DRIVER 'LAS', CREATION_OPTIONS ('COMPRESSION=true', ...));"

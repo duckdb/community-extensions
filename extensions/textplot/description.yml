@@ -10,7 +10,7 @@ extension:
   maintainers:
   - rustyconover
   name: textplot
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/textplot
-  ref: 8e9a6d3fec77389ca557484da79f68b029a44c7e
+  ref: d3b90faa3372d4204915343546fa0556601bf243

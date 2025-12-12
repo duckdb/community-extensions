@@ -10,7 +10,7 @@ extension:
   - rustyconover
   name: fuzzycomplete
   requires_toolchains: rust
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/fuzzycomplete
-  ref: 2e35c7d6d0ae0d64e6eac5193852c7b7f5fe0803
+  ref: 74630cc8548a8ee6b32129abdc8bd70e1cf2bf87
