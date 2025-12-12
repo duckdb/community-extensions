@@ -13,4 +13,4 @@ extension:
   version: '2025101201'
 repo:
   github: query-farm/datasketches
-  ref: 8411c9ab95eb8b444f70091266492ecf8a9ec428
+  ref: d7ff45ac116b81f5958d40783470557f27a97911
