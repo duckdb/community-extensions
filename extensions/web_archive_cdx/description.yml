@@ -1,0 +1,52 @@
+extension:
+  name: web_archive_cdx
+  description: Query Common Crawl and Wayback Machine web archive CDX APIs directly from SQL
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb-web-archive-cdx
+  ref: 744310d6fa5a427833d6b15086d474b0453acd03
+
+docs:
+  hello_world: |
+    -- Find archived pages from Wayback Machine
+    SELECT url, timestamp, statuscode
+    FROM wayback_machine()
+    WHERE url LIKE 'example.com/%'
+      AND statuscode = 200
+    LIMIT 10;
+
+    -- Query Common Crawl index
+    SELECT url, timestamp, mimetype
+    FROM common_crawl_index()
+    WHERE url LIKE '%.example.com/%'
+      AND statuscode = 200
+    LIMIT 10;
+
+    -- Fetch archived page content
+    SELECT url, response.body
+    FROM wayback_machine()
+    WHERE url = 'example.com'
+      AND statuscode = 200
+    ORDER BY timestamp DESC
+    LIMIT 1;
+
+  extended_description: |
+    This extension provides two table functions to query web archive CDX APIs:
+
+    - **common_crawl_index()**: Query Common Crawl archive (2008-present, monthly snapshots)
+    - **wayback_machine()**: Query Internet Archive Wayback Machine (1996-present)
+
+    Features:
+    - Filter pushdown: WHERE clauses for statuscode/mimetype are pushed to CDX API
+    - LIMIT pushdown: Only fetches requested number of records
+    - SELECT pushdown: Only fetches columns you need
+    - Response fetching: Optionally download archived page content
+    - Collapse deduplication: Remove duplicates using `collapse` parameter
+
+    For full documentation, visit the [extension repository](https://github.com/midwork-finds-jobs/duckdb-web-archive-cdx).
