@@ -1,7 +1,7 @@
 extension:
   name: web_archive_cdx
   description: Query Common Crawl and Wayback Machine web archive CDX APIs directly from SQL
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -10,12 +10,12 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-web-archive-cdx
-  ref: 744310d6fa5a427833d6b15086d474b0453acd03
+  ref: 6cadef393e1e67d9cf3be3734bfc7fb486d6735f
 
 docs:
   hello_world: |
     -- Find archived pages from Wayback Machine
-    SELECT url, timestamp, statuscode
+    SELECT url, archive_url, timestamp
     FROM wayback_machine()
     WHERE url LIKE 'example.com/%'
       AND statuscode = 200
@@ -28,8 +28,8 @@ docs:
       AND statuscode = 200
     LIMIT 10;
 
-    -- Fetch archived page content
-    SELECT url, response.body
+    -- Get direct link to archived page
+    SELECT url, archive_url
     FROM wayback_machine()
     WHERE url = 'example.com'
       AND statuscode = 200
@@ -43,6 +43,7 @@ docs:
     - **wayback_machine()**: Query Internet Archive Wayback Machine (1996-present)
 
     Features:
+    - **archive_url column**: Direct playback URL for Wayback Machine snapshots
     - Filter pushdown: WHERE clauses for statuscode/mimetype are pushed to CDX API
     - LIMIT pushdown: Only fetches requested number of records
     - SELECT pushdown: Only fetches columns you need
