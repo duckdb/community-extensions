@@ -13,4 +13,4 @@ extension:
   version: '2025120801'
 repo:
   github: query-farm/adbc_scanner
-  ref: 7a7d206cbff1ad61436ba8bd1a4c438028b8c815
+  ref: e13cf90d61dbe573eeb9d95183581d1082567b07
