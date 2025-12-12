@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: d9433e9ba1817d89797fc01231cb6d2316054e74
+  ref: a43c1d5d560272adb0523693ae61ef2b0840f023
 
 docs:
   hello_world: |
@@ -19,25 +19,25 @@ docs:
 
     -- Parse test results with automatic format detection
     SELECT tool_name, status, COUNT(*) as count
-    FROM read_test_results('pytest_output.json', 'auto')
+    FROM read_duck_hunt_log('pytest_output.json', 'auto')
     GROUP BY tool_name, status;
 
     -- Analyze compilation errors from build logs
     SELECT file_path, line_number, message, category
-    FROM read_test_results('build.log', 'auto')
+    FROM read_duck_hunt_log('build.log', 'auto')
     WHERE status = 'ERROR' AND category = 'compilation'
     ORDER BY file_path, line_number;
 
     -- Parse CI/CD workflow logs hierarchically
     SELECT workflow_name, job_name, step_name, step_status, duration
-    FROM read_workflow_logs('github_actions.log', 'github_actions')
+    FROM read_duck_hunt_workflow_log('github_actions.log', 'github_actions')
     WHERE hierarchy_level >= 2
     ORDER BY event_id;
 
     -- Find error patterns across multiple builds
     SELECT pattern_id, COUNT(*) as occurrences,
            ANY_VALUE(message) as representative_error
-    FROM read_test_results('logs/**/*.log', 'auto')
+    FROM read_duck_hunt_log('logs/**/*.log', 'auto')
     WHERE pattern_id != -1
     GROUP BY pattern_id
     ORDER BY occurrences DESC;
@@ -45,7 +45,7 @@ docs:
     -- Analyze linting issues across multiple tools
     SELECT tool_name, error_code, COUNT(*) as violations,
            ANY_VALUE(suggestion) as fix_suggestion
-    FROM read_test_results('lint_results.json', 'auto')
+    FROM read_duck_hunt_log('lint_results.json', 'auto')
     WHERE status IN ('ERROR', 'WARNING')
     GROUP BY tool_name, error_code
     ORDER BY violations DESC;
