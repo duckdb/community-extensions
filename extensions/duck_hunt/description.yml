@@ -1,0 +1,84 @@
+extension:
+  name: duck_hunt
+  description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 45+ development tools with dynamic regexp patterns
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duck_hunt
+  ref: 03097cb28a19531259aa34d2eeb7d7a293a51ce6
+
+docs:
+  hello_world: |
+    -- Parse build errors from a log file
+    SELECT file_path, line_number, severity, message
+    FROM read_duck_hunt_log('build.log', 'auto')
+    WHERE status = 'ERROR';
+
+    -- Parse test results from string content
+    SELECT test_name, status, execution_time
+    FROM parse_duck_hunt_log('{"tests": [{"name": "test_auth", "outcome": "passed"}]}', 'pytest_json');
+
+    -- Use custom regexp pattern for any log format
+    SELECT severity, message
+    FROM parse_duck_hunt_log('ERROR: Connection failed
+    WARNING: Retrying...', 'regexp:(?P<severity>ERROR|WARNING):\s+(?P<message>.+)');
+
+    -- Analyze CI/CD workflow structure
+    SELECT workflow_name, job_name, step_name, step_status
+    FROM read_duck_hunt_workflow_log('github_actions.log', 'github_actions')
+    WHERE step_status = 'failure';
+
+    -- Generate status badges from results
+    SELECT status_badge(status) as badge, tool_name, message
+    FROM read_duck_hunt_log('build.log', 'auto');
+
+    -- Aggregate build health with badge
+    SELECT status_badge(
+        COUNT(CASE WHEN status = 'ERROR' THEN 1 END),
+        COUNT(CASE WHEN status = 'WARNING' THEN 1 END)
+    ) as build_status
+    FROM read_duck_hunt_log('build.log', 'auto');
+
+  extended_description: |
+    Duck Hunt is a comprehensive DuckDB extension for parsing and analyzing development tool outputs.
+    It provides a unified SQL interface to query test results, build logs, linting output, and CI/CD
+    pipeline data from 45+ tools and formats.
+
+    **Core Table Functions:**
+    - `read_duck_hunt_log(file, format)` - Parse tool outputs from files
+    - `parse_duck_hunt_log(content, format)` - Parse tool outputs from strings
+    - `read_duck_hunt_workflow_log(file, format)` - Parse CI/CD workflow logs from files
+    - `parse_duck_hunt_workflow_log(content, format)` - Parse CI/CD workflow logs from strings
+
+    **Scalar Functions:**
+    - `status_badge(status)` - Convert status to badge: [ OK ], [FAIL], [WARN], [ .. ], [ ?? ]
+    - `status_badge(errors, warnings)` - Compute badge from counts
+    - `status_badge(errors, warnings, is_running)` - Badge with running state
+
+    **Supported Formats (45+):**
+    - **Dynamic:** `regexp:<pattern>` - Custom patterns with named capture groups
+    - **Test Frameworks:** pytest, Go test, Cargo test, JUnit, RSpec, Mocha/Chai, Google Test, NUnit/xUnit
+    - **Linting Tools:** ESLint, RuboCop, Pylint, Flake8, MyPy, Clippy, SwiftLint, PHPStan, and more
+    - **Build Systems:** CMake, Make, Maven, Gradle, Cargo, MSBuild, Node.js, Python
+    - **CI/CD Engines:** GitHub Actions, GitLab CI, Jenkins, Docker
+    - **Debugging:** Valgrind, GDB/LLDB
+
+    **Schema Fields (38):**
+    - Core: event_id, tool_name, event_type, file_path, line_number, column_number, status, severity, message
+    - Error Analysis: error_fingerprint, similarity_score, pattern_id, root_cause_category
+    - Workflow: workflow_name, job_name, step_name, workflow_status, job_status, step_status, duration
+
+    **Key Features:**
+    - Automatic format detection
+    - Error pattern clustering and fingerprinting
+    - Root cause categorization (network, permission, config, syntax, build, resource)
+    - Multi-file glob processing with Hive-style paths
+    - Pipeline integration with stdin support
+    - Hierarchical CI/CD workflow parsing
+
+    Perfect for CI/CD analysis, automated debugging, test aggregation, quality gates, and agent-driven development workflows.
