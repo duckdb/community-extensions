@@ -1,5 +1,5 @@
 extension:
-  name: web_archive_cdx
+  name: web_archive
   description: Query Common Crawl and Wayback Machine web archive CDX APIs directly from SQL
   version: 0.2.0
   language: C++
