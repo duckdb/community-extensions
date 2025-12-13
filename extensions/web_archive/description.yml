@@ -9,7 +9,7 @@ extension:
     - onnimonni
 
 repo:
-  github: midwork-finds-jobs/duckdb-web-archive-cdx
+  github: midwork-finds-jobs/duckdb-web-archive
   ref: v0.2.0
 
 docs:
@@ -49,4 +49,4 @@ docs:
     - **Response fetching**: Download archived page content via `response.body`
     - **Virtual columns**: `year` and `month` extracted from timestamp
 
-    For full documentation, visit the [extension repository](https://github.com/midwork-finds-jobs/duckdb-web-archive-cdx).
+    For full documentation, visit the [extension repository](https://github.com/midwork-finds-jobs/duckdb-web-archive).
