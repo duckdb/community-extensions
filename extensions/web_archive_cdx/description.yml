@@ -1,7 +1,7 @@
 extension:
   name: web_archive_cdx
   description: Query Common Crawl and Wayback Machine web archive CDX APIs directly from SQL
-  version: 0.1.1
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,16 +10,23 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-web-archive-cdx
-  ref: 6cadef393e1e67d9cf3be3734bfc7fb486d6735f
+  ref: v0.2.0
 
 docs:
   hello_world: |
     -- Find archived pages from Wayback Machine
-    SELECT url, archive_url, timestamp
+    SELECT url, timestamp, statuscode
     FROM wayback_machine()
     WHERE url LIKE 'example.com/%'
       AND statuscode = 200
     LIMIT 10;
+
+    -- One snapshot per year using DISTINCT ON pushdown
+    SELECT DISTINCT ON(year) url, timestamp
+    FROM wayback_machine()
+    WHERE url = 'github.com/duckdb/duckdb'
+      AND statuscode = 200
+    LIMIT 5;
 
     -- Query Common Crawl index
     SELECT url, timestamp, mimetype
@@ -28,26 +35,18 @@ docs:
       AND statuscode = 200
     LIMIT 10;
 
-    -- Get direct link to archived page
-    SELECT url, archive_url
-    FROM wayback_machine()
-    WHERE url = 'example.com'
-      AND statuscode = 200
-    ORDER BY timestamp DESC
-    LIMIT 1;
-
   extended_description: |
     This extension provides two table functions to query web archive CDX APIs:
 
-    - **common_crawl_index()**: Query Common Crawl archive (2008-present, monthly snapshots)
     - **wayback_machine()**: Query Internet Archive Wayback Machine (1996-present)
+    - **common_crawl_index()**: Query Common Crawl archive (2008-present, monthly snapshots)
 
     Features:
-    - **archive_url column**: Direct playback URL for Wayback Machine snapshots
-    - Filter pushdown: WHERE clauses for statuscode/mimetype are pushed to CDX API
-    - LIMIT pushdown: Only fetches requested number of records
-    - SELECT pushdown: Only fetches columns you need
-    - Response fetching: Optionally download archived page content
-    - Collapse deduplication: Remove duplicates using `collapse` parameter
+    - **DISTINCT ON pushdown**: `DISTINCT ON(year)` becomes `&collapse=timestamp:4`
+    - **Filter pushdown**: WHERE clauses for statuscode/mimetype pushed to CDX API
+    - **LIMIT pushdown**: Only fetches requested number of records
+    - **SELECT pushdown**: Only fetches columns you need via `&fl=` parameter
+    - **Response fetching**: Download archived page content via `response.body`
+    - **Virtual columns**: `year` and `month` extracted from timestamp
 
     For full documentation, visit the [extension repository](https://github.com/midwork-finds-jobs/duckdb-web-archive-cdx).
