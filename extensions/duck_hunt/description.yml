@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 45+ development tools with dynamic regexp patterns
-  version: 1.0.1
+  version: 1.0.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: a711a8109a598d379bd5fb073811e5253a28891c
+  ref: 03097cb28a19531259aa34d2eeb7d7a293a51ce6
 
 docs:
   hello_world: |
