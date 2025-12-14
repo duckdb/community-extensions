@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 20+ programming languages with tree-sitter grammars
-  version: 1.0.0
+  version: 1.0.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/sitting_duck
-  ref: 22831984342b22ba6505261cefee0e1027ce9c9f
+  ref: 3beb292dc2d0036531ad718fd8fe56e3b2b82c7b
 
 docs:
   hello_world: |
