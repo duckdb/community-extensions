@@ -1,0 +1,32 @@
+extension:
+  name: fit
+  description: Read Garmin .fit files using DuckDB - GPS tracks, heart rate, power metrics, and fitness device data
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers: 
+    - antoriche
+
+repo:
+  github: antoriche/duckdb-fit-extension
+  ref: main
+
+docs:
+  hello_world:  |
+    -- Read GPS records from a FIT file
+    SELECT * FROM fit_records('activity.fit') LIMIT 5;
+    
+    -- Get activity metadata
+    SELECT * FROM fit_activities('activity.fit');
+  extended_description: |
+    This extension allows you to read Garmin .fit files directly in DuckDB. 
+    
+    **Available table functions:**
+    - `fit_records(filename)` - Main records with GPS tracks and sensor data
+    - `fit_activities(filename)` - Activity metadata and summaries
+    - `fit_sessions(filename)` - Training session information
+    - `fit_laps(filename)` - Individual lap data and splits
+    - `fit_devices(filename)` - Device information and sensor details
+    - `fit_events(filename)` - Activity events and markers
+    - `fit_users(filename)` - User profile information
