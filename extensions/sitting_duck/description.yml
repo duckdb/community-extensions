@@ -18,7 +18,7 @@ docs:
     SELECT name, type, depth
     FROM parse_ast('
     def hello():
-        return "world"
+        return "hello world"
     ', 'python')
     WHERE type = 'function_definition';
 
