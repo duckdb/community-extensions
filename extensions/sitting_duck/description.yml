@@ -1,0 +1,83 @@
+extension:
+  name: sitting_duck
+  description: Parse and analyze source code ASTs from 20+ programming languages with tree-sitter grammars
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/sitting_duck
+  ref: 22831984342b22ba6505261cefee0e1027ce9c9f
+
+docs:
+  hello_world: |
+    -- Parse Python code and extract function definitions
+    SELECT name, type, depth
+    FROM parse_ast('
+    def hello():
+        return "hello world"
+    ', 'python')
+    WHERE type = 'function_definition';
+
+    -- Parse JavaScript from a file
+    SELECT type, name, start_row, end_row
+    FROM read_ast('src/**/*.js')
+    WHERE type IN ('function_declaration', 'class_declaration');
+
+    -- Analyze code complexity by counting AST nodes
+    SELECT file_path, COUNT(*) as node_count
+    FROM read_ast('src/**/*.py')
+    GROUP BY file_path
+    ORDER BY node_count DESC;
+
+    -- Find all function calls in TypeScript
+    SELECT name, file_path, start_row
+    FROM read_ast('app.ts', language := 'typescript')
+    WHERE type = 'call_expression';
+
+    -- Cross-language analysis
+    SELECT language, COUNT(*) as definitions
+    FROM read_ast(['src/**/*.py', 'src/**/*.js', 'src/**/*.ts', 'src/**/*.go'])
+    WHERE type LIKE '%definition%' OR type LIKE '%declaration%'
+    GROUP BY language;
+
+  extended_description: |
+    Sitting Duck is a DuckDB extension for parsing source code into Abstract Syntax Trees (ASTs)
+    using tree-sitter grammars. It provides a SQL interface to analyze code structure across
+    20+ programming languages.
+
+    **Core Table Functions:**
+    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows
+    - `parse_ast(content, language)` - Parse source code strings into AST rows
+
+    **Supported Languages (20):**
+    - **Systems:** C, C++, Rust, Go
+    - **Web:** JavaScript, TypeScript, HTML, CSS, JSON
+    - **Backend:** Python, Ruby, PHP, Java, Kotlin, C#
+    - **Mobile:** Swift, Dart
+    - **Scripting:** Bash, Lua
+    - **Data:** SQL, R, Markdown
+
+    **AST Schema Fields:**
+    - `type` - Node type (e.g., function_definition, class_declaration)
+    - `name` - Extracted identifier name when applicable
+    - `file_path` - Source file path
+    - `language` - Detected or specified language
+    - `start_row`, `start_column` - Node start position
+    - `end_row`, `end_column` - Node end position
+    - `depth` - Nesting depth in the AST
+    - `parent_type` - Type of parent node
+    - `descendant_count` - Number of descendant nodes
+
+    **Key Features:**
+    - Automatic language detection from file extensions
+    - Glob pattern support for multi-file analysis
+    - Semantic type normalization across languages
+    - Efficient tree-sitter parsing with pre-generated grammars
+    - DuckDB native SQL integration for complex queries
+
+    Perfect for code analysis, refactoring tools, documentation generation,
+    codebase exploration, and AI-assisted development workflows.
