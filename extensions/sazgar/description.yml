@@ -1,7 +1,7 @@
 extension:
   name: sazgar
-  description: Comprehensive system monitoring - CPU, memory, disk, network, processes, load, users, and temperatures
-  version: 0.2.0
+  description: Comprehensive system monitoring - 20 table functions for CPU, memory, disk, network, processes, ports, services, Docker, GPU, and more
+  version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: a06c37de87bc8c644e0fce0b420f86666700a225
+  ref: cc960ba31c5976b4536513b578eb3441e8f2ec81
 
 docs:
   hello_world: |
@@ -22,34 +22,47 @@ docs:
     -- Memory usage in GB
     SELECT * FROM sazgar_memory(unit := 'GB');
 
-    -- Disk usage in GB
-    SELECT * FROM sazgar_disks(unit := 'GB');
+    -- Swap memory
+    SELECT * FROM sazgar_swap('GiB');
 
-    -- List running processes
-    SELECT pid, name, cpu_percent, memory_bytes 
-    FROM sazgar_processes() 
-    ORDER BY memory_bytes DESC 
-    LIMIT 10;
+    -- Per-core CPU usage
+    SELECT * FROM sazgar_cpu_cores();
 
-    -- Network interfaces
-    SELECT * FROM sazgar_network();
+    -- Open network ports
+    SELECT * FROM sazgar_ports('') WHERE local_port < 1024;
 
-    -- System load average
-    SELECT * FROM sazgar_load();
+    -- Docker containers
+    SELECT * FROM sazgar_docker();
+
+    -- System services
+    SELECT * FROM sazgar_services() WHERE status = 'running' LIMIT 10;
+
+    -- System uptime
+    SELECT * FROM sazgar_uptime();
   extended_description: |
-    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system resource monitoring.
+    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system resource monitoring with 20 table functions.
 
-    **Features:**
-    - `sazgar_system()` - Complete system overview in one query
+    **Functions:**
+    - `sazgar_system()` - Complete system overview
     - `sazgar_os()` - Operating system information
-    - `sazgar_memory(unit)` - RAM and swap usage with unit conversion
-    - `sazgar_cpu()` - Per-core CPU information
-    - `sazgar_disks(unit)` - Disk usage with virtual filesystem filtering
+    - `sazgar_memory(unit)` - RAM usage with unit conversion
+    - `sazgar_swap(unit)` - Swap/virtual memory info
+    - `sazgar_cpu()` - CPU information
+    - `sazgar_cpu_cores()` - Per-core CPU usage
+    - `sazgar_disks(unit)` - Disk usage
     - `sazgar_network()` - Network interface statistics
-    - `sazgar_processes()` - Running process information
+    - `sazgar_ports(filter)` - Open network ports and connections
+    - `sazgar_processes()` - Running processes
+    - `sazgar_services()` - System services (launchctl/systemd)
+    - `sazgar_docker()` - Docker containers
     - `sazgar_load()` - System load averages
+    - `sazgar_uptime()` - Detailed uptime information
     - `sazgar_users()` - System users
+    - `sazgar_environment(filter)` - Environment variables
     - `sazgar_components()` - Temperature sensors
+    - `sazgar_gpu()` - NVIDIA GPU info (optional)
+    - `sazgar_fds(pid)` - File descriptors (Linux)
+    - `sazgar_version()` - Extension version
 
     **Unit conversion** supports: bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
 
