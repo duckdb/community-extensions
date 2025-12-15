@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: 8b9433ce1abd4820a57dbe2e0565ba9f40400234
+  ref: 8c8377e50f6fe08c924df8b852aab50ce9be1355
 
 docs:
   hello_world: |
