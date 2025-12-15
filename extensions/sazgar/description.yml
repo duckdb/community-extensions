@@ -1,0 +1,57 @@
+extension:
+  name: sazgar
+  description: Comprehensive system monitoring - CPU, memory, disk, network, processes, load, users, and temperatures
+  version: 0.2.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - Angelerator
+
+repo:
+  github: Angelerator/Sazgar
+  ref: main
+
+docs:
+  hello_world: |
+    -- Get comprehensive system overview
+    SELECT * FROM sazgar_system();
+
+    -- Memory usage in GB
+    SELECT * FROM sazgar_memory(unit := 'GB');
+
+    -- Disk usage in GB
+    SELECT * FROM sazgar_disks(unit := 'GB');
+
+    -- List running processes
+    SELECT pid, name, cpu_percent, memory_bytes 
+    FROM sazgar_processes() 
+    ORDER BY memory_bytes DESC 
+    LIMIT 10;
+
+    -- Network interfaces
+    SELECT * FROM sazgar_network();
+
+    -- System load average
+    SELECT * FROM sazgar_load();
+  extended_description: |
+    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system resource monitoring.
+
+    **Features:**
+    - `sazgar_system()` - Complete system overview in one query
+    - `sazgar_os()` - Operating system information
+    - `sazgar_memory(unit)` - RAM and swap usage with unit conversion
+    - `sazgar_cpu()` - Per-core CPU information
+    - `sazgar_disks(unit)` - Disk usage with virtual filesystem filtering
+    - `sazgar_network()` - Network interface statistics
+    - `sazgar_processes()` - Running process information
+    - `sazgar_load()` - System load averages
+    - `sazgar_users()` - System users
+    - `sazgar_components()` - Temperature sensors
+
+    **Unit conversion** supports: bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
+
+    Cross-platform: Linux, macOS, Windows (full support), Android, iOS (partial support)
+
