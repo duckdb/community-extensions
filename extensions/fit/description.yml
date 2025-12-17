@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: antoriche/duckdb-fit-extension
-  ref: main
+  ref: 157a5762bba68e84e9affa4af17af45ef15f4be3
 
 docs:
   hello_world:  |
