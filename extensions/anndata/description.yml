@@ -1,0 +1,71 @@
+extension:
+  name: anndata
+  description: Read AnnData (.h5ad) files for single-cell genomics data analysis
+  version: 0.8.3
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - honicky
+
+repo:
+  github: honicky/anndata-duckdb-extension
+  ref: main
+
+docs:
+  hello_world: |
+    -- Attach an AnnData file
+    ATTACH 'data.h5ad' AS scdata (TYPE ANNDATA);
+
+    -- Query cell metadata
+    SELECT * FROM scdata.obs LIMIT 10;
+
+    -- Query gene metadata
+    SELECT * FROM scdata.var LIMIT 10;
+
+    -- Query expression matrix
+    SELECT * FROM scdata.X LIMIT 10;
+
+    -- Detach when done
+    DETACH scdata;
+
+  extended_description: |
+    The AnnData extension provides read-only access to AnnData (.h5ad) files,
+    the standard format for single-cell genomics data.
+
+    ## ATTACH Syntax
+
+    ```sql
+    ATTACH 'file.h5ad' AS name (TYPE ANNDATA);
+    ```
+
+    ## Available Tables
+
+    - `obs` - Observation (cell) metadata
+    - `var` - Variable (gene) metadata
+    - `X` - Expression matrix (genes as columns)
+    - `obsm_*` - Dimensional reductions (PCA, UMAP, etc.)
+    - `varm_*` - Variable embeddings
+    - `layers_*` - Alternative expression matrices
+    - `obsp_*` - Cell-cell pairwise matrices
+    - `varp_*` - Gene-gene pairwise matrices
+    - `uns` - Unstructured metadata
+
+    ## Table Functions
+
+    ```sql
+    -- Core data
+    SELECT * FROM anndata_scan_obs('file.h5ad');
+    SELECT * FROM anndata_scan_var('file.h5ad');
+    SELECT * FROM anndata_scan_x('file.h5ad');
+
+    -- Dimensional reductions
+    SELECT * FROM anndata_scan_obsm('file.h5ad', 'X_pca');
+    SELECT * FROM anndata_scan_obsm('file.h5ad', 'X_umap');
+
+    -- Layers
+    SELECT * FROM anndata_scan_layers('file.h5ad', 'raw');
+
+    -- File info
+    SELECT * FROM anndata_info('file.h5ad');
+    ```
