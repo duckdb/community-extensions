@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: honicky/anndata-duckdb-extension
-  ref: main
+  ref: 7e25e0bf643bfdfffd07d973328060962eeb20ea
 
 docs:
   hello_world: |
