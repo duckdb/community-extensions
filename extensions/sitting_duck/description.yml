@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 20+ programming languages with tree-sitter grammars
-  version: 1.0.1
+  version: 1.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/sitting_duck
-  ref: 3beb292dc2d0036531ad718fd8fe56e3b2b82c7b
+  ref: cc12ed96a0626e30d8c10b2cb7636c9a250f2224
 
 docs:
   hello_world: |
@@ -50,32 +50,49 @@ docs:
     20+ programming languages.
 
     **Core Table Functions:**
-    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows
+    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows 
     - `parse_ast(content, language)` - Parse source code strings into AST rows
+    
+    All pasring is highly flexible via parameters (see: https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/parameters.md)
 
-    **Supported Languages (20):**
-    - **Systems:** C, C++, Rust, Go
-    - **Web:** JavaScript, TypeScript, HTML, CSS, JSON
-    - **Backend:** Python, Ruby, PHP, Java, Kotlin, C#
-    - **Mobile:** Swift, Dart
-    - **Scripting:** Bash, Lua
-    - **Data:** SQL, R, Markdown
+    **Supported Languages (27):**
+    | Category | Languages |
+    |----------|-----------|
+    | **Web** | JavaScript, TypeScript, HTML, CSS |
+    | **Systems** | C, C++, Go, Rust, Zig |
+    | **Scripting** | Python, Ruby, PHP, Lua, R, Bash |
+    | **Enterprise** | Java, C#, Kotlin, Swift |
+    | **Mobile** | Dart |
+    | **Infrastructure** | HCL (Terraform), JSON, TOML, GraphQL |
+    | **Documentation** | SQL, Markdown |
 
     **AST Schema Fields:**
+    See: <https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/output-schema.md>
     - `type` - Node type (e.g., function_definition, class_declaration)
     - `name` - Extracted identifier name when applicable
     - `file_path` - Source file path
     - `language` - Detected or specified language
-    - `start_row`, `start_column` - Node start position
-    - `end_row`, `end_column` - Node end position
+    - `start_line`, `start_column` - Node start position
+    - `end_end`, `end_column` - Node end position
     - `depth` - Nesting depth in the AST
     - `parent_type` - Type of parent node
     - `descendant_count` - Number of descendant nodes
+    - `peek` - Customizable preview of node source
+    - `semantic_type` - Normalized node type across all langauges
+    - `qualified_name` - Extracted name and available scope qualifiers
+    - `signature_type` - Extracted type string for variables, expressions, and functions as available
+    - `parameters` - Extraacted function parameters, arguments, parent clases, etc. as available
+    - `modifiers` - Class, variable, parameter modifiers as available
+    - `annotations` - Decorators and annotations as avaialble
+
+    See https://github.com/teaguesterling/sitting_duck/blob/main/docs/native_extraction_semantics.md for additional details
+    on "native" extraction for each langauge. Note: this is an active area of development.
 
     **Key Features:**
     - Automatic language detection from file extensions
     - Glob pattern support for multi-file analysis
-    - Semantic type normalization across languages
+    - Semantic type normalization across languages (https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/semantic-types.md)
+    - Native, locally aware annotation of key node types for easy handling (https://github.com/teaguesterling/sitting_duck/blob/main/docs/native_extraction_semantics.md)
     - Efficient tree-sitter parsing with pre-generated grammars
     - DuckDB native SQL integration for complex queries
 
