@@ -1,6 +1,6 @@
 extension:
   name: quackfix
-  description: query fix log files in FIX Protocol
+  description: Allows the consumption FIX protocol format logs, from all supported duckdb filesystems.
   version: 0.0.1
   language: c++
   build: cmake
