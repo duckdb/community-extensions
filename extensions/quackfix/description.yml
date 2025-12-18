@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: hyehudai/quackfix
-  ref: dddd
+  ref: 5f651b8288521282282f0bf32757595205cbfc59
 
 docs:
   hello_world: |
