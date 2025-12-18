@@ -1,7 +1,7 @@
 extension:
   name: anndata
   description: Read AnnData (.h5ad) files for single-cell genomics data analysis
-  version: 0.8.3
+  version: 0.9.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: honicky/anndata-duckdb-extension
-  ref: 7e25e0bf643bfdfffd07d973328060962eeb20ea
+  ref: b3206219e67fa3621c0db29793b333aeb2f72e80
 
 docs:
   hello_world: |
