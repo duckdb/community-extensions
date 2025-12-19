@@ -1,16 +1,17 @@
 extension:
   name: http_request
   description: HTTP client extension for DuckDB with GET/POST/PUT/PATCH/DELETE and byte-range requests
-  version: 0.1.0
+  version: 0.2.3
   language: C++
   build: cmake
   license: MIT
+  excluded_platforms: "windows_amd64_mingw"
   maintainers:
     - onnimonni
 
 repo:
   github: midwork-finds-jobs/duckdb_http_request
-  ref: dcacd19e733c159462d678c4777a1e33795ca49b
+  ref: 62a31a37b992ee24c0232126184a49184d486b49
 
 docs:
   hello_world: |
