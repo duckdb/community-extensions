@@ -1,0 +1,100 @@
+extension:
+  name: sitting_duck
+  description: Parse and analyze source code ASTs from 20+ programming languages with tree-sitter grammars
+  version: 1.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/sitting_duck
+  ref: cc12ed96a0626e30d8c10b2cb7636c9a250f2224
+
+docs:
+  hello_world: |
+    -- Parse Python code and extract function definitions
+    SELECT name, type, depth
+    FROM parse_ast('
+    def hello():
+        return "hello world"
+    ', 'python')
+    WHERE type = 'function_definition';
+
+    -- Parse JavaScript from a file
+    SELECT type, name, start_row, end_row
+    FROM read_ast('src/**/*.js')
+    WHERE type IN ('function_declaration', 'class_declaration');
+
+    -- Analyze code complexity by counting AST nodes
+    SELECT file_path, COUNT(*) as node_count
+    FROM read_ast('src/**/*.py')
+    GROUP BY file_path
+    ORDER BY node_count DESC;
+
+    -- Find all function calls in TypeScript
+    SELECT name, file_path, start_row
+    FROM read_ast('app.ts', language := 'typescript')
+    WHERE type = 'call_expression';
+
+    -- Cross-language analysis
+    SELECT language, COUNT(*) as definitions
+    FROM read_ast(['src/**/*.py', 'src/**/*.js', 'src/**/*.ts', 'src/**/*.go'])
+    WHERE type LIKE '%definition%' OR type LIKE '%declaration%'
+    GROUP BY language;
+
+  extended_description: |
+    Sitting Duck is a DuckDB extension for parsing source code into Abstract Syntax Trees (ASTs)
+    using tree-sitter grammars. It provides a SQL interface to analyze code structure across
+    20+ programming languages.
+
+    **Core Table Functions:**
+    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows 
+    - `parse_ast(content, language)` - Parse source code strings into AST rows
+    
+    All pasring is highly flexible via parameters (see: https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/parameters.md)
+
+    **Supported Languages (27):**
+    | Category | Languages |
+    |----------|-----------|
+    | **Web** | JavaScript, TypeScript, HTML, CSS |
+    | **Systems** | C, C++, Go, Rust, Zig |
+    | **Scripting** | Python, Ruby, PHP, Lua, R, Bash |
+    | **Enterprise** | Java, C#, Kotlin, Swift |
+    | **Mobile** | Dart |
+    | **Infrastructure** | HCL (Terraform), JSON, TOML, GraphQL |
+    | **Documentation** | SQL, Markdown |
+
+    **AST Schema Fields:**
+    See: <https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/output-schema.md>
+    - `type` - Node type (e.g., function_definition, class_declaration)
+    - `name` - Extracted identifier name when applicable
+    - `file_path` - Source file path
+    - `language` - Detected or specified language
+    - `start_line`, `start_column` - Node start position
+    - `end_end`, `end_column` - Node end position
+    - `depth` - Nesting depth in the AST
+    - `parent_type` - Type of parent node
+    - `descendant_count` - Number of descendant nodes
+    - `peek` - Customizable preview of node source
+    - `semantic_type` - Normalized node type across all langauges
+    - `qualified_name` - Extracted name and available scope qualifiers
+    - `signature_type` - Extracted type string for variables, expressions, and functions as available
+    - `parameters` - Extraacted function parameters, arguments, parent clases, etc. as available
+    - `modifiers` - Class, variable, parameter modifiers as available
+    - `annotations` - Decorators and annotations as avaialble
+
+    See https://github.com/teaguesterling/sitting_duck/blob/main/docs/native_extraction_semantics.md for additional details
+    on "native" extraction for each langauge. Note: this is an active area of development.
+
+    **Key Features:**
+    - Automatic language detection from file extensions
+    - Glob pattern support for multi-file analysis
+    - Semantic type normalization across languages (https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/semantic-types.md)
+    - Native, locally aware annotation of key node types for easy handling (https://github.com/teaguesterling/sitting_duck/blob/main/docs/native_extraction_semantics.md)
+    - Efficient tree-sitter parsing with pre-generated grammars
+    - DuckDB native SQL integration for complex queries
+
+    Perfect for code analysis, refactoring tools, documentation generation,
+    codebase exploration, and AI-assisted development workflows.

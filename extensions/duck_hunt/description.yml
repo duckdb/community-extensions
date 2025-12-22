@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 45+ development tools with dynamic regexp patterns
-  version: 1.0.0
+  version: 1.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,44 +10,39 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: 03097cb28a19531259aa34d2eeb7d7a293a51ce6
+  ref: f5e22c5dbd5fc428b7cb3e0f33ded8c51591e522
 
 docs:
   hello_world: |
-    -- Parse build errors from a log file
-    SELECT file_path, line_number, severity, message
+    -- Parse build errors
+    SELECT file_path, line_number, message
     FROM read_duck_hunt_log('build.log', 'auto')
     WHERE status = 'ERROR';
-
-    -- Parse test results from string content
+    
+    -- Parse test results
     SELECT test_name, status, execution_time
-    FROM parse_duck_hunt_log('{"tests": [{"name": "test_auth", "outcome": "passed"}]}', 'pytest_json');
-
-    -- Use custom regexp pattern for any log format
+    FROM read_duck_hunt_log('pytest.json', 'pytest_json')
+    WHERE status = 'FAIL';
+    
+    -- Custom regex pattern
     SELECT severity, message
-    FROM parse_duck_hunt_log('ERROR: Connection failed
-    WARNING: Retrying...', 'regexp:(?P<severity>ERROR|WARNING):\s+(?P<message>.+)');
-
-    -- Analyze CI/CD workflow structure
-    SELECT workflow_name, job_name, step_name, step_status
-    FROM read_duck_hunt_workflow_log('github_actions.log', 'github_actions')
-    WHERE step_status = 'failure';
-
-    -- Generate status badges from results
-    SELECT status_badge(status) as badge, tool_name, message
-    FROM read_duck_hunt_log('build.log', 'auto');
-
-    -- Aggregate build health with badge
+    FROM parse_duck_hunt_log(
+      'ERROR: Connection failed\nWARNING: Retrying...',
+      'regexp:(?P<severity>ERROR|WARNING):\s+(?P<message>.+)'
+    );
+    
+    -- Build health badge
     SELECT status_badge(
-        COUNT(CASE WHEN status = 'ERROR' THEN 1 END),
-        COUNT(CASE WHEN status = 'WARNING' THEN 1 END)
-    ) as build_status
-    FROM read_duck_hunt_log('build.log', 'auto');
+      COUNT(*) FILTER (WHERE status = 'ERROR'),
+      COUNT(*) FILTER (WHERE status = 'WARNING')
+    ) FROM read_duck_hunt_log('build.log', 'auto');
 
   extended_description: |
     Duck Hunt is a comprehensive DuckDB extension for parsing and analyzing development tool outputs.
     It provides a unified SQL interface to query test results, build logs, linting output, and CI/CD
     pipeline data from 45+ tools and formats.
+
+    See: <https://github.com/teaguesterling/duck_hunt/blob/main/docs/field_mappings.md>
 
     **Core Table Functions:**
     - `read_duck_hunt_log(file, format)` - Parse tool outputs from files
@@ -61,6 +56,7 @@ docs:
     - `status_badge(errors, warnings, is_running)` - Badge with running state
 
     **Supported Formats (45+):**
+    See: <https://github.com/teaguesterling/duck_hunt/blob/main/docs/formats.md>
     - **Dynamic:** `regexp:<pattern>` - Custom patterns with named capture groups
     - **Test Frameworks:** pytest, Go test, Cargo test, JUnit, RSpec, Mocha/Chai, Google Test, NUnit/xUnit
     - **Linting Tools:** ESLint, RuboCop, Pylint, Flake8, MyPy, Clippy, SwiftLint, PHPStan, and more
@@ -69,6 +65,7 @@ docs:
     - **Debugging:** Valgrind, GDB/LLDB
 
     **Schema Fields (38):**
+    See: <https://github.com/teaguesterling/duck_hunt/blob/main/docs/schema.md>
     - Core: event_id, tool_name, event_type, file_path, line_number, column_number, status, severity, message
     - Error Analysis: error_fingerprint, similarity_score, pattern_id, root_cause_category
     - Workflow: workflow_name, job_name, step_name, workflow_status, job_status, step_status, duration
