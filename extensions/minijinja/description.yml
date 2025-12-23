@@ -13,4 +13,4 @@ extension:
   version: '2025120401'
 repo:
   github: query-farm/minijinja
-  ref: f27e100457e2f51a71d343442d0fbb956afb10dd
+  ref: dd070c55ee8a09aa6443f8bfe947a88aaee0315f
