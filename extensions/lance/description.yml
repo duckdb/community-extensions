@@ -1,0 +1,23 @@
+extension:
+  name: lance
+  description: Query Lance datasets directly from DuckDB.
+  version: 0.1.0
+  language: Rust & C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - Xuanwo
+  requires_toolchains: rust
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+
+repo:
+  github: lance-format/lance-duckdb
+  # v0.1.0
+  ref: a1c75b4fbbc9c90a33451c1756e2a6c5c1e3a72f
+
+docs:
+  hello_world: |
+    SELECT * FROM 's3://bucket/my_dataset.lance';
+  extended_description: |
+    Lance is a modern columnar data format optimized for ML/AI workloads, with native cloud storage support.
+    This extension brings Lance into a familiar SQL workflow.
