@@ -93,12 +93,12 @@ jobs:
 
   build:
     needs: prepare
-    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.4-andium
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
       duckdb_version: ${{ inputs.duckdb_version || 'v1.4.3' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
-      ci_tools_version: 'main'
+      ci_tools_version: 'v1.4-andium'
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       test_config: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
@@ -145,7 +145,7 @@ jobs:
     with:
       deploy_latest: true
       duckdb_version: ${{ inputs.duckdb_version || 'v1.4.3' }}
-      ci_tools_version: 'main'
+      ci_tools_version: 'v1.4-andium'
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
