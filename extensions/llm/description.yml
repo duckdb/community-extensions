@@ -4,7 +4,7 @@ docs:
 
     ## Features
 
-    - `llm()` table function with full provider/parameter control
+    - `llm()` table function with lateral join and named parameter support
     - `prompt()` scalar function with auto-detection of API keys
     - `llm_and_cache()` for immediate responses with caching
     - `llm_batch_and_cache()` for 50% cheaper batch API processing
@@ -80,7 +80,7 @@ extension:
   name: llm
   requires_extensions:
     - http_request
-  version: 0.1.0
+  version: 0.2.0
 repo:
   github: midwork-finds-jobs/duckdb-llm
-  ref: 2e815c1f1c77843e2e526f76f62bd95abd76a49e
+  ref: d3415f76c722737df109236591f9273d81a7b904
