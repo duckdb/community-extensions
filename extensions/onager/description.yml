@@ -1,6 +1,6 @@
 extension:
   name: onager
-  description: A Graph Analytics Toolbox for DuckDB
+  description: A DuckDB extension for graph data analytics
   version: 0.1.0-alpha.1
   language: Rust & C++
   build: cmake
