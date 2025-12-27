@@ -1,0 +1,31 @@
+extension:
+  name: duckgl
+  description: DuckDB geospatial visualization with deck.gl and MapLibre
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/duckgl # あなたのリポジトリ名に合わせて
+  ref: 738976be17d1e36294bc0a758e177644a9a69456
+
+docs:
+  hello_world: |
+    -- Start DuckGL server
+    SELECT duckgl_start('localhost', 8080);
+
+    -- Open http://localhost:8080 in browser
+
+    -- Stop server
+    SELECT duckgl_stop();
+
+  extended_description: |
+    DuckGL provides a web-based geospatial visualization interface for DuckDB.
+
+    ## Features
+    - Interactive map visualization using deck.gl and MapLibre
+    - GeoJSON layer rendering from spatial tables
+    - SQL query execution from browser UI
