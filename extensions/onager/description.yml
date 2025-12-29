@@ -24,6 +24,7 @@ docs:
 
     -- 3. Add nodes and edges
     SELECT onager_add_node('demo', 1);
+    SELECT onager_add_node('demo', 2);
     SELECT onager_add_edge('demo', 1, 2, 1.0);
 
     -- 4. Run analytics (e.g., node count)
