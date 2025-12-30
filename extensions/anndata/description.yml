@@ -1,7 +1,7 @@
 extension:
   name: anndata
   description: Read AnnData (.h5ad) files for single-cell genomics data analysis
-  version: 0.9.0
+  version: 0.11.4
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: honicky/anndata-duckdb-extension
-  ref: b3206219e67fa3621c0db29793b333aeb2f72e80
+  ref: ad29865ced25d7a0f71a01570747f2a884604120
 
 docs:
   hello_world: |
@@ -37,6 +37,9 @@ docs:
 
     ```sql
     ATTACH 'file.h5ad' AS name (TYPE ANNDATA);
+
+    -- With custom gene name/ID columns
+    ATTACH 'file.h5ad' AS name (TYPE ANNDATA, VAR_NAME_COLUMN 'gene_symbols', VAR_ID_COLUMN 'ensembl_id');
     ```
 
     ## Available Tables
