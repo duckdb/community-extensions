@@ -1,0 +1,62 @@
+extension:
+  name: mlpack
+  description: Connecting duckdb to the mlpack C++ machine learning library 
+  version: 0.0.5
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw;windows_amd64;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "fortran;omp"    
+  maintainers:
+    - eddelbuettel
+
+repo:
+  github: eddelbuettel/duckdb-mlpack
+  ref: 1c1f71363b06afcf376e538a7b5e78ebfc7f8c0a
+
+docs:
+  hello_world: |
+    -- Perform adaBoost (using weak learner 'Perceptron' by default)
+    -- Read 'features' into 'X', 'labels' into 'Y', use optional parameters
+    -- from 'Z', and prepare model storage in 'M'
+    CREATE TABLE X AS SELECT * FROM read_csv("https://eddelbuettel.github.io/duckdb-mlpack/data/iris.csv");
+    CREATE TABLE Y AS SELECT * FROM read_csv("https://eddelbuettel.github.io/duckdb-mlpack/data/iris_labels.csv");
+    CREATE TABLE Z (name VARCHAR, value VARCHAR);
+    INSERT INTO Z VALUES ('iterations', '50'), ('tolerance', '1e-7');
+    CREATE TABLE M (key VARCHAR, json VARCHAR);
+
+    -- Train model for 'Y' on 'X' using parameters 'Z', store in 'M'
+    CREATE TEMP TABLE A AS SELECT * FROM mlpack_adaboost("X", "Y", "Z", "M");
+
+    -- Count by predicted group
+    SELECT COUNT(*) as n, predicted FROM A GROUP BY predicted;
+
+    -- Model 'M' can be used to predict
+    CREATE TABLE N (x1 DOUBLE, x2 DOUBLE, x3 DOUBLE, x4 DOUBLE);
+    -- inserting approximate column mean values
+    INSERT INTO N VALUES (5.843, 3.054, 3.759, 1.199);
+    -- inserting approximate column mean values, min values, max values
+    INSERT INTO N VALUES (5.843, 3.054, 3.759, 1.199), (4.3, 2.0, 1.0, 0.1), (7.9, 4.4, 6.9, 2.5);
+    -- and this predict one element each
+    SELECT * FROM mlpack_adaboost_pred("N", "M");
+
+  extended_description: |
+    ### Supervised Learning
+    The mlpack extension allows to fit (or train) and predict (or classify) from the models implemented, currently adaBoost, random forests as well as (regularized) linear and logistic regression.
+    The format is the same for these four methods: four tables, say, "X", "Y", "Z" and "M" provide input for, respectively, features "X", labels "Y", optional parameters varying by model in "Z" as well as an output table "M" for the JSON-serialized model.
+    For all four methods, following a model fit (or training), a prediction (or classification) can be made using "M" and new predictor values "N" as shown in the example.
+    All these "fit" (or "train") methods take four parameter tables, all "predict" methods take two.
+
+    ### Unsupervised Learning
+    A kmeans clustering method is also available.
+    It uses three tables for data, parameters and results.
+  
+    ### General Information
+    A pair of paramaters "mlpack_verbose" (to show additional data) and "mlpack_silent" (to suppress display of minimal summaries) can also be set.
+
+    The implementation still stresses the 'minimal' part of 'a (initial) MVP demo' (where MVP stands for 'minimally viable product').
+    It wraps five supervised and unsupervised machine learning methods, and provides Linux and macOS builds.
+    More methods, options or parameters can be added quite easily.
+    As interfaces may change while we may work out how to automate interface generation from mlpack itself, it should be considered experimental.
+
+    For more, please see the [repo](https://github.com/eddelbuettel/duckdb-mlpack).

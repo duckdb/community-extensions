@@ -1,0 +1,14 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_json_schema.html).
+extension:
+  build: cmake
+  description: Adds support for validating JSON data with JSON schemas.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+  - rustyconover
+  name: json_schema
+  version: '2025120401'
+repo:
+  github: query-farm/json_schema
+  ref: d506aff832d137a4eb3fa826a860e5808bf657f1

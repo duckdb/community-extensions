@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Mooncake-Labs/duckdb_mooncake
-  ref: d30535457a6a2fbdecb5b0cd869b543606902fc6
+  ref: bd9e5f3ade4ae41d5d13d9cfd4b37b09b39996ab
 
 docs:
   hello_world: |

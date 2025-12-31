@@ -1,6 +1,5 @@
 docs:
-  extended_description: |
-    For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_shellfs.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_shellfs.html).
 extension:
   build: cmake
   description: Allow shell commands to be used for input and output
@@ -8,10 +7,10 @@ extension:
   language: C++
   license: MIT
   maintainers:
-    - rustyconover
+  - rustyconover
   name: shellfs
   requires_toolchains: python3
-  version: 2025091601
+  version: '2025120401'
 repo:
   github: query-farm/shellfs
-  ref: ee2ce42e3689fc6be35f88cfefc7cf80f2e7648e
+  ref: 4fef6d3d58068ce8ef6ed002441e0eca002cf372

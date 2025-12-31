@@ -1,0 +1,12 @@
+function,description,comment,example
+mlpack_adaboost_train,use adaboost to train and store a model,"parameters 'iterations', 'tolerance', 'perceptronIter' and 'silent'",""
+mlpack_adaboost_pred,predict classification using stored adaboost stored model,"",""
+mlpack_linear_regression_fit,fit and store linear regression model,"parameters 'lambda', 'intercept' and 'silent'",""
+mlpack_linear_regression_pred,predict using stored linear regression model,"",""
+mlpack_logistic_regression_fit,fit and store logistic regression model,"parameters 'lambda', 'intercept' and 'silent'",""
+mlpack_logistic_regression_pred,predict classification using stored logistic regression model,"",""
+mlpack_random_forest_train,use random forest to train and store a model,"parameters 'nclasses', 'ntrees', 'seed', 'threads' and 'silent'",""
+mlpack_random_forest_pred,predict classification using stored random forest model,"",""
+mlpack_kmeans,use kmeans unsupervised clustering,"parameters 'clusters', and 'iterations'",""
+mlpack_mlpack_version,returns the version string for the mlpack version used,"",""
+mlpack_armadillo_version,returns the version string for the armadillo version used,"",""

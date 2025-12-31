@@ -1,0 +1,16 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_minijinja.html).
+extension:
+  build: cmake
+  description: Adds templating to DuckDB, enabling dynamic generation of text, HTML,
+    and reports directly within SQL queries using the MiniJinja engine.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+  - rustyconover
+  name: minijinja
+  requires_toolchains: rust
+  version: '2025120401'
+repo:
+  github: query-farm/minijinja
+  ref: dd070c55ee8a09aa6443f8bfe947a88aaee0315f

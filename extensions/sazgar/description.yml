@@ -1,0 +1,70 @@
+extension:
+  name: sazgar
+  description: Comprehensive system monitoring - 20 table functions for CPU, memory, disk, network, processes, ports, services, Docker, GPU, and more
+  version: 0.3.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - Angelerator
+
+repo:
+  github: Angelerator/Sazgar
+  ref: aa5d876f9dfb8218d5aed9ecdf8b7798aebd693c
+
+docs:
+  hello_world: |
+    -- Get comprehensive system overview
+    SELECT * FROM sazgar_system();
+
+    -- Memory usage in GB
+    SELECT * FROM sazgar_memory(unit := 'GB');
+
+    -- Swap memory
+    SELECT * FROM sazgar_swap('GiB');
+
+    -- Per-core CPU usage
+    SELECT * FROM sazgar_cpu_cores();
+
+    -- Open network ports
+    SELECT * FROM sazgar_ports('') WHERE local_port < 1024;
+
+    -- Docker containers
+    SELECT * FROM sazgar_docker();
+
+    -- System services
+    SELECT * FROM sazgar_services() WHERE status = 'running' LIMIT 10;
+
+    -- System uptime
+    SELECT * FROM sazgar_uptime();
+  extended_description: |
+    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system resource monitoring with 20 table functions.
+
+    **Functions:**
+    - `sazgar_system()` - Complete system overview
+    - `sazgar_os()` - Operating system information
+    - `sazgar_memory(unit)` - RAM usage with unit conversion
+    - `sazgar_swap(unit)` - Swap/virtual memory info
+    - `sazgar_cpu()` - CPU information
+    - `sazgar_cpu_cores()` - Per-core CPU usage
+    - `sazgar_disks(unit)` - Disk usage
+    - `sazgar_network()` - Network interface statistics
+    - `sazgar_ports(filter)` - Open network ports and connections
+    - `sazgar_processes()` - Running processes
+    - `sazgar_services()` - System services (launchctl/systemd)
+    - `sazgar_docker()` - Docker containers
+    - `sazgar_load()` - System load averages
+    - `sazgar_uptime()` - Detailed uptime information
+    - `sazgar_users()` - System users
+    - `sazgar_environment(filter)` - Environment variables
+    - `sazgar_components()` - Temperature sensors
+    - `sazgar_gpu()` - NVIDIA GPU info (optional)
+    - `sazgar_fds(pid)` - File descriptors (Linux)
+    - `sazgar_version()` - Extension version
+
+    **Unit conversion** supports: bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
+
+    Cross-platform: Linux, macOS, Windows (full support), Android, iOS (partial support)
+

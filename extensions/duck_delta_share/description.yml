@@ -1,0 +1,14 @@
+extension:
+  name: duck_delta_share
+  description: DuckDB Extension for Delta Sharing
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw"
+  maintainers:
+    - changmct
+
+repo:
+  github: cwiq-os/duck_delta_share
+  ref: cb54b8a94e9803c4d7c29813c1f20db86402c497
