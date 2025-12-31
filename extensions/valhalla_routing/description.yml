@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-valhalla-routing
-  ref: d5ae73569168af6777f15db098dd3e6da6583c92
+  ref: 49dc8e86c9e866da9ce20e03a21dcbbf70f2d64e
 
 docs:
   hello_world: |
