@@ -11,7 +11,7 @@ extension:
   vcpkg_commit: dd3097e305afa53f7b4312371f62058d2e665320
 repo:
   github: teaguesterling/duckdb_webbed
-  ref: 3320a688f3c35101d13af19087297c464ac9bf1c
+  ref: e65b780dcbfadb5a57f68cee4202249ec71cb164
 
 docs:
   hello_world: |
