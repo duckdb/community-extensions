@@ -1,6 +1,6 @@
 extension:
   name: sitting_duck
-  description: Parse and analyze source code ASTs from 20+ programming languages with tree-sitter grammars
+  description: Parse and analyze source code ASTs from 25+ programming languages with tree-sitter grammars and pattern matching
   version: 1.3.0
   language: C++
   build: cmake
@@ -10,52 +10,92 @@ extension:
 
 repo:
   github: teaguesterling/sitting_duck
-  ref: 49b1d1cb5758663d816389c47b634361732d8feb
+  ref: 63dece964bf33da57c20703ad3d8073036e8d837
 
 docs:
   hello_world: |
-    -- Parse Python code and extract function definitions
-    SELECT name, type, depth
+    -- Parse Python code and find function definitions
+    SELECT name, start_line, peek
     FROM parse_ast('
     def hello():
         return "hello world"
+    def greet(name):
+        print(f"Hello, {name}!")
+        return name
     ', 'python')
-    WHERE type = 'function_definition';
+    WHERE is_function_definition(semantic_type);
 
-    -- Parse JavaScript from a file
-    SELECT type, name, start_row, end_row
-    FROM read_ast('src/**/*.js')
-    WHERE type IN ('function_declaration', 'class_declaration');
+    -- Pattern matching: find eval() calls and capture arguments
+    SELECT captures['X'].peek as dangerous_input, file_path, start_line
+    FROM ast_match('code', 'eval(__X__)', 'python');
 
-    -- Analyze code complexity by counting AST nodes
-    SELECT file_path, COUNT(*) as node_count
-    FROM read_ast('src/**/*.py')
-    GROUP BY file_path
-    ORDER BY node_count DESC;
+    -- Pattern matching with variadic wildcards
+    SELECT captures['F'].name as func_name, captures['Y'].peek as return_value
+    FROM ast_match('code',
+        'def __F__(__):
+        %__<BODY*>__%
+        return __Y__', 'python');
 
-    -- Find all function calls in TypeScript
-    SELECT name, file_path, start_row
-    FROM read_ast('app.ts', language := 'typescript')
-    WHERE type = 'call_expression';
+    -- Security audit: find dangerous function calls
+    SELECT * FROM ast_security_audit('code')
+    WHERE risk_level = 'high';
 
-    -- Cross-language analysis
-    SELECT language, COUNT(*) as definitions
-    FROM read_ast(['src/**/*.py', 'src/**/*.js', 'src/**/*.ts', 'src/**/*.go'])
-    WHERE type LIKE '%definition%' OR type LIKE '%declaration%'
+    -- Function complexity metrics
+    SELECT name, cyclomatic, max_depth, lines
+    FROM ast_function_metrics('code')
+    WHERE cyclomatic > 10;
+
+    -- Cross-language analysis with semantic types
+    SELECT language, COUNT(*) as functions
+    FROM read_ast(['src/**/*.py', 'src/**/*.js', 'src/**/*.go'])
+    WHERE is_function_definition(semantic_type)
     GROUP BY language;
 
   extended_description: |
     Sitting Duck is a DuckDB extension for parsing source code into Abstract Syntax Trees (ASTs)
-    using tree-sitter grammars. It provides a SQL interface to analyze code structure across
-    20+ programming languages.
+    using tree-sitter grammars. It provides a powerful SQL interface to analyze, search, and
+    understand code structure across 25+ programming languages.
 
-    **Core Table Functions:**
-    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows 
-    - `parse_ast(content, language)` - Parse source code strings into AST rows
-    
-    All pasring is highly flexible via parameters (see: https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/parameters.md)
+    **Documentation:** https://sitting-duck.readthedocs.io/
 
-    **Supported Languages (27):**
+    ## Core Features
+
+    **Pattern Matching (New in v1.3.0):**
+    Find code structures using pattern-by-example matching with wildcards:
+    ```sql
+    -- Find all eval() calls
+    SELECT * FROM ast_match('code', 'eval(__X__)', 'python');
+
+    -- Variadic patterns for flexible matching
+    SELECT * FROM ast_match('code', 'def __F__(__): %__<BODY*>__% return __Y__', 'python');
+    ```
+    See: https://sitting-duck.readthedocs.io/en/latest/guide/pattern-matching/
+
+    **Table Functions:**
+    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows
+    - `parse_ast(content, language)` - Parse source code strings
+    - `ast_match(table, pattern, lang)` - Pattern matching for code search
+
+    **Analysis Macros:**
+    - `ast_function_metrics(table)` - Cyclomatic complexity, nesting depth, line counts
+    - `ast_security_audit(table)` - Detect eval, exec, pickle, SQL injection patterns
+    - `ast_dead_code(table)` - Find potentially unused functions/classes
+    - `ast_nesting_analysis(table)` - Identify deeply nested code
+    - `ast_definitions(table)` - All named definitions with categories
+
+    **Tree Navigation:**
+    - `ast_descendants(table, node_id)` - Get subtree (O(1) using descendant_count)
+    - `ast_ancestors(table, node_id)` - Path from node to root
+    - `ast_children(table, node_id)` - Immediate children
+    - `ast_function_scope(table, node_id)` - Function body excluding nested functions
+
+    **Semantic Predicates:**
+    Cross-language filtering with normalized types:
+    - `is_function_definition(st)`, `is_class_definition(st)`, `is_variable_definition(st)`
+    - `is_function_call(st)`, `is_literal(st)`, `is_conditional(st)`, `is_loop(st)`
+
+    ## Supported Languages (27)
+
     | Category | Languages |
     |----------|-----------|
     | **Web** | JavaScript, TypeScript, HTML, CSS |
@@ -63,38 +103,28 @@ docs:
     | **Scripting** | Python, Ruby, PHP, Lua, R, Bash |
     | **Enterprise** | Java, C#, Kotlin, Swift |
     | **Mobile** | Dart |
-    | **Infrastructure** | HCL (Terraform), JSON, TOML, GraphQL |
-    | **Documentation** | SQL, Markdown |
+    | **Data** | SQL, JSON, TOML, GraphQL, HCL |
+    | **Documentation** | Markdown |
 
-    **AST Schema Fields:**
-    See: <https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/output-schema.md>
-    - `type` - Node type (e.g., function_definition, class_declaration)
-    - `name` - Extracted identifier name when applicable
-    - `file_path` - Source file path
-    - `language` - Detected or specified language
-    - `start_line`, `start_column` - Node start position
-    - `end_end`, `end_column` - Node end position
-    - `depth` - Nesting depth in the AST
-    - `parent_type` - Type of parent node
-    - `descendant_count` - Number of descendant nodes
-    - `peek` - Customizable preview of node source
-    - `semantic_type` - Normalized node type across all langauges
-    - `qualified_name` - Extracted name and available scope qualifiers
-    - `signature_type` - Extracted type string for variables, expressions, and functions as available
-    - `parameters` - Extraacted function parameters, arguments, parent clases, etc. as available
-    - `modifiers` - Class, variable, parameter modifiers as available
-    - `annotations` - Decorators and annotations as avaialble
+    ## AST Schema
 
-    See https://github.com/teaguesterling/sitting_duck/blob/main/docs/native_extraction_semantics.md for additional details
-    on "native" extraction for each langauge. Note: this is an active area of development.
+    Each parsed node includes:
+    - `type`, `name` - Node type and extracted identifier
+    - `semantic_type` - Normalized type for cross-language queries
+    - `file_path`, `language` - Source location
+    - `start_line`, `end_line`, `depth` - Position and nesting
+    - `descendant_count` - For O(1) subtree queries
+    - `peek` - Configurable source preview
+    - `qualified_name`, `signature_type`, `parameters`, `modifiers`, `annotations` - Native extraction
 
-    **Key Features:**
-    - Automatic language detection from file extensions
-    - Glob pattern support for multi-file analysis
-    - Semantic type normalization across languages (https://github.com/teaguesterling/sitting_duck/blob/main/docs/api/semantic-types.md)
-    - Native, locally aware annotation of key node types for easy handling (https://github.com/teaguesterling/sitting_duck/blob/main/docs/native_extraction_semantics.md)
-    - Efficient tree-sitter parsing with pre-generated grammars
-    - DuckDB native SQL integration for complex queries
+    Full schema: https://sitting-duck.readthedocs.io/en/latest/api/output-schema/
 
-    Perfect for code analysis, refactoring tools, documentation generation,
-    codebase exploration, and AI-assisted development workflows.
+    ## Use Cases
+
+    - **Security auditing** - Find dangerous patterns (eval, exec, SQL injection)
+    - **Code quality** - Complexity metrics, dead code detection, nesting analysis
+    - **Refactoring** - Pattern-based code search across large codebases
+    - **Documentation** - Extract function signatures and structure
+    - **AI workflows** - Structured code understanding for LLM tools
+
+    **GitHub:** https://github.com/teaguesterling/sitting_duck
