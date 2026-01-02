@@ -13,8 +13,7 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_markdown
-  ref: b0e686c928089c4061ea1a1b6051d5937a452b70
-
+  ref: '45c3a4a39018eb2047227911b83feae1fca118b2'
 
 docs:
   hello_world: |
