@@ -1,7 +1,7 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.3.2
+  version: 1.3.3
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_markdown
-  ref: 32b53214b4f6ce9cca3ed67488325ce67da6d3bd
+  ref: b0e686c928089c4061ea1a1b6051d5937a452b70
 
 
 docs:
