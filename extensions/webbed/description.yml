@@ -8,10 +8,10 @@ extension:
   requires_toolchains: "vcpkg"
   maintainers:
     - teaguesterling
-  vcpkg_commit: dd3097e305afa53f7b4312371f62058d2e665320
+  vcpkg_commit: '68a1c387f660632f2f65cdb7e8cd093a08840e5d'
 repo:
   github: teaguesterling/duckdb_webbed
-  ref: e65b780dcbfadb5a57f68cee4202249ec71cb164
+  ref: 'ad79f6b9d59852b3779fa34f09d968a33dd2aeed'
 
 docs:
   hello_world: |
