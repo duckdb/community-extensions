@@ -1,0 +1,58 @@
+extension:
+  name: rusty_sheet
+  description: An Excel/WPS/OpenDocument Spreadsheets file reader for DuckDB
+  version: 0.4.1
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - redraiment
+
+repo:
+  github: redraiment/rusty-sheet
+  ref: v0.4.1
+
+docs:
+  hello_world: |
+    -- Read first sheet of spreadsheet with headers
+    FROM read_sheet('data.xlsx');
+    
+    -- Read without headers
+    FROM read_sheet('data.xlsx', header=false);
+    
+    -- Read specific worksheet
+    FROM read_sheet('workbook.xlsx', sheet='Sheet2');
+    
+    -- Analyze more rows (deafult 10) to detect column types
+    FROM analyze_sheet('data.xlsx', analyze_rows=20);
+    
+    -- Override specific column types (others auto-detected)
+    FROM read_sheet('data.xlsx', columns={'id': 'bigint'});
+    
+    -- Read specific data range (Excel-style notation)
+    FROM read_sheet('data.xlsx', range='A2:E100');
+    
+    -- Read all worksheets in multiple file types with different extensions
+    FROM read_sheets(['*.xlsx', '*.ods', '*.et']);
+    
+    -- Analyze with wildcard pattern
+    FROM analyze_sheets(['*.xlsx'], sheets=['Sheet*']);
+    
+    -- Match specific worksheets only in specific file types
+    FROM read_sheets(['*.xlsx'], sheets=['*.xlsx=Sheet*']);
+    
+    -- Track data sources with custom column names
+    FROM read_sheets(['*.xlsx'], file_name_column='file', sheet_name_column='sheet');
+    
+    -- Union data by column name instead of position
+    FROM read_sheets(['*.xlsx'], union_by_name=true);
+
+    -- With custom HTTP headers: must be a persistent SECRET
+    CREATE PERSISTENT SECRET http_auth (TYPE HTTP, BEARER_TOKEN 'token');
+    FROM read_sheet('https://example.com/data.xlsx');
+
+  extended_description: |
+    The DuckDB rusty-sheet extension that enables reading Excel, WPS and OpenDocument spreadsheet files directly within SQL queries. This extension provides seamless integration for analyzing spreadsheet data using DuckDB's powerful SQL engine.
+    For detailed setup and usage instructions, visit the docs at [rusty-sheet](https://github.com/redraiment/rusty-sheet).

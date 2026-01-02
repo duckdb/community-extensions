@@ -1,0 +1,64 @@
+extension:
+  name: yardstick
+  description: Measure-aware SQL implementing Julian Hyde's "Measures in SQL" paper
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: "rust"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64;windows_amd64_mingw"
+  maintainers:
+    - sidequery
+
+repo:
+  github: sidequery/yardstick
+  ref: fe79431b757c2517d459ce2cfa9b5a7b4f0d8399
+
+docs:
+  hello_world: |
+    -- Create a view with measures
+    CREATE VIEW sales_v AS
+    SELECT
+        year,
+        region,
+        SUM(amount) AS MEASURE revenue,
+        COUNT(*) AS MEASURE order_count
+    FROM sales
+    GROUP BY year, region;
+
+    -- Query with AGGREGATE() and AT modifiers
+    SEMANTIC SELECT
+        year,
+        region,
+        AGGREGATE(revenue) AS revenue,
+        AGGREGATE(revenue) AT (ALL region) AS year_total,
+        AGGREGATE(revenue) / AGGREGATE(revenue) AT (ALL region) AS pct_of_year
+    FROM sales_v
+    GROUP BY year, region;
+
+  extended_description: |
+    `yardstick` implements Julian Hyde's "Measures in SQL" paper ([arXiv:2406.00251](https://arxiv.org/abs/2406.00251)), adding measure-aware SQL to DuckDB.
+
+    Measures are aggregations that know how to re-aggregate themselves when the query context changes. This enables:
+
+    **Percent of total** calculations without CTEs or window functions:
+    ```sql
+    SEMANTIC SELECT region, AGGREGATE(revenue) / AGGREGATE(revenue) AT (ALL) AS pct
+    FROM sales_v GROUP BY region;
+    ```
+
+    **Year-over-year comparisons** with simple syntax:
+    ```sql
+    SEMANTIC SELECT year, AGGREGATE(revenue) AT (SET year = year - 1) AS prior_year
+    FROM sales_v GROUP BY year;
+    ```
+
+    **AT Modifiers**:
+    - `AT (ALL)` - Grand total across all dimensions
+    - `AT (ALL dim)` - Total excluding specific dimension
+    - `AT (SET dim = val)` - Fix dimension to specific value
+    - `AT (SET dim = expr)` - Fix dimension to expression
+    - `AT (WHERE cond)` - Pre-aggregation filter
+    - `AT (VISIBLE)` - Use query's WHERE clause
+
+    For more details, visit the [extension repository](https://github.com/sidequery/yardstick).

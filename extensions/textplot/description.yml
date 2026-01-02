@@ -1,0 +1,16 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_textplot.html).
+extension:
+  build: cmake
+  description: Enables text-based data visualization directly in SQL queries, including
+    ASCII/Unicode bar charts, density plots, and sparklines for lightweight analytics
+    and dashboards.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+  - rustyconover
+  name: textplot
+  version: '2025101201'
+repo:
+  github: query-farm/textplot
+  ref: d8ab4d5dfa52f70cf059a9e23cb3b90228f647ad

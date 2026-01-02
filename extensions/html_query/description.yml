@@ -1,0 +1,111 @@
+extension:
+  name: html_query
+  description: Query HTML using CSS selectors, extract JSON from LD+JSON and JavaScript variables
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb_html_query
+  ref: 64efcbce6263f7b186997eb6fa8722fa4bd014bf
+
+docs:
+  hello_world: |
+    -- Extract first matching element
+    SELECT html_query('<html><title>Hello World</title></html>', 'title', true);
+    ┌─────────────┐
+    │ html_query  │
+    │   varchar   │
+    ├─────────────┤
+    │ Hello World │
+    └─────────────┘
+
+    -- Extract all matching elements as JSON array
+    SELECT html_query_all('<div><p>First</p><p>Second</p></div>', 'p', true);
+    ┌────────────────────┐
+    │   html_query_all   │
+    │      varchar       │
+    ├────────────────────┤
+    │ ["First","Second"] │
+    └────────────────────┘
+
+    -- Extract JSON from LD+JSON scripts (returns array)
+    SELECT html_extract_json(
+      '<script type="application/ld+json">{"name":"Product"}</script>',
+      'script[type="application/ld+json"]'
+    );
+    ┌──────────────────────────┐
+    │    html_extract_json     │
+    │         varchar          │
+    ├──────────────────────────┤
+    │ [{"name":"Product"}]     │
+    └──────────────────────────┘
+
+  extended_description: |
+    html_query is a DuckDB extension for querying HTML using CSS selectors.
+
+    ## Functions
+
+    | Function | Returns | Description |
+    |----------|---------|-------------|
+    | `html_query(html, selector?, text_only?)` | VARCHAR | First matching element |
+    | `html_query_all(html, selector?, text_only?)` | JSON array | All matching elements |
+    | `html_extract_json(html, selector, var_pattern?)` | JSON array | JSON from script tags |
+
+    ### `html_query(html, selector, text_only)`
+
+    Extract first HTML element matching CSS selector.
+
+    **Parameters:**
+    - `html` (VARCHAR): HTML content to parse
+    - `selector` (VARCHAR, optional): CSS selector (default: `:root`)
+    - `text_only` (BOOLEAN, optional): Extract text only (default: false)
+
+    **Returns:** VARCHAR - First matched element, or NULL if no match
+
+    **Examples:**
+    ```sql
+    SELECT html_query(html, 'title', true) FROM pages;
+    SELECT html_query(html, 'p:last-child', true) FROM pages;
+    ```
+
+    ### `html_query_all(html, selector, text_only)`
+
+    Extract all HTML elements matching CSS selector as JSON array.
+
+    **Examples:**
+    ```sql
+    SELECT html_query_all(html, 'p', true) FROM pages;
+    -- Returns: ["First paragraph", "Second paragraph"]
+
+    SELECT html_query_all(html, 'a', true)->>0 FROM pages;
+    -- Access first element
+    ```
+
+    ### `html_extract_json(html, selector, var_pattern)`
+
+    Extract JSON from HTML scripts. Supports LD+JSON and JavaScript variables.
+    Always returns a JSON array.
+
+    **Examples:**
+    ```sql
+    -- Extract LD+JSON (decodes HTML entities)
+    SELECT html_extract_json(html, 'script[type="application/ld+json"]')->0 FROM pages;
+
+    -- Extract JS variable (decodes hex escapes like \x22)
+    SELECT html_extract_json(html, 'script', 'var config')->0 FROM pages;
+    ```
+
+    ## CSS Selectors
+
+    - Tag: `div`, `p`, `a`
+    - Class: `.classname`
+    - ID: `#idname`
+    - Attribute: `[href]`, `[type="application/ld+json"]`
+    - Pseudo: `:first-child`, `:last-child`, `:nth-child(n)`
+    - Combinators: `div > p`, `div p`

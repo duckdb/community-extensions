@@ -1,0 +1,290 @@
+extension:
+  name: dns
+  description: The DNS Extension enables DNS lookups and reverse DNS lookups from within DuckDB
+  version: 0.3.1
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - tobilg
+
+repo:
+  github: tobilg/duckdb-dns
+  ref: caa526d57ea965a6144ab8c1d50ea0dad467edb3
+
+docs:
+  hello_world: |
+    -- Performs a forward DNS lookup to resolve a hostname to its first IPv4 address.
+    D SELECT dns_lookup('google.com') as ip;
+    ┌─────────────────┐
+    │       ip        │
+    │     varchar     │
+    ├─────────────────┤
+    │ 142.251.209.142 │
+    └─────────────────┘
+
+    -- Performs a DNS lookup to resolve all TXT records for a hostname.
+    D SELECT unnest(dns_lookup_all('google.com', 'TXT')) as txt_record order by txt_record ASC LIMIT 5;
+    ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+    │                                          txt_record                                           │
+    │                                            varchar                                            │
+    ├───────────────────────────────────────────────────────────────────────────────────────────────┤
+    │ MS=E4A68B9AB2BB9670BCE15412F62916164C0B20BB                                                   │
+    │ apple-domain-verification=30afIBcvSuDV2PLX                                                    │
+    │ cisco-ci-domain-verification=47c38bc8c4b74b7233e9053220c1bbe76bcc1cd33c7acf7acd36cd6a5332004b │
+    │ docusign=05958488-4752-4ef2-95eb-aa7ba8a3bd0e                                                 │
+    │ docusign=1b0a6754-49b1-4db5-8540-d2c12664b289                                                 │
+    └───────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    -- Performs a reverse DNS lookup to resolve an IP address to its hostname.
+    D SELECT reverse_dns_lookup('8.8.8.8') as hostname;
+    ┌────────────┐
+    │  hostname  │
+    │  varchar   │
+    ├────────────┤
+    │ dns.google │
+    └────────────┘
+
+    -- Returns all TXT records for a hostname as a table.
+    D SELECT * FROM corey('lastweekinaws.com') order by txt_record ASC;
+    ┌───────────────────────────────────────────────────────────────────────────────┐
+    │                                  txt_record                                   │
+    │                                    varchar                                    │
+    ├───────────────────────────────────────────────────────────────────────────────┤
+    │ google-site-verification=2cfGboK6oBt4GlzI62WGmKWI_SjoDEKRSaAgmZsQZlo          │
+    │ google-site-verification=FRrs1UZEfmPke4kYWmYH0wcOPwcMLM0pphvpyhGCa2w          │
+    │ google-site-verification=FuHv5niDbZdqLlXOlvyqokvFJDso9WtDAE3-zHJgz40          │
+    │ google-site-verification=VE5d97aE3ZCw4GzBHIKKeUGKaCYs2evsGq3QCM0t87I          │
+    │ v=spf1 include:_spf.google.com include:sendgrid.net include:spf.revue.co ~all │
+    └───────────────────────────────────────────────────────────────────────────────┘
+
+    -- Sets the DNS resolver to use for lookups (e.g. 'google' or 'cloudflare').
+    -- Hint: The C-API doesn't currently support using SET commands. The usage of a SELECT is a workaround.
+    D SELECT set_dns_config('google');
+    ┌───────────────────────────────────────┐
+    │       set_dns_config('google')        │
+    │                varchar                │
+    ├───────────────────────────────────────┤
+    │ DNS configuration updated to 'google' │
+    └───────────────────────────────────────┘
+
+    -- Set concurrency limit to 250 (default: 50)
+    D SELECT set_dns_concurrency_limit(250);
+    ┌───────────────────────────────────────┐
+    │    set_dns_concurrency_limit(250)     │
+    │                varchar                │
+    ├───────────────────────────────────────┤
+    │ DNS concurrency limit updated to 250  │
+    └───────────────────────────────────────┘
+
+    -- Set DNS cache size to 8192 (default: 1000)
+    D SELECT set_dns_cache_size(8192);
+    ┌────────────────────────────────┐
+    │    set_dns_cache_size(8192)    │
+    │            varchar             │
+    ├────────────────────────────────┤
+    │ DNS cache size updated to 8192 │
+    └────────────────────────────────┘
+    
+  extended_description: |
+    This community extension implements DNS (reverse) lookup functions for DuckDB.
+
+    ## Functions
+
+    ### `dns_lookup(hostname, [record_type])`
+
+    Performs a forward DNS lookup to resolve a hostname to its first IPv4 address, or to the first record of a specified DNS record type.
+
+    **Parameters:**
+    - `hostname` (VARCHAR): The hostname to resolve
+    - `record_type` (VARCHAR, optional): The DNS record type to query. Supported types: `A`, `AAAA`, `CNAME`, `MX`, `NS`, `PTR`, `SOA`, `SRV`, `TXT`, `CAA`
+
+    **Returns:** VARCHAR - The first resolved record (IPv4 address if no record_type specified, or first record of specified type), or NULL on error
+
+    **Examples:**
+    ```sql
+    -- Get first IPv4 address (default behavior)
+    SELECT dns_lookup('google.com');
+    -- Returns: 142.250.181.206 (or similar)
+
+    -- Get TXT record
+    SELECT dns_lookup('_dmarc.google.com', 'TXT');
+    -- Returns: v=DMARC1; p=reject; rua=mailto:mailauth-reports@google.com
+
+    -- Get MX record
+    SELECT dns_lookup('google.com', 'MX');
+    -- Returns: 10 smtp.google.com.
+
+    -- Get CNAME record
+    SELECT dns_lookup('www.github.com', 'CNAME');
+    -- Returns: github.com.
+    ```
+
+    ### `dns_lookup_all(hostname, [record_type])`
+
+    Performs a forward DNS lookup to resolve a hostname to all its IPv4 addresses, or to all records of a specified DNS record type.
+
+    **Parameters:**
+    - `hostname` (VARCHAR): The hostname to resolve
+    - `record_type` (VARCHAR, optional): The DNS record type to query. Supported types: `A`, `AAAA`, `CNAME`, `MX`, `NS`, `PTR`, `SOA`, `SRV`, `TXT`, `CAA`
+
+    **Returns:** VARCHAR[] - An array of all resolved records (all IPv4 addresses if no record_type specified, or all records of specified type), or NULL on error
+
+    **Examples:**
+    ```sql
+    -- Get all IPv4 addresses (default behavior)
+    SELECT dns_lookup_all('cloudflare.com');
+    -- Returns: [104.16.132.229, 104.16.133.229] (or similar)
+
+    -- Get all MX records
+    SELECT dns_lookup_all('google.com', 'MX');
+    -- Returns: [10 smtp.google.com.]
+
+    -- Get all TXT records
+    SELECT dns_lookup_all('google.com', 'TXT');
+    -- Returns: [v=spf1 include:_spf.google.com ~all, google-site-verification=..., ...]
+
+    -- Unnest to get individual records
+    SELECT unnest(dns_lookup_all('google.com', 'TXT')) as txt_record;
+    ```
+
+    ### `reverse_dns_lookup(ip_address)`
+
+    Performs a reverse DNS lookup to resolve an IPv4 address to a hostname.
+
+    **Parameters:**
+    - `ip_address` (VARCHAR): The IPv4 address to resolve (must be valid IPv4 format)
+
+    **Returns:** VARCHAR - The resolved hostname, or NULL on error
+
+    **Example:**
+    ```sql
+    SELECT reverse_dns_lookup('8.8.8.8');
+    -- Returns: dns.google
+    ```
+
+    ### `set_dns_config(preset)`
+
+    Updates the DNS resolver configuration for all subsequent DNS queries.
+
+    **Parameters:**
+    - `preset` (VARCHAR): The DNS resolver preset to use. Supported presets:
+    - `'default'`: System default DNS servers
+    - `'google'`: Google Public DNS (8.8.8.8, 8.8.4.4)
+    - `'cloudflare'`: Cloudflare DNS (1.1.1.1, 1.0.0.1)
+    - `'quad9'`: Quad9 DNS (9.9.9.9, 149.112.112.112)
+
+    **Returns:** VARCHAR - A success or error message
+
+    **Examples:**
+    ```sql
+    -- Switch to Google Public DNS
+    SELECT set_dns_config('google');
+    -- Returns: DNS configuration updated to 'google'
+
+    -- Switch to Cloudflare DNS
+    SELECT set_dns_config('cloudflare');
+    -- Returns: DNS configuration updated to 'cloudflare'
+
+    -- All subsequent queries use the new configuration
+    SELECT dns_lookup('example.com');
+
+    -- Reset to system default
+    SELECT set_dns_config('default');
+    -- Returns: DNS configuration updated to 'default'
+
+    -- Invalid preset returns error
+    SELECT set_dns_config('invalid');
+    -- Returns: Unknown preset 'invalid'. Supported: default, google, cloudflare, quad9
+    ```
+
+    ### `set_dns_concurrency_limit(limit)`
+
+    Updates the concurrency limit for DNS lookup operations to prevent TCP connection exhaustion. This controls the maximum number of concurrent DNS requests that can run simultaneously across all DNS operations.
+
+    **Parameters:**
+    - `limit` (BIGINT): The maximum number of concurrent DNS requests (must be greater than 0)
+
+    **Returns:** VARCHAR - A success or error message
+
+    **Default:** 50 concurrent requests
+
+    **Examples:**
+    ```sql
+    -- Set concurrency limit to 500 for high-throughput scenarios
+    SELECT set_dns_concurrency_limit(500);
+    -- Returns: Concurrency limit updated to 500
+    ```
+
+    ### `set_dns_cache_size(size)`
+
+    Updates the DNS cache size for the resolver. The cache stores DNS query results to improve performance by avoiding repeated lookups for the same queries. Each cache entry stores the results for a unique DNS query (hostname + record type combination).
+
+    **Parameters:**
+    - `size` (BIGINT): The maximum number of cached DNS queries (must be greater than 0)
+
+    **Returns:** VARCHAR - A success or error message
+
+    **Default:** 4096 cached queries
+
+    **Examples:**
+    ```sql
+    -- Set cache size to 8192 for larger workloads
+    SELECT set_dns_cache_size(8192);
+    -- Returns: DNS cache size updated to 8192
+
+    -- Set cache size to 2048 for smaller memory footprint
+    SELECT set_dns_cache_size(2048);
+    -- Returns: DNS cache size updated to 2048
+    ```
+
+    ### `corey(hostname)` - Table Function
+
+    Queries all TXT records for a hostname and returns them as a table with one row per TXT record. This is useful for advanced filtering, aggregation, and analysis of TXT records. 
+
+    Finally [Route 53 can be a real database](https://www.lastweekinaws.com/blog/route-53-amazons-premier-database/)!
+
+    **Parameters:**
+    - `hostname` (VARCHAR): The hostname to query for TXT records
+
+    **Returns:** A table with a single column:
+    - `txt_record` (VARCHAR): Each TXT record as a separate row
+
+    **Examples:**
+    ```sql
+    -- Get all TXT records for a domain
+    SELECT * FROM corey('google.com');
+
+    -- Filter TXT records
+    SELECT * FROM corey('google.com')
+    WHERE txt_record LIKE '%spf%';
+
+    -- Count TXT records
+    SELECT COUNT(*) as record_count
+    FROM corey('google.com');
+
+    -- Query multiple domains using UNION ALL
+    SELECT 'google.com' as domain, * FROM corey('google.com')
+    UNION ALL
+    SELECT 'github.com' as domain, * FROM corey('github.com')
+    UNION ALL
+    SELECT 'cloudflare.com' as domain, * FROM corey('cloudflare.com');
+
+    -- Find domains with DMARC records
+    SELECT '_dmarc.google.com' as domain, * FROM corey('_dmarc.google.com')
+    WHERE txt_record LIKE 'v=DMARC%'
+    UNION ALL
+    SELECT '_dmarc.github.com' as domain, * FROM corey('_dmarc.github.com')
+    WHERE txt_record LIKE 'v=DMARC%';
+
+    -- Alternative: Use dns_lookup_all for dynamic queries with columns
+    SELECT
+        domain,
+        dns_lookup_all(domain, 'TXT') as txt_records
+    FROM (VALUES ('google.com'), ('github.com')) AS domains(domain)
+    WHERE dns_lookup_all(domain, 'TXT') IS NOT NULL;
+    ```
+
+    > This extension is experimental and potentially unstable. See README for full examples.

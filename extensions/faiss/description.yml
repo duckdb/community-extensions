@@ -1,7 +1,7 @@
 extension:
   name: faiss
   description: Provides access to faiss indices from DuckDB.
-  version: 0.10.0
+  version: 0.12.0
   language: C++
   build: cmake
   license: MIT
@@ -15,7 +15,7 @@ extension:
 
 repo:
   github: duckdb-faiss-ext/duckdb-faiss-ext
-  ref: b0ac9446787bf0983d2f0fbdaf1e633b3b589830
+  ref: 9ccd224c66ae16f55693d633040e5c756e414cbf
 
 docs:
   hello_world: |
@@ -26,6 +26,8 @@ docs:
     -- Create the index and insert data into it
     CALL FAISS_CREATE('name', 5, 'IDMap,HNSW32');
     CALL FAISS_ADD((SELECT id, data FROM input), 'name');
+    -- On linux, with cuda, we can move the index to the GPU
+    -- CALL FAISS_TO_GPU('name', 0);
     -- Get 10 results with uneven id
     SELECT id, UNNEST(FAISS_SEARCH_FILTER('name', 10, data, 'id%2==1', 'rowid', 'input')) FROM queries;
     -- Get 10 results with even id

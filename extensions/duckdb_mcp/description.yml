@@ -1,0 +1,68 @@
+extension:
+  name: duckdb_mcp
+  description: Model Context Protocol (MCP) extension for DuckDB that enables seamless integration between SQL databases and MCP servers. Provides both client capabilities for accessing remote MCP resources via SQL and server capabilities for exposing database content as MCP resources.
+  version: 1.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: ""
+  maintainers:
+    - teaguesterling
+repo:
+  github: teaguesterling/duckdb_mcp
+  ref: 440ef9e852a806def5783c7ca4f7fdb3d1021881
+
+docs:
+  hello_world: |
+    -- Load the MCP extension
+    LOAD 'duckdb_mcp';
+    
+    -- Connect to an MCP server using stdio transport
+    ATTACH 'python3' AS data_server (
+        TYPE mcp, 
+        TRANSPORT 'stdio', 
+        ARGS '["path/to/server.py"]'
+    );
+    
+    -- Access remote data via MCP protocol
+    SELECT * FROM read_csv('mcp://data_server/file:///data.csv');
+    SELECT * FROM read_json('mcp://data_server/api://endpoint');
+    
+    -- List available resources on the server
+    SELECT mcp_list_resources('data_server');
+    
+    -- Execute tools on the MCP server
+    SELECT mcp_call_tool('data_server', 'process_data', '{"table": "sales"}');
+    
+    -- Server mode: Start an MCP server to expose database content
+    SELECT mcp_server_start('stdio', 'localhost', 0, '{}');
+    
+    -- Publish database tables as MCP resources
+    CREATE TABLE products AS SELECT 'Widget' as name, 10.99 as price;
+    SELECT mcp_publish_table('products', 'data://tables/products', 'json');
+
+  extended_description: |
+    DuckDB MCP Extension bridges SQL databases with the Model Context Protocol (MCP), enabling bidirectional integration between DuckDB and MCP servers. The extension operates in dual modes: as an MCP client for accessing remote resources and as an MCP server for exposing database content.
+    
+    **MCP Client Capabilities**: Connect to MCP servers using multiple transport protocols (stdio, TCP, WebSocket) and access remote resources directly in SQL queries. Use the `mcp://` URI scheme with standard DuckDB functions like `read_csv()`, `read_parquet()`, and `read_json()` to seamlessly query remote data sources. Execute remote tools with `mcp_call_tool()` and discover available resources with `mcp_list_resources()`.
+    
+    **MCP Server Capabilities**: Transform DuckDB into an MCP resource provider by exposing tables, views, and query results as MCP resources. Start an MCP server with `mcp_server_start()`, publish static table snapshots with `mcp_publish_table()`, and create dynamic resources with `mcp_publish_query()` that refresh at configurable intervals.
+    
+    **Security Framework**: Flexible security models supporting both development and production environments. Development mode offers permissive access for rapid prototyping, while production mode enforces strict allowlists for commands and URLs. Configure security through settings like `allowed_mcp_commands`, `allowed_mcp_urls`, and JSON configuration files.
+    
+    **Key Client Functions**:
+    - `mcp_list_resources(server)` - Discover available resources
+    - `mcp_get_resource(server, uri)` - Retrieve specific resource content
+    - `mcp_call_tool(server, tool, args)` - Execute remote tools
+    - `read_csv('mcp://server/uri')` - Read CSV data via MCP
+    - `read_parquet('mcp://server/uri')` - Read Parquet data via MCP
+    - `read_json('mcp://server/uri')` - Read JSON data via MCP
+    
+    **Key Server Functions**:
+    - `mcp_server_start(transport, host, port, config)` - Start MCP server
+    - `mcp_server_stop()` - Stop MCP server
+    - `mcp_server_status()` - Check server status
+    - `mcp_publish_table(table, uri, format)` - Publish table as resource
+    - `mcp_publish_query(sql, uri, format, interval)` - Publish query results
+    
+    The extension implements the complete JSON-RPC 2.0 MCP protocol with support for multiple transport mechanisms. It enables powerful use cases including database federation, remote data access, tool orchestration, and exposing database insights to external MCP-compatible systems. Perfect for integration with AI agents, data pipelines, and distributed analytical workflows.

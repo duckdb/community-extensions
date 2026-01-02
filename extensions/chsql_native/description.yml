@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: quackscience/duckdb-extension-clickhouse-native
-  ref: 46c3cc58327d6ebaa569dfea6062165e555e4d27
+  ref: 2674d67f6715b4fb7d49f9a7f12c382a5f013f33
 
 docs:
   hello_world: |

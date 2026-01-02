@@ -1,0 +1,33 @@
+extension:
+  name: system_stats
+  description: Provides table functions to access system-level statistics for monitoring purpose
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/system_stats
+  ref: b35d487f03c9ba6773c859a5f1a42602740750a0
+
+docs:
+  hello_world: |
+    -- Get memory information
+    SELECT * FROM sys_memory_info();
+
+    -- Get CPU information
+    SELECT * FROM sys_cpu_info();
+
+    -- Get disk information
+    SELECT * FROM sys_disk_info();
+
+    -- Get network information
+    SELECT * FROM sys_network_info();
+
+    -- Get OS information
+    SELECT * FROM sys_os_info();
+  extended_description: |
+    The system_stats extension provides table functions to access system-level statistics (including memory, CPU, and disk) that can be used for monitoring.

@@ -1,0 +1,55 @@
+extension:
+  name: quickjs
+  description: DuckDB QuickJS Runtime Extension
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw"
+  maintainers:
+    - lmangani
+
+repo:
+  github: quackscience/duckdb-quickjs
+  ref: 83906e2486de7823b10aabcca931533feadfe23c
+
+docs:
+  hello_world: |
+    -- Quack JS with QuickJS
+    -- Scalar
+    D SELECT quickjs('2+2');
+    ┌────────────────┐
+    │ quickjs('2+2') │
+    │    varchar     │
+    ├────────────────┤
+    │ 4              │
+    └────────────────┘
+    
+    -- Scalar Eval
+    D SELECT quickjs_eval('(a, b) => a + b', 5, 3);
+    ┌───────────────────────────────────────┐
+    │ quickjs_eval('(a, b) => a + b', 5, 3) │
+    │                 json                  │
+    ├───────────────────────────────────────┤
+    │ 8                                     │
+    └───────────────────────────────────────┘
+
+    -- Table Eval
+    D SELECT * FROM quickjs('parsed_arg0.map(x => x * arg1)', '[1, 2, 3, 4, 5]', 3);
+    ┌────────┐
+    │ result │
+    │  json  │
+    ├────────┤
+    │ 3      │
+    │ 6      │
+    │ 9      │
+    │ 12     │
+    │ 15     │
+    └────────┘
+
+  extended_description: |
+    ## QuickJS DuckDB Extension
+    This extension provides an embedded QuickJS-NG engine for DuckDB. It allows executing JavaScript code directly within your SQL queries. 
+    > QuickJS-NG is a small, fast, and embeddable JavaScript engine that supports modern JavaScript features including ES2020.
+    
+    This extension is experimental and potentially unstable. Do not use it in production.
