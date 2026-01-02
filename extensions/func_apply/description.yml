@@ -10,25 +10,30 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_func_apply
-  ref: 62fe7358a6bf50ce8a0a9e3ade59011af88cb422
+  ref: d03cca390f97f74b04eeccd21e772de648ac6f7f
 
 docs:
   hello_world: |
-    -- Call functions dynamically by name
+    -- Load the extension
+    LOAD func_apply;
+    
+    -- Call scalar functions dynamically
     SELECT apply('upper', 'hello world');
     -- Result: HELLO WORLD
-
-    -- Works with any scalar function
-    SELECT apply('abs', -42);
-    -- Result: 42
-
-    -- Call macros too
-    SELECT apply('list_sum', [1, 2, 3, 4]);
-    -- Result: 10
-
-    -- Check if a function exists
-    SELECT function_exists('upper'), function_exists('nonexistent');
-    -- Result: true, false
+    
+    SELECT apply('substr', 'hello world', 7, 5);
+    -- Result: world
+    
+    -- Call table functions dynamically
+    SELECT * FROM apply_table('range', 5);
+    -- Returns: 0, 1, 2, 3, 4
+    
+    SELECT * FROM apply_table('generate_series', 1, 10, 2);
+    -- Returns: 1, 3, 5, 7, 9
+    
+    -- Check if a function exists before calling
+    SELECT function_exists('my_custom_func');
+    -- Result: true/false
 
   extended_description: |
     The FuncApply extension enables dynamic function invocation in DuckDB, allowing you to
@@ -40,7 +45,9 @@ docs:
     | Function | Description |
     |----------|-------------|
     | `apply(func_name, ...args)` | Call a function by name with arguments |
-    | `apply_with(func_name, args)` | Call a function with arguments as a list |
+    | `apply_with(func_name, args, kwargs)` | Call a function with arguments as a list |
+    | `apply_table(func_name, ...args)` | Call a table function by name with arguments |
+    | `apply_table_with(func_name, args, kwargs)` | Call a table function with arguments as a list |
     | `function_exists(name)` | Check if a function exists |
 
     ## Use Cases
