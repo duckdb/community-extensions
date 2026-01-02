@@ -1,7 +1,7 @@
 extension:
   name: sazgar
-  description: Comprehensive system monitoring - 20 table functions for CPU, memory, disk, network, processes, ports, services, Docker, GPU, and more
-  version: 0.3.0
+  description: Comprehensive system monitoring and intelligent query routing - 25 table functions for CPU, memory, disk, network, processes, and smart routing to local/remote backends
+  version: 0.4.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: aa5d876f9dfb8218d5aed9ecdf8b7798aebd693c
+  ref: 13486a778049612b84eefcc8e5593e65780512b0
 
 docs:
   hello_world: |
@@ -22,27 +22,39 @@ docs:
     -- Memory usage in GB
     SELECT * FROM sazgar_memory(unit := 'GB');
 
-    -- Swap memory
-    SELECT * FROM sazgar_swap('GiB');
+    -- Check available resources for routing decisions
+    SELECT available_gb, cpu_usage FROM sazgar_resources();
+
+    -- Estimate data sizes for paths (local files/folders, cloud)
+    SELECT * FROM sazgar_estimate('/data/, az://bucket/table/');
+
+    -- Register a remote backend
+    SELECT * FROM sazgar_backend('my_db', 'postgres://user:pass@host:5432');
+
+    -- Generate routed SQL for target backend
+    SELECT * FROM sazgar_run('SELECT * FROM my_table', 'my_db');
 
     -- Per-core CPU usage
     SELECT * FROM sazgar_cpu_cores();
 
     -- Open network ports
     SELECT * FROM sazgar_ports('') WHERE local_port < 1024;
-
-    -- Docker containers
-    SELECT * FROM sazgar_docker();
-
-    -- System services
-    SELECT * FROM sazgar_services() WHERE status = 'running' LIMIT 10;
-
-    -- System uptime
-    SELECT * FROM sazgar_uptime();
   extended_description: |
-    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system resource monitoring with 20 table functions.
+    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system resource monitoring and **intelligent query routing** with 25 table functions.
 
-    **Functions:**
+    **NEW in v0.4.0 - Query Routing:**
+    - `sazgar_resources()` - Current RAM, CPU, load for routing decisions
+    - `sazgar_estimate(paths)` - Multi-path size estimation (local files, folders, cloud paths)
+    - `sazgar_backend(name, url)` - Register named backends (PostgreSQL, MySQL, BigQuery, etc.)
+    - `sazgar_backends()` - List registered backends
+    - `sazgar_run(query, target)` - Generate routed SQL with dialect translation
+
+    **Supported Backends:**
+    - Local DuckDB, Tavana, PostgreSQL, MySQL, SQLite, BigQuery, Snowflake
+    - Automatic SQL dialect translation (ILIKE → LIKE for MySQL, etc.)
+    - Data flows from remote backends back to local DuckDB
+
+    **System Monitoring Functions:**
     - `sazgar_system()` - Complete system overview
     - `sazgar_os()` - Operating system information
     - `sazgar_memory(unit)` - RAM usage with unit conversion
@@ -67,4 +79,3 @@ docs:
     **Unit conversion** supports: bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
 
     Cross-platform: Linux, macOS, Windows (full support), Android, iOS (partial support)
-
