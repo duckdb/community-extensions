@@ -9,7 +9,7 @@ extension:
     - stephaniewang526
   # Optional: specify vcpkg commit if needed
   vcpkg_commit: "9aa0650e5c8d23fe66701bafb3ec03ac732a3ff1"
-  excluded_platforms: wasm_mvp;wasm_eh;windows_amd64_mingw;
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;
 
 repo:
   github: stephaniewang526/duckdb-mongo
