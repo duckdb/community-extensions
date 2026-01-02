@@ -1,0 +1,116 @@
+extension:
+  name: duck_block_utils
+  description: Format-agnostic utilities for working with document elements - filter, transform, validate, and build blocks
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duckdb_duck_block_utils
+  ref: 213341be4acf4e374ab91c7366429f273882cc4c
+
+docs:
+  hello_world: |
+    -- Load markdown extension for reading documents
+    LOAD markdown;
+    LOAD duck_block_utils;
+
+    -- Extract all headings as a table of contents
+    SELECT * FROM doc_blocks_toc(
+        (SELECT list(b) FROM read_markdown_blocks('README.md') b)
+    );
+
+    -- Get plain text content from a document
+    SELECT doc_blocks_to_text(
+        (SELECT list(b) FROM read_markdown_blocks('doc.md') b)
+    );
+
+    -- Filter to specific block types
+    SELECT unnest(doc_blocks_filter(
+        (SELECT list(b) FROM read_markdown_blocks('doc.md') b),
+        ['heading', 'code']
+    ));
+
+    -- Validate block schema
+    SELECT doc_blocks_validate(
+        (SELECT list(b) FROM read_markdown_blocks('doc.md') b)
+    );
+
+  extended_description: |
+    The Duck Block Utils extension provides format-agnostic utilities for working with document
+    elements. It complements format-specific extensions (markdown, HTML, XML, YAML) by providing
+    common operations that work with any document represented using the Duck Blocks specification.
+
+    ## Core Concepts
+
+    Both block-level and inline elements use a unified `doc_element` type:
+
+    ```sql
+    STRUCT(
+        kind VARCHAR,                       -- 'block' or 'inline'
+        element_type VARCHAR,               -- 'heading', 'paragraph', 'text', 'link', etc.
+        content VARCHAR,                    -- Primary content
+        level INTEGER,                      -- Structural nesting depth
+        encoding VARCHAR,                   -- 'text', 'json', 'yaml', 'html', 'xml'
+        attributes MAP(VARCHAR, VARCHAR),   -- Type-specific metadata
+        element_order INTEGER               -- Position in document
+    )
+    ```
+
+    ## Block Manipulation Functions
+
+    | Function | Description |
+    |----------|-------------|
+    | `doc_blocks_filter(blocks, types[])` | Filter blocks to specific types |
+    | `doc_blocks_exclude(blocks, types[])` | Exclude specific block types |
+    | `doc_blocks_transform(blocks, mappings)` | Apply type/content transformations |
+    | `doc_blocks_merge(blocks1, blocks2)` | Merge two block sequences |
+
+    ## Content Extraction Functions
+
+    | Function | Description |
+    |----------|-------------|
+    | `doc_blocks_to_text(blocks)` | Extract plain text content |
+    | `doc_blocks_headings(blocks)` | Extract heading hierarchy |
+    | `doc_blocks_toc(blocks)` | Generate table of contents |
+    | `doc_blocks_code_blocks(blocks)` | Extract code blocks with metadata |
+    | `doc_blocks_links(blocks)` | Extract all links from content |
+
+    ## Block Builders
+
+    | Function | Description |
+    |----------|-------------|
+    | `doc_heading(content, level, id)` | Create heading block |
+    | `doc_paragraph(content)` | Create paragraph block |
+    | `doc_code(content, language)` | Create code block |
+    | `doc_list_block(items[], ordered)` | Create list block |
+    | `doc_table_block(headers[], rows[][])` | Create table block |
+
+    ## Inline Builders
+
+    | Function | Description |
+    |----------|-------------|
+    | `doc_text(content)` | Create plain text inline |
+    | `doc_link(text, href, title)` | Create hyperlink |
+    | `doc_bold(content)` | Create bold text |
+    | `doc_italic(content)` | Create italic text |
+    | `doc_inline_code(content)` | Create inline code |
+
+    ## Pandoc AST Conversion
+
+    Convert between Pandoc JSON AST and doc_elements without requiring Pandoc to be installed:
+
+    | Function | Description |
+    |----------|-------------|
+    | `pandoc_ast_to_blocks(ast, mode)` | Convert Pandoc JSON AST to doc_elements |
+    | `pandoc_blocks_to_ast(blocks, meta)` | Convert doc_elements to Pandoc JSON AST |
+
+    ## Ecosystem
+
+    This extension is part of the DuckDB document processing ecosystem, working alongside:
+    - `markdown` - Markdown reading/writing
+    - `webbed` - HTML/XML parsing
+    - `yaml` - YAML document parsing
