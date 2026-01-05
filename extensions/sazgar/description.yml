@@ -1,6 +1,6 @@
 extension:
   name: sazgar
-  description: "System monitoring & SQL query routing for DuckDB - 25+ table functions for real-time CPU, memory, disk, network, process, port, Docker, and GPU monitoring. Execute queries on remote PostgreSQL-compatible databases and retrieve results directly into DuckDB with dynamic schema discovery."
+  description: "System monitoring & SQL query routing for DuckDB - 25+ table functions for CPU, memory, disk, network, processes, Docker, GPU. Execute queries on remote databases via PostgreSQL wire protocol with SQLGlot dialect translation (PostgreSQL, MySQL, ClickHouse, Snowflake, BigQuery)."
   version: 1.0.0
   language: Rust
   build: cargo
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: 53c04e55945dd97daf5bcb207e89e4e628e55293
+  ref: 46f9ef2c6ffb4487ce54d27f9f5891807cfebd8b
 
 docs:
   hello_world: |
@@ -286,11 +286,14 @@ docs:
     ### Key Features
     - ✅ **Returns actual data** - Query results come back to DuckDB
     - ✅ **Dynamic schema** - Columns are discovered from your query
-    - ✅ **PostgreSQL protocol** - Works with PostgreSQL, Tavana, CockroachDB, Yugabyte
-    - ✅ **Text protocol** - Maximum compatibility across database variants
+    - ✅ **PostgreSQL wire protocol** - Connection layer for all backends
+    - ✅ **SQLGlot dialect translation** - Auto-converts DuckDB SQL to MySQL, ClickHouse, Snowflake, BigQuery syntax
+    - ✅ **Supported backends** - PostgreSQL, Tavana, MySQL*, ClickHouse*, Snowflake*, BigQuery*
     - ✅ **Conditional routing** - Route based on system resources
     - ✅ **JOIN support** - Combine remote data with local DuckDB tables
     - ✅ **Optional TLS** - Secure connections (build with `--features tls`)
+    
+    > *Non-PostgreSQL backends require PostgreSQL-compatible interface (e.g., protocol adapter)
 
     ### Routing Functions
     | Function | Description |
