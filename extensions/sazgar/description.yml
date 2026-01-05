@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: 138c803389f2eec33f263d4fe9fb66bb59fde383
+  ref: c4497a928b7903cf4d6d9a59010515db0f8b1a01
 
 docs:
   hello_world: |
@@ -22,14 +22,15 @@ docs:
     SELECT * FROM sazgar_load();
     SELECT * FROM sazgar_disks(unit := 'GB');
 
-    -- Intelligent routing (route to remote when RAM < 2GB)
-    SELECT * FROM sazgar_target('mydb', 'postgres://user:pass@host/db');
+    -- Query routing (v1.0.0: returns actual data!)
+    SELECT * FROM sazgar_target('mydb', 'host=myserver port=5432 user=admin password=*** dbname=analytics');
     SELECT * FROM sazgar_route(
-      'SELECT * FROM large_table',
+      '',
       'mydb',
-      '(SELECT available_memory FROM sazgar_memory(''GB'')) < 2',
-      ''
+      'TRUE',
+      'SELECT id, name, amount FROM orders LIMIT 100'
     );
+    -- Returns 100 rows with id, name, amount columns!
   extended_description: |
     Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system monitoring and intelligent SQL query routing.
 
@@ -47,12 +48,13 @@ docs:
     - `sazgar_gpu()` - NVIDIA GPU info (optional)
     - `sazgar_uptime()`, `sazgar_users()`, `sazgar_environment()`, and more...
 
-    **Intelligent SQL Routing (NEW in v1.0.0):**
+    **Intelligent SQL Routing (v1.0.0 - EXECUTES & RETURNS DATA):**
     - `sazgar_target(name, connection_string)` - Register named database targets
-    - `sazgar_route(query, fallback, condition, remote_query)` - Route queries based on conditions
-    - Automatic SQL dialect translation via SQLGlot (DuckDB → PostgreSQL/MySQL/ClickHouse)
-    - Resource-based routing (RAM, CPU, load, disk space)
-    - Custom remote query support (bypass SQLGlot)
+    - `sazgar_route(query, target, condition, remote_query)` - Execute query on remote DB, return actual data
+    - Connects to PostgreSQL-compatible databases (PostgreSQL, Tavana, DuckDB servers)
+    - Dynamic schema discovery - returns columns from your query
+    - Uses text protocol for maximum compatibility
+    - Optional SQL dialect translation via SQLGlot (DuckDB → MySQL/ClickHouse)
 
     **Unit conversion:** bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
 
