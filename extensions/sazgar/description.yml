@@ -1,7 +1,7 @@
 extension:
   name: sazgar
-  description: Comprehensive system monitoring - 20 table functions for CPU, memory, disk, network, processes, ports, services, Docker, GPU, and more
-  version: 0.3.0
+  description: "System monitoring & intelligent SQL routing - 25+ table functions for CPU, memory, disk, network, processes, ports, Docker, GPU. Route queries to PostgreSQL, MySQL, ClickHouse with auto dialect translation."
+  version: 1.0.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,59 +12,48 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: aa5d876f9dfb8218d5aed9ecdf8b7798aebd693c
+  ref: 138c803389f2eec33f263d4fe9fb66bb59fde383
 
 docs:
   hello_world: |
-    -- Get comprehensive system overview
-    SELECT * FROM sazgar_system();
-
-    -- Memory usage in GB
+    -- System monitoring
     SELECT * FROM sazgar_memory(unit := 'GB');
+    SELECT * FROM sazgar_cpu();
+    SELECT * FROM sazgar_load();
+    SELECT * FROM sazgar_disks(unit := 'GB');
 
-    -- Swap memory
-    SELECT * FROM sazgar_swap('GiB');
-
-    -- Per-core CPU usage
-    SELECT * FROM sazgar_cpu_cores();
-
-    -- Open network ports
-    SELECT * FROM sazgar_ports('') WHERE local_port < 1024;
-
-    -- Docker containers
-    SELECT * FROM sazgar_docker();
-
-    -- System services
-    SELECT * FROM sazgar_services() WHERE status = 'running' LIMIT 10;
-
-    -- System uptime
-    SELECT * FROM sazgar_uptime();
+    -- Intelligent routing (route to remote when RAM < 2GB)
+    SELECT * FROM sazgar_target('mydb', 'postgres://user:pass@host/db');
+    SELECT * FROM sazgar_route(
+      'SELECT * FROM large_table',
+      'mydb',
+      '(SELECT available_memory FROM sazgar_memory(''GB'')) < 2',
+      ''
+    );
   extended_description: |
-    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system resource monitoring with 20 table functions.
+    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system monitoring and intelligent SQL query routing.
 
-    **Functions:**
+    **System Monitoring (25+ functions):**
     - `sazgar_system()` - Complete system overview
-    - `sazgar_os()` - Operating system information
     - `sazgar_memory(unit)` - RAM usage with unit conversion
-    - `sazgar_swap(unit)` - Swap/virtual memory info
-    - `sazgar_cpu()` - CPU information
-    - `sazgar_cpu_cores()` - Per-core CPU usage
-    - `sazgar_disks(unit)` - Disk usage
+    - `sazgar_cpu()` - CPU information per core
+    - `sazgar_disks(unit)` - Disk usage and space
     - `sazgar_network()` - Network interface statistics
-    - `sazgar_ports(filter)` - Open network ports and connections
     - `sazgar_processes()` - Running processes
-    - `sazgar_services()` - System services (launchctl/systemd)
+    - `sazgar_ports(filter)` - Open network ports (Linux/macOS)
     - `sazgar_docker()` - Docker containers
+    - `sazgar_services()` - System services (systemd/launchctl)
     - `sazgar_load()` - System load averages
-    - `sazgar_uptime()` - Detailed uptime information
-    - `sazgar_users()` - System users
-    - `sazgar_environment(filter)` - Environment variables
-    - `sazgar_components()` - Temperature sensors
     - `sazgar_gpu()` - NVIDIA GPU info (optional)
-    - `sazgar_fds(pid)` - File descriptors (Linux)
-    - `sazgar_version()` - Extension version
+    - `sazgar_uptime()`, `sazgar_users()`, `sazgar_environment()`, and more...
 
-    **Unit conversion** supports: bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
+    **Intelligent SQL Routing (NEW in v1.0.0):**
+    - `sazgar_target(name, connection_string)` - Register named database targets
+    - `sazgar_route(query, fallback, condition, remote_query)` - Route queries based on conditions
+    - Automatic SQL dialect translation via SQLGlot (DuckDB → PostgreSQL/MySQL/ClickHouse)
+    - Resource-based routing (RAM, CPU, load, disk space)
+    - Custom remote query support (bypass SQLGlot)
 
-    Cross-platform: Linux, macOS, Windows (full support), Android, iOS (partial support)
+    **Unit conversion:** bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
 
+    **Cross-platform:** Linux, macOS, Windows | **Pure Rust**
