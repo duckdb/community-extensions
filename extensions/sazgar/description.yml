@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: 46f9ef2c6ffb4487ce54d27f9f5891807cfebd8b
+  ref: 55d3089af8b0c5aec32550a81b66ebcbcbb12202
 
 docs:
   hello_world: |
@@ -176,12 +176,8 @@ docs:
     -- Returns: name, value
     
     -- Hardware temperatures (where available)
-    SELECT * FROM sazgar_temperatures();
-    -- Returns: sensor, temperature_celsius, critical_temp
-    
-    -- Battery status (laptops)
-    SELECT * FROM sazgar_batteries();
-    -- Returns: name, charge_percent, status, time_remaining
+    SELECT * FROM sazgar_components();
+    -- Returns: label, temperature, max_temp, critical_temp
     
     -- NVIDIA GPU monitoring (requires nvidia feature)
     SELECT * FROM sazgar_gpu();
@@ -261,8 +257,7 @@ docs:
     | `sazgar_memory(unit)` | RAM usage | total, used, available, usage_percent |
     | `sazgar_cpu()` | Per-core CPU stats | core_id, frequency, usage_percent |
     | `sazgar_disks(unit)` | Disk space | mount_point, total, used, available |
-    | `sazgar_temperatures()` | Hardware temps | sensor, temperature, critical |
-    | `sazgar_batteries()` | Battery status | charge_percent, status |
+    | `sazgar_components()` | Hardware temps | label, temperature, max_temp |
     | `sazgar_gpu()` | NVIDIA GPU info | memory, temperature, utilization |
 
     ### Process & Network Monitoring
