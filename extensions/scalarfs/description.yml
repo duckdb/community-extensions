@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_scalarfs
-  ref: 'fe6748dc8fe9879dbbfe08b8b23d7776a95ed6b8'
+  ref: "a13238c440268c526b4b97e732822e042eb3a90d"
 
 docs:
   hello_world: |
