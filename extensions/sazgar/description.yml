@@ -1,6 +1,6 @@
 extension:
   name: sazgar
-  description: "System monitoring & intelligent SQL routing - 25+ table functions for CPU, memory, disk, network, processes, ports, Docker, GPU. Route queries to PostgreSQL, MySQL, ClickHouse with auto dialect translation."
+  description: "System monitoring & SQL query routing for DuckDB - 25+ functions for CPU, memory, disk, network, processes, Docker, GPU monitoring. Route queries to remote PostgreSQL-compatible databases and get results directly in DuckDB."
   version: 1.0.0
   language: Rust
   build: cargo
@@ -12,50 +12,141 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: c4497a928b7903cf4d6d9a59010515db0f8b1a01
+  ref: 24158de28d9c75c6c4750d22e8576d48481beaea
 
 docs:
   hello_world: |
-    -- System monitoring
+    -- ============================================
+    -- SYSTEM MONITORING EXAMPLES
+    -- ============================================
+
+    -- Get memory usage in gigabytes
     SELECT * FROM sazgar_memory(unit := 'GB');
+    -- Returns: total_memory, used_memory, available_memory, usage_percent
+
+    -- CPU information per core
     SELECT * FROM sazgar_cpu();
+    -- Returns: core_id, frequency_mhz, usage_percent, vendor, brand
+
+    -- System load averages (1, 5, 15 minutes)
     SELECT * FROM sazgar_load();
+
+    -- Disk space with unit conversion
     SELECT * FROM sazgar_disks(unit := 'GB');
+    -- Returns: name, mount_point, total_space, used_space, available_space
 
-    -- Query routing (v1.0.0: returns actual data!)
-    SELECT * FROM sazgar_target('mydb', 'host=myserver port=5432 user=admin password=*** dbname=analytics');
-    SELECT * FROM sazgar_route(
-      '',
-      'mydb',
-      'TRUE',
-      'SELECT id, name, amount FROM orders LIMIT 100'
+    -- Network interface statistics
+    SELECT * FROM sazgar_network();
+    -- Returns: interface, rx_bytes, tx_bytes, rx_packets, tx_packets
+
+    -- Running processes
+    SELECT name, cpu_usage, memory_usage 
+    FROM sazgar_processes() 
+    ORDER BY memory_usage DESC 
+    LIMIT 10;
+
+    -- Open network ports (Linux/macOS)
+    SELECT * FROM sazgar_ports();
+    -- Returns: protocol, local_addr, local_port, remote_addr, state, pid
+
+    -- Docker containers
+    SELECT * FROM sazgar_docker();
+    -- Returns: container_id, name, image, status, ports
+
+    -- ============================================
+    -- SQL ROUTING EXAMPLES (v1.0.0 - Returns Data!)
+    -- ============================================
+
+    -- Register a PostgreSQL-compatible database target
+    SELECT * FROM sazgar_target(
+      'analytics',
+      'host=db.example.com port=5432 user=analyst password=*** dbname=warehouse'
     );
-    -- Returns 100 rows with id, name, amount columns!
+
+    -- Execute query on remote database, get results in DuckDB!
+    SELECT * FROM sazgar_route(
+      '',           -- local query (unused when remote_query provided)
+      'analytics',  -- target name
+      'TRUE',       -- condition (always route)
+      'SELECT customer_id, SUM(amount) as total FROM orders GROUP BY customer_id'
+    );
+    -- Returns actual data with dynamic schema!
+
+    -- Conditional routing based on system resources
+    SELECT * FROM sazgar_route(
+      'SELECT * FROM local_cache',
+      'analytics',
+      '(SELECT usage_percent FROM sazgar_memory()) > 80',
+      'SELECT * FROM orders WHERE date > NOW() - INTERVAL 7 DAY'
+    );
+
   extended_description: |
-    Sazgar (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension for system monitoring and intelligent SQL query routing.
+    # Sazgar - System Monitoring & SQL Routing for DuckDB
 
-    **System Monitoring (25+ functions):**
-    - `sazgar_system()` - Complete system overview
-    - `sazgar_memory(unit)` - RAM usage with unit conversion
-    - `sazgar_cpu()` - CPU information per core
-    - `sazgar_disks(unit)` - Disk usage and space
-    - `sazgar_network()` - Network interface statistics
-    - `sazgar_processes()` - Running processes
-    - `sazgar_ports(filter)` - Open network ports (Linux/macOS)
-    - `sazgar_docker()` - Docker containers
-    - `sazgar_services()` - System services (systemd/launchctl)
-    - `sazgar_load()` - System load averages
-    - `sazgar_gpu()` - NVIDIA GPU info (optional)
-    - `sazgar_uptime()`, `sazgar_users()`, `sazgar_environment()`, and more...
+    **Sazgar** (Persian: سازگار, meaning "compatible/harmonious") is a comprehensive DuckDB extension that combines powerful system monitoring with intelligent SQL query routing capabilities.
 
-    **Intelligent SQL Routing (v1.0.0 - EXECUTES & RETURNS DATA):**
-    - `sazgar_target(name, connection_string)` - Register named database targets
-    - `sazgar_route(query, target, condition, remote_query)` - Execute query on remote DB, return actual data
-    - Connects to PostgreSQL-compatible databases (PostgreSQL, Tavana, DuckDB servers)
-    - Dynamic schema discovery - returns columns from your query
-    - Uses text protocol for maximum compatibility
-    - Optional SQL dialect translation via SQLGlot (DuckDB → MySQL/ClickHouse)
+    ## 🖥️ System Monitoring (25+ Table Functions)
 
-    **Unit conversion:** bytes, KB, KiB, MB, MiB, GB, GiB, TB, TiB
+    Monitor every aspect of your system directly from SQL:
 
-    **Cross-platform:** Linux, macOS, Windows | **Pure Rust**
+    | Function | Description |
+    |----------|-------------|
+    | `sazgar_system()` | Complete system overview (OS, hostname, uptime) |
+    | `sazgar_memory(unit)` | RAM usage with unit conversion |
+    | `sazgar_cpu()` | CPU info per core (frequency, usage, vendor) |
+    | `sazgar_disks(unit)` | Disk space and mount points |
+    | `sazgar_network()` | Network interface statistics |
+    | `sazgar_processes()` | Running processes with CPU/memory usage |
+    | `sazgar_ports(filter)` | Open network ports (Linux/macOS) |
+    | `sazgar_docker()` | Docker container status |
+    | `sazgar_services()` | System services (systemd/launchctl) |
+    | `sazgar_load()` | System load averages |
+    | `sazgar_gpu()` | NVIDIA GPU info (optional feature) |
+    | `sazgar_uptime()` | System uptime |
+    | `sazgar_users()` | Logged-in users |
+    | `sazgar_environment()` | Environment variables |
+    | `sazgar_temperatures()` | Hardware temperatures |
+    | `sazgar_batteries()` | Battery status (laptops) |
+
+    **Unit Conversion:** All size-related functions support: `bytes`, `KB`, `KiB`, `MB`, `MiB`, `GB`, `GiB`, `TB`, `TiB`
+
+    ## 🔀 SQL Query Routing (v1.0.0)
+
+    Execute queries on remote PostgreSQL-compatible databases and retrieve results directly into DuckDB:
+
+    ```sql
+    -- Register a target database
+    SELECT * FROM sazgar_target('mydb', 'host=... port=5432 user=... password=... dbname=...');
+
+    -- Execute remote query, get results locally
+    SELECT * FROM sazgar_route('', 'mydb', 'TRUE', 'SELECT * FROM remote_table');
+    ```
+
+    **Key Features:**
+    - ✅ **Returns actual data** - not just metadata
+    - ✅ **Dynamic schema discovery** - columns match your query
+    - ✅ **PostgreSQL-compatible** - works with PostgreSQL, Tavana, DuckDB servers
+    - ✅ **Text protocol** - maximum compatibility with database variants
+    - ✅ **Conditional routing** - route based on system resources
+    - ✅ **Optional TLS** - secure connections (build with `--features tls`)
+
+    ## 🎯 Use Cases
+
+    1. **DevOps Dashboards** - Query system metrics with SQL
+    2. **Resource Monitoring** - Track memory, CPU, disk in real-time
+    3. **Federated Queries** - Pull data from remote databases into DuckDB
+    4. **Hybrid Analytics** - Combine local and remote data sources
+    5. **Conditional Execution** - Route queries based on system load
+
+    ## 🛠️ Building with TLS Support
+
+    The community build excludes TLS for CI compatibility. For SSL connections:
+    ```bash
+    cargo build --release --features tls
+    ```
+
+    ## 📚 More Information
+
+    - GitHub: https://github.com/Angelerator/Sazgar
+    - License: MIT
+    - Platforms: Linux, macOS, Windows (x64, ARM64)
