@@ -9,8 +9,7 @@ extension:
     - onnimonni
   requires_toolchains:
     - valhalla
-  excluded_platforms:
-    - windows_amd64_mingw
+  excluded_platforms: windows_amd64_mingw
 
 repo:
   github: midwork-finds-jobs/duckdb-valhalla-routing
