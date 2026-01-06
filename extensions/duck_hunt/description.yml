@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 90+ formats with severity filtering and format auto-detection
-  version: 1.3.0
+  version: 1.3.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: 8c91d3456804f74732b961b2a055b714bf82183a
+  ref: 5e4885e824f0f446878f6b371b6d14485094c223
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
@@ -32,6 +32,9 @@ docs:
     -- Debug format detection
     SELECT format, can_parse, events_produced, is_selected
     FROM duck_hunt_diagnose_read('build.log');
+
+    -- Read compressed log files (GZIP supported natively)
+    SELECT * FROM read_duck_hunt_log('build.log.gz', 'auto');
 
     -- Build health badge
     SELECT status_badge(
@@ -87,6 +90,7 @@ docs:
 
     **Key Features:**
     - Automatic format detection with diagnostic debugging
+    - Transparent compression support (GZIP built-in, ZSTD via parquet)
     - Severity-based event filtering
     - Error pattern clustering and fingerprinting
     - Multi-file glob processing with Hive-style paths
