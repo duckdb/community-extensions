@@ -10,7 +10,6 @@ extension:
   requires_toolchains:
     - valhalla
   excluded_platforms:
-    - windows_amd64
     - windows_amd64_mingw
 
 repo:
