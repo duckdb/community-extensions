@@ -1,7 +1,7 @@
 extension:
   name: scalarfs
   description: A collection of virtual filesystems for working with scalars
-  version: 1.1.0
+  version: 1.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_scalarfs
-  ref: 'fe6748dc8fe9879dbbfe08b8b23d7776a95ed6b8'
+  ref: "4c10606f5124d027a520fadcda0287e6a7732346"
 
 docs:
   hello_world: |
@@ -29,9 +29,16 @@ docs:
     SET VARIABLE data_path = '/data/reports/monthly.csv';
     SELECT * FROM read_csv('pathvariable:data_path');
 
+    SET VARIABLE data_paths = ['/data/reports/monthly.csv', '/archive/reports/*.csv'];
+    SELECT * FROM read_csv('pathvariable:data_paths');
+
     -- Write query results to a variable
     COPY (SELECT * FROM my_table WHERE active) TO 'variable:exported' (FORMAT json);
     SELECT getvariable('exported');
+
+    -- Store query results as native values (not serialized text)
+    COPY (SELECT path FROM files WHERE active) TO 'variable:paths' (FORMAT variable);
+    SELECT * FROM read_csv('pathvariable:paths');  -- Read all files from the list
 
   extended_description: |
     DuckDB's file functions (read_csv, read_json, COPY TO, etc.) expect file paths. scalarfs bridges the gap
@@ -41,13 +48,15 @@ docs:
     Path Variables — Use file paths stored in variables for dynamic file resolution
     Inline literals — Embed content directly in your queries without temporary files
 
-    | Protocol       | Purpose                                |   Mode     |
-    |----------------|----------------------------------------|------------|
-    | variable:      | DuckDB variable as file                | Read/Write |
-    | pathvariable:  | File path stored in variable           | Read/Write |
-    | data:          | RFC 2397 data URI (base64/url-encoded) | Read       |
-    | data+varchar:  | Raw VARCHAR content as file            | Read       |
-    | data+blob:     | Escaped BLOB content as file           | Read       |
+    | Protocol       | Purpose                                |   Mode      |
+    |----------------|----------------------------------------|-------------|
+    | variable:      | DuckDB variable as file                | Read/Write  |
+    | pathvariable:  | File path(s) stored in variable        | Read/Write* |
+    | data:          | RFC 2397 data URI (base64/url-encoded) | Read        |
+    | data+varchar:  | Raw VARCHAR content as file            | Read        |
+    | data+blob:     | Escaped BLOB content as file           | Read        |
+
+    * Can only write to a `pathvariable:` that's a scalar path (not lists).
 
     For full documentation, see: https://scalarfs.readthedocs.io/
 
