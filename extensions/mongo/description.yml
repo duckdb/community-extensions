@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: stephaniewang526/duckdb-mongo
-  ref: f11cf8f51b40c07b161b665cd11e00abb14200e1
+  ref: 8bc62409f79543880d4aa0aac419665bdc38584d
 
 docs:
   hello_world: |
