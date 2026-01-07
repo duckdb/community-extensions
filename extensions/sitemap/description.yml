@@ -11,15 +11,15 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-sitemap
-  ref: efc9f7bbe21e9a3fa49c5e7b4779b84b8112969c
+  ref: 6cd72d65fa3ee544cc25bac574094a8c4faeeb4d
 
 docs:
   hello_world: |
-    -- Get all URLs from a sitemap
-    SELECT * FROM sitemap_urls('https://example.com');
+    -- Get all URLs from a sitemap (auto-prepends https://)
+    SELECT * FROM sitemap_urls('example.com');
 
     -- Filter specific URLs
-    SELECT * FROM sitemap_urls('https://example.com')
+    SELECT * FROM sitemap_urls('example.com')
     WHERE url LIKE '%/blog/%';
 
     -- Count URLs by type
