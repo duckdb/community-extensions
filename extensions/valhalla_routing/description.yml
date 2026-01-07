@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-valhalla-routing
-  ref: d2800f103374e4b767cf8f8d497f93f093e805d5
+  ref: ef2527b911a553657483a045dde7aa687182b4e2
 
 docs:
   hello_world: |
@@ -37,7 +37,7 @@ docs:
         round(r.duration_minutes, 1) as minutes,
         ST_NPoints(r.geometry) as waypoints
     FROM (
-        SELECT travel_time_route(
+        SELECT valhalla_route(
             ST_Point(7.4275, 43.7397),  -- Casino Monte-Carlo
             ST_Point(7.4254, 43.7308),  -- Oceanographic Museum
             'auto'
@@ -66,8 +66,8 @@ docs:
     - `SET valhalla_tiles = 'path'` - Load tiles (auto-detects valhalla.json)
 
     **Routing:**
-    - `travel_time_route(from, to, costing)` - Returns GEOMETRY type (recommended)
-    - `travel_time_route_wkb(from, to, costing)` - Returns WKB BLOB
+    - `valhalla_route(from, to, costing)` - Returns GEOMETRY type (recommended)
+    - `valhalla_route_wkb(from, to, costing)` - Returns WKB BLOB
     - `travel_time_matrix(lats1, lons1, lats2, lons2, costing)` - Distance/duration matrix
     - `travel_time_locate(lat, lon, costing)` - Snap coordinates to road network
     - `travel_time_request(action, json)` - Raw Valhalla JSON API
@@ -83,7 +83,7 @@ docs:
 
     -- Load and route
     SET valhalla_tiles = './tiles';
-    SELECT travel_time_route(ST_Point(7.42, 43.73), ST_Point(7.43, 43.74), 'auto');
+    SELECT valhalla_route(ST_Point(7.42, 43.73), ST_Point(7.43, 43.74), 'auto');
     ```
 
     ## Documentation
