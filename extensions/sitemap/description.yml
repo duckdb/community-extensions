@@ -1,7 +1,7 @@
 extension:
   name: sitemap
   description: Parse XML sitemaps from websites with automatic discovery via robots.txt
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -12,12 +12,15 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-sitemap
-  ref: v0.1.1
+  ref: v0.1.2
 
 docs:
   hello_world: |
     -- Get all URLs from a sitemap (auto-prepends https://)
     SELECT * FROM sitemap_urls('example.com');
+
+    -- Direct sitemap URL (skips discovery)
+    SELECT * FROM sitemap_urls('https://example.com/sitemap.xml');
 
     -- Get URLs from multiple sites
     SELECT * FROM sitemap_urls(['example.com', 'google.com']);
@@ -45,7 +48,9 @@ docs:
     It automatically discovers sitemaps via robots.txt and supports recursive sitemap index traversal.
 
     Features:
-    - Automatic sitemap discovery from /robots.txt
+    - Multi-fallback sitemap discovery (robots.txt, /sitemap.xml, /sitemap_index.xml, HTML meta tags)
+    - Session caching for discovered sitemap locations
+    - Direct sitemap URL support (skips discovery)
     - Sitemap index support (nested sitemaps)
     - Array support for processing multiple domains
     - Retry logic with exponential backoff
