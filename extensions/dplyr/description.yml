@@ -8,7 +8,7 @@
 extension:
   name: dplyr
   description: R dplyr pipeline syntax support for DuckDB - transpiles dplyr verbs to SQL
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: mrchypark/libdplyr
-  ref: 7c9ffe137127a85400e8b50c4cc3db8faccfade8
+  ref: 42a7ff1e8fbfd7c78d8ebad44b4adf98851ee79d
 
 docs:
   hello_world: |
@@ -78,22 +78,28 @@ docs:
     It transpiles dplyr pipeline syntax (using the `%>%` pipe operator) directly to SQL,
     allowing R users to write familiar data manipulation code in DuckDB.
 
-    **Supported dplyr Verbs:**
-    - `select()` - Choose columns by name
-    - `filter()` - Filter rows based on conditions
-    - `mutate()` - Create new columns or modify existing ones
-    - `arrange()` - Sort rows (supports `desc()` for descending order)
-    - `group_by()` - Group data by one or more columns
-    - `summarise()` / `summarize()` - Aggregate grouped data
-    - `rename()` - Rename columns
+    ## Supported Functions
+    
+    ### Core Verbs
+    | Function | Description | Example |
+    | :--- | :--- | :--- |
+    | `select()` | Select/rename columns | `select(id, name)` |
+    | `filter()` | Filter rows | `filter(age > 18)` |
+    | `mutate()` | Create/modify columns | `mutate(total = price * qty)` |
+    | `rename()` | Rename columns | `rename(new = old)` |
+    | `arrange()` | Sort rows | `arrange(desc(date))` |
+    | `group_by()` | Group rows | `group_by(dept)` |
+    | `summarise()` | Aggregate data | `summarise(avg = mean(val))` |
+    | `*_join()` | Joins (inner, left, etc.) | `left_join(other, by="id")` |
+    | Set Ops | union, intersect, setdiff | `union(other)` |
+    
+    ### Helper Functions
+    *   **Aggregation**: `mean`, `sum`, `min`, `max`, `n`, `count`, `median`*, `mode`*
+    *   **Window**: `row_number`, `rank`, `lead`, `lag`, `ntile`
+    *   **Math**: `abs`, `sqrt`, `round`, `floor`, `log`, `exp`
+    *   **String**: `tolower`, `toupper`, `substr`, `trimws`
+    *   **Logic**: `ifelse`, `is.na`, `coalesce`
 
-    **Aggregation Functions:**
-    - `n()` - Count rows
-    - `mean()` / `avg()` - Average
-    - `sum()` - Sum
-    - `min()` / `max()` - Minimum / Maximum
-    - `median()` / `mode()` - DuckDB-specific aggregates
-    - Other aggregate function names are passed through to DuckDB (uppercased).
 
     **Key Features:**
     - Native R dplyr syntax support with `%>%` pipe operator
