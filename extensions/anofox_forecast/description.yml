@@ -5,6 +5,7 @@ extension:
   build: cmake
   excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;"
   license: BSL 1.1
+  requires_toolchains: rust
   maintainers:
     - sipemu
 repo:
