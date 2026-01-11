@@ -1,0 +1,23 @@
+extension:
+  name: read_grib2
+  description: >
+    Native DuckDB extension for reading GRIB2 meteorological data files using the
+    ECMWF ecCodes library. Exposes GRIB2 fields as relational tables with full
+    grid-level access to values, latitudes, longitudes, and metadata.
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  license: Apache-2.0
+  requires_toolchains: ""
+  maintainers:
+    - oglego
+  keywords:
+    - grib2
+    - meteorology
+    - weather
+    - geospatial
+    - eccodes
+
+repo:
+  github: oglego/duckdb_grib2
+  ref: 3a27459c4c9a081f0d49c15c77b45c7b0a5f4a17
