@@ -1,7 +1,7 @@
 extension:
   name: web_search
   description: Query Google Custom Search API directly from SQL with filter pushdowns
-  version: 0.3.0
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-web-search
-  ref: ebfc4ec83800dc1a87f5b0a4c5f9b56e4c398007
+  ref: 7993d775af7f1ab07bb4be1a0a1a68cf65ab8e9b
 
 docs:
   hello_world: |
@@ -44,6 +44,7 @@ docs:
     ### Filter Pushdowns (WHERE clause)
     - `site = 'example.com'` / `site IN (...)` / `site != '...'`
     - `language = 'en'` / `country = 'US'` / `file_type = 'pdf'`
+    - `exact_match = 'phrase'` / `term IN (...)` / `term != '...'`
     - `ORDER BY date DESC/ASC`
     - `LIMIT` optimization
 
