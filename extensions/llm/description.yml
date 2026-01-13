@@ -1,0 +1,86 @@
+docs:
+  extended_description: |
+    Call LLM APIs directly from SQL with support for OpenAI, Gemini, Cloudflare Workers AI, and local OpenAI-compatible servers.
+
+    ## Features
+
+    - `llm()` table function with lateral join and named parameter support
+    - `prompt()` scalar function with auto-detection of API keys
+    - `llm_and_cache()` for immediate responses with caching
+    - `llm_batch_and_cache()` for 50% cheaper batch API processing
+    - `llm_hash()` for LEFT JOIN support with cached results
+    - CREATE SECRET support for secure API key storage
+    - Structured output with `return_type` and `json_schema`
+
+    ## Structured Output Examples
+
+    **Integer output:**
+    ```sql
+    SELECT response FROM llm('What is 15 + 27?',
+        provider := 'gemini', model := 'gemini-2.5-flash',
+        return_type := 'INTEGER');
+    -- Returns: {"value":42}
+    ```
+
+    **Array output:**
+    ```sql
+    SELECT response FROM llm('List the first 5 prime numbers.',
+        provider := 'gemini', model := 'gemini-2.5-flash',
+        return_type := 'INTEGER[]');
+    -- Returns: {"value": [2, 3, 5, 7, 11]}
+    ```
+
+    **Struct output:**
+    ```sql
+    SELECT response FROM llm('Info about Paris.',
+        provider := 'gemini', model := 'gemini-2.5-flash',
+        json_schema := '{
+            "type": "OBJECT",
+            "properties": {
+                "city": {"type": "STRING"},
+                "country": {"type": "STRING"},
+                "population": {"type": "INTEGER"}
+            },
+            "required": ["city", "country", "population"]
+        }');
+    -- Returns: {"city": "Paris", "country": "France", "population": 2140000}
+    ```
+
+    **Array of structs:**
+    ```sql
+    SELECT response FROM llm('List 3 European capitals.',
+        provider := 'gemini', model := 'gemini-2.5-flash',
+        json_schema := '{
+            "type": "OBJECT",
+            "properties": {
+                "cities": {
+                    "type": "ARRAY",
+                    "items": {
+                        "type": "OBJECT",
+                        "properties": {
+                            "name": {"type": "STRING"},
+                            "country": {"type": "STRING"}
+                        }
+                    }
+                }
+            }
+        }');
+    -- Returns: {"cities": [{"name": "Paris", "country": "France"}, ...]}
+    ```
+
+    For more information, see the [documentation](https://github.com/midwork-finds-jobs/duckdb-llm).
+extension:
+  build: cmake
+  description: Call LLM APIs (OpenAI, Gemini, Cloudflare) directly from SQL with structured output support.
+  excluded_platforms: wasm_eh;wasm_mvp;windows_amd64_mingw
+  language: C++
+  license: MIT
+  maintainers:
+    - onnimonni
+  name: llm
+  requires_extensions:
+    - http_request
+  version: 0.2.0
+repo:
+  github: midwork-finds-jobs/duckdb-llm
+  ref: d3415f76c722737df109236591f9273d81a7b904

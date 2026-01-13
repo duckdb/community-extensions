@@ -1,0 +1,156 @@
+extension:
+  name: pdal
+  description: Extension that adds support for manipulating point cloud data using SQL.
+  version: 0.3.0
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "parser_tools"
+  license: MIT / Overall PDAL license (BSD) - https://pdal.org/en/latest/copyright.html
+  maintainers:
+    - ahuarte47
+
+repo:
+  github: ahuarte47/duckdb-pdal
+  ref: 9fcc01eec12fbd32dadfd147d7c361d2c1644f91
+
+docs:
+  hello_world: |
+    SELECT * FROM PDAL_Read('path/to/your/pointcloud.las');
+    ---
+    ┌───────────┬───────────┬────────┬───────┐
+    │     X     │     Y     │   Z    │       │
+    │   double  │   double  │ double │  ...  │
+    ├───────────┼───────────┼────────┤───────┤
+    │ 637177.98 │ 849393.95 │ 411.19 │  ...  │
+    │ 637177.30 │ 849396.95 │ 411.25 │  ...  │
+    │ 637176.34 │ 849400.84 │ 411.01 │  ...  │
+    │ 637175.45 │ 849404.62 │ 410.99 │  ...  │
+    │ 637174.33 │ 849407.37 │ 411.38 │  ...  │
+    └───────────┴───────────┴────────┴───────┘
+
+    WITH __input AS (
+        SELECT
+            X, Y, RasterValue
+        FROM
+            PDAL_Pipeline('./test/data/overlay-sample.tiff', './test/data/overlay-sample-pipeline.json')
+    )
+    SELECT
+        COUNT(*) AS c,
+        SUM(RasterValue) AS s
+    FROM
+        __input
+    ;
+    ---
+    ┌───────┬──────────┐
+    │   c   │    s     │
+    │ int64 │  double  │
+    ├───────┼──────────┤
+    │ 57600 │ 576000.0 │
+    └───────┴──────────┘
+
+  extended_description: |
+    This is an extension for DuckDB for manipulating point cloud data using SQL.
+
+    You can use the extension to read point cloud data from various formats (e.g., LAS, LAZ) and perform transformations on them.
+
+    The extension is built on top of [PDAL (Point Data Abstraction Library)](https://pdal.io/), a C++ library that enables users to read, write, and process point cloud data and, with this extension, load the data directly into DuckDB using SQL queries.
+
+    ```sql
+    SELECT * FROM PDAL_Read('path/to/your/pointcloud.las');
+
+    ┌───────────┬───────────┬────────┬───────┐
+    │     X     │     Y     │   Z    │       │
+    │   double  │   double  │ double │  ...  │
+    ├───────────┼───────────┼────────┤───────┤
+    │ 637177.98 │ 849393.95 │ 411.19 │  ...  │
+    │ 637177.30 │ 849396.95 │ 411.25 │  ...  │
+    │ 637176.34 │ 849400.84 │ 411.01 │  ...  │
+    │ 637175.45 │ 849404.62 │ 410.99 │  ...  │
+    │ 637174.33 │ 849407.37 │ 411.38 │  ...  │
+    └───────────┴───────────┴────────┴───────┘
+    ```
+
+    PDAL supports data pipelines, you can perform complex transformations before loading data points into DuckDB.
+
+    For example, load a raster file, and using `filters.overlay`, extract attributes from a Geopackage:
+
+    ```sql
+    WITH __input AS (
+        SELECT
+            X, Y, RasterValue
+        FROM
+            PDAL_Pipeline('./test/data/overlay-sample.tiff', './test/data/overlay-sample-pipeline.json')
+    )
+    SELECT
+        COUNT(*) AS c,
+        SUM(RasterValue) AS s
+    FROM
+        __input
+    ;
+
+    ┌───────┬──────────┐
+    │   c   │    s     │
+    │ int64 │  double  │
+    ├───────┼──────────┤
+    │ 57600 │ 576000.0 │
+    └───────┴──────────┘
+    ```
+
+    Where the pipeline is:
+
+    ```json
+    {
+        "pipeline": [
+            {
+                "type": "filters.assign",
+                "value" : [ "RasterValue = 0.0" ]
+            },
+            {
+                "type": "filters.overlay",
+                "datasource": "./test/data/overlay-sample.gpkg",
+                "layer": "area",
+                "column": "user_data",
+                "dimension": "RasterValue"
+            }
+        ]
+    }
+    ```
+
+    The pipeline can be provided either as a JSON file or as an inline JSON string. If the second parameter value
+    starts with "[" and ends with "]", it represents an inline JSON, otherwise it is a file path:
+
+    ```sql
+    SELECT
+        COUNT(*)
+    FROM
+        PDAL_pipeline('./test/data/autzen_trim.las',
+            '[
+                {
+                    "type": "filters.tail",
+                    "count": 10
+                }
+            ]'
+        )
+    ;
+    ┌──────────────┐
+    │ count_star() │
+    │    int64     │
+    ├──────────────┤
+    │     10       │
+    └──────────────┘
+    ```
+
+    The `PDAL_PipelineTable` function runs a PDAL pipeline on an input table. It is supposed that the input table
+    contains columns compatible with PDAL point clouds.
+
+    The pipeline can be provided either as a JSON file or as an inline JSON string as well. If the second parameter value
+    starts with "[" and ends with "]", it represents an inline JSON, otherwise it is a file path:
+
+    ```sql
+    SELECT
+    	*
+    FROM
+        PDAL_PipelineTable((SELECT X,Y,Z FROM ...), '[ {"type": "filters.tail", "count": 10} ]')
+    ;
+    ```

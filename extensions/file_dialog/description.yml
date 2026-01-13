@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: yutannihilation/duckdb-ext-file-dialog
-  ref: 351d27b1cbfdaf1d4277a6090b895e66c601b70c
+  ref: 981ba64e4bdfe43e5ff7d98573e3f6c4602bd2cd
 
 docs:
   hello_world: |

@@ -10,7 +10,7 @@ extension:
   - rustyconover
   name: shellfs
   requires_toolchains: python3
-  version: '2025101201'
+  version: '2025120401'
 repo:
   github: query-farm/shellfs
-  ref: f0bcfb8035b2f2d62b3dbfa202bbe61a125b51ee
+  ref: 4fef6d3d58068ce8ef6ed002441e0eca002cf372

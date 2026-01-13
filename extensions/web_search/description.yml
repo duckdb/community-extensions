@@ -1,0 +1,68 @@
+extension:
+  name: web_search
+  description: Query Google Custom Search API directly from SQL with filter pushdowns
+  version: 0.4.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb-web-search
+  ref: 7993d775af7f1ab07bb4be1a0a1a68cf65ab8e9b
+
+docs:
+  hello_world: |
+    -- Setup credentials (get from Google Cloud Console)
+    CREATE SECRET google_search (
+        TYPE google_search,
+        key 'YOUR_API_KEY',
+        cx 'YOUR_SEARCH_ENGINE_ID'
+    );
+
+    -- Basic web search
+    SELECT title, link, snippet
+    FROM google_search('duckdb database')
+    LIMIT 10;
+
+    -- Filter by site
+    SELECT title, link
+    FROM google_search('rust tutorial')
+    WHERE site = 'github.com'
+    LIMIT 20;
+
+  extended_description: |
+    DuckDB extension for querying Google Custom Search API with SQL filter pushdowns.
+
+    ## Features
+
+    ### Table Functions
+    - `google_search(query)` - Web search
+    - `google_image_search(query)` - Image search
+
+    ### Filter Pushdowns (WHERE clause)
+    - `site = 'example.com'` / `site IN (...)` / `site != '...'`
+    - `language = 'en'` / `country = 'US'` / `file_type = 'pdf'`
+    - `exact_match = 'phrase'` / `term IN (...)` / `term != '...'`
+    - `ORDER BY date DESC/ASC`
+    - `LIMIT` optimization
+
+    ### Named Parameters
+    - `exact_terms`, `exclude_terms`, `or_terms`
+    - `safe` (boolean), `rights`, `sort`, `structured_data`
+    - Image: `img_size`, `img_type`, `img_color_type`, `img_dominant_color`
+
+    ### COPY TO
+    - `FORMAT google_pse_annotation` - Export URL patterns to PSE annotation XML
+
+    ### Other
+    - `pagemap` column as JSON type (arrow operator access)
+    - Graceful 429 rate limit handling
+    - JSON extension autoloaded
+
+    ## Setup
+
+    Get API credentials:
+    - API Key: https://developers.google.com/custom-search/v1/introduction
+    - Search Engine ID (cx): https://programmablesearchengine.google.com/controlpanel/all

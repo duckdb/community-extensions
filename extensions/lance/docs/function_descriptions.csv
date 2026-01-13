@@ -1,0 +1,4 @@
+function,description,comment,example
+lance_vector_search,"Vector similarity search over a Lance dataset, returning `_distance` (smaller is closer).","","SELECT id, label, _distance FROM lance_vector_search('path/to/dataset.lance', 'vec', [0.1, 0.2, 0.3, 0.4]::FLOAT[], k = 5, prefilter = true) ORDER BY _distance ASC;"
+lance_fts,"Full-text search over a Lance dataset, returning `_score` (larger is better).","","SELECT id, text, _score FROM lance_fts('path/to/dataset.lance', 'text', 'puppy', k = 10, prefilter = true) ORDER BY _score DESC;"
+lance_hybrid_search,"Hybrid search combining vector and full-text signals, returning `_hybrid_score` (larger is better).","","SELECT id, _hybrid_score, _distance, _score FROM lance_hybrid_search('path/to/dataset.lance', 'vec', [0.1, 0.2, 0.3, 0.4]::FLOAT[], 'text', 'puppy', k = 10, prefilter = false, alpha = 0.5, oversample_factor = 4) ORDER BY _hybrid_score DESC;"

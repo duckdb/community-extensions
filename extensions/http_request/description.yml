@@ -1,0 +1,58 @@
+extension:
+  name: http_request
+  description: HTTP client extension for DuckDB with GET/POST/PUT/PATCH/DELETE and byte-range requests
+  version: 0.6.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw"
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb_http_request
+  ref: fe4e6fc3e2eaecd409a396477927d1f181562e9f
+
+docs:
+  hello_world: |
+    -- Simple GET request
+    SELECT http_get('https://example.com/');
+
+    -- Access response fields
+    SELECT
+        r.status,
+        r.content_type,
+        r.content_length,
+        r.cookies[1].name as first_cookie
+    FROM (SELECT http_get('https://example.com/') as r);
+
+    -- GET with custom headers
+    SELECT http_get('https://httpbin.org/get', headers := {'Accept': 'application/json'}).body;
+
+    -- Byte-range request for partial content
+    SELECT http_get(
+        'https://example.com/largefile.gz',
+        {'Range': byte_range(0, 1024)}
+    );
+
+  extended_description: |
+    HTTP client extension providing scalar and table functions for making HTTP requests.
+
+    Features:
+    - All HTTP methods: GET, HEAD, POST, PUT, PATCH, DELETE
+    - Parallel execution: requests within a chunk run concurrently
+    - Custom headers via STRUCT parameter
+    - Query parameters via STRUCT
+    - Byte-range requests with helper function
+    - Auto-decompression of gzip/zstd responses
+    - Form-encoded POST with http_post_form()
+    - Multipart/form-data uploads with http_post_multipart()
+    - Parsed Set-Cookie headers into structured cookies array
+    - Convenience fields: content_type, content_length
+    - Respects duckdb http and proxy settings
+    - Configurable concurrency via http_max_concurrency setting (default: 32)
+    - Global User-Agent override via http_user_agent setting
+    - Request caching to prevent duplicate requests (http_request_cache setting)
+    - Headers support both STRUCT and MAP syntax
+
+    Uses DuckDB's built-in httplib for HTTP connections.
