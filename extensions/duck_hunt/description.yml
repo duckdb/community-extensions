@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 90+ formats with severity filtering and format auto-detection
-  version: 1.4.0
+  version: 1.5.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: da8de2b9ee8ef1fafb9269043a75affb17b24db7
+  ref: f66bc50970790c90066a0c3764bbdf93276e30b1
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
