@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb_http_request
-  ref: 069e6ff997673daeda30fd6180887c459fcdfc30
+  ref: e55035fe799fc7173fa8b3706e1d88c866a048d3
 
 docs:
   hello_world: |
@@ -55,7 +55,6 @@ docs:
     - Request caching to prevent duplicate requests (http_request_cache setting)
     - Headers support both STRUCT and MAP syntax
     - Redirect control via http_follow_redirects setting (default: true)
-    - Case-insensitive header access: headers normalized to Title-Case
-    - http_header() function for case-insensitive header lookup
+    - HTTP_HEADERS type with case-insensitive [] access (headers['Content-Type'] = headers['content-type'])
 
     Uses DuckDB's built-in httplib for HTTP connections.
