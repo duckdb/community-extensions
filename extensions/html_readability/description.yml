@@ -5,14 +5,14 @@ extension:
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
   requires_toolchains: "rust"
   maintainers:
     - onnimonni
 
 repo:
   github: midwork-finds-jobs/duckdb-html-readability
-  ref: bc5ddffaf9dddb36a05906ae9730afcabfe490c0
+  ref: 53ebdc43c1014db969d9bb50359e0eb9d2cf5e6d
 
 docs:
   hello_world: |
