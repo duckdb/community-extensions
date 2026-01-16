@@ -3,12 +3,12 @@ extension:
   description: Extract readable content from HTML using Mozilla's Readability algorithm
   version: 0.1.0
   language: Rust
-  build: cmake
+  build: cargo
   license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust"
   maintainers:
     - onnimonni
-
-  requires_toolchains: "rust"
 
 repo:
   github: midwork-finds-jobs/duckdb-html-readability
@@ -18,7 +18,9 @@ docs:
   hello_world: |
     SELECT parse_html('<html><head><title>Hello</title></head><body><article><p>World</p></article></body></html>');
   extended_description: |
-    The `html_readability` extension provides a `parse_html()` function that extracts readable content from HTML pages using the [readability](https://crates.io/crates/readability) crate, a Rust port of Mozilla's Readability.js.
+    The `html_readability` extension provides a `parse_html()` function that extracts readable content from HTML pages.
+
+    It uses Mozilla's Readability algorithm - the gold standard for extracting readable text from HTML. This is the same algorithm that powers **Reader Mode** in Firefox and Safari, providing clutter-free viewing by stripping away navigation, ads, and other non-essential elements.
 
     ## Usage
 
