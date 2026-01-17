@@ -70,6 +70,11 @@ docs:
     - Context column type: `LIST(STRUCT(line_number INT, content VARCHAR, is_event BOOL))`
     - Works with all parsers and combines with other parameters
 
+    **New in v1.5.0:**
+    - Format groups: Use `python`, `javascript`, `lint`, `test`, `build` etc. for auto-detection
+    - 14 formats promoted to Production maturity (205 new test assertions)
+    - Cleaner codebase: 37 parsers migrated to DelegatingParser template
+
     **New in v1.4.0:**
     - `ignore_errors` parameter - Continue processing when individual files fail
     - `content` parameter - Control log_content size: integer limit, `'smart'`, `'none'`, or `'full'`
