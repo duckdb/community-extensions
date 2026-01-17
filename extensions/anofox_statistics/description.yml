@@ -9,4 +9,4 @@ extension:
   requires_toolchains: rust
 repo:
   github: DataZooDE/anofox-statistics
-  ref: 3a60878e015280be754ae0ca41667e261cc875d6
+  ref: 81f86eb9051dd756493afd3d328a09ac33f86b04
