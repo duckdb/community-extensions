@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
-  description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 90+ formats with severity filtering and format auto-detection
-  version: 1.4.0
+  description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 90+ formats with severity filtering, format auto-detection, and context extraction
+  version: 1.6.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: da8de2b9ee8ef1fafb9269043a75affb17b24db7
+  ref: 4bb426ab2f5d35e24a99b7d6eeda26d663fcab20
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
@@ -31,6 +31,10 @@ docs:
     -- Control log_content size for memory efficiency (new in v1.4.0)
     SELECT * FROM read_duck_hunt_log('huge.log', content := 200);
     SELECT * FROM read_duck_hunt_log('huge.log', content := 'smart');
+
+    -- Extract surrounding log lines for context (new in v1.6.0)
+    SELECT ref_file, message, context
+    FROM read_duck_hunt_log('build.log', 'make_error', context := 3);
 
     -- Parse GitHub Actions ZIP archives (new in v1.4.0, requires zipfs)
     -- INSTALL zipfs FROM community; LOAD zipfs;
@@ -56,10 +60,20 @@ docs:
     **Documentation:** <https://duck-hunt.readthedocs.io/>
 
     **Core Table Functions:**
-    - `read_duck_hunt_log(source, format, severity_threshold, ignore_errors, content)` - Parse tool outputs from files
-    - `parse_duck_hunt_log(text, format, severity_threshold, content)` - Parse tool outputs from strings
+    - `read_duck_hunt_log(source, format, severity_threshold, ignore_errors, content, context)` - Parse tool outputs from files
+    - `parse_duck_hunt_log(text, format, severity_threshold, content, context)` - Parse tool outputs from strings
     - `read_duck_hunt_workflow_log(source, format, severity_threshold, ignore_errors)` - Parse CI/CD workflow logs
     - `parse_duck_hunt_workflow_log(text, format, severity_threshold)` - Parse workflow strings
+
+    **New in v1.6.0:**
+    - `context` parameter - Include N surrounding log lines around each event
+    - Context column type: `LIST(STRUCT(line_number INT, content VARCHAR, is_event BOOL))`
+    - Works with all parsers and combines with other parameters
+
+    **New in v1.5.0:**
+    - Format groups: Use `python`, `javascript`, `lint`, `test`, `build` etc. for auto-detection
+    - 14 formats promoted to Production maturity (205 new test assertions)
+    - Cleaner codebase: 37 parsers migrated to DelegatingParser template
 
     **New in v1.4.0:**
     - `ignore_errors` parameter - Continue processing when individual files fail
@@ -105,6 +119,7 @@ docs:
     - Transparent compression support (GZIP built-in, ZSTD via parquet)
     - GitHub Actions ZIP archive support (via zipfs extension)
     - Severity-based event filtering
+    - Context extraction for surrounding log lines
     - Error pattern clustering and fingerprinting
     - Multi-file glob processing with ignore_errors for robust batch processing
     - Memory-efficient content modes (limit, smart truncation, omit)
