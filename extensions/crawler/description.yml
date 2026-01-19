@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-crawl
-  ref: 5a122648532ea1a2be02c36cb2ae36ae35ef313a
+  ref: dd1060e923032b9c7570b593213bf70a38f383c0
 
 docs:
   hello_world: |
