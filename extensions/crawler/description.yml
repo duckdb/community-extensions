@@ -9,11 +9,11 @@ extension:
     - onnimonni
 
   requires_toolchains: rust
-  excluded_platforms: osx_amd64;osx_arm64;windows_amd64;windows_amd64_rtools;windows_amd64_mingw
+  excluded_platforms: windows_amd64_mingw
 
 repo:
   github: midwork-finds-jobs/duckdb-crawl
-  ref: dd1060e923032b9c7570b593213bf70a38f383c0
+  ref: 8c09e1df5d9f93fe28dc63e9e37eb44ae20b76c7
 
 docs:
   hello_world: |
