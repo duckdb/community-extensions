@@ -1,7 +1,7 @@
 extension:
   name: mssql
   description: "Connect DuckDB to Microsoft SQL Server via native TDS (including TLS)."
-  version: "0.1.1"
+  version: "0.1.3"
   language: "C++"
   build: "cmake"
   licence: "MIT"
@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-extension"
-  ref: "v0.1.1"
+  ref: "v0.1.3"
 
 docs:
   hello_world: |
