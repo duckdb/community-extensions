@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: onnimonni/duckdb-weather
-  ref: 3d7e7700827c3f2d02f3e878f4cdd63524434700
+  ref: f914ec5a2315ede8d2a37b35391992d4714ab6e2
 
 docs:
   hello_world: |
