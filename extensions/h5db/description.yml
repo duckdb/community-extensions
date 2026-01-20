@@ -5,8 +5,16 @@ extension:
   language: C++
   build: cmake
   license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "python3"
   maintainers:
     - jokasimr
 repo:
   github: jokasimr/h5db
   ref: main
+
+docs:
+  hello_world: |
+    FROM h5_read('file.h5', '/some/dataset');
+  extended_description: |
+    This extension provides functions for reading data and metadata from HDF5 files.
