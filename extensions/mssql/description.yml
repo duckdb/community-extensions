@@ -11,6 +11,9 @@ extension:
   excluded_platforms:
     - "osx_amd64"
     - "windows_arm64"
+    - "wasm_mvp"
+    - "wasm_eh"
+    - "wasm_threads"
 
 repo:
   github: "hugr-lab/mssql-extension"
