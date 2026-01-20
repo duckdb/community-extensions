@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-extension"
-  ref: "v0.1.3"
+  ref: "9a616ada4fb1feb0181b48c5f35f9843d1f89859"
 
 docs:
   hello_world: |
