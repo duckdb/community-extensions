@@ -12,7 +12,7 @@ extension:
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
 
 repo:
-  github: midwork-finds-jobs/duckdb-crawl
+  github: midwork-finds-jobs/duckdb-crawler
   ref: 8db43f686788f97b0f7cbba8db3d7d38e194bd05
 
 docs:
@@ -49,4 +49,4 @@ docs:
     WHEN NOT MATCHED THEN INSERT BY NAME;
     ```
 
-    For full documentation see: https://github.com/midwork-finds-jobs/duckdb-crawl
+    For full documentation see: https://github.com/midwork-finds-jobs/duckdb-crawler
