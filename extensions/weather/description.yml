@@ -1,0 +1,73 @@
+extension:
+  name: weather
+  description: Read GRIB2 weather files and query NOAA GFS forecasts with SQL
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+
+  requires_toolchains: rust
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: onnimonni/duckdb-weather
+  ref: 3d7e7700827c3f2d02f3e878f4cdd63524434700
+
+docs:
+  hello_world: |
+    -- Read GRIB2 weather file
+    SELECT * FROM read_grib('/tmp/gfs.grib2') LIMIT 5;
+
+    -- Query NOAA GFS forecast for Tampere, Finland
+    SELECT variable, level, round(kelvin_to_celsius(AVG(value)), 1) as temp_c
+    FROM noaa_gfs_forecast_api()
+    WHERE run_date = current_date
+      AND forecast_hour = 24
+      AND variable = 'temperature'
+      AND level = '2m'
+      AND latitude BETWEEN 61 AND 62
+      AND longitude BETWEEN 23 AND 24
+    GROUP BY variable, level;
+
+    -- Weather macros
+    SELECT kelvin_to_celsius(300.0) as temp_c,
+           wind_speed(5.0, 5.0) as wind_ms,
+           beaufort_description(15.0) as wind_desc;
+
+  extended_description: |
+    # DuckDB Weather Extension
+
+    Read GRIB2 weather data and query NOAA GFS forecasts directly from DuckDB.
+
+    ## Features
+
+    - **read_grib(path)** - Read GRIB2 files from local paths or HTTP URLs
+    - **noaa_gfs_forecast_api()** - Query NOAA GFS with SQL WHERE filter pushdown
+    - **Weather macros** - Temperature, wind, pressure, humidity conversions
+    - **H3 integration** - Works with DuckDB H3 extension for spatial indexing
+
+    ## Data Sources
+
+    - NOAA GFS: Global, 0.25° resolution, 4x daily, 16-day forecast
+    - License: Public Domain (NOAA data)
+
+    ## Example: Nordic Weather Pipeline
+
+    ```sql
+    INSTALL h3 FROM community;
+    LOAD h3;
+    LOAD weather;
+
+    COPY (
+        SELECT
+            h3_latlng_to_cell(latitude, longitude, 5)::UBIGINT as h3_index,
+            kelvin_to_celsius(value) as temp_c
+        FROM noaa_gfs_forecast_api()
+        WHERE variable = 'temperature'
+          AND level = '2m'
+          AND latitude BETWEEN 54 AND 72
+          AND longitude BETWEEN -25 AND 32
+    ) TO 'nordic_weather.parquet' (FORMAT PARQUET);
+    ```
