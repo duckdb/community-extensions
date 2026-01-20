@@ -1,6 +1,6 @@
 extension:
   name: weather
-  description: Read GRIB2 weather files and query NOAA GFS forecasts with SQL
+  description: Read GRIB2 files, query NOAA GFS and MET Norway forecasts with SQL
   version: 0.1.0
   language: C++
   build: cmake
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: onnimonni/duckdb-weather
-  ref: f914ec5a2315ede8d2a37b35391992d4714ab6e2
+  ref: f559abf61107b2ec4618a6a99df92aaea2c90f8b
 
 docs:
   hello_world: |
@@ -45,13 +45,15 @@ docs:
 
     - **read_grib(path)** - Read GRIB2 files from local paths or HTTP URLs
     - **noaa_gfs_forecast_api()** - Query NOAA GFS with SQL WHERE filter pushdown
+    - **met_forecast(lat, lon)** - Query MET Norway API for location forecasts
     - **Weather macros** - Temperature, wind, pressure, humidity conversions
     - **H3 integration** - Works with DuckDB H3 extension for spatial indexing
 
     ## Data Sources
 
     - NOAA GFS: Global, 0.25° resolution, 4x daily, 16-day forecast
-    - License: Public Domain (NOAA data)
+    - MET Norway: Nordic/European focus, high-resolution local forecasts
+    - License: Public Domain (NOAA), CC BY 4.0 (MET Norway)
 
     ## Example: Nordic Weather Pipeline
 
