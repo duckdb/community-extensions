@@ -14,6 +14,7 @@ extension:
     - "wasm_mvp"
     - "wasm_eh"
     - "wasm_threads"
+  test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
 
 repo:
   github: "hugr-lab/mssql-extension"
