@@ -15,6 +15,6 @@ repo:
 
 docs:
   hello_world: |
-    FROM h5_read('file.h5', '/some/dataset');
+    FROM h5_read('file.h5', '/some/dataset', '/another');
   extended_description: |
     This extension provides functions for reading data and metadata from HDF5 files.
