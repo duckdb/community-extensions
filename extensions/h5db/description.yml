@@ -22,7 +22,7 @@ docs:
     Features:
     - `h5_tree()` table function for listing groups and datasets in the file.
     - `h5_read()` table function for reading datasets.
-    - `h5_attributes` table function for accessing attributes.
+    - `h5_attributes()` table function for accessing attributes.
     - Multiple datasets: Read and combine multiple datasets in a single query.
     - Multi-dimensional arrays: Support for 1D-4D datasets.
     - Projection pushdown: Only reads datasets that are actually needed.
