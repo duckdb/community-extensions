@@ -12,7 +12,7 @@ extension:
   vcpkg_commit: 'dd3097e305afa53f7b4312371f62058d2e665320'
 repo:
   github: midwork-finds-jobs/duckdb-sshfs
-  ref: d1884ceb1e3912d8d636998156a5016c3abe87be
+  ref: 1679e46e57960ec62523fe7853942d2f97e2c952
 
 docs:
   hello_world: |

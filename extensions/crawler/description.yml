@@ -1,0 +1,52 @@
+extension:
+  name: crawler
+  description: SQL-native web crawler with HTML extraction and MERGE support
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+
+  requires_toolchains: rust
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: midwork-finds-jobs/duckdb-crawler
+  ref: 8db43f686788f97b0f7cbba8db3d7d38e194bd05
+
+docs:
+  hello_world: |
+    SELECT url, jq(html.document, 'h1').text as title
+    FROM crawl(['https://example.com']);
+  extended_description: |
+    The crawler extension provides SQL-native web crawling capabilities for DuckDB.
+
+    Features:
+    - `crawl()` table function with automatic rate limiting and robots.txt compliance
+    - `crawl_url()` for LATERAL joins
+    - `sitemap()` for XML sitemap parsing
+    - `jq()` and `htmlpath()` functions for CSS selector-based extraction
+    - `html.readability` for article extraction
+    - `html.schema` for JSON-LD/microdata parsing
+    - `CRAWLING MERGE INTO` syntax for upsert operations
+
+    Example with extraction:
+    ```sql
+    SELECT
+        url,
+        jq(html.document, '.price', 'data-amount') as price,
+        html.readability.title as article_title
+    FROM crawl(['https://example.com/products']);
+    ```
+
+    Example with MERGE:
+    ```sql
+    CRAWLING MERGE INTO pages
+    USING crawl(['https://example.com']) AS src
+    ON (src.url = pages.url)
+    WHEN MATCHED THEN UPDATE BY NAME
+    WHEN NOT MATCHED THEN INSERT BY NAME;
+    ```
+
+    For full documentation see: https://github.com/midwork-finds-jobs/duckdb-crawler
