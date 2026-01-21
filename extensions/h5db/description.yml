@@ -20,10 +20,10 @@ docs:
     This extension provides functions for reading data and metadata from HDF5 files.
 
     Features:
-    - `h5_tree()` table function for listing groups and datasets in the file
-    - `h5_read()` table function for reading datasets
-    - `h5_attributes` table function for accessing attributes
-    - Multiple datasets: Read and combine multiple datasets in a single query
+    - `h5_tree()` table function for listing groups and datasets in the file.
+    - `h5_read()` table function for reading datasets.
+    - `h5_attributes` table function for accessing attributes.
+    - Multiple datasets: Read and combine multiple datasets in a single query.
     - Multi-dimensional arrays: Support for 1D-4D datasets.
     - Projection pushdown: Only reads datasets that are actually needed.
     - Index column: Optionally adds an `index` column that supports pushing down constant "range" like filters (`>`, `<=`, `BETWEEN`, etc), to allow efficient selective reads from datasets.
