@@ -1,0 +1,50 @@
+extension:
+  name: dazzle_duck
+  description: Arrow Flight SQL client with array functions and bloom filters
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - dazzleduck-web
+
+repo:
+  github: dazzleduck-web/dazzleduck-sql-duckdb
+  ref: 998516e8dcb3db040759f64a202e6199b2584c83
+
+docs:
+  hello_world: |
+    For documentation and examples, visit: https://dazzleduck-web.github.io/dazzleduck-website/
+  extended_description: |
+    DazzleDuck is a DuckDB extension that provides a client to execute queries remotely on DazzleDuck SQL Server via Arrow Flight SQL protocol. It also includes array utility functions and bloom filters.
+
+    ## Features
+
+    ### Arrow Flight SQL Client
+    - `read_arrow_dd(url, query)`: Execute queries on remote DuckDB servers via Arrow Flight SQL
+    - `dd_login(url, user, pass)`: Authenticate and get auth token
+    - `dd_splits(url, table)`: Get table splits for parallel processing
+
+    ### Array Functions
+    - `array_contains_all(haystack, needle)`: Check if all needle elements exist in haystack
+    - `array_contains_all(haystack, needle, bloom_filter)`: Optimized version with pre-computed bloom filter
+
+    ### Bloom Filter Functions
+    - `bloom_filter_create(array)`: Create bloom filter from string array
+    - `bloom_filter_contains(filter, value)`: Check single value membership
+    - `bloom_filter_contains_all(filter, array)`: Check multiple values membership
+
+    ## Usage Examples
+
+    ```sql
+    -- Check array containment
+    SELECT array_contains_all(['a','b','c','d'], ['a','c']);  -- true
+
+    -- Create and use bloom filter for large datasets
+    WITH products AS (SELECT bloom_filter_create(list(name)) AS bf FROM catalog)
+    SELECT * FROM search_terms
+    WHERE bloom_filter_contains(products.bf, term);
+
+    -- Query remote DuckDB server
+    SELECT * FROM read_arrow_dd('https://server:8081', query := 'SELECT * FROM sales');
+    ```
