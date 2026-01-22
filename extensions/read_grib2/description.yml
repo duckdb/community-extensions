@@ -20,4 +20,4 @@ extension:
 
 repo:
   github: oglego/duckdb_grib2
-  ref: 3a27459c4c9a081f0d49c15c77b45c7b0a5f4a17
+  ref: e8394b9d449b9ecd79909b9f48cd7a0d864e818c
