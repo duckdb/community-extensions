@@ -11,7 +11,7 @@ extension:
     - jokasimr
 repo:
   github: jokasimr/h5db
-  ref: main
+  ref: v0.1.0
 
 docs:
   hello_world: |
