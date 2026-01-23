@@ -1,7 +1,7 @@
 extension:
   name: http_request
   description: HTTP client extension for DuckDB with GET/POST/PUT/PATCH/DELETE and byte-range requests
-  version: 0.4.0
+  version: 0.8.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb_http_request
-  ref: fa3a7438c658a423f607a525673156034bf46244
+  ref: e55035fe799fc7173fa8b3706e1d88c866a048d3
 
 docs:
   hello_world: |
@@ -51,5 +51,10 @@ docs:
     - Convenience fields: content_type, content_length
     - Respects duckdb http and proxy settings
     - Configurable concurrency via http_max_concurrency setting (default: 32)
+    - Global User-Agent override via http_user_agent setting
+    - Request caching to prevent duplicate requests (http_request_cache setting)
+    - Headers support both STRUCT and MAP syntax
+    - Redirect control via http_follow_redirects setting (default: true)
+    - HTTP_HEADERS type with case-insensitive [] access (headers['Content-Type'] = headers['content-type'])
 
     Uses DuckDB's built-in httplib for HTTP connections.

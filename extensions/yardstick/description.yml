@@ -1,18 +1,18 @@
 extension:
   name: yardstick
   description: Measure-aware SQL implementing Julian Hyde's 'Measures in SQL' paper
-  version: 0.4.0
+  version: 0.5.2
   language: C++
   build: cmake
   license: MIT
   requires_toolchains: "rust"
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - sidequery
 
 repo:
   github: sidequery/yardstick
-  ref: 7fbe8abd40a926300e58dc6a365c43399710ef42
+  ref: 6001370ecf86bb2ce90b2dcc6b69f5ed8dc66093
 
 docs:
   hello_world: |

@@ -1,0 +1,42 @@
+extension:
+  name: html_readability
+  description: Extract readable content from HTML using Mozilla's Readability algorithm
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust"
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb-html-readability
+  ref: 53ebdc43c1014db969d9bb50359e0eb9d2cf5e6d
+
+docs:
+  hello_world: |
+    SELECT parse_html('<html><head><title>Hello</title></head><body><article><p>World</p></article></body></html>');
+  extended_description: |
+    The `html_readability` extension provides a `parse_html()` function that extracts readable content from HTML pages.
+
+    It uses Mozilla's Readability algorithm - the gold standard for extracting readable text from HTML. This is the same algorithm that powers **Reader Mode** in Firefox and Safari, providing clutter-free viewing by stripping away navigation, ads, and other non-essential elements.
+
+    ## Usage
+
+    ```sql
+    -- Parse HTML and get all fields
+    SELECT parse_html(html_column) FROM pages;
+
+    -- Access individual fields
+    SELECT (parse_html(html)).title FROM pages;
+    SELECT (parse_html(html)).content FROM pages;  -- cleaned HTML
+    SELECT (parse_html(html)).text FROM pages;     -- plain text
+    ```
+
+    ## Return Type
+
+    Returns `STRUCT(title VARCHAR, content VARCHAR, text VARCHAR)`:
+    - `title`: The extracted page title
+    - `content`: Cleaned HTML of the main article content
+    - `text`: Plain text version of the content
