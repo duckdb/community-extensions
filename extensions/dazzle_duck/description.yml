@@ -1,7 +1,7 @@
 extension:
   name: dazzle_duck
   description: Arrow IPC over HTTP client with array functions and bloom filters
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: dazzleduck-web/dazzleduck-sql-duckdb
-  ref: v0.0.1
+  ref: v0.0.2
 
 docs:
   hello_world: |
@@ -23,7 +23,7 @@ docs:
     ### Arrow IPC over HTTP Client
     - `dd_read_arrow(url, query)`: Execute queries on remote DuckDB servers via Arrow IPC over HTTP
     - `dd_login(url, user, pass)`: Authenticate and get auth token
-    - `dd_splits(url, table)`: Get table splits for parallel processing (returns split_id, query_id, query, producer_id, split_size)
+    - `dd_splits(url, table)`: Get table splits for parallel processing (returns endpoints, query_id, query, producer_id, split_size, query_checksum)
     - **Filter Pushdown**: WHERE clause filters are automatically sent to the remote server
     - **Projection Pushdown**: Only selected columns are fetched from the server
     - **Split Mode**: Enable parallel execution with `split := true` parameter
