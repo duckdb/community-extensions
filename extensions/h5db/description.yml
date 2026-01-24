@@ -1,17 +1,17 @@
 extension:
   name: h5db
   description: A DuckDB extension for reading HDF5 files.
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
-  requires_toolchains: "python3"
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "vcpkg;python3"
   maintainers:
     - jokasimr
 repo:
   github: jokasimr/h5db
-  ref: v0.1.0
+  ref: v0.1.1
 
 docs:
   hello_world: |
