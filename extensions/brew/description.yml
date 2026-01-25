@@ -1,0 +1,24 @@
+extension:
+  name: brew
+  description: Get locally homebrew casks, packages and formulas as nicely types tables
+  version: 0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - adriens
+
+repo:
+  github: adriens/duckdb-brew
+  ref: 371f409895b47c472bdbae6165f70921fe394bc0
+
+docs:
+  hello_world: |
+    -- Get all casks
+    select * from brew_casks();
+
+    -- Get all packages
+    select * from brew_packages();
+    
+    -- get all formulas
+    select * from brew_formulas();
