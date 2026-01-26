@@ -7,6 +7,16 @@ extension:
   license: MIT
   maintainers:
     - adriens
+  excluded_platforms
+    - "windows_arm64"
+    - "windows_amd64"
+    - "windows_amd64_mingw"
+    - "windows_amd64_rtools"
+    - "windows_amd64_mingw"
+    - "wasm_threads"
+    - "wasm_eh"
+    - "wasm_mvp"
+    
 
 repo:
   github: adriens/duckdb-brew
