@@ -1,0 +1,32 @@
+extension:
+  name: ion
+  description: Read AWS Ion data and write Ion text or binary with typed mappings
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - kestra-io
+    - proddata
+
+repo:
+  github: kestra-io/duckdb-ion
+  ref: 75c52435dcf48e96afd79b3b9bc1dce1a5547b04
+
+docs:
+  hello_world: |
+    -- Read Ion files (text or binary)
+    SELECT * FROM read_ion('sample.ion');
+
+    -- Control schema and parsing options
+    SELECT * FROM read_ion('sample.ion', columns := {id: 'BIGINT', label: 'VARCHAR'});
+    SELECT * FROM read_ion('scalars.ion', records := false);
+    SELECT * FROM read_ion('array.ion', format := 'array');
+
+    -- Write Ion text or binary
+    CREATE TABLE ion_demo AS SELECT 1::INTEGER AS id, 'hello' AS label;
+    COPY ion_demo TO 'out.ion' (FORMAT ION);
+    COPY ion_demo TO 'out.ion' (FORMAT ION, BINARY TRUE);
+  extended_description: |
+    The ion extension enables DuckDB to read AWS Ion in text and binary formats and write Ion text or binary,
+    preserving Ion types where possible for richer analytics.

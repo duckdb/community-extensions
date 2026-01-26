@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: eddelbuettel/duckdb-mlpack
-  ref: 53a49ae692e53b28876a28283a4e327043346137
+  ref: 1c1f71363b06afcf376e538a7b5e78ebfc7f8c0a
+  ref_next: 013bee3310127e1523763b4a4419a18027f205d6
 
 docs:
   hello_world: |

@@ -9,6 +9,7 @@
 | [`PDAL_Drivers`](#pdal_drivers) | Returns the list of supported stage types of a PDAL Pipeline. |
 | [`PDAL_Info`](#pdal_info) | Read the metadata from a point cloud file. |
 | [`PDAL_Pipeline`](#pdal_pipeline) | Read and import a point cloud data file, applying also a custom processing pipeline file to the data. |
+| [`PDAL_PipelineTable`](#pdal_pipelinetable) | Apply a custom processing pipeline to the input table. |
 | [`PDAL_Read`](#pdal_read) | Read and import a variety of point cloud data file formats using the PDAL library. |
 
 ----
@@ -95,14 +96,17 @@ SELECT * FROM PDAL_Info('./test/data/autzen_trim.laz');
 #### Signature
 
 ```sql
-PDAL_Pipeline (file_name VARCHAR, pipeline_file_name VARCHAR, options MAP(VARCHAR, VARCHAR))
+PDAL_Pipeline (file_name VARCHAR, pipeline_or_file_name VARCHAR, options MAP(VARCHAR, VARCHAR))
 ```
 
 #### Description
 
 
 Read and import a variety of point cloud data file formats using the PDAL library,
-applying also a custom processing pipeline file to the data.
+applying also a custom processing pipeline to the data.
+
+The pipeline can be provided either as a JSON file or as an inline JSON string. If the second parameter
+value starts with "[" and ends with "]", it represents an inline JSON, otherwise it is a file path.
 
 
 #### Example
@@ -110,6 +114,36 @@ applying also a custom processing pipeline file to the data.
 ```sql
 
 SELECT * FROM PDAL_Pipeline('path/to/your/filename.las', 'path/to/your/pipeline.json');
+SELECT * FROM PDAL_Pipeline('path/to/your/filename.las', '[ {"type": "filters.tail", "count": 10} ]');
+
+```
+
+----
+
+### PDAL_PipelineTable
+
+#### Signature
+
+```sql
+PDAL_PipelineTable (table TABLE, pipeline_or_file_name VARCHAR)
+```
+
+#### Description
+
+
+Apply a custom processing pipeline to the input table. It is supposed that the input table contains columns
+compatible with PDAL point clouds.
+
+The pipeline can be provided either as a JSON file or as an inline JSON string. If the second parameter
+value starts with "[" and ends with "]", it represents an inline JSON, otherwise it is a file path.
+
+
+#### Example
+
+```sql
+
+SELECT * FROM PDAL_PipelineTable((SELECT X,Y,Z FROM PDAL_Read('path/to/your/filename.las')), 'path/to/your/pipeline.json');
+SELECT * FROM PDAL_PipelineTable((SELECT X,Y,Z FROM PDAL_Read('path/to/your/filename.las')), '[ {"type": "filters.tail", "count": 100} ]');
 
 ```
 

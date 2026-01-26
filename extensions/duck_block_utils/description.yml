@@ -1,0 +1,166 @@
+extension:
+  name: duck_block_utils
+  description: Build, transform, validate, and extract content from structured documents using the duck_block type
+  version: 1.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duckdb_duck_block_utils
+  ref: 88048e0fe27d93acd210623f41999e660c31a3f0
+
+docs:
+  hello_world: |
+    -- Build a document programmatically
+    SELECT db_assemble([
+        db_heading(1, 'Hello World'),
+        db_paragraph([
+            db_text('This is '),
+            db_bold('important'),
+            db_text(' content.')
+        ]),
+        db_code('sql', 'SELECT * FROM documents')
+    ]);
+
+    -- Works with markdown extension for reading/writing files
+    LOAD markdown;
+    LOAD duck_block_utils;
+
+    -- Extract table of contents from markdown
+    SELECT * FROM db_blocks_toc(
+        (SELECT list(b) FROM read_markdown_blocks('README.md') b)
+    );
+
+    -- Convert blocks to plain text
+    SELECT db_blocks_to_text(
+        (SELECT list(b) FROM read_markdown_blocks('doc.md') b)
+    );
+
+    -- Validate document structure
+    SELECT db_blocks_validate(
+        (SELECT list(b) FROM read_markdown_blocks('doc.md') b)
+    );
+
+  extended_description: |
+    The Duck Block Utils extension provides tools for building, transforming, validating, and
+    extracting content from structured documents. All functions use the `duck_block` type - a
+    unified representation for document elements that works across formats.
+
+    **Documentation:** [duck-block-utils.readthedocs.io](https://duck-block-utils.readthedocs.io)
+
+    ## The duck_block Type
+
+    A unified struct for both block-level and inline elements:
+
+    ```sql
+    STRUCT(
+        kind VARCHAR,                       -- 'block' or 'inline'
+        element_type VARCHAR,               -- 'heading', 'paragraph', 'bold', 'link', etc.
+        content VARCHAR,                    -- Text content (NULL if element has children)
+        level INTEGER,                      -- Structural depth (1=block, 2+=inline children)
+        encoding VARCHAR,                   -- 'text', 'json', 'html', etc.
+        attributes MAP(VARCHAR, VARCHAR),   -- Element-specific metadata
+        element_order INTEGER               -- Position in document
+    )
+    ```
+
+    ## V2 API Design
+
+    All builder functions return `LIST(duck_block)` for uniform composition:
+
+    ```sql
+    -- Builders can be nested naturally
+    SELECT db_paragraph([
+        db_text('Click '),
+        db_link('https://example.com', 'here'),
+        db_text(' for more.')
+    ]);
+    ```
+
+    ## Block Builders
+
+    | Function | Description |
+    |----------|-------------|
+    | `db_heading(level, content)` | Create heading (h1-h6) |
+    | `db_paragraph(content)` | Create paragraph |
+    | `db_code(language, content)` | Create fenced code block |
+    | `db_blockquote(content)` | Create block quote |
+    | `db_list_block(ordered, items[])` | Create ordered/unordered list |
+    | `db_hr()` | Create horizontal rule |
+    | `db_image(src, alt, title)` | Create image block |
+    | `db_metadata(content)` | Create YAML frontmatter |
+    | `db_raw(format, content)` | Create raw content block |
+
+    ## Inline Builders
+
+    | Function | Description |
+    |----------|-------------|
+    | `db_text(content)` | Plain text |
+    | `db_bold(content)` | Bold/strong text |
+    | `db_italic(content)` | Italic/emphasis text |
+    | `db_link(href, content)` | Hyperlink |
+    | `db_inline_code(content)` | Inline code |
+    | `db_math(content)` | Math expression |
+    | `db_strikethrough(content)` | Strikethrough text |
+    | `db_superscript(content)` | Superscript |
+    | `db_subscript(content)` | Subscript |
+
+    ## Assembly Functions
+
+    | Function | Description |
+    |----------|-------------|
+    | `db_assemble(blocks[])` | Combine blocks into document |
+    | `db_document(blocks[])` | Alias for db_assemble |
+    | `db_section(level, title, children[])` | Create section with heading |
+    | `db_concat(blocks1, blocks2)` | Concatenate block lists |
+    | `db_rebase_levels(blocks, offset)` | Adjust heading levels |
+
+    ## Extraction Functions
+
+    | Function | Description |
+    |----------|-------------|
+    | `db_blocks_to_text(blocks)` | Extract plain text |
+    | `db_blocks_headings(blocks)` | Extract heading hierarchy |
+    | `db_blocks_toc(blocks)` | Generate table of contents |
+
+    ## Validation
+
+    | Function | Description |
+    |----------|-------------|
+    | `db_blocks_validate(blocks)` | Validate document structure |
+
+    ## Pandoc Integration
+
+    Convert between Pandoc JSON AST and duck_block without requiring Pandoc:
+
+    | Function | Description |
+    |----------|-------------|
+    | `pandoc_inlines_to_db_inlines(json)` | Parse Pandoc inline AST |
+    | `db_inlines_to_pandoc(blocks)` | Convert to Pandoc inline AST |
+
+    ## Ecosystem Integration
+
+    Duck Block Utils works seamlessly with other DuckDB document extensions:
+
+    - **[duckdb_markdown](https://github.com/teaguesterling/duckdb_markdown)** - Read markdown files with `read_markdown_blocks()`, write with `COPY ... TO ... (FORMAT markdown, MARKDOWN_MODE duck_block)`
+    - **[duckdb_webbed](https://github.com/teaguesterling/duckdb_webbed)** - HTML parsing and generation
+
+    ```sql
+    -- Read markdown, manipulate with duck_block_utils, write back
+    LOAD markdown;
+    LOAD duck_block_utils;
+
+    -- Add a disclaimer to all documents
+    COPY (
+        SELECT block.* FROM (
+            SELECT unnest(db_assemble([
+                (SELECT list(b) FROM read_markdown_blocks('doc.md') b),
+                db_hr(),
+                db_paragraph('Generated by DuckDB')
+            ])) as block
+        )
+    ) TO 'output.md' (FORMAT markdown, MARKDOWN_MODE duck_block);
+    ```

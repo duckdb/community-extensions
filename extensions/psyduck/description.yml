@@ -1,7 +1,7 @@
 extension:
   name: psyduck
   description: Pokemon data native in DuckDB
-  version: 1.0.0
+  version: 1.0.2
   language: C++
   build: cmake
   license: MIT
@@ -10,9 +10,8 @@ extension:
 
 repo:
   github: Ian-Fogelman/psyduck
-  ref: c6f12f6e349a9fe4fa0fb2da5b416a7334f66c9b
+  ref: c4f8faa4d25e4ca8b3cb0bac8cb958b030f1b2b5
   
- 
 docs:
   hello_world: |
     -- Create a table of pokémon and return... A duck
@@ -27,3 +26,9 @@ docs:
     
     -- Select the best pokémon
     SELECT number, name, type1, "height(m)", "weight(kg)", base_total FROM list_pokemon() WHERE name = 'Charizard';
+
+    -- Select pokemon moves
+    SELECT * FROM list_pokemon_moves();
+    
+    -- Select gen1 items
+    SELECT * FROM list_pokemon_items();

@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: duckdb/extension-template-rs
-  ref: 3dd3adbeb84f617ebc44619d8b1a8fe6416fd214
+  ref: 2381c7e1c5026f21c92b7ffe3ae7a6b1d8d177c0
 
 docs:
   hello_world: |
