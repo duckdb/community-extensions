@@ -9,7 +9,7 @@ extension:
   maintainers:
     - lnkuiper
   name: fivetran
-  version: 2026010900
+  version: 2026012700
 repo:
   github: lnkuiper/fivetran
-  ref: cfcb7ef1f1c8d0c719e8be0dc839e169b1c79c75
+  ref: 1ff6cb2f6b91b7be7bda3f310b546efa605b5034
