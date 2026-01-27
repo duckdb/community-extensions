@@ -1,7 +1,7 @@
 extension:
   name: chess
   description: A DuckDB extension for parsing and analyzing chess games in PGN format.
-  version: 0.1.1
+  version: 0.1.2
   language: Rust
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dotneB/duckdb-chess
-  ref: v0.1.1
+  ref: v0.1.2
 
 docs:
   hello_world: |
