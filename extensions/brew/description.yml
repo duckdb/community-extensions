@@ -60,37 +60,36 @@ docs:
       disable_reason VARCHAR,
       caveats VARCHAR,
       size_bytes BIGINT
-  );
+    );
 
-  -- Populate from the function
-  INSERT INTO brew_packages
-    SELECT * FROM brew_packages();
-  
-  -- Create brew_dependencies table with foreign key constraints
-  CREATE OR REPLACE TEMP TABLE brew_dependencies (
-      name VARCHAR,
-      dependency VARCHAR,
-      FOREIGN KEY (name) REFERENCES brew_packages(name),
-      FOREIGN KEY (dependency) REFERENCES brew_packages(name)
-  );
-
-  -- Populate from brew_packages function
-  INSERT INTO brew_dependencies
-  SELECT
-      name,
-      unnest(string_split(dependencies, ', ')) as dependency
-  FROM brew_packages()
-  WHERE dependencies IS NOT NULL
-  ORDER BY name;
-
-  SELECT 
-    tap, 
-    count(*) as package_count
-  FROM brew_packages
-  GROUP BY tap
-  ORDER BY package_count DESC;
-
+    -- Populate from the function
+    INSERT INTO brew_packages
+      SELECT * FROM brew_packages();
     
+    -- Create brew_dependencies table with foreign key constraints
+    CREATE OR REPLACE TEMP TABLE brew_dependencies (
+        name VARCHAR,
+        dependency VARCHAR,
+        FOREIGN KEY (name) REFERENCES brew_packages(name),
+        FOREIGN KEY (dependency) REFERENCES brew_packages(name)
+    );
+
+    -- Populate from brew_packages function
+    INSERT INTO brew_dependencies
+    SELECT
+        name,
+        unnest(string_split(dependencies, ', ')) as dependency
+    FROM brew_packages()
+    WHERE dependencies IS NOT NULL
+    ORDER BY name;
+
+    SELECT 
+      tap, 
+      count(*) as package_count
+    FROM brew_packages
+    GROUP BY tap
+    ORDER BY package_count DESC;
+
 extended_description: |
     The `brew` extension add `brew` reporting capabilities to DuckDB, enabling structured analysis, package statistics, inluding file size reporting.
 
