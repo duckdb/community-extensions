@@ -40,7 +40,7 @@ docs:
     - UPDATE and DELETE support (requires primary key)
     - Connection pooling with configurable limits
     - DuckDB secret management for credentials
-    - Full transaction support (BEGIN, COMMIT, ROLLBACK)
+    - Transaction support (BEGIN, COMMIT, ROLLBACK)
 
     Limitations:
     - Limited data type support (see documentation for details)
