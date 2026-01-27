@@ -10,7 +10,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_mcp
-  ref: 001f6ca3036ee6cc142f93cb25bc0232acc725c2
+  ref: eeca8f7f11c8d3e4d84d9af7efa7778c078db5ec
 
 docs:
   hello_world: |
