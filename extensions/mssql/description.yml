@@ -1,7 +1,7 @@
 extension:
   name: mssql
   description: "Connect DuckDB to Microsoft SQL Server via native TDS (including TLS)."
-  version: "0.1.7"
+  version: "0.1.8"
   language: "C++"
   build: "cmake"
   licence: "MIT"
@@ -17,11 +17,11 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-extension"
-  ref: "v0.1.7"
+  ref: "v0.1.8"
 
 docs:
   hello_world: |
-    INSTALL mssql FROM community;
+    FORCE INSTALL mssql FROM community;
     LOAD mssql;
     ATTACH 'mssql://sa:YourStrong!Passw0rd@localhost:1433?database=master&use_encrypt=true' AS ms;
     SELECT * FROM ms.dbo.table LIMIT 5;
@@ -40,8 +40,8 @@ docs:
     - UPDATE and DELETE support (requires primary key)
     - Connection pooling with configurable limits
     - DuckDB secret management for credentials
+    - Full transaction support (BEGIN, COMMIT, ROLLBACK)
 
     Limitations:
     - Limited data type support (see documentation for details)
     - Create table as select (CTAS) not supported
-    - No transaction support
