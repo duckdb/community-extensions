@@ -1,6 +1,6 @@
 extension:
   name: h5db
-  description: A DuckDB extension for reading HDF5 files.
+  description: For reading HDF5 datasets and attributes.
   version: 0.2.0
   language: C++
   build: cmake
