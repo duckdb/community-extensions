@@ -1,7 +1,7 @@
 extension:
   name: pdal
   description: Extension that adds support for manipulating point cloud data using SQL.
-  version: 0.1.0
+  version: 0.3.0
   language: C++
   build: cmake
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-pdal
-  ref: c90f11dae18d2444281f16ec3523725046e4b935
+  ref: 89117b9852612c420cde014bb34801f2849aa267
 
 docs:
   hello_world: |
@@ -115,4 +115,42 @@ docs:
             }
         ]
     }
+    ```
+
+    The pipeline can be provided either as a JSON file or as an inline JSON string. If the second parameter value
+    starts with "[" and ends with "]", it represents an inline JSON, otherwise it is a file path:
+
+    ```sql
+    SELECT
+        COUNT(*)
+    FROM
+        PDAL_pipeline('./test/data/autzen_trim.las',
+            '[
+                {
+                    "type": "filters.tail",
+                    "count": 10
+                }
+            ]'
+        )
+    ;
+    ┌──────────────┐
+    │ count_star() │
+    │    int64     │
+    ├──────────────┤
+    │     10       │
+    └──────────────┘
+    ```
+
+    The `PDAL_PipelineTable` function runs a PDAL pipeline on an input table. It is supposed that the input table
+    contains columns compatible with PDAL point clouds.
+
+    The pipeline can be provided either as a JSON file or as an inline JSON string as well. If the second parameter value
+    starts with "[" and ends with "]", it represents an inline JSON, otherwise it is a file path:
+
+    ```sql
+    SELECT
+    	*
+    FROM
+        PDAL_PipelineTable((SELECT X,Y,Z FROM ...), '[ {"type": "filters.tail", "count": 10} ]')
+    ;
     ```

@@ -1,0 +1,28 @@
+extension:
+  name: pst
+  description: Read Microsoft PST files with rich schemas for common MAPI types (emails, contacts, appointments, tasks)
+  version: 0.0.1
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64;windows_amd64_mingw"
+  license: MIT
+  maintainers:
+    - mach-kernel
+
+repo:
+  github: intellekthq/duckdb-pst
+  ref: a56c01b7461a80702a3f81f0385def91b808fd1b
+
+docs:
+  hello_world: |
+    -- Count all messages in PST files
+    SELECT count(*) FROM read_pst_messages('*.pst');
+
+    -- Query contacts from a PST file (supports remote URIs)
+    SELECT given_name, surname, business_telephone, email_address
+    FROM read_pst_contacts('outlook.pst')
+    LIMIT 10;
+
+    -- Read messages with limit (applied during planning for large files)
+    SELECT subject, sender_email_address, message_delivery_time
+    FROM read_pst_messages('*.pst', read_limit=100);

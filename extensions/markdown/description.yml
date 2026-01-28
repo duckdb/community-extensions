@@ -1,7 +1,7 @@
 extension:
   name: markdown
-  description: Read and analyze Markdown files with comprehensive content extraction and document processing capabilities
-  version: 1.0.2
+  description: Read, analyze, and write Markdown files with block-level document representation and inline element support
+  version: 1.3.10
   language: C++
   build: cmake
   license: MIT
@@ -10,60 +10,72 @@ extension:
 
   # cmark-gfm not in default vcpkg release
   vcpkg_commit: "bffcbb75f71553824aa948a7e7b4f798662a6fa7"
-  
+
 repo:
   github: teaguesterling/duckdb_markdown
-  ref: ece14ecb6301eaa3f19d247735ac56c1182282fe
-
+  ref: 'bc6ddb1e14ca3feb5c4b51ba561ca7542a950d98'
 
 docs:
   hello_world: |
     -- Load the extension
     LOAD markdown;
-    
+
     -- Read Markdown files with glob patterns
     SELECT content FROM read_markdown('docs/**/*.md');
-    
-    -- Read documentation sections with hierarchy
-    SELECT title, level, content 
-    FROM read_markdown_sections('README.md', include_content := true);
-    
+
+    -- Parse into block-level elements (duck_block shape)
+    SELECT element_type, content, level
+    FROM read_markdown_blocks('README.md')
+    ORDER BY element_order;
+
     -- Extract code blocks from Markdown text
-    SELECT cb.language, cb.code 
+    SELECT cb.language, cb.code
     FROM (
-      SELECT UNNEST(md_extract_code_blocks('```python\nprint("Hello, World!")\n```')) as cb
+      SELECT UNNEST(md_extract_code_blocks('```python\nprint("Hello")\n```')) as cb
     );
-    
-    -- Analyze documentation repositories
-    SELECT 
-      len(md_extract_code_blocks(content)) as code_examples,
-      len(md_extract_links(content)) as external_links,
-      len(md_extract_images(content)) as images
-    FROM read_markdown('**/*.md');
-    
-    -- Use replacement scan syntax for convenience
-    SELECT * FROM '*.md';
-    SELECT * FROM 'docs/**/*.md';
+
+    -- Build rich text with inline elements
+    SELECT duck_blocks_to_md([
+      {kind: 'inline', element_type: 'text', content: 'Check out ', level: 1, encoding: 'text', attributes: MAP{}, element_order: 0},
+      {kind: 'inline', element_type: 'link', content: 'our docs', level: 1, encoding: 'text', attributes: MAP{'href': 'https://duckdb-markdown.readthedocs.io/'}, element_order: 1}
+    ]);
+
+    -- Export query results as Markdown table
+    COPY (SELECT * FROM my_table) TO 'output.md' (FORMAT MARKDOWN);
+
+    -- Round-trip: read blocks, transform, write back
+    COPY (
+      SELECT kind, element_type, content, level, encoding, attributes
+      FROM read_markdown_blocks('doc.md')
+    ) TO 'copy.md' (FORMAT MARKDOWN, markdown_mode 'blocks');
 
   extended_description: |
-    The Markdown extension adds comprehensive Markdown processing capabilities to DuckDB, enabling structured analysis of Markdown documents and content extraction for documentation analysis, content auditing, and knowledge base processing.
-    
+    The Markdown extension adds comprehensive Markdown processing capabilities to DuckDB, enabling structured analysis, transformation, and generation of Markdown documents.
+
+    **Documentation:** [https://duckdb-markdown.readthedocs.io/](https://duckdb-markdown.readthedocs.io/)
+
     **Key Features:**
-    
-    - **File Reading Functions**: Read Markdown files with `read_markdown()` and `read_markdown_sections()` supporting glob patterns, metadata extraction, and hierarchical section parsing
+
+    - **File Reading Functions**: Read Markdown files with `read_markdown()`, `read_markdown_sections()`, and `read_markdown_blocks()` supporting glob patterns, metadata extraction, and block-level parsing
+    - **Block-Level Representation**: Parse documents into duck_block format with `kind` (block/inline), `element_type`, `content`, `level`, `encoding`, `attributes`, and `element_order` columns
+    - **Inline Element Support**: Build rich text content with bold, italic, links, code, math, and more using the unified duck_block structure
+    - **COPY TO Markdown**: Export query results as Markdown tables, documents, or block-level representations with full round-trip support
     - **Content Extraction**: Extract code blocks, links, images, and tables from Markdown content using structured LIST<STRUCT> return types
     - **Document Processing**: Convert markdown to HTML/text, validate content, extract metadata, and generate document statistics
     - **Replacement Scan Support**: Query Markdown files directly using `FROM '*.md'` syntax with full glob pattern support
     - **Native MARKDOWN Type**: Custom MARKDOWN type with automatic VARCHAR casting for seamless integration
-    - **Cross-Platform Support**: Works on Linux, macOS, and WebAssembly (Windows support in development)
+    - **Cross-Platform Support**: Works on Linux, macOS, WebAssembly, and Windows
     - **GitHub Flavored Markdown**: Uses cmark-gfm for accurate parsing of modern Markdown features
     - **High Performance**: Process thousands of documents efficiently with 4,000+ sections/second processing rate
-    - **Comprehensive Parameter System**: Flexible file processing with customizable options for content inclusion, size limits, and metadata extraction
-    
+
     **Core Functions:**
-    
+
     - `read_markdown()` - Read Markdown files with comprehensive parameter support
     - `read_markdown_sections()` - Parse files into hierarchical sections with filtering options
+    - `read_markdown_blocks()` - Parse files into block-level elements (duck_block shape)
+    - `duck_block_to_md()` - Convert single block/inline element to Markdown
+    - `duck_blocks_to_md()` - Convert list of elements to Markdown document
+    - `duck_blocks_to_sections()` - Convert blocks to hierarchical sections
     - `md_extract_code_blocks()` - Extract code blocks with language and metadata
     - `md_extract_links()` - Extract links with text, URL, and title information
     - `md_extract_images()` - Extract images with alt text and metadata
@@ -71,20 +83,26 @@ docs:
     - `md_to_html()` - Convert markdown content to HTML
     - `md_to_text()` - Convert markdown to plain text for full-text search
     - `md_stats()` - Get document statistics (word count, reading time, etc.)
-    - `md_extract_metadata()` - Extract frontmatter metadata as JSON
-    
+    - `md_extract_metadata()` - Extract frontmatter metadata as MAP
+
+    **COPY TO Modes:**
+
+    - `table` (default) - Export any query as a formatted Markdown table
+    - `document` - Reconstruct Markdown from sections with headings and content
+    - `blocks` / `duck_block` - Round-trip block-level representation with inline element support
+
     **Example Use Cases:**
-    
+
     - Documentation analysis across entire repositories
     - Content quality assessment and auditing
     - Large-scale documentation search and indexing
     - Code example extraction and analysis
-    - Link validation and external reference tracking
+    - Document transformation pipelines
+    - Rich text generation with inline formatting
     - Knowledge base processing and content management
-    - Technical writing analytics and reporting
-    
-    **Performance Benchmarks:**
-    
-    Real-world performance: Processing 287 Markdown files (2,699 sections, 1,137 code blocks, 1,174 links) in 603ms on typical hardware.
-    
-    The extension is built using cmark-gfm and includes a comprehensive test suite with 218+ passing assertions, ensuring reliable performance and accuracy for production use.
+
+    **Performance:**
+
+    Real-world benchmark: Processing 287 Markdown files (2,699 sections, 1,137 code blocks, 1,174 links) in 603ms.
+
+    Full test suite with 1108 passing assertions across 20 test files.

@@ -1,0 +1,102 @@
+extension:
+  name: valhalla_routing
+  description: DuckDB extension for routing and travel time calculations using Valhalla routing engine
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+  requires_toolchains:
+    - valhalla
+  excluded_platforms: windows_amd64_mingw
+
+repo:
+  github: midwork-finds-jobs/duckdb-valhalla-routing
+  ref: ef2527b911a553657483a045dde7aa687182b4e2
+
+docs:
+  hello_world: |
+    -- Load extensions
+    INSTALL httpfs; LOAD httpfs;
+    INSTALL spatial; LOAD spatial;
+    LOAD valhalla_routing;
+
+    -- Download and build tiles (Pure SQL!)
+    SELECT valhalla_build_tiles(
+        'https://download.geofabrik.de/europe/monaco-latest.osm.pbf',
+        './monaco_tiles'
+    );
+
+    -- Load tiles
+    SET valhalla_tiles = './monaco_tiles';
+
+    -- Calculate route
+    SELECT
+        round(r.distance_km, 1) as km,
+        round(r.duration_minutes, 1) as minutes,
+        ST_NPoints(r.geometry) as waypoints
+    FROM (
+        SELECT valhalla_route(
+            ST_Point(7.4275, 43.7397),  -- Casino Monte-Carlo
+            ST_Point(7.4254, 43.7308),  -- Oceanographic Museum
+            'auto'
+        ) as r
+    );
+
+  extended_description: |
+    # DuckDB Valhalla Routing Extension
+
+    Point-to-point routing with distance, duration, and geometry using the Valhalla routing engine.
+
+    ## Key Features (v0.2.0)
+
+    - **Pure SQL Workflow**: Download and build tiles entirely from SQL using `valhalla_build_tiles()`
+    - **Smart Configuration**: Use `SET valhalla_tiles = './path'` to load routing data
+    - **Flexible Input**: Accepts WKT strings, WKB blobs, or GEOMETRY types
+    - **GEOMETRY Output**: Returns proper GEOMETRY types (via macro) or WKB blobs
+    - **Multi-Mode Routing**: Supports auto, bicycle, pedestrian, truck, bus, taxi, motor_scooter
+    - **Matrix Queries**: Calculate N×M travel time matrices
+    - **Spatial Integration**: Works seamlessly with DuckDB spatial extension
+
+    ## Functions
+
+    **Tile Management (NEW in v0.2.0):**
+    - `valhalla_build_tiles(pbf_url, output_dir)` - Download PBF and build routing tiles
+    - `SET valhalla_tiles = 'path'` - Load tiles (auto-detects valhalla.json)
+
+    **Routing:**
+    - `valhalla_route(from, to, costing)` - Returns GEOMETRY type (recommended)
+    - `valhalla_route_wkb(from, to, costing)` - Returns WKB BLOB
+    - `travel_time_matrix(lats1, lons1, lats2, lons2, costing)` - Distance/duration matrix
+    - `travel_time_locate(lat, lon, costing)` - Snap coordinates to road network
+    - `travel_time_request(action, json)` - Raw Valhalla JSON API
+
+    ## Quick Start (100% Pure SQL)
+
+    ```sql
+    -- Build tiles from HTTP URL
+    SELECT valhalla_build_tiles(
+        'https://download.geofabrik.de/europe/monaco-latest.osm.pbf',
+        './tiles'
+    );
+
+    -- Load and route
+    SET valhalla_tiles = './tiles';
+    SELECT valhalla_route(ST_Point(7.42, 43.73), ST_Point(7.43, 43.74), 'auto');
+    ```
+
+    ## Documentation
+
+    - [README.md](https://github.com/midwork-finds-jobs/duckdb-valhalla-routing/blob/main/README.md) - Quick start and API reference
+    - [ITALY.md](https://github.com/midwork-finds-jobs/duckdb-valhalla-routing/blob/main/ITALY.md) - Complete Italy dataset guide
+    - [examples/](https://github.com/midwork-finds-jobs/duckdb-valhalla-routing/tree/main/examples) - Ready-to-use examples
+
+    ## Datasets
+
+    Tested with:
+    - Italy (2.4 GB tiles): Rome, Milan, Venice, Florence
+    - Estonia: Tallinn-Tartu examples
+    - Monaco: Test data
+
+    Download OSM extracts from [Geofabrik](https://download.geofabrik.de/)

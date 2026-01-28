@@ -1,7 +1,7 @@
 extension:
   name: boilstream
   description: Secure remote secrets storage with OPAQUE PAKE authentication, email/password registration, MFA login, and automatic ducklake mounting
-  version: 0.4.0
+  version: 0.5.0
   language: C++, Rust
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 980fb47f9276c04c1aec04868f79974921e7488d
+  ref: 45b114434ec04ffcfc2a3b0231dd9895d08336f0
 
 docs:
   hello_world: |
@@ -88,6 +88,7 @@ docs:
     - `PRAGMA boilstream_bootstrap_session(url_with_token)` - Authenticate with bootstrap token
     - `boilstream_ducklakes()` - List available ducklakes
     - `boilstream_secrets()` - List cached secrets with expiration
+    - `boilstream_buckets()` - List available storage buckets
     - `PRAGMA boilstream_create_ducklake(name, description)` - Create new ducklake
     - `PRAGMA boilstream_help` - Show all available commands
 
