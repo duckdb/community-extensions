@@ -26,7 +26,6 @@ jobs:
         with:
           repository: ${{ inputs.repository }}
           ref: ${{ inputs.ref }}
-          fetch-depth: 0
           submodules: 'true'
           path: ./repo
 
