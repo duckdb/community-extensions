@@ -1,0 +1,52 @@
+extension:
+  name: chess
+  description: A DuckDB extension for parsing and analyzing chess games in PGN format.
+  version: 0.1.2
+  language: Rust
+  build: cmake
+  license: MIT
+  requires_toolchains: "rust"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  maintainers:
+    - dotneB
+
+repo:
+  github: dotneB/duckdb-chess
+  ref: v0.1.2
+
+docs:
+  hello_world: |
+    -- Read a pgn file
+    SELECT Event, White, Black, Result, Termination, TimeControl FROM read_pgn('test/pgn_files/sample.pgn');
+
+    -- Read multiple pgn files
+    SELECT COUNT(*) FROM read_pgn('test/pgn_files/*.pgn');
+
+    -- How many games started with 1. e4 e5
+    SELECT COUNT_IF(chess_moves_subset('1. e4 e5', movetext))  FROM read_pgn('test/pgn_files/sample.pgn');
+
+    -- Removes comments/variations/NAGs and normalizes move numbers
+    SELECT chess_moves_normalize(movetext) FROM read_pgn('test/pgn_files/sample.pgn');
+
+    -- Hash of the normalized movetext
+    SELECT chess_moves_hash('1. e4 e5 2. Nf3 Nc6') AS hash;
+
+    -- Ply count
+    SELECT chess_ply_count('1. e4 e5 2. Nf3') AS ply;
+
+    -- Converts FEN to EPD
+    SELECT chess_fen_epd('rnbq1rk1/1pp1bppp/p3pn2/8/2pP4/2N2NP1/PP2PPBP/R1BQ1RK1 w - - 0 8') AS epd;
+
+    -- Get the first 40 moves of a game as ply, san and epd
+    WITH g AS (
+      SELECT movetext
+      FROM read_pgn('test/pgn_files/sample.pgn')
+      WHERE parse_error IS NULL
+      LIMIT 1
+    )
+    SELECT
+      json_extract(m.value, '$.ply')::INT AS ply,
+      json_extract_string(m.value, '$.move') AS san,
+      json_extract_string(m.value, '$.epd') AS epd
+    FROM g,
+        json_each(CAST(chess_moves_json(g.movetext, 40) AS JSON)) m;

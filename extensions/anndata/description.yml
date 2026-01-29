@@ -1,7 +1,7 @@
 extension:
   name: anndata
-  description: Read AnnData (.h5ad) files for single-cell genomics data analysis
-  version: 0.11.5
+  description: Read AnnData (.h5ad) files for single-cell genomics data analysis, with support for local and remote (HTTP/HTTPS/S3) files
+  version: 0.13.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: honicky/anndata-duckdb-extension
-  ref: 95dd685d1ea6a60554c5f5c639a7c44ad6eba9ec
+  ref: 649387efd97a408e9be86ae9325eac7ad8828e82
 
 docs:
   hello_world: |
@@ -36,7 +36,11 @@ docs:
     ## ATTACH Syntax
 
     ```sql
+    -- Local file
     ATTACH 'file.h5ad' AS name (TYPE ANNDATA);
+
+    -- Remote file via HTTPS
+    ATTACH 'https://example.com/data.h5ad' AS name (TYPE ANNDATA);
 
     -- With custom gene name/ID columns
     ATTACH 'file.h5ad' AS name (TYPE ANNDATA, VAR_NAME_COLUMN 'gene_symbols', VAR_ID_COLUMN 'ensembl_id');

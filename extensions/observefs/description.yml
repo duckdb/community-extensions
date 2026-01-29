@@ -1,7 +1,7 @@
 extension:
   name: observefs
   description: Provides IO observability to filesystem
-  version: 0.4.5
+  version: 0.4.6
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-filesystem-observability
-  ref: 00eeeca0b208fcbc0c4d990c95f29c76ebc80439
+  ref: cb6a1a7d88eba7f02a9690e1df4c6bf4e166a9f3
 
 docs:
   hello_world: |

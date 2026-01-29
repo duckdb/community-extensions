@@ -1,7 +1,7 @@
 extension:
   name: quackstore
   description: QuackStore - Smart Block-Based Caching for Remote Files. Speed up repeated queries on remote data with intelligent block-level caching.
-  version: 1.0.0
+  version: 1.0.1
   language: C++
   build: cmake
   license: MIT
@@ -13,8 +13,7 @@ extension:
 
 repo:
   github: coginiti-dev/QuackStore
-  ref: 4646572622c226a41011d74ebab5254afa3fbb3d
-  ref_next: b03909034d49a77540772d592c7efa6849b3521b
+  ref: b3757ca6bfd38bf002ccde8e53f19dc73d0d7d79
 
 docs:
   extended_description: |
