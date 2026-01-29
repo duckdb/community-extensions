@@ -46,7 +46,7 @@ jobs:
       env:
         NAME: ${{ inputs.extension_name }} 
       run: |
-        ./duckdb -c "SET extension_directory = 'build/extension_dir'; FORCE INSTALL 'build/downloaded/$NAME.duckdb_extension';"
+        ./duckdb -unsigned -c "SET extension_directory = 'build/extension_dir'; FORCE INSTALL 'build/downloaded/$NAME.duckdb_extension';"
 
     - name: Generate docs
       run: |
