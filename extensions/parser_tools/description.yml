@@ -11,6 +11,7 @@ extension:
 repo:
   github: hotdata-dev/duckdb_extension_parser_tools
   ref: 4c294fa226e9994c146d073cdb2e8c5e42a9db86
+  ref_next: 6a94f2b261bdca4c8f2f8454697e2f6e7bcea9c5
 
 docs:
   hello_world: |
