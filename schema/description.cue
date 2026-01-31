@@ -4,6 +4,13 @@ package description
 // Valid DuckDB platform identifiers
 #Platform: "linux_amd64_musl" | "linux_arm64" | "osx_amd64" | "osx_arm64" | "wasm" | "wasm_eh" | "wasm_mvp" | "wasm_threads" | "windows_amd64" | "windows_amd64_mingw" | "windows_amd64_rtools" | "windows_arm64" | "windows_arm64_mingw"
 
+// Common SPDX license identifiers
+// See: https://spdx.org/licenses/
+#SPDXLicense: "MIT" | "Apache-2.0" | "BSD-2-Clause" | "BSD-3-Clause" | "GPL-2.0" | "GPL-3.0" | "LGPL-2.1" | "LGPL-3.0" | "MPL-2.0" | "ISC" | "Unlicense" | "BSL 1.1" | "MIT OR Apache-2.0" | "MIT AND Apache-2.0" | "Apache-2.0 OR MIT"
+
+// Build system type
+#BuildSystem: "cmake" | "cargo"
+
 // Top-level structure of description.yml
 #Description: {
 	extension:             #Extension
@@ -21,12 +28,12 @@ package description
 	description: string & !=""                      // Description (non-empty)
 	version?:    string | number                    // Version string or number (optional, e.g., "1.0.0", 2024120401)
 	language:    string & !=""                      // Programming language (e.g., "C++", "Rust", "Rust & C++")
-	build:       "cmake" | "CMake" | "cargo"        // Build system
+	build:       #BuildSystem                       // Build system (cmake, CMake, or cargo)
 	maintainers: [...string | #Maintainer] & [_, ...] // At least one maintainer (string or struct)
 
 	// Optional fields
-	license?:                 string & !=""         // License (e.g., "MIT", "Apache-2.0", "MIT OR Apache-2.0")
-	licence?:                 string & !=""         // Alternative spelling (deprecated)
+	license?:                 #SPDXLicense | string & !=""  // SPDX license identifier (prefers common SPDX values, accepts custom strings)
+	licence?:                 #SPDXLicense | string & !=""  // Alternative spelling (deprecated)
 	excluded_platforms?:      string | [...#Platform]  // Platforms to exclude (semicolon-separated string or list of valid platforms)
 	requires_toolchains?:     string | [...string]  // Required toolchains (string or list)
 	opt_in_platforms?:        string                // Semicolon-separated opt-in platforms
