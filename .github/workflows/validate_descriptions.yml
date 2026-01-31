@@ -27,12 +27,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install CUE
-        run: |
-          curl -fsSL https://cuelang.org/install.sh | sh
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Verify CUE installation
-        run: cue version
+        uses: cue-lang/setup-cue@v1.0.1
+        with:
+          version: 'latest'
 
       - name: Validate description.yml files
         run: |
