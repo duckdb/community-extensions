@@ -48,6 +48,7 @@ onager_apx_independent_set,Maximum independent set (approx),Returns: node_id. Pa
 onager_apx_vertex_cover,Minimum vertex cover (approx),Returns: node_id. Params: (edges),select * from onager_apx_vertex_cover(edges_table);
 onager_apx_tsp,TSP tour (greedy approx),"Returns: order, node_id. Params: (weighted_edges)",select * from onager_apx_tsp(edges_table);
 onager_mst_kruskal,Kruskal's MST,"Returns: src, dst, weight. Params: (weighted_edges)",select * from onager_mst_kruskal(edges_table);
+onager_mst_prim,Prims's MST,"Returns: src, dst, weight. Params: (weighted_edges)",select * from onager_mst_prim(edges_table);
 onager_gen_erdos_renyi,"Random graph (G(n,p))","Returns: src, dst. Params: (n, p [, seed])","select * from onager_gen_erdos_renyi(100, 0.1);"
 onager_gen_barabasi_albert,Scale-free graph,"Returns: src, dst. Params: (n, m [, seed])","select * from onager_gen_barabasi_albert(100, 5);"
 onager_gen_watts_strogatz,Small-world graph,"Returns: src, dst. Params: (n, k, beta [, seed])","select * from onager_gen_watts_strogatz(100, 4, 0.1);"
