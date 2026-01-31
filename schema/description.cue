@@ -111,8 +111,9 @@ package description
 	requires_toolchains?:     string | [...#Toolchain]
 	
 	// Platforms to opt-in for building (semicolon-separated)
+	// Must contain only valid platform names from #Platform enum
 	// Example: opt_in_platforms: "windows_arm64;"
-	opt_in_platforms?:        string
+	opt_in_platforms?:        string & =~"^(linux_amd64_musl|linux_arm64|osx_amd64|osx_arm64|wasm|wasm_eh|wasm_mvp|wasm_threads|windows_amd64|windows_amd64_mingw|windows_amd64_rtools|windows_arm64|windows_arm64_mingw)(;(linux_amd64_musl|linux_arm64|osx_amd64|osx_arm64|wasm|wasm_eh|wasm_mvp|wasm_threads|windows_amd64|windows_amd64_mingw|windows_amd64_rtools|windows_arm64|windows_arm64_mingw))*;?$"
 	
 	// Specific vcpkg commit hash (40 hexadecimal characters)
 	// Get from: https://github.com/microsoft/vcpkg/commits/master
