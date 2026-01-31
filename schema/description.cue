@@ -1,6 +1,9 @@
 // CUE Schema for DuckDB Community Extension description.yml files
 package description
 
+// Valid DuckDB platform identifiers
+#Platform: "linux_amd64_musl" | "linux_arm64" | "osx_amd64" | "osx_arm64" | "wasm" | "wasm_eh" | "wasm_mvp" | "wasm_threads" | "windows_amd64" | "windows_amd64_mingw" | "windows_amd64_rtools" | "windows_arm64" | "windows_arm64_mingw"
+
 // Top-level structure of description.yml
 #Description: {
 	extension:             #Extension
@@ -24,7 +27,7 @@ package description
 	// Optional fields
 	license?:                 string & !=""         // License (e.g., "MIT", "Apache-2.0", "MIT OR Apache-2.0")
 	licence?:                 string & !=""         // Alternative spelling (deprecated)
-	excluded_platforms?:      string | [...string]  // Platforms to exclude (string or list)
+	excluded_platforms?:      string | [...#Platform]  // Platforms to exclude (semicolon-separated string or list of valid platforms)
 	requires_toolchains?:     string | [...string]  // Required toolchains (string or list)
 	opt_in_platforms?:        string                // Semicolon-separated opt-in platforms
 	vcpkg_commit?:            string                // Specific vcpkg commit hash
