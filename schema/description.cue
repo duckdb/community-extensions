@@ -11,6 +11,9 @@ package description
 // Build system type
 #BuildSystem: "cmake" | "cargo"
 
+// Valid toolchain identifiers
+#Toolchain: "rust" | "python3" | "vcpkg" | "parser_tools" | "cmake" | "openssl" | "libxml2" | "zlib" | "fortran" | "omp" | "valhalla"
+
 // Top-level structure of description.yml
 #Description: {
 	extension:             #Extension
@@ -26,18 +29,18 @@ package description
 	// Required fields
 	name:        string & !=""                      // Extension name (non-empty)
 	description: string & !=""                      // Description (non-empty)
-	version?:    string | number                    // Version string or number (optional, e.g., "1.0.0", 2024120401)
+	version?:    string & =~"^([0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?(-[a-zA-Z0-9.]+)?|[0-9]{8,})$" | number  // Semantic version (X.Y, X.Y.Z, X.Y.Z.W) or numeric date (YYYYMMDD) or number
 	language:    string & !=""                      // Programming language (e.g., "C++", "Rust", "Rust & C++")
-	build:       #BuildSystem                       // Build system (cmake, CMake, or cargo)
+	build:       #BuildSystem                       // Build system (cmake or cargo)
 	maintainers: [...string | #Maintainer] & [_, ...] // At least one maintainer (string or struct)
 
 	// Optional fields
 	license?:                 #SPDXLicense | string & !=""  // SPDX license identifier (prefers common SPDX values, accepts custom strings)
 	licence?:                 #SPDXLicense | string & !=""  // Alternative spelling (deprecated)
 	excluded_platforms?:      string | [...#Platform]  // Platforms to exclude (semicolon-separated string or list of valid platforms)
-	requires_toolchains?:     string | [...string]  // Required toolchains (string or list)
+	requires_toolchains?:     string & !="" | [...#Toolchain]  // Required toolchains (semicolon/comma-separated string or list of valid toolchains, must be non-empty)
 	opt_in_platforms?:        string                // Semicolon-separated opt-in platforms
-	vcpkg_commit?:            string                // Specific vcpkg commit hash
+	vcpkg_commit?:            string & =~"^[a-f0-9]{40}$"  // vcpkg commit hash (must be 40 hex characters)
 	vcpkg_url?:               string                // Custom vcpkg URL
 	custom_toolchain_script?: string | bool         // Path to custom toolchain setup script or boolean
 	test_config?:             string                // Test configuration
@@ -48,7 +51,7 @@ package description
 // Maintainer can be a string or structured object
 #Maintainer: {
 	name:    string
-	github?: string
+	github?: string & =~"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"  // GitHub username (alphanumeric and hyphens, no leading/trailing hyphens)
 }
 
 // Repository information
