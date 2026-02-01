@@ -12,7 +12,7 @@ extension:
   vcpkg_commit: 'dd3097e305afa53f7b4312371f62058d2e665320'
 repo:
   github: midwork-finds-jobs/duckdb-webdavfs
-  ref: 981500f7f10bee044d1e9eb92a62d1494cf987fa
+  ref: 9c422545c211133e1c70c5a937098b5c688990cf
 
 docs:
   hello_world: |
