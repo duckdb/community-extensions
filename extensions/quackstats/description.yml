@@ -1,0 +1,43 @@
+extension:
+  name: quackstats
+  description: Time series forecasting and statistics for DuckDB
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - jasadams
+
+repo:
+  github: jasadams/quackstats
+  ref: 15da529887e18c42d124b1cbcd035e9caac108f6
+
+docs:
+  hello_world: |
+    SELECT * FROM forecast('sales', timestamp := 'date', value := 'revenue', horizon := 7);
+  extended_description: |
+    QuackStats brings time series forecasting and statistics directly into DuckDB as SQL table functions.
+
+    **Forecasting** with multiple models (ETS, linear, exponential, logistic, and automatic cross-validation model selection):
+
+    ```sql
+    SELECT * FROM forecast('sales', timestamp := 'date', value := 'revenue', horizon := 30, model := 'auto');
+    ```
+
+    **Grouped forecasting** across multiple series in a single query:
+
+    ```sql
+    SELECT * FROM forecast('sales', timestamp := 'date', value := 'revenue', horizon := 30, group_by := ['region', 'product']);
+    ```
+
+    **Seasonality detection** to identify periodic patterns:
+
+    ```sql
+    SELECT * FROM detect_seasonality('sales', timestamp := 'date', value := 'revenue');
+    ```
+
+    All forecasts include configurable prediction intervals (default 95%).
+
+    Maintained by the team at [Kyomi](https://kyomi.ai).
