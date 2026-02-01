@@ -5,7 +5,8 @@ extension:
   language: C++
   build: cmake
   license: GPL-3.0
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  opt_in_platforms: "windows_arm64;"
   requires_toolchains: rust
   maintainers:
     - thomas-daniels
