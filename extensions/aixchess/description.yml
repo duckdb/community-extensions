@@ -1,0 +1,23 @@
+extension:
+  name: aixchess
+  description: Efficiently query large chess game collections
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: GPL-3.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: rust
+  maintainers:
+    - thomas-daniels
+
+repo:
+  github: thomas-daniels/aix
+  ref: d668f7ac4a1e62625adade526ee6d9e3387c123f
+
+docs:
+  extended_description: |
+    Aix enables efficient storage and querying of large chess game collections.
+    A game's moves are encoded in a binary representation, and this extension
+    [provides scalar functions](https://github.com/thomas-daniels/aix/blob/main/docs/functions.md) to decode and query these games directly within DuckDB.
+
+    See the [GitHub repository](https://github.com/thomas-daniels/aix) or [blog post](https://thomasd.be/2026/02/01/aix-storing-querying-chess-games.html) for more details.
