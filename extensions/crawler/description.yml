@@ -1,7 +1,7 @@
 extension:
   name: crawler
   description: SQL-native web crawler with HTML extraction and MERGE support
-  version: 0.2.0
+  version: 0.2.1
   language: C++
   build: cmake
   license: MIT
