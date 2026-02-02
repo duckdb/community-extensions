@@ -8,7 +8,7 @@
 extension:
   name: dplyr
   description: R dplyr pipeline syntax support for DuckDB - transpiles dplyr verbs to SQL
-  version: 0.3.0
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: mrchypark/libdplyr
-  ref: 42a7ff1e8fbfd7c78d8ebad44b4adf98851ee79d
+  ref: 6769bf7c3cd9aa1d5c6e2f782118a640ee9c81a4
 
 docs:
   hello_world: |
