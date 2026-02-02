@@ -2,4 +2,4 @@ function,description,comment,example
 "brew_casks","Returns the installed casks","","from brew_casks()"
 "brew_packages","Returns the installed packages, casks and formulas","","from brew_packages()"
 "brew_formulas","Returns the installed formulas","","from brew_formulas()"
-"brew_dependencies","Return a table with two columns : the package and the pakage that relies on it. One row per dependency","Useful to produce a graph of dependencies and security reports","brew_dependencies"
+"brew_dependencies","Return a table with two columns : the package and the pakage that relies on it. One row per dependency","Useful to produce a graph of dependencies and security reports","from brew_dependencies"
