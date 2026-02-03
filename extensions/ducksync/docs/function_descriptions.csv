@@ -1,0 +1,7 @@
+function,description,comment,example
+ducksync_init,"Initialize DuckSync with an existing DuckLake catalog. Use this if you already have DuckLake attached.","Recommended approach for existing DuckLake users","SELECT * FROM ducksync_init('my_ducklake');"
+ducksync_setup_storage,"Full setup - attaches DuckLake and initializes DuckSync. Use if you don't have DuckLake configured yet.","Creates DuckLake catalog with PostgreSQL backend","SELECT * FROM ducksync_setup_storage('host=localhost dbname=ducklake user=postgres', '/data/ducksync');"
+ducksync_add_source,"Register a Snowflake data source using an existing DuckDB secret.","Currently only supports Snowflake","SELECT * FROM ducksync_add_source('prod', 'snowflake', 'my_snowflake_secret');"
+ducksync_create_cache,"Define a cached query result with optional TTL and monitor tables for smart refresh.","monitor_tables triggers refresh when source changes","SELECT * FROM ducksync_create_cache('customers', 'prod', 'SELECT * FROM CUSTOMERS', ['PROD.PUBLIC.CUSTOMERS'], 3600);"
+ducksync_refresh,"Refresh a cache. Uses smart check (skips if unchanged) unless force=true.","Returns SKIPPED, REFRESHED, or ERROR","SELECT * FROM ducksync_refresh('customers');"
+ducksync_query,"Smart query routing - returns data from cache if available, otherwise passes through to Snowflake. Checks TTL and auto-refreshes expired caches.","Main query interface","SELECT * FROM ducksync_query('SELECT * FROM PROD.PUBLIC.CUSTOMERS WHERE region = ''US''', 'prod');"

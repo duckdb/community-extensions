@@ -1,0 +1,61 @@
+extension:
+  name: elasticsearch
+  description: Query Elasticsearch indices directly using SQL
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - tlinhart
+repo:
+  github: tlinhart/duckdb-elasticsearch
+  ref: f7e5f93c4e7b3997d799d8172d53e67d27a453bb
+docs:
+  hello_world: |
+    -- Basic query.
+    SELECT * FROM elasticsearch_query(
+        host := 'localhost',
+        index := 'products'
+    );
+
+    -- Query with authentication.
+    SELECT * FROM elasticsearch_query(
+        host := 'localhost',
+        index := 'logs-*',
+        username := 'elastic',
+        password := 'secret',
+        use_ssl := true
+    );
+
+    -- Filter pushdown – WHERE clauses are translated to Elasticsearch Query DSL.
+    SELECT name, price FROM elasticsearch_query(
+        host := 'localhost',
+        index := 'products'
+    )
+    WHERE category = 'electronics' AND price > 100;
+
+    -- Combine with a base Elasticsearch query.
+    SELECT title, author FROM elasticsearch_query(
+        host := 'localhost',
+        index := 'books',
+        query := '{"match": {"description": "science fiction"}}'
+    )
+    WHERE in_stock = true
+    LIMIT 10;
+  extended_description: |
+    The DuckDB Elasticsearch extension enables querying Elasticsearch indices directly using SQL.
+    It supports filter, projection and limit pushdown for optimized queries, automatic schema
+    inference from index mappings and handles complex types like nested objects, arrays and
+    geospatial types.
+
+    Key features:
+    - Filter pushdown – `WHERE` clauses are translated to Elasticsearch Query DSL.
+    - Projection pushdown – only requested columns are fetched via `_source` filtering.
+    - Limit pushdown – `LIMIT`/`OFFSET` clauses are pushed to Elasticsearch.
+    - Automatic schema inference from index mappings with array detection.
+    - Support for multi-index queries (e.g. `logs-*`).
+    - Geospatial types (`geo_point`, `geo_shape`) converted to GeoJSON format.
+    - SSL/TLS support with configurable certificate verification.
+    - Automatic retry with exponential backoff for transient errors.
+
+    For detailed documentation, visit the [extension repository](https://github.com/tlinhart/duckdb-elasticsearch).
