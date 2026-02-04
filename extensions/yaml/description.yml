@@ -1,7 +1,7 @@
 extension:
   name: yaml
   description: Read YAML files into DuckDB with native YAML type support, comprehensive extraction functions, and seamless JSON interoperability
-  version: 1.5.0
+  version: 1.6.0
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
   
 repo:
   github: teaguesterling/duckdb_yaml
-  ref: 2c5f852ceda6a96bd7a95b724c121fd86bce30a5
+  ref: d95f3ddf3bf00f9e48426496cb50dd5a572c3d0e
 
 docs:
   hello_world: |
