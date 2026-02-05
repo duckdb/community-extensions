@@ -1,7 +1,7 @@
 extension:
   name: valhalla_routing
   description: DuckDB extension for routing and travel time calculations using Valhalla routing engine
-  version: 0.2.0
+  version: '2026020501'
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-valhalla-routing
-  ref: ef2527b911a553657483a045dde7aa687182b4e2
+  ref: d379f55ff8d80080b5b8e927c53d3062e6a57fab
 
 docs:
   hello_world: |
