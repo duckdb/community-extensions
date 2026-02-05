@@ -1,7 +1,7 @@
 extension:
   name: sitemap
   description: Parse XML sitemaps from websites with automatic discovery via robots.txt
-  version: 0.1.4
+  version: '2026020501'
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-sitemap
-  ref: v0.1.4
+  ref: 4c873c85c3f7c8dcab6154de51aa218f61677634
 
 docs:
   hello_world: |
