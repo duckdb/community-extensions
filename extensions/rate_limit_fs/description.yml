@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-rate-limit-filesystem
-  ref: 716ef40e880d814d41bea0f396d8200f6c0dab3f
+  ref: d61d1c4de440f7ad8fb9258699c7db40f610f47f
 
 docs:
   hello_world: |
