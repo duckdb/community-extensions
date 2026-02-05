@@ -9,7 +9,7 @@ extension:
   name: cloudfront
   vcpkg_url: https://github.com/microsoft/vcpkg.git
   vcpkg_commit: ce613c41372b23b1f51333815feb3edd87ef8a8b
-  version: 0.1.0
+  version: '2026020501'
 repo:
   github: midwork-finds-jobs/duckdb-cloudfront
-  ref: e6b2ff5e933c296ffbe1cb7403cac688f8e41e97
+  ref: 176b7ee77e2c12c8a7068fde233f04f93a729c39
