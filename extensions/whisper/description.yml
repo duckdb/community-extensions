@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-whisper
-  ref: e31b6b32f660d381a7a4b72fddf2a666d999508a
+  ref: dd84b1a1b4057175fd3e14d21de3100d51e13a1d
 
 docs:
   hello_world: |
