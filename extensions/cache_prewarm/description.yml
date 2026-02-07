@@ -1,0 +1,30 @@
+extension:
+  name: cache_prewarm
+  description: Prewarm data blocks into DuckDB's buffer pool or OS page cache for faster queries
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - peterxcli
+    - dentiny
+repo:
+  github: dentiny/duckdb-cache-prewarm
+  ref: 48fde4a95b52ce215f74764684dcf427b86ffb4f
+docs:
+  hello_world: |
+    -- Prewarm a table into the buffer pool
+    SELECT prewarm('my_table');
+
+    -- Prewarm with specific mode
+    SELECT prewarm('my_table', 'read');
+  extended_description: |
+    A DuckDB extension that preloads table data blocks into the buffer pool or OS page cache,
+    inspired by PostgreSQL's pg_prewarm extension.
+
+    Prewarm Modes:
+    - `buffer` (default): Load blocks into buffer pool with pin/unpin
+    - `read`: Warm OS page cache without using buffer pool
+    - `prefetch`: Batch prefetch using OS hints
+
+    Use cases include cold start optimization and predictable query latency.
