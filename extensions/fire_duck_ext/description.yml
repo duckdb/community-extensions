@@ -1,7 +1,7 @@
 extension:
   name: fire_duck_ext
   description: Query Google Cloud Firestore directly from DuckDB using SQL
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: BorisBesky/fire_duck_ext
-  ref: 0aecf8d9b5495c2419ef015296d613faafccfc58
+  ref: e971cec
 
 docs:
   hello_world: |
@@ -69,35 +69,19 @@ docs:
     secret management for credential storage. Filter pushdown optimizes
     queries by sending supported filters directly to Firestore.
 
-    ## Functions
-    | Function                                                                         | Description                                              |
-    |----------------------------------------------------------------------------------|----------------------------------------------------------|
-    | firestore_scan('collection')                                                     | Read all documents from a collection                     |
-    | firestore_scan('~collection')                                                    | Read all documents from a collection group               |
-    | firestore_insert('collection', (SELECT ...), document_id := 'col')               | Insert documents from a subquery                         |
-    | firestore_update('collection', 'doc_id', 'field1', value1, ...)                  | Update fields on a single document                       |
-    | firestore_delete('collection', 'doc_id')                                         | Delete a single document                                 |
-    | firestore_update_batch('collection', ['id1', ...], 'field1', value1, ...)        | Batch update documents by ID list                        |
-    | firestore_delete_batch('collection', ['id1', ...])                               | Batch delete documents by ID list                        |
-    | firestore_array_union('collection', 'doc_id', 'field', ['v1', ...])              | Add elements to an array field (no duplicates)           |
-    | firestore_array_remove('collection', 'doc_id', 'field', ['v1', ...])             | Remove elements from an array field                      |
-    | firestore_array_append('collection', 'doc_id', 'field', ['v1', ...])             | Append elements to an array field                        |
-
     ## Type Mapping
-    | Firestore Type | DuckDB Type                              |
-    |----------------|------------------------------------------|
-    | string         | VARCHAR                                  |
-    | integer        | BIGINT                                   |
-    | double         | DOUBLE                                   |
-    | boolean        | BOOLEAN                                  |
-    | timestamp      | TIMESTAMP                                |
-    | array          | LIST                                     |
-    | map            | VARCHAR (JSON string)                    |
-    | vector         | ARRAY(DOUBLE, N) (embedding)             |
-    | null           | NULL                                     |
-    | geoPoint       | STRUCT(latitude DOUBLE, longitude DOUBLE) |
-    | reference      | VARCHAR                                  |
-    | bytes          | BLOB                                     |
+    - `string` → VARCHAR
+    - `integer` → BIGINT
+    - `double` → DOUBLE
+    - `boolean` → BOOLEAN
+    - `timestamp` → TIMESTAMP
+    - `array` → LIST
+    - `map` → VARCHAR (JSON string)
+    - `vector` → ARRAY(DOUBLE, N) (embedding)
+    - `null` → NULL
+    - `geoPoint` → STRUCT(latitude DOUBLE, longitude DOUBLE)
+    - `reference` → VARCHAR
+    - `bytes` → BLOB
 
     ## Schema Inference
     When you call `firestore_scan()`, the extension automatically infers the
