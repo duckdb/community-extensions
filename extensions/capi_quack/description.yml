@@ -3,7 +3,7 @@ extension:
   description: Provides a hello world example demo from the C/C++ C API template
   version: 0.0.1
   language: C/C++
-  build: CMake
+  build: cmake
   license: MIT
   requires_toolchains: "python3"
   maintainers:
