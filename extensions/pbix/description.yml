@@ -1,16 +1,16 @@
 extension:
   name: pbix
   description: Extension that allows parsing the data model embedded in PowerBI (pbix) files
-  version: 0.3.0
+  version: 0.5.3
   language: C++
   build: cmake
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  excluded_platforms: "linux_amd64_musl"
   license: MIT
   maintainers:
     - Hugoberry
 repo:
   github: Hugoberry/duckdb-pbix-extension
-  ref: 22d1d12b15c5b26b2053e7b07a25dad192e16c40
+  ref: 3d863fc006d22e9a6dcfae59fbf4a46edca8fd13
 docs:
   hello_world: |
     -- Get metadata tables from a PowerBI file
@@ -24,16 +24,23 @@ docs:
       "Reseller ID" 
     FROM pbix_read('Adventure Works DW 2020.pbix','Reseller') 
     LIMIT 10;
+
+    -- Read metadata about models in a folder of pbix files
+    SELECT
+      file,
+      list_transform(pbix2vpax(file).Tables, t->t.TableName) as tab
+    FROM glob('data/**/*.pbix');
   extended_description: >
     The PBIX extension allows you to parse the data model embedded in PowerBI (pbix) files directly in DuckDB.
     
     
-    It provides two main functions:
+    It provides three functions:
     - `pbix_meta()`: Returns metadata tables for a data model (consult [MS-SSAS-T](https://learn.microsoft.com/en-us/openspecs/sql_server_protocols/ms-ssas-t/f85cd3b9-690c-4bc7-a1f0-a854d7daecd8) for metadata structures)
     - `pbix_read()`: Returns the contents of a specific table from a pbix file
+    - `pbix2vpax()`: Generate comprehensive VPAX serialisation of the entire data model (scalar function)
     
     
     For a pure Python implementation of the pbix parser, check out the [PBIXray](https://github.com/Hugoberry/pbixray) library.
     
     
-    *Note:* Current limitations include inability of the WASM version to parse `https` hosted files and that pbix_read() will decompress the entire model in memory. 
+    *Note:* Current limitations include the inability of the WASM version to parse `https` hosted files, and that pbix_read() will decompress the entire model in memory. 

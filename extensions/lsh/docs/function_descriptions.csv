@@ -1,0 +1,6 @@
+function,description,comment,example
+lsh_min,"Computes band hashes for each input string (or list of existing shingles) based on its MinHash signature","Produces list of 64-bit band hashes",""
+lsh_min32,"Computes band hashes for each input string (or list of existing shingles) based on its MinHash signature","Reduces each band hash to 32 bits",""
+lsh_euclidean,"Computes band hashes for each input point based on its Euclidean LSH signature","Produces list of 64-bit band hashes",""
+lsh_euclidean32,"Computes band hashes for each input point based on its Euclidean LSH signature","Reduces each band hash to 32 bits",""
+lsh_jaccard,"Computes Jaccard similarity for each input string pair","Accepts ngram argument, unlike core Jaccard function",""

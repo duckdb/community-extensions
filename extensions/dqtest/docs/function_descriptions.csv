@@ -1,0 +1,4 @@
+function,description,comment,example
+"dq_init","Initialize the data quality testing framework","","call dq_init()"
+"dq_run_tests","Run all defined data quality tests","","call dq_run_tests()"
+    

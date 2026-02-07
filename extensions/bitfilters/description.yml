@@ -1,0 +1,16 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_bitfilters.html).
+extension:
+  build: cmake
+  description: "Provides high-performance, space-efficient probabilistic data structures\u2014\
+    including quotient, XOR, and binary fuse filters\u2014for fast approximate set\
+    \ membership testing with no false negatives and configurable false positive rates."
+  language: C++
+  license: MIT
+  maintainers:
+  - rustyconover
+  name: bitfilters
+  version: '2025120401'
+repo:
+  github: query-farm/bitfilters
+  ref: 1acc412f932a9b88f1504bf76fc0cbdd891b97f3

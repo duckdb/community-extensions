@@ -1,0 +1,66 @@
+extension:
+  name: miniplot
+  description: Interactive chart visualization for DuckDB - faster than pandas with Plotly-like charts
+  version: 0.0.3
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/miniplot
+  ref: 32fc16fb4beec1fe5c3b1a705a00426e8dc3863a
+
+docs:
+  hello_world: |
+    -- Bar chart (opens in browser)
+    SELECT bar_chart(
+        ['Q1', 'Q2', 'Q3', 'Q4'],
+        [100.0, 150.0, 200.0, 180.0],
+        'Quarterly Sales'
+    );
+
+    -- Line chart
+    SELECT line_chart(
+        ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        [5000.0, 6500.0, 4800.0, 7200.0, 8500.0],
+        'Weekly Revenue'
+    );
+
+    -- Scatter chart
+    SELECT scatter_chart(
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0],
+        [10.0, 25.0, 30.0, 45.0, 60.0, 75.0, 85.0, 95.0],
+        'Performance vs Time'
+    );
+
+    -- Area chart
+    SELECT area_chart(
+        ['Jan', 'Feb', 'Mar', 'Apr', 'May'],
+        [1000.0, 1500.0, 1200.0, 1800.0, 2100.0],
+        'Monthly Growth'
+    );
+
+    -- Save to file without opening browser
+    SELECT bar_chart(
+        ['A', 'B', 'C'],
+        [10.0, 20.0, 15.0],
+        'Sample Chart',
+        'output.html'
+    );
+
+    -- 3D Scatter chart
+    SELECT scatter_3d_chart(
+        [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+        [2.0, 4.0, 1.0, 5.0, 3.0, 6.0],
+        [3.0, 1.0, 4.0, 2.0, 5.0, 3.5],
+        '3D Data Visualization'
+    );
+
+    -- Visualize CSV data
+    SELECT line_chart(
+        list(month),
+        list(sales),
+        'Monthly Sales from CSV'
+    ) FROM read_csv('sales.csv');

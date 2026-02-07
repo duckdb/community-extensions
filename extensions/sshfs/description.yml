@@ -1,0 +1,50 @@
+extension:
+  name: sshfs
+  description: Allows reading and writing files over SSH
+  version: '2026020501'
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp;linux_amd64_musl;"
+  requires_toolchains: "vcpkg"
+  maintainers:
+    - onnimonni
+  vcpkg_commit: 'dd3097e305afa53f7b4312371f62058d2e665320'
+repo:
+  github: midwork-finds-jobs/duckdb-sshfs
+  ref: 644366f21a80397d38979e6200fd26a544b98e7e
+
+docs:
+  hello_world: |
+    -- Install & load the extension
+    INSTALL sshfs FROM community;
+    LOAD sshfs;
+
+    -- Authenticate with SSH key file
+    CREATE SECRET my_hetzner_storagebox (
+        TYPE SSH,
+        USERNAME 'user',
+        KEY_PATH '/Users/' || getenv('USER') || '/.ssh/storagebox_key',
+        PORT 23
+        SCOPE 'sshfs://u123456.your-storagebox.de'
+    );
+
+    -- or with password
+    CREATE SECRET my_server (
+      TYPE SSH,
+      USERNAME 'user',
+      PASSWORD 'password',
+      SCOPE 'sshfs://your-server.example.com'
+    );
+
+    -- Write data to remote server
+    COPY (SELECT * FROM large_table)
+    TO 'sshfs://your-server.example.com/data.parquet';
+    
+    -- Read The uploaded parquet file using WebDAV
+    SELECT * FROM 'sshfs://your-server.example.com/data.parquet';
+
+  extended_description: |
+    DuckDB sshfs extension enables seamless integration with servers through ssh, allowing users to read from and write to remote file systems directly within DuckDB.
+
+    See: https://github.com/midwork-finds-jobs/duckdb-sshfs/blob/main/README.md for more examples and details.

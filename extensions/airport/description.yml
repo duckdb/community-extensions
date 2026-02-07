@@ -1,0 +1,19 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_airport.html).
+extension:
+  build: cmake
+  description: The Airport extension brings Arrow Flight support to DuckDB, enabling
+    DuckDB to query, modify, and store data from Arrow Flight servers.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
+  language: C++
+  license: MIT
+  maintainers:
+  - rustyconover
+  name: airport
+  requires_toolchains: parser_tools
+  test_config: "{\"test_env_variables\":\n  {\n    \"AIRPORT_TEST_SERVER\": \"grpc+tls://airport-ci.query.farm\"\
+    \n  }\n}\n"
+  version: '2025101201'
+repo:
+  github: query-farm/airport
+  ref: 31c249a2e300207159256d3f42bb6064647ea73a

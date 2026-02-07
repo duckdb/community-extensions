@@ -1,0 +1,2 @@
+function,description,comment,example
+"standardize_title","Returns the BLS standard title using TF-IDF","","SELECT standardize_title(scraped_title_column) FROM your_table;"

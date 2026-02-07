@@ -1,0 +1,71 @@
+extension:
+  name: pst
+  description: Read Microsoft PST files with rich schemas for common MAPI types (emails, contacts, appointments, tasks)
+  version: 0.1.0
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64;windows_amd64_mingw"
+  license: MIT
+  maintainers:
+    - mach-kernel
+
+repo:
+  github: intellekthq/duckdb-pst
+  ref: 372875c01072e18c15f446667d4a4533f4fefc5e
+
+docs:
+  hello_world: |
+    -- Count all messages across PST files (supports globs)
+    D SELECT count(*) FROM read_pst_messages('enron/*.pst');
+    ┌────────────────┐
+    │  count_star()  │
+    │     int64      │
+    ├────────────────┤
+    │    1227193     │
+    └────────────────┘
+
+    -- Query contacts (supports remote URIs)
+    D SELECT given_name, surname FROM read_pst_contacts('https://example.com/outlook.pst');
+    ┌────────────┬─────────┐
+    │ given_name │ surname │
+    │  varchar   │ varchar │
+    ├────────────┼─────────┤
+    │ John       │ Doe     │
+    │ Jane       │ Smith   │
+    └────────────┴─────────┘
+
+    -- Read messages with limit (applied during planning for large files)
+    D SELECT subject, sender_email_address, message_delivery_time
+      FROM read_pst_messages('*.pst', read_limit=100);
+
+  extended_description: |
+    A DuckDB extension for reading Microsoft PST files with rich schemas for common MAPI types. Built on Microsoft's official [PST SDK](https://github.com/enrondata/microsoft-pst-sdk). Query emails, contacts, appointments, and more. Use it to analyze PST data in-place (locally or on object storage), import to DuckDB tables, or export to Parquet.
+
+    ### Table Functions
+
+    | Function                      | MAPI Class        | Description                            |
+    |-------------------------------|-------------------|----------------------------------------|
+    | `read_pst_folders`            | `*`               | Folder hierarchy                       |
+    | `read_pst_messages`           | `*`               | All messages with base IPM.Note schema |
+    | `read_pst_notes`              | `IPM.Note`        | Email messages                         |
+    | `read_pst_contacts`           | `IPM.Contact`     | Contacts with 78+ fields               |
+    | `read_pst_distribution_lists` | `IPM.DistList`    | Distribution lists with members        |
+    | `read_pst_appointments`       | `IPM.Appointment` | Calendar appointments and meetings     |
+    | `read_pst_sticky_notes`       | `IPM.StickyNote`  | Sticky note items                      |
+    | `read_pst_tasks`              | `IPM.Task`        | Task items                             |
+
+    ### Performance Features
+
+    - **Query pushdown**: projection and statistics pushdown
+    - **Concurrent planning**: parallel partition planning for directories with many PST files
+    - **Late materialization**: filter on virtual columns before expanding full projections
+
+    ### Parameters
+
+    | Parameter              | Default     | Description                                              |
+    |------------------------|-------------|----------------------------------------------------------|
+    | `read_body_size_bytes` | `1000000`   | Max bytes to read into body/body_html (0 for unlimited)  |
+    | `read_attachment_body` | `false`     | Whether to read attachment bytes                         |
+    | `read_limit`           | `NULL`      | Max items to read (applied during planning)              |
+
+    For full schema documentation and usage examples, see the [GitHub repository](https://github.com/intellekthq/duckdb-pst).

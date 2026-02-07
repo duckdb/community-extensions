@@ -1,0 +1,53 @@
+extension:
+  name: web_archive
+  description: Query Common Crawl and Wayback Machine web archive CDX APIs directly from SQL
+  version: '2026020301'
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: windows_amd64_mingw
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb-web-archive
+  ref: 90c67cb283d668aec7154b8abd3e3001669696b7
+
+docs:
+  hello_world: |
+    -- Find archived pages from Wayback Machine
+    SELECT url, timestamp, statuscode
+    FROM wayback_machine()
+    WHERE url LIKE 'example.com/%'
+      AND statuscode = 200
+    LIMIT 10;
+
+    -- One snapshot per year using DISTINCT ON pushdown
+    SELECT DISTINCT ON(year) url, timestamp
+    FROM wayback_machine()
+    WHERE url = 'github.com/duckdb/duckdb'
+      AND statuscode = 200
+    LIMIT 5;
+
+    -- Query Common Crawl index
+    SELECT url, timestamp, mimetype
+    FROM common_crawl_index()
+    WHERE url LIKE '%.example.com/%'
+      AND statuscode = 200
+    LIMIT 10;
+
+  extended_description: |
+    This extension provides two table functions to query web archive CDX APIs:
+
+    - **wayback_machine()**: Query Internet Archive Wayback Machine (1996-present)
+    - **common_crawl_index()**: Query Common Crawl archive (2008-present, monthly snapshots)
+
+    Features:
+    - **DISTINCT ON pushdown**: `DISTINCT ON(year)` becomes `&collapse=timestamp:4`
+    - **Filter pushdown**: WHERE clauses for statuscode/mimetype pushed to CDX API
+    - **LIMIT pushdown**: Only fetches requested number of records
+    - **SELECT pushdown**: Only fetches columns you need via `&fl=` parameter
+    - **Response fetching**: Download archived page content via `response.body`
+    - **Virtual columns**: `year` and `month` extracted from timestamp
+
+    For full documentation, visit the [extension repository](https://github.com/midwork-finds-jobs/duckdb-web-archive).

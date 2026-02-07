@@ -1,0 +1,143 @@
+extension:
+  name: fire_duck_ext
+  description: Query Google Cloud Firestore directly from DuckDB using SQL
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw"
+  maintainers:
+    - BorisBesky
+
+repo:
+  github: BorisBesky/fire_duck_ext
+  ref: 0aecf8d9b5495c2419ef015296d613faafccfc58
+
+docs:
+  hello_world: |
+    LOAD fire_duck_ext;
+
+    -- Create a secret for the Firestore project
+    CREATE SECRET my_firestore (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        SERVICE_ACCOUNT_JSON '/path/to/credentials.json'
+    );
+
+    -- Read documents
+    SELECT * FROM firestore_scan('users');
+
+    -- Filter documents
+    SELECT __document_id, name, email
+    FROM firestore_scan('users')
+    WHERE status = 'active';
+
+    -- Update documents
+    SELECT * FROM firestore_update('users', 'user123', 'status', 'verified');
+
+    -- Batch update with DuckDB filtering
+    SET VARIABLE ids = (
+        SELECT list(__document_id)
+        FROM firestore_scan('users')
+        WHERE status = 'pending'
+    );
+    SELECT * FROM firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
+
+    -- Insert documents from a subquery (auto-generated IDs)
+    SELECT * FROM firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
+
+    -- Insert with explicit document IDs from a column
+    SELECT * FROM firestore_insert('users',
+        (SELECT * FROM read_csv('new_users.csv')),
+        document_id := 'user_id');
+    
+    -- Insert with explicit document ID selected from a column
+    SELECT * FROM firestore_insert('users', 
+        (SELECT 'Alice' AS name, 30 AS age, 'alice_user_id' AS user_id), 
+        document_id := 'user_id');
+
+    -- Collection group queries
+    SELECT __document_id, name, email
+    FROM firestore_scan('~data_group')
+    WHERE status = 'active';
+
+  extended_description: |
+    The fire_duck_ext extension enables direct SQL access to Google Cloud
+    Firestore collections from DuckDB. It supports reading data with
+    firestore_scan(), writing with firestore_update() and firestore_delete(),
+    batch operations, array transforms, collection group queries, and DuckDB
+    secret management for credential storage. Filter pushdown optimizes
+    queries by sending supported filters directly to Firestore.
+
+    ## Functions
+    | Function                                                                         | Description                                              |
+    |----------------------------------------------------------------------------------|----------------------------------------------------------|
+    | firestore_scan('collection')                                                     | Read all documents from a collection                     |
+    | firestore_scan('~collection')                                                    | Read all documents from a collection group               |
+    | firestore_insert('collection', (SELECT ...), document_id := 'col')               | Insert documents from a subquery                         |
+    | firestore_update('collection', 'doc_id', 'field1', value1, ...)                  | Update fields on a single document                       |
+    | firestore_delete('collection', 'doc_id')                                         | Delete a single document                                 |
+    | firestore_update_batch('collection', ['id1', ...], 'field1', value1, ...)        | Batch update documents by ID list                        |
+    | firestore_delete_batch('collection', ['id1', ...])                               | Batch delete documents by ID list                        |
+    | firestore_array_union('collection', 'doc_id', 'field', ['v1', ...])              | Add elements to an array field (no duplicates)           |
+    | firestore_array_remove('collection', 'doc_id', 'field', ['v1', ...])             | Remove elements from an array field                      |
+    | firestore_array_append('collection', 'doc_id', 'field', ['v1', ...])             | Append elements to an array field                        |
+
+    ## Type Mapping
+    | Firestore Type | DuckDB Type                              |
+    |----------------|------------------------------------------|
+    | string         | VARCHAR                                  |
+    | integer        | BIGINT                                   |
+    | double         | DOUBLE                                   |
+    | boolean        | BOOLEAN                                  |
+    | timestamp      | TIMESTAMP                                |
+    | array          | LIST                                     |
+    | map            | VARCHAR (JSON string)                    |
+    | vector         | ARRAY(DOUBLE, N) (embedding)             |
+    | null           | NULL                                     |
+    | geoPoint       | STRUCT(latitude DOUBLE, longitude DOUBLE) |
+    | reference      | VARCHAR                                  |
+    | bytes          | BLOB                                     |
+
+    ## Schema Inference
+    When you call `firestore_scan()`, the extension automatically infers the
+    schema by sampling up to 100 documents from the collection. For each
+    field, it determines the DuckDB type using a voting system: the most
+    common non-null Firestore type across the sampled documents wins. Fields
+    that do not appear in every sampled document are marked nullable.
+
+    For array fields, element types are also inferred by sampling elements
+    across documents and selecting the most common element type. If a field
+    is only ever null across all samples, it defaults to VARCHAR.
+
+    A virtual `__document_id` column (VARCHAR) is always added as the first
+    column, containing the Firestore document ID (or the full document path
+    for collection group queries).
+
+    Documents with heterogeneous field types are handled gracefully at read
+    time: values that cannot be converted to the inferred column type are
+    returned as NULL.
+
+    ## Null Semantics
+    Both missing fields and explicit Firestore null values appear as NULL in
+    DuckDB. There is no way to distinguish between the two on read.
+
+    Writing NULL to a field sets it to an explicit Firestore null value; it
+    does not delete the field from the document.
+
+    `WHERE field IS NULL` is not pushed down to Firestore because Firestore's
+    IS_NULL operator only matches fields that exist and are explicitly null,
+    while DuckDB treats missing fields as NULL. `WHERE field IS NOT NULL` is
+    pushed down safely.
+
+    ## Batch Operations
+    Batch updates and deletes group writes into requests of up to 500
+    operations each using Firestore's batchWrite API. Note that batchWrite
+    is not atomic: individual writes within the batch may succeed or fail
+    independently. If batchWrite is unavailable (e.g., API key auth), the
+    extension falls back to individual operations automatically.
+
+    ## Collection Group Queries
+    Use the `~collection` prefix to query across all subcollections with a
+    given name. For example, `firestore_scan('~orders')` reads all documents
+    from every subcollection named "orders" regardless of parent path.

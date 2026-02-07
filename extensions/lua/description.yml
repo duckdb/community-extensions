@@ -1,0 +1,19 @@
+extension:
+  name: lua
+  description: Evaluate Lua scripts within queries
+  version: 1.4.4
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - isaacbrodsky
+
+repo:
+  github: isaacbrodsky/duckdb-lua
+  ref: f6aaed4d02f43b8528d24c4feb6d4846e8e2bb09
+
+docs:
+  hello_world: |
+    SELECT lua('return "Hello " .. context', 'World');
+  extended_description: |
+    Adds support for the Lua embedded scripting language to DuckDB.

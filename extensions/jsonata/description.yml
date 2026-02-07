@@ -1,0 +1,15 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_jsonata.html).
+extension:
+  build: cmake
+  description: The JSONata extension for DuckDB enables expressive, JSON-focused querying
+    and transformation directly within SQL using the powerful JSONata expression language.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+  - rustyconover
+  name: jsonata
+  version: 2025110901
+repo:
+  github: query-farm/jsonata
+  ref: 4f087e852214aea931d3301982f64effec3f3b22

@@ -1,0 +1,57 @@
+extension:
+  name: clamp
+  description: Provides mathematical clamp functions for numeric types in DuckDB, including general clamping, saturate, and clamp01. Ensures values stay within a specified range and handles NULLs and NaNs correctly.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - oglego
+
+repo:
+  github: oglego/duckdb_clamp
+  ref: 396931a5b87990912fa5901057210fd079d7ae25
+
+docs:
+  hello_world: |
+    -- General clamp between min and max
+    SELECT clamp(5, 0, 10);      -- Returns 5
+    SELECT clamp(-5, 0, 10);     -- Returns 0
+    SELECT clamp(15, 0, 10);     -- Returns 10
+
+    -- NULL handling
+    SELECT clamp(NULL, 0, 10);   -- Returns NULL
+    SELECT clamp(5, NULL, 10);   -- Returns NULL
+    SELECT clamp(5, 0, NULL);    -- Returns NULL
+
+    -- Saturate (equivalent to clamp(x, 0.0, 1.0))
+    SELECT saturate(0.5);        -- Returns 0.5
+    SELECT saturate(-0.5);       -- Returns 0.0
+    SELECT saturate(1.5);        -- Returns 1.0
+
+    -- Convenience clamp01 (alias for saturate)
+    SELECT clamp01(0.7);         -- Returns 0.7
+    SELECT clamp01(-1.0);        -- Returns 0.0
+    SELECT clamp01(2.0);         -- Returns 1.0
+
+    -- Handling NaN and NULL
+    SELECT clamp(CAST('NaN' AS DOUBLE), 0, 10); -- Returns NaN
+    SELECT saturate(NULL);                      -- Returns NULL
+
+  extended_description: |
+    The Clamp extension provides functions for numerical restriction:
+
+    1. **clamp(value, min, max)**: Restricts a numeric value between `min` and `max`.
+       - Supports NaN propagation (IEEE-754 standard)
+       - Throws an exception if `min > max`
+       - Returns NULL if any argument is NULL
+
+    2. **saturate(value)**: Convenience function to clamp values between 0.0 and 1.0.
+
+    3. **clamp01(value)**: Alias for `saturate(value)`.
+
+    This extension ensures safe handling of edge cases including:
+    - NaN values
+    - NULLs
+    - Floating-point numbers
+    - Large integers

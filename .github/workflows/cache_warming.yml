@@ -10,8 +10,8 @@ jobs:
     name: Warm CCache using DuckDB C++ extension template
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     with:
-      duckdb_version: 'v1.3.2'
-      ci_tools_version: 'main' # TODO: this should probably be v1.3.1?
+      duckdb_version: 'v1.4.4'
+      ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
       extra_toolchains: ''
       extension_name: 'quack'
       override_repository: 'duckdb/extension-template'
@@ -40,8 +40,8 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     needs: parse_dependency_list
     with:
-      duckdb_version: 'v1.3.2'
-      ci_tools_version: 'main' # TODO: this should probably be v1.3.1?
+      duckdb_version: 'v1.4.4'
+      ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
       extra_toolchains: ';rust;go;fortran;parser_tools;'
       extension_name: 'capi_quack'
       override_repository: 'duckdb/extension-template-c'
