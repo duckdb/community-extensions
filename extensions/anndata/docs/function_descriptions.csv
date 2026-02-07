@@ -1,0 +1,10 @@
+function,description,comment,example
+anndata_info,"Returns metadata and structure information about an AnnData (.h5ad) file, including the number of observations, variables, available layers, embeddings, and other components.","","SELECT * FROM anndata_info('data.h5ad');"
+anndata_scan_obs,"Scans the observation (cell) metadata from an AnnData file. Returns all columns from the obs DataFrame including cell barcodes, cell types, and other annotations.","","SELECT * FROM anndata_scan_obs('data.h5ad') LIMIT 5;"
+anndata_scan_var,"Scans the variable (gene) metadata from an AnnData file. Returns all columns from the var DataFrame including gene IDs, gene names, and other annotations.","","SELECT * FROM anndata_scan_var('data.h5ad') LIMIT 5;"
+anndata_scan_x,"Scans the main expression matrix (X) from an AnnData file. Returns the matrix with observation indices as rows and gene names as columns. Automatically handles both dense and sparse matrix formats.","","SELECT obs_idx, CD3D, CD19, CD14 FROM anndata_scan_x('data.h5ad') LIMIT 5;"
+anndata_scan_obsm,"Scans observation embeddings (obsm) from an AnnData file. Common embeddings include PCA (X_pca), UMAP (X_umap), and t-SNE (X_tsne).","","SELECT * FROM anndata_scan_obsm('data.h5ad', 'X_umap') LIMIT 5;"
+anndata_scan_varm,"Scans variable embeddings (varm) from an AnnData file. These are gene-level embeddings such as PCA loadings.","","SELECT * FROM anndata_scan_varm('data.h5ad', 'PCs') LIMIT 5;"
+anndata_scan_layers,"Scans alternative expression matrices (layers) from an AnnData file. Common layers include raw counts, normalized data, or scaled data.","","SELECT * FROM anndata_scan_layers('data.h5ad', 'raw') LIMIT 5;"
+anndata_scan_obsp,"Scans observation pairwise matrices (obsp) from an AnnData file. These typically contain cell-cell distance or connectivity matrices.","","SELECT * FROM anndata_scan_obsp('data.h5ad', 'distances') LIMIT 5;"
+anndata_scan_varp,"Scans variable pairwise matrices (varp) from an AnnData file. These contain gene-gene relationship matrices.","","SELECT * FROM anndata_scan_varp('data.h5ad', 'correlations') LIMIT 5;"
