@@ -29,7 +29,7 @@ docs:
 
     Features:
     - Native TDS protocol (no ODBC/JDBC required)
-    - Azure Entra ID authentication (Service Principal, CLI, Device Code, Environment Variables)
+    - Azure [Entra ID](https://github.com/hugr-lab/mssql-extension/blob/v0.1.16/AZURE.md) authentication (Service Principal, CLI, Device Code, Environment Variables)
     - Azure SQL Database and Microsoft Fabric support
     - Lazy metadata loading for fast connections
     - Schema, table, and view catalog integration
