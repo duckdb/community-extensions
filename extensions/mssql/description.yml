@@ -1,6 +1,6 @@
 extension:
   name: mssql
-  description: "Connect DuckDB to Microsoft SQL Server via native TDS (including TLS)."
+  description: "Connect DuckDB to Microsoft SQL Server via native TDS protocol"
   version: "0.1.16"
   language: "C++"
   build: "cmake"
