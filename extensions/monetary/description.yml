@@ -1,0 +1,40 @@
+# DuckDB Community Extensions descriptor
+# Submit this file to: https://github.com/duckdb/community-extensions
+# as extensions/monetary/description.yml
+
+extension:
+  name: monetary
+  description: Currency-aware monetary values with parsing, arithmetic, and real-time exchange rates
+  version: '1.0.0'
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
+
+docs:
+  hello_world: |
+    -- Parse monetary values
+    SELECT '100 EUR'::monetary;
+    SELECT '$50.25'::monetary;
+
+    -- Arithmetic with currency validation
+    SELECT '100 EUR'::monetary + '50 EUR'::monetary;
+
+    -- Fetch real-time exchange rates (requires http_request extension)
+    SELECT * FROM ecb_exchange_rates();
+    SELECT * FROM freegold_exchange_rates() WHERE data_source = 'yahoo_finance';
+  extended_description: |
+    The monetary extension provides:
+    - Currency-aware monetary type with 70+ currencies (ISO 4217)
+    - Safe arithmetic with currency mismatch detection
+    - 10 exchange rate sources (ECB, BOC, RBA, CNB, SNB, Norges Bank, TwelveData, OXR, GoldAPI, FreeGold)
+    - Precious metals (XAU, XAG, XPT, XPD) with weight unit conversion
+    - Cryptocurrencies (BTC, ETH)
+
+    For more information, see [the repository](https://github.com/fyffee/monetary).
+
+repo:
+  github: fyffee/monetary
+  ref: bbd98c4fef0d869ce673a4dee5e5f382aec667d2

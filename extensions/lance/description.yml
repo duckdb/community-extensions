@@ -1,7 +1,7 @@
 extension:
   name: lance
   description: Query Lance datasets directly from DuckDB.
-  version: 0.4.0
+  version: 0.5.0
   language: Rust & C++
   build: cmake
   license: Apache-2.0
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: lance-format/lance-duckdb
-  # v0.4.0
-  ref: 2292a513020ab2dbdc5ec4daaa9e1cbac641de41
+  # v0.5.0
+  ref: 0da11b866265b7c11cade3710a4fd1bda9b316e5
 
 docs:
   hello_world: |
@@ -34,7 +34,7 @@ docs:
     SELECT id, label, _distance
     FROM lance_vector_search(
       'path/to/dataset.lance', 'vec',
-      [0.1, 0.2, 0.3, 0.4]::FLOAT[],
+      [0.1, 0.2, 0.3, 0.4]::FLOAT[4],
       k = 5, prefilter = true
     )
     ORDER BY _distance ASC;
@@ -51,7 +51,7 @@ docs:
     SELECT id, _hybrid_score, _distance, _score
     FROM lance_hybrid_search(
       'path/to/dataset.lance',
-      'vec', [0.1, 0.2, 0.3, 0.4]::FLOAT[],
+      'vec', [0.1, 0.2, 0.3, 0.4]::FLOAT[4],
       'text', 'puppy',
       k = 10, alpha = 0.5, oversample_factor = 4
     )

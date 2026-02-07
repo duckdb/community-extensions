@@ -1,0 +1,66 @@
+extension:
+  name: urlpattern
+  description: WHATWG URLPattern API for matching and extracting components from URLs using pattern syntax
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw"
+  vcpkg_commit: "68a1c387f660632f2f65cdb7e8cd093a08840e5d"
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duckdb_urlpattern
+  ref: 5a02887dfe0190d13527861ceb111ef4de9ad9ed
+
+docs:
+  hello_world: |
+    -- Test if a URL matches a pattern
+    SELECT urlpattern_test('https://example.com/users/:id', 'https://example.com/users/123');
+    -- true
+
+    -- Extract a named group from a URL
+    SELECT urlpattern_extract('https://example.com/users/:id', 'https://example.com/users/123', 'id');
+    -- '123'
+
+    -- Get full match results with all components
+    SELECT urlpattern_exec('/posts/:slug', '/posts/hello-world');
+    -- {matched: true, pathname: '/posts/hello-world', groups: {slug: 'hello-world'}, ...}
+
+    -- Use the URLPATTERN type for validated patterns
+    SELECT urlpattern_test(urlpattern('/api/:version/*'), '/api/v2/users/list');
+    -- true
+
+  extended_description: |
+    The URLPattern extension implements the [WHATWG URLPattern API](https://urlpattern.spec.whatwg.org/)
+    for DuckDB, enabling powerful URL matching and component extraction using a standard pattern syntax.
+
+    ## Features
+
+    - **Custom URLPATTERN type** with validation and implicit casting from VARCHAR
+    - **Pattern matching** with named groups (`:name`), wildcards (`*`), and regex groups
+    - **Component extraction** for protocol, hostname, port, pathname, search, and hash
+    - **Pattern caching** for improved performance on repeated patterns
+
+    ## Functions
+
+    | Function | Description |
+    |----------|-------------|
+    | `urlpattern(pattern)` | Create a validated URLPATTERN |
+    | `urlpattern_test(pattern, url)` | Test if URL matches pattern |
+    | `urlpattern_extract(pattern, url, group)` | Extract a named group |
+    | `urlpattern_exec(pattern, url)` | Get full match results as STRUCT |
+    | `urlpattern_pathname(pattern)` | Get pathname component of pattern |
+    | `urlpattern_protocol(pattern)` | Get protocol component of pattern |
+    | `urlpattern_hostname(pattern)` | Get hostname component of pattern |
+
+    ## Pattern Syntax
+
+    URLPattern uses a syntax similar to Express.js routes:
+    - `:name` - Named parameter (matches any segment)
+    - `*` - Wildcard (matches everything)
+    - `:name(regex)` - Named parameter with regex constraint
+    - `{optionalGroup}` - Optional group
+
+    For full pattern syntax, see the [URLPattern specification](https://urlpattern.spec.whatwg.org/).

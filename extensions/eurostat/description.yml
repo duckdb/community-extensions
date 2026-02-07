@@ -1,0 +1,141 @@
+extension:
+  name: eurostat
+  description: Extension that adds support for reading data from EUROSTAT database using SQL.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  license: MIT
+  maintainers:
+    - ahuarte47
+
+repo:
+  github: ahuarte47/duckdb-eurostat
+  ref: 4eb41b1458f248cd69cd5063c6a744e9d7e74907
+
+docs:
+  hello_world: |
+    SELECT * FROM EUROSTAT_DataStructure('ESTAT', 'DEMO_R_D2JAN', language := 'en');
+
+    ┌─────────────┬──────────────┬──────────┬─────────────┬─────────────────────────────────┐
+    │ provider_id │ dataflow_id  │ position │  dimension  │             concept             │
+    │   varchar   │   varchar    │  int32   │   varchar   │             varchar             │
+    ├─────────────┼──────────────┼──────────┼─────────────┼─────────────────────────────────┤
+    │ ESTAT       │ DEMO_R_D2JAN │        1 │ freq        │ Time frequency                  │
+    │ ESTAT       │ DEMO_R_D2JAN │        2 │ unit        │ Unit of measure                 │
+    │ ESTAT       │ DEMO_R_D2JAN │        3 │ sex         │ Sex                             │
+    │ ESTAT       │ DEMO_R_D2JAN │        4 │ age         │ Age class                       │
+    │ ESTAT       │ DEMO_R_D2JAN │        5 │ geo         │ Geopolitical entity (reporting) │
+    │ ESTAT       │ DEMO_R_D2JAN │       -1 │ geo_level   │ NUTS classification level       │
+    │ ESTAT       │ DEMO_R_D2JAN │        6 │ time_period │ Time                            │
+    └─────────────┴──────────────┴──────────┴─────────────┴─────────────────────────────────┘
+
+    SELECT * FROM EUROSTAT_Read('ESTAT', 'DEMO_R_D2JAN') LIMIT 5;
+
+    ┌─────────┬─────────┬─────────┬─────────┬─────────┬───────────┬─────────────┬───────────────────┐
+    │  freq   │  unit   │   sex   │   age   │   geo   │ geo_level │ TIME_PERIOD │ observation_value │
+    │ varchar │ varchar │ varchar │ varchar │ varchar │  varchar  │   varchar   │      double       │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼───────────┼─────────────┼───────────────────┤
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2000        │         1526762.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2001        │         1535822.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2002        │         1532563.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2003        │         1526180.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2004        │         1520481.0 │
+    └─────────┴─────────┴─────────┴─────────┴─────────┴───────────┴─────────────┴───────────────────┘
+
+  extended_description: |
+    This is an extension for DuckDB for reading data from EUROSTAT database using SQL.
+
+    [Eurostat](https://ec.europa.eu/eurostat/) is the official statistical office of the European Union, responsible for providing high-quality, comparable, and harmonised statistics on Europe’s economy, society, environment, and more.
+
+    Eurostat develops harmonised definitions, classifications and methodologies for the production of European official statistics, in cooperation with national statistical authorities. It calculates aggregate data for the European Union and eurozone, using data collected by national statistical authorities according to the harmonised standards. Eurostat makes European statistics freely available to decision‑makers and citizens via the Eurostat website, social media and other channels.
+
+    Run the following query to see the available data providers and their descriptions:
+
+    ```sql
+    SELECT provider_id, organization, description FROM EUROSTAT_Endpoints();
+
+    ┌─────────────┬──────────────┬──────────────────────────────────────────────────────┐
+    │ provider_id │ organization │                     description                      │
+    │   varchar   │   varchar    │                       varchar                        │
+    ├─────────────┼──────────────┼──────────────────────────────────────────────────────┤
+    │ ECFIN       │ DG ECFIN     │ Economic and Financial Affairs                       │
+    │ EMPL        │ DG EMPL      │ Employment, Social Affairs and Inclusion             │
+    │ ESTAT       │ EUROSTAT     │ EUROSTAT database                                    │
+    │ GROW        │ DG GROW      │ Internal Market, Industry, Entrepreneurship and SMEs │
+    │ TAXUD       │ DG TAXUD     │ Taxation and Customs Union                           │
+    └─────────────┴──────────────┴──────────────────────────────────────────────────────┘
+    ```
+
+    Each provider has multiple dataflows (datasets) available, which can be listed with
+    the following query:
+
+    ```sql
+    SELECT * FROM EUROSTAT_Dataflows();
+    SELECT * FROM EUROSTAT_Dataflows(providers = ['ESTAT','ECFIN'], language := 'en');
+
+    --- You can also filter by specific dataflows:
+
+    SELECT
+        provider_id, dataflow_id, class, version, label
+    FROM
+        EUROSTAT_Dataflows(providers = ['ESTAT'], dataflows = ['DEMO_R_D2JAN'], language := 'de')
+    ;
+
+    ┌─────────────┬──────────────┬─────────┬─────────┬───────────────────────────────────────────────────────────────────┐
+    │ provider_id │  dataflow_id │  class  │ version │                               label                               │
+    │   varchar   │   varchar    │ varchar │ varchar │                              varchar                              │
+    ├─────────────┼──────────────┼─────────┼─────────┼───────────────────────────────────────────────────────────────────┤
+    │ ESTAT       │ DEMO_R_D2JAN │ dataset │ 1.0     │ Bevölkerung am 1. Januar nach Alter, Geschlecht und NUTS-2-Region │
+    └─────────────┴──────────────┴─────────┴─────────┴───────────────────────────────────────────────────────────────────┘
+    ```
+
+    To return information of the data structure of an EUROSTAT Dataflow, run the following query:
+
+    ```sql
+    SELECT
+        provider_id, dataflow_id, position, dimension, concept
+    FROM
+        EUROSTAT_DataStructure('ESTAT', 'DEMO_R_D2JAN', language := 'en')
+    ;
+
+    ┌─────────────┬──────────────┬──────────┬─────────────┬─────────────────────────────────┐
+    │ provider_id │ dataflow_id  │ position │  dimension  │             concept             │
+    │   varchar   │   varchar    │  int32   │   varchar   │             varchar             │
+    ├─────────────┼──────────────┼──────────┼─────────────┼─────────────────────────────────┤
+    │ ESTAT       │ DEMO_R_D2JAN │        1 │ freq        │ Time frequency                  │
+    │ ESTAT       │ DEMO_R_D2JAN │        2 │ unit        │ Unit of measure                 │
+    │ ESTAT       │ DEMO_R_D2JAN │        3 │ sex         │ Sex                             │
+    │ ESTAT       │ DEMO_R_D2JAN │        4 │ age         │ Age class                       │
+    │ ESTAT       │ DEMO_R_D2JAN │        5 │ geo         │ Geopolitical entity (reporting) │
+    │ ESTAT       │ DEMO_R_D2JAN │       -1 │ geo_level   │ NUTS classification level       │
+    │ ESTAT       │ DEMO_R_D2JAN │        6 │ time_period │ Time                            │
+    └─────────────┴──────────────┴──────────┴─────────────┴─────────────────────────────────┘
+    ```
+
+    Finally, to read the data of an EUROSTAT Dataflow, run:
+
+    ```sql
+    SELECT * FROM EUROSTAT_Read('ESTAT', 'DEMO_R_D2JAN') LIMIT 5;
+
+    ┌─────────┬─────────┬─────────┬─────────┬─────────┬───────────┬─────────────┬───────────────────┐
+    │  freq   │  unit   │   sex   │   age   │   geo   │ geo_level │ TIME_PERIOD │ observation_value │
+    │ varchar │ varchar │ varchar │ varchar │ varchar │  varchar  │   varchar   │      double       │
+    ├─────────┼─────────┼─────────┼─────────┼─────────┼───────────┼─────────────┼───────────────────┤
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2000        │         1526762.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2001        │         1535822.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2002        │         1532563.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2003        │         1526180.0 │
+    │ A       │ NR      │ F       │ TOTAL   │ AL      │ country   │ 2004        │         1520481.0 │
+    └─────────┴─────────┴─────────┴─────────┴─────────┴───────────┴─────────────┴───────────────────┘
+    ```
+
+    Extension supports pushdown of T-SQL filters on dimensions, which are encoded and sent to the
+    EUROSTAT API to filter the data before being loaded into DuckDB.
+
+    EUROSTAT API only supports filtering on dimensions with equality conditions (e.g. `WHERE geo = 'DE'`)
+    or IN conditions (e.g. `WHERE geo IN ('DE', 'FR')`). Other types of filters (e.g. `WHERE geo LIKE 'D%'`)
+    are not supported and will be evaluated locally in DuckDB after loading the data.
+
+    Time filters (e.g. `WHERE time_period >= '2000' AND time_period <= '2010'`) are also supported
+    and will be encoded as range filters in the EUROSTAT API.

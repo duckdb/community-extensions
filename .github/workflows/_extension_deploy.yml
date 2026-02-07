@@ -18,6 +18,11 @@ on:
       duckdb_version:
         required: true
         type: string
+      # Override the duckdb tag for deployment (e.g., for releases)
+      duckdb_tag:
+        required: false
+        type: string
+        default: ""
       # Extension CI tools version to use
       ci_tools_version:
         required: true
@@ -77,7 +82,6 @@ jobs:
           repository: 'duckdb/extension-ci-tools'
           ref: ${{ inputs.ci_tools_version }}
           path: extension-ci-tools
-          fetch-depth: 0
 
       - id: parse-matrices
         run: |
@@ -99,7 +103,6 @@ jobs:
         with:
           repository: ${{ inputs.repository }}
           ref: ${{ inputs.ref }}
-          fetch-depth: 0
           submodules: 'false'
 
       - uses: actions/checkout@v3
@@ -131,8 +134,12 @@ jobs:
           git config --global --add safe.directory '*'
           cd duckdb
           git fetch --tags
-          export DUCKDB_VERSION=`git tag --points-at HEAD`
-          export DUCKDB_VERSION=${DUCKDB_VERSION:=`git log -1 --format=%h`}
+          if [ -n "${{ inputs.duckdb_tag }}" ]; then
+            export DUCKDB_VERSION="${{ inputs.duckdb_tag }}"
+          else
+            export DUCKDB_VERSION=`git tag --points-at HEAD`
+            export DUCKDB_VERSION=${DUCKDB_VERSION:=`git log -1 --format=%h`}
+          fi
           cd ..
           git fetch --tags
           export EXT_VERSION=`git tag --points-at HEAD`

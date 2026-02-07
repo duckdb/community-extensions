@@ -1,0 +1,113 @@
+extension:
+  name: brew
+  description: Get locally homebrew casks, packages and formulas and their dependencies as nicely types tables
+  version: 0.6.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - adriens
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_arm64;windows_amd64_rtools"
+    
+
+repo:
+  github: adriens/duckdb-brew
+  ref: 5d7fddcd6d09f0e82804f5d175254b718c6c09f5
+
+docs:
+  hello_world: |
+    -- Get all casks
+    select * from brew_casks();
+
+    -- Get all packages
+    select * from brew_packages();
+    
+    -- Get all formulas
+    select * from brew_formulas();
+
+    -- Get dependencies between packages
+    select * from brew_dependencies();
+
+    -- Reporting : Find outdated packages
+    SELECT name, version FROM brew_packages() WHERE outdated = true;
+
+    -- Create brew_packages table with constraints
+    CREATE OR REPLACE TEMP TABLE brew_packages (
+      tap VARCHAR,
+      name VARCHAR PRIMARY KEY,
+      version VARCHAR,
+      type VARCHAR,
+      description VARCHAR,
+      homepage VARCHAR,
+      license VARCHAR,
+      installed_on_request BOOLEAN,
+      installed_as_dependency BOOLEAN,
+      installed_time TIMESTAMP,
+      outdated BOOLEAN,
+      pinned BOOLEAN,
+      deprecated BOOLEAN,
+      disabled BOOLEAN,
+      poured_from_bottle BOOLEAN,
+      built_as_bottle BOOLEAN,
+      dependencies VARCHAR,
+      aliases VARCHAR,
+      deprecation_reason VARCHAR,
+      disable_reason VARCHAR,
+      caveats VARCHAR,
+      size_bytes BIGINT
+    );
+
+    -- Populate from the function
+    INSERT INTO brew_packages
+      SELECT * FROM brew_packages();
+    
+    -- Create brew_dependencies table with foreign key constraints
+    CREATE OR REPLACE TEMP TABLE brew_dependencies (
+        name VARCHAR,
+        dependency VARCHAR,
+        FOREIGN KEY (name) REFERENCES brew_packages(name),
+        FOREIGN KEY (dependency) REFERENCES brew_packages(name)
+    );
+
+    -- Populate from brew_packages function
+    INSERT INTO brew_dependencies
+    SELECT
+        name,
+        unnest(string_split(dependencies, ', ')) as dependency
+    FROM brew_packages()
+    WHERE dependencies IS NOT NULL
+    ORDER BY name;
+
+    SELECT 
+      tap, 
+      count(*) as package_count
+    FROM brew_packages
+    GROUP BY tap
+    ORDER BY package_count DESC;
+
+extended_description: |
+    The `brew` extension add `brew` reporting capabilities to DuckDB, enabling structured analysis, package statistics, inluding file size reporting.
+
+    **Documentation:** See [`QUICKSTART`](https://github.com/adriens/duckdb-brew/blob/main/QUICKSTART.md) for full usage instructions and `SQL` examples.
+
+    **Key Features:**
+
+    - Access local Homebrew casks, packages, and formulas as structured tables
+    - Perform SQL queries for package management and reporting
+    - Get file size statistics for installed packages
+    - Identify outdated packages easily
+    - Identify package dependencies and relationships
+
+    **Core Functions:**
+
+    - `brew_casks()` - Retrieve information about installed Homebrew casks
+    - `brew_packages()` - Retrieve information about installed Homebrew packages
+    - `brew_formulas()` - Retrieve information about available Homebrew formulas
+    - `brew_dependencies()` - Get dependencies between packages
+    
+    
+    **Example Use Cases:**
+
+    - Generate reports on installed packages and their sizes
+    - Monitor and manage package updates
+    - Analyze package dependencies and relationships

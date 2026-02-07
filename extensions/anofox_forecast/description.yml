@@ -5,8 +5,9 @@ extension:
   build: cmake
   excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;"
   license: BSL 1.1
+  requires_toolchains: rust
   maintainers:
     - sipemu
 repo:
   github: DataZooDE/anofox-forecast
-  ref: b04b81734c5d6d95a1e0c19f8a8d16dbb8baea63
+  ref: 9f9e1ebbb7aeed388941b0eca6c16e8e0f7c1227
