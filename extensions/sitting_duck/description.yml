@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/sitting_duck
-  ref: 'deed3fa45652827f5500da9a492ee1f492857d31'
+  ref: 'acfa07a8da6c6d6b6df45180f6f6a48970e1f7b7'
   
 docs:
   hello_world: |
