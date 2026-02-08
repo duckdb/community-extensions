@@ -1,7 +1,7 @@
 extension:
   name: duck_block_utils
   description: Build, transform, validate, and extract content from structured documents using the duck_block type
-  version: 1.2.0
+  version: 1.2.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_duck_block_utils
-  ref: 88048e0fe27d93acd210623f41999e660c31a3f0
+  ref: a0064ef1405ab86a4d007a14a0e37f0a7ba604fe
 
 docs:
   hello_world: |
