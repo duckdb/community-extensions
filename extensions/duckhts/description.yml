@@ -1,0 +1,50 @@
+extension:
+  name: duckhts
+  description: Read HTS (VCF/BCF/BAM/CRAM/FASTA/FASTQ/GTF/GFF) files in DuckDB via htslib
+  version: 0.1.0
+  language: C
+  build: cmake
+  license: MIT
+  requires_toolchains: "python3"
+  maintainers:
+    - "Sounkou Mahamane Toure <sounkoutoure@gmail.com>"
+
+repo:
+  github: RGenomicsETL/duckhts
+  ref: 127271cad8bb3d8c9f91967f847e4a864ce97138
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD duckhts;
+
+    -- Read a VCF/BCF file (tidy FORMAT columns)
+    SELECT CHROM, POS, REF, ALT, FORMAT_GT
+    FROM read_bcf('test/data/formatcols.vcf.gz', tidy_format := true)
+    LIMIT 5;
+
+    -- Read a BAM/SAM file
+    SELECT QNAME, RNAME, POS, READ_GROUP_ID, SAMPLE_ID
+    FROM read_bam('test/data/rg.sam.gz')
+    LIMIT 5;
+
+  extended_description: |
+    DuckHTS provides table functions for common high-throughput sequencing (HTS)
+    formats using htslib. Query VCF/BCF/BAM/CRAM/FASTA/FASTQ/GTF/GFF and
+    tabix-indexed files directly in SQL.
+
+    Functions include:
+      - read_bcf(path, [region, tidy_format])
+      - read_bam(path, [region, reference])
+      - read_fasta(path)
+      - read_fastq(path, [mate_path, interleaved])
+      - read_gff(path, [region, attributes_map])
+      - read_gtf(path, [region, attributes_map])
+      - read_tabix(path, [region])
+
+    Paired FASTQ is supported via mate_path or interleaved := true. CRAM is
+    supported with an explicit reference file. For GTF/GFF, attributes can be
+    returned as a parsed MAP using attributes_map := true.
+
+    MSVC builds (windows_amd64/windows_arm64) are not supported. MinGW/RTools
+    is supported on Windows.
