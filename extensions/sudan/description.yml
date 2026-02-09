@@ -1,0 +1,48 @@
+extension:
+  name: sudan
+  description: Unified SQL access to Sudan's humanitarian, development, and geospatial data from 5 international APIs (World Bank, WHO, FAO, UNHCR, ILO)
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Osman-Geomatics93
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
+
+repo:
+  github: Osman-Geomatics93/duckdb-sudan-
+  ref: 28e983b9fd5bf36e47d48648da54664e9578e9c0
+
+docs:
+  hello_world: |
+    -- List all data providers
+    SELECT * FROM SUDAN_Providers();
+
+    -- Sudan population from World Bank
+    SELECT year, value FROM SUDAN_WorldBank('SP.POP.TOTL')
+    WHERE year >= 2020 ORDER BY year;
+
+    -- Sudan's 18 states with Arabic names
+    SELECT state_name, state_name_ar, iso_code FROM SUDAN_States();
+  extended_description: |
+    The Sudan extension brings unified SQL access to Sudan's publicly available data across
+    5 international APIs — World Bank, WHO, FAO, UNHCR, and ILO.
+
+    Sudan is experiencing one of the world's largest humanitarian crises, yet its data is
+    scattered across dozens of international APIs with incompatible formats. This extension
+    enables analysts, researchers, and humanitarian workers to query demographics, economics,
+    health, agriculture, displacement, and geospatial boundaries using standard SQL.
+
+    **Data providers:**
+    - **World Bank** — Development indicators, GDP, population, education
+    - **WHO** — Health indicators, disease burden, mortality rates
+    - **FAO** — Agricultural production, food security, land use
+    - **UNHCR** — Refugees, IDPs, asylum seekers, displacement data
+    - **ILO** — Employment, labor force, unemployment statistics
+
+    **Key features:**
+    - 12 SQL functions covering data retrieval, indicator search, and geospatial queries
+    - Bilingual support (Arabic/English) for state names and provider metadata
+    - Regional comparison with 8 neighboring countries (Egypt, Ethiopia, Chad, South Sudan, Eritrea, Libya, CAF)
+    - Embedded GeoJSON boundaries for Sudan's 18 states (works offline)
+    - In-memory response caching for efficient repeated queries
