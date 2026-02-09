@@ -1,0 +1,35 @@
+extension:
+  name: oast
+  description: Validate, decode, and extract OAST (Out-of-Band Application Security Testing) domains in SQL
+  version: 0.1.0
+  language: C
+  build: cmake
+  license: MIT
+  requires_toolchains: "python3"
+  maintainers:
+    - hrbrmstr
+
+repo:
+  github: hrbrmstr/duckdb-oast
+  ref: 61164985f09e98900bf05d012e740199dfe3b4bd
+
+docs:
+  hello_world: |
+    -- Check if a domain is a valid OAST callback
+    SELECT oast_validate('c58bduhe008dovpvhvugcfemp9yyyyyyn.oast.pro') AS is_oast;
+    -- Decode OAST metadata (timestamp, machine ID, campaign)
+    SELECT oast_struct('c58bduhe008dovpvhvugcfemp9yyyyyyn.oast.pro').*;
+    -- Extract OAST domains from arbitrary text
+    SELECT oast_extract('GET /c58bduhe008dovpvhvugcfemp9yyyyyyn.oast.pro HTTP/1.1');
+  extended_description: |
+    The oast extension provides functions for working with OAST (Out-of-Band Application Security Testing)
+    domains directly in SQL. OAST domains are used by security testing tools like ProjectDiscovery Interactsh
+    to detect out-of-band interactions during vulnerability scanning.
+
+    Functions include validation (oast_validate), metadata decoding (oast_struct, oast_decode_json),
+    domain extraction from text (oast_extract, oast_extract_decode), and convenience macros for
+    field access (oast_campaign, oast_timestamp, oast_ksort, oast_machine_id).
+
+    Supports domains from: oast.pro, oast.live, oast.site, oast.online, oast.fun, oast.me, interact.sh, interactsh.com.
+
+    Pure C implementation with no external dependencies. Uses DuckDB stable C API (v1.2.0+).
