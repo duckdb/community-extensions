@@ -37,16 +37,19 @@ docs:
 
     Functions include:
       - read_bcf(path, [region, tidy_format])
-      - read_bam(path, [region, reference])
+      - read_bam(path, [region, reference, standard_tags, auxiliary_tags])
       - read_fasta(path)
       - read_fastq(path, [mate_path, interleaved])
       - read_gff(path, [region, attributes_map])
       - read_gtf(path, [region, attributes_map])
-      - read_tabix(path, [region])
+      - read_tabix(path, [region, header, header_names, auto_detect, column_types])
 
     Paired FASTQ is supported via mate_path or interleaved := true. CRAM is
     supported with an explicit reference file. For GTF/GFF, attributes can be
-    returned as a parsed MAP using attributes_map := true.
+    returned as a parsed MAP using attributes_map := true. Optional SAMtags
+    columns and an auxiliary tag map are available via standard_tags and
+    auxiliary_tags. Tabix files can use header/header_names and type inference
+    via auto_detect or explicit column_types.
 
     MSVC builds (windows_amd64/windows_arm64) are not supported. MinGW/RTools
     is supported on Windows.
