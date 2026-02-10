@@ -13,6 +13,8 @@ repo:
   github: RGenomicsETL/duckhts
   ref: 127271cad8bb3d8c9f91967f847e4a864ce97138
 
+excluded_platforms: windows_amd64;windows_arm64
+
 docs:
   hello_world: |
     -- Load the extension
