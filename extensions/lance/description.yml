@@ -1,7 +1,7 @@
 extension:
   name: lance
   description: Query Lance datasets directly from DuckDB.
-  version: 0.5.0
+  version: 0.5.1
   language: Rust & C++
   build: cmake
   license: Apache-2.0
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: lance-format/lance-duckdb
-  # v0.5.0
-  ref: 0da11b866265b7c11cade3710a4fd1bda9b316e5
+  # v0.5.1
+  ref: ecddd759a99d2b965844bd3082998d6d21cb80c8
 
 docs:
   hello_world: |
