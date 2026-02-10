@@ -1,7 +1,7 @@
 extension:
   name: duckhts
   description: Read HTS (VCF/BCF/BAM/CRAM/FASTA/FASTQ/GTF/GFF) files in DuckDB via htslib
-  version: 0.1.0
+  version: 0.1.2
   language: C
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: RGenomicsETL/duckhts
-  ref: 127271cad8bb3d8c9f91967f847e4a864ce97138
+  ref: 90ce8100353c564d73d03eeec2f3a2a06862993d
 
 excluded_platforms: windows_amd64;windows_arm64
 
