@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: the-miint/duckdb-miint
-  ref: aee7ecee67ae67407d77dfb3be77dd7d36d293f7
+  ref: e8d6f931ae151b90611a42e362bd1ca3b3da8dfe
 
 docs:
   hello_world: |
