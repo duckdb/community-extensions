@@ -6,11 +6,11 @@ extension:
   build: cmake
   license: MIT
   maintainers:
-    - CtrlAltTea
+    - teaguesterling
 
 repo:
   github: teaguesterling/duckdb_read_lines
-  ref: 7f7842c149844654bba513b37366265325c05a88
+  ref: cf61430b8309a2db175c4486bcce13a55b101c05
 
 docs:
   hello_world: |
