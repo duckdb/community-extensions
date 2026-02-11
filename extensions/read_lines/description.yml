@@ -9,8 +9,8 @@ extension:
     - CtrlAltTea
 
 repo:
-  github: CtrlAltTea/duckdb_read_lines
-  ref: 461f8428c53c529ee95803ad733feefeba6aa13c
+  github: teaguesterling/duckdb_read_lines
+  ref: 0207d04
 
 docs:
   hello_world: |
