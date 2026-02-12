@@ -1,0 +1,67 @@
+extension:
+  name: read_lines
+  description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection, and context lines around matches.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duckdb_read_lines
+  ref: 04348147b54a0a3c23a098189bc5d9d9ec8bd308
+
+docs:
+  hello_world: |
+    -- Read all lines from a file
+    SELECT * FROM read_text_lines('server.log');
+
+    -- Read specific lines (1-indexed)
+    SELECT * FROM read_text_lines('server.log', lines := '100-200');
+
+    -- Read lines with context around matches
+    SELECT * FROM read_text_lines('error.log', lines := 42, context := 3);
+
+    -- Glob pattern to read from multiple files
+    SELECT * FROM read_text_lines('logs/*.log')
+    WHERE content LIKE '%ERROR%';
+
+    -- Parse lines from a string
+    SELECT * FROM parse_text_lines('line1
+    line2
+    line3');
+
+  extended_description: |
+    The read_lines extension provides functions for reading line-based text files with
+    precise control over which lines to extract.
+
+    **Functions:**
+    - `read_text_lines(file_path, ...)` - Read lines from file(s) with glob support
+    - `read_text_lines_lateral(file_path)` - Lateral join variant for file paths from table columns
+    - `parse_text_lines(text, ...)` - Parse lines from a string
+
+    **Output Schema:**
+    | Column | Type | Description |
+    |--------|------|-------------|
+    | line_number | BIGINT | 1-indexed line number |
+    | content | VARCHAR | Line content (preserves original line endings) |
+    | byte_offset | BIGINT | Byte position of line start |
+    | file_path | VARCHAR | Source file path (read_text_lines only) |
+
+    **Line Selection:**
+    - Single line: `lines := 42`
+    - Range: `lines := '100-200'` (inclusive)
+    - List: `lines := [1, 5, 10]`
+    - Mixed: `lines := ['1-10', '50-60', '100']`
+
+    **Context Lines:**
+    - `before := N` - Include N lines before each match
+    - `after := N` - Include N lines after each match
+    - `context := N` - Shorthand for both before and after
+
+    **Use Cases:**
+    - Extract specific lines from log files
+    - Get error lines with surrounding context
+    - Process multiple files with glob patterns
+    - Parse multi-line string columns
