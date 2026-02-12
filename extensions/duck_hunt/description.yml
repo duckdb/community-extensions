@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: be57f1518cbe2a759280a156f8143d780d793d09
+  ref: 5f18f2e8ad03e9ca43f852cf70839511de55aeb8
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
