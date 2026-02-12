@@ -6,14 +6,15 @@ extension:
   build: cmake
   license: MIT
   requires_toolchains: "python3"
+  excluded_platforms: windows_amd64;windows_arm64
   maintainers:
     - "Sounkou Mahamane Toure <sounkoutoure@gmail.com>"
+ 
 
 repo:
   github: RGenomicsETL/duckhts
   ref: 07dcdba056fa355960fcfafc25c1f04875c2bfd9
 
-excluded_platforms: windows_amd64;windows_arm64
 
 docs:
   hello_world: |
