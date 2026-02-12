@@ -182,9 +182,9 @@ SELECT * FROM PDAL_Read('path/to/your/filename.las') LIMIT 10;
 
 SELECT * FROM PDAL_Read('path/to/your/filename.las', options => MAP {'start': 10});
 
+```
+
 Optional Options parameter can be used to pass reader-specific options as key-value pairs.
 For example, for the LAS/LAZ reader, the options are documented at https://pdal.io/en/stable/stages/readers.las.html#options
-
-```
 
 ----
