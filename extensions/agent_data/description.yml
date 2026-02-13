@@ -5,14 +5,14 @@ extension:
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
   requires_toolchains: "rust"
   maintainers:
     - axsaucedo
 
 repo:
   github: axsaucedo/agent_data_duckdb
-  ref: 5cf6802a597e7c5d8a5aa00a17d2733817048668
+  ref: 1348a6d1a25ada29f78087e1469dfbff3bb095e1
 
 docs:
   hello_world: |
