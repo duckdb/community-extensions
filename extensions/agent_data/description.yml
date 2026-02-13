@@ -11,7 +11,7 @@ extension:
     - axsaucedo
 
 repo:
-  github: axsaucedo/duckdb-claude-ext
+  github: axsaucedo/agent_data_duckdb
   ref: 5cf6802a597e7c5d8a5aa00a17d2733817048668
 
 docs:
