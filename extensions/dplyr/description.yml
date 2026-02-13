@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: mrchypark/libdplyr
-  ref: 254d89e2f1f48b6e65a94dbe41834a18dba75523
+  ref: 6a18238d36fee9453b32039f28a04245a3665af6
 
 docs:
   hello_world: |
