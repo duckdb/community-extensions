@@ -15,3 +15,4 @@ extension:
 repo:
   github: query-farm/marisa
   ref: 6e81aadaa0a41901218fcf02ff39d8ff2594ffa7
+  ref_next: 7fefd40d4bc8976a08143cccc3298af68db1d8f9
