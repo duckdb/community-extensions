@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-hedged-request
-  ref: b73da5e2edff89833f98f764b7018a7db073b5c8
+  ref: a94e1b63e9b1e6f94c6c7debbf1d49bc28f510f7
 
 docs:
   hello_world: |
