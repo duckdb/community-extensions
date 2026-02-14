@@ -13,7 +13,7 @@ extension:
 repo:
   github: "hugr-lab/mssql-extension"
   ref: "v0.1.17"
-#  ref_next: "0.1.18"
+  ref_next: "0.1.18"
 
 docs:
   hello_world: |
