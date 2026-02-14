@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_read_lines
-  ref: 169ce417b75b5a500cb96d91a6d47f95f5d38cfc
+  ref: 169ce41b16104be7a7b24903794a0d6e83dd81cb
 
 docs:
   hello_world: |
