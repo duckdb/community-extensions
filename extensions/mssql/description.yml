@@ -13,7 +13,7 @@ extension:
 repo:
   github: "hugr-lab/mssql-extension"
   ref: "v0.1.17"
-#  ref_next: c724578b171f9eb93e0df8f8f5b3b79f506d078e
+#  ref_next: "0.1.18"
 
 docs:
   hello_world: |
@@ -24,7 +24,7 @@ docs:
 
   extended_description: |
     The mssql extension provides a DuckDB connector for Microsoft SQL Server using the native TDS protocol.
-    Support DuckDB version: 1.4.4
+    Support DuckDB version: 1.4.4 and later.
 
     The extension is experimental and may not cover all edge cases. Please report any issues on the [GitHub repository](https://github.com/hugr-lab/mssql-extension).
 
