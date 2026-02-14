@@ -1,0 +1,25 @@
+extension:
+  name: hedged_request_fs
+  description: Provides hedged request for filesystem operations
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-hedged-request
+  ref: b73da5e2edff89833f98f764b7018a7db073b5c8
+
+docs:
+  hello_world: |
+    SELECT * FROM hedged_fs_list_filesystems();
+    SELECT hedged_fs_wrap('S3FileSystem');
+  extended_description: |
+    This extension enhances DuckDB filesystem capability by hedged request to cut down tail latency.
+    It supports a few key features:
+    - It allows users to wrap an existing filesystem, so all later access behavior exactly the same without changing any code.
+    - Support all metadata and directory operations, the slow ones of which will be attempted hedged request to cut down tail latency.
+    - Hedged requests trigger thresholds and max attempt counts are configurable.
