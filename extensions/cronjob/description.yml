@@ -65,3 +65,4 @@ extension:
 repo:
   github: quackscience/duckdb-extension-cronjob
   ref: 040dbecd552e6b373fb1bb4582935d243693978e
+  ref_next: e3912d21394d109be2795c71dbb782a6680d74a5
