@@ -1,7 +1,7 @@
 extension:
   name: read_lines
   description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection, and context lines around matches.
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_read_lines
-  ref: 015bcb3caa2e01e674afdafae42aeef3ec088bc9
+  ref: 444128e15fcd595091675b85f953535260dfb4c7
 
 docs:
   hello_world: |
@@ -25,6 +25,9 @@ docs:
 
     -- Path-embedded line selection
     SELECT * FROM read_lines('error.log:42 +/-3');
+
+    -- Last 10 lines (from-end syntax)
+    SELECT * FROM read_lines('app.log', '+10-');
 
     -- Glob pattern to read from multiple files
     SELECT * FROM read_lines('logs/*.log')
@@ -42,7 +45,7 @@ docs:
     **Functions:**
     - `read_lines(path)` - Read all lines from file(s) with glob support
     - `read_lines(path, lines)` - Read selected lines (positional argument)
-    - `read_lines_lateral(path)` - Lateral join variant for file paths from table columns
+    - `read_lines_lateral(path, lines)` - Lateral join variant for file paths from table columns
     - `parse_lines(text, ...)` - Parse lines from a string
 
     **Output Schema:**
@@ -58,6 +61,7 @@ docs:
     - Range: `'100-200'` (inclusive)
     - List: `[1, 5, 10]`
     - With context: `'42 +/-3'`
+    - From end: `'+10-'` (last 10 lines), `'+5'` (5th from end)
     - Path-embedded: `'file.py:42 +/-3'`
     - Struct: `{start: 100, stop: 200}` or `{line: 42, context: 3}`
 
