@@ -19,7 +19,6 @@ docs:
     SELECT hedged_fs_wrap('S3FileSystem');
   extended_description: |
     This extension enhances DuckDB filesystem capability by hedged request to cut down tail latency.
-    It supports a few key features:
     - It allows users to wrap an existing filesystem, which achieves hedged request with no user code change.
-    - Support all metadata and directory operations, the slow ones of which will be attempted hedged request to cut down tail latency.
+    - It supports all metadata and directory operations, the slow ones of which will be attempted hedged request to cut down tail latency.
     - Users are able to tune hedged requests trigger thresholds and max attempt counts.
