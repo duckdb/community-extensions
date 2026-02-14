@@ -18,6 +18,8 @@ on:
         type: string
       duckdb_version:
         type: string
+      ci_tools_version:
+        type: string
       duckdb_tag:
         type: string
       deploy:
@@ -35,6 +37,8 @@ on:
       extension_name:
         type: string
       duckdb_version:
+        type: string
+      ci_tools_version:
         type: string
       duckdb_tag:
         type: string
@@ -62,7 +66,7 @@ jobs:
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
-      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'ce613c41372b23b1f51333815feb3edd87ef8a8b' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
+      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ case(inputs.duckdb_version == 'v1.5-variegata', steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && '84bab45d415d22042bd0b9081aea57f362da3f35' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT, steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'ce613c41372b23b1f51333815feb3edd87ef8a8b' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT) }}
     env:
       DUCKDB_LATEST_STABLE: 'v1.4.4'
       DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.4.4' }}
@@ -96,7 +100,7 @@ jobs:
     with:
       duckdb_version: ${{ inputs.duckdb_version || 'v1.4.4' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
-      ci_tools_version: 'v1.4-andium'
+      ci_tools_version: ${{ inputs.ci_tools_version || 'v1.4-andium' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       test_config: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
@@ -144,7 +148,7 @@ jobs:
       deploy_latest: true
       duckdb_version: ${{ inputs.duckdb_version || 'v1.4.4' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
-      ci_tools_version: 'v1.4-andium'
+      ci_tools_version: ${{ inputs.ci_tools_version || 'v1.4-andium' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
