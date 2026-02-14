@@ -38,6 +38,8 @@ on:
         type: string
       duckdb_version:
         type: string
+      ci_tools_version:
+        type: string
       duckdb_tag:
         type: string
       deploy:
