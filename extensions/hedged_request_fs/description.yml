@@ -20,6 +20,6 @@ docs:
   extended_description: |
     This extension enhances DuckDB filesystem capability by hedged request to cut down tail latency.
     It supports a few key features:
-    - It allows users to wrap an existing filesystem, so all later access behavior exactly the same without changing any code.
+    - It allows users to wrap an existing filesystem, which achieves hedged request with no user code change.
     - Support all metadata and directory operations, the slow ones of which will be attempted hedged request to cut down tail latency.
-    - Hedged requests trigger thresholds and max attempt counts are configurable.
+    - Users are able to tune hedged requests trigger thresholds and max attempt counts.
