@@ -1,0 +1,113 @@
+extension:
+  name: polyglot
+  description: Transpile SQL from 33 different dialects into DuckDB SQL
+  version: 0.1.1
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "linux_amd64_musl;windows_arm64;osx_amd64;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - tobilg
+
+repo:
+  github: tobilg/duckdb-polyglot
+  ref: 1a0d8c966befbe6e5f8fae46c3002c7730439cd1
+
+docs:
+  hello_world: |
+    -- Transpile a PostgreSQL query to DuckDB SQL
+    D SELECT polyglot_transpile('SELECT NOW()', 'postgresql');
+    ┌──────────────────────────────────────────────────┐
+    │ polyglot_transpile('SELECT NOW()', 'postgresql') │
+    │                     varchar                      │
+    ├──────────────────────────────────────────────────┤
+    │ SELECT CURRENT_TIMESTAMP                         │
+    └──────────────────────────────────────────────────┘
+
+    -- Transpile a Snowflake query to DuckDB SQL
+    D SELECT polyglot_transpile('SELECT DATEDIFF(''day'', ''2020-01-01'', ''2025-10-12'')', 'snowflake');
+    ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │ polyglot_transpile('SELECT DATEDIFF(''day'', ''2020-01-01'', ''2025-10-12'')', 'snowflake')      │
+    │                                            varchar                                               │
+    ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+    │ SELECT DATE_DIFF('DAY', CAST('2020-01-01' AS DATE), CAST('2025-10-12' AS DATE))                  │
+    └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    -- List all supported SQL dialects
+    D SELECT * FROM polyglot_dialects() LIMIT 5;
+    ┌──────────────┐
+    │ dialect_name │
+    │   varchar    │
+    ├──────────────┤
+    │ generic      │
+    │ postgresql   │
+    │ mysql        │
+    │ bigquery     │
+    │ snowflake    │
+    └──────────────┘
+
+    -- Transpile and execute a query from another dialect
+    D SELECT * FROM polyglot_query('SELECT 1 AS a, 2 AS b', 'postgresql');
+    ┌───────┬───────┐
+    │   a   │   b   │
+    │ int32 │ int32 │
+    ├───────┼───────┤
+    │     1 │     2 │
+    └───────┴───────┘
+
+  extended_description: |
+    The polyglot extension enables SQL transpilation from 33 different SQL dialects into DuckDB-compatible SQL, powered by the `polyglot-sql` crate. It can transpile SQL queries and optionally execute them directly.
+
+    ## Supported Dialects
+
+    The extension supports 33 SQL dialects: `generic`, `postgresql`, `mysql`, `bigquery`, `snowflake`, `duckdb`, `sqlite`, `hive`, `spark`, `trino`, `presto`, `redshift`, `tsql`, `oracle`, `clickhouse`, `databricks`, `athena`, `teradata`, `doris`, `starrocks`, `materialize`, `risingwave`, `singlestore`, `cockroachdb`, `tidb`, `druid`, `solr`, `tableau`, `dune`, `fabric`, `drill`, `dremio`, `exasol`.
+
+    Some dialects also accept aliases (e.g., `postgres` for `postgresql`, `mssql` or `sqlserver` for `tsql`, `memsql` for `singlestore`).
+
+    ## Functions
+
+    ### `polyglot_transpile(sql, from_dialect)`
+
+    Transpiles SQL queries from a specified dialect into DuckDB-compatible SQL.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to transpile
+    - `from_dialect` (VARCHAR): The source SQL dialect name
+
+    **Returns:** VARCHAR - The transpiled DuckDB SQL
+
+    **Examples:**
+    ```sql
+    SELECT polyglot_transpile('SELECT NOW()', 'postgresql');
+    -- Returns: SELECT CURRENT_TIMESTAMP
+
+    SELECT polyglot_transpile('SELECT DATEDIFF(''day'', ''2020-01-01'', ''2025-10-12'')', 'snowflake');
+    -- Returns: SELECT DATE_DIFF('DAY', CAST('2020-01-01' AS DATE), CAST('2025-10-12' AS DATE))
+    ```
+
+    ### `polyglot_dialects()` - Table Function
+
+    Returns a table listing all 33 supported SQL dialect names.
+
+    **Returns:** A table with column `dialect_name` (VARCHAR)
+
+    **Example:**
+    ```sql
+    SELECT * FROM polyglot_dialects();
+    ```
+
+    ### `polyglot_query(sql, from_dialect)` - Table Function
+
+    Transpiles a SQL query from a specified dialect into DuckDB SQL and executes it, returning results with a dynamic schema matching the query columns.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to transpile and execute
+    - `from_dialect` (VARCHAR): The source SQL dialect name
+
+    **Returns:** Table with dynamic schema based on the query result columns
+
+    **Example:**
+    ```sql
+    SELECT * FROM polyglot_query('SELECT 1 AS a, 2 AS b', 'postgresql');
+    ```
