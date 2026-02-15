@@ -1,7 +1,7 @@
 extension:
   name: html_query
   description: Query HTML using CSS selectors, extract JSON from LD+JSON, JavaScript variables, and Next.js RSC
-  version: 0.6.0
+  version: '2026020501'
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb_html_query
-  ref: a78df2bfb6ad547ceae25cac70277bbaf0ecba62
+  ref: ad8083fbd6b67128e4103a3ed1e66afc828e6815
 
 docs:
   hello_world: |
