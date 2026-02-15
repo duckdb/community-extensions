@@ -11,7 +11,8 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-eurostat
-  ref: 8c1deef2189469a31b371732c618343283878b0e
+  ref: d0ff60b1cd3e0749953fb28ad21eb1fb0ed2b0a0
+  ref_next: c628d0c65b9e87c0974de39a544958a565e61742
 
 docs:
   hello_world: |
