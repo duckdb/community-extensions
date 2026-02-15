@@ -56,3 +56,4 @@ extension:
 repo:
   github: Query-farm/httpserver
   ref: 8a53d8b7f4290608e0eb0d4dbfbafefaf04209e9
+  ref_next: 663b883caac630c69ee06a452e8103c4da364bdd
