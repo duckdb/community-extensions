@@ -12,6 +12,7 @@ extension:
 repo:
   github: dentiny/duckdb-table-inspector
   ref: 13b830f3ccee4b4be3058a8211ad2f566c1ef698
+  ref_next: 7fb029e2cde2904a572aee40b94684dfd5f55d19
 docs:
   hello_world: |
     -- List all attached persistent databases with file sizes
