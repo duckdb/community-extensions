@@ -19,4 +19,5 @@ jobs:
     uses: ./.github/workflows/build.yml 
     with:
       duckdb_version: 'v1.5-variegata'
+      ci_tools_version: 'main'
       deploy: 'false'
