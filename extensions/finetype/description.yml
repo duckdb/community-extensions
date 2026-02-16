@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: noon-org/duckdb-finetype
-  ref: 04aea8403d22e9a0e2e25e1f50eef5e12aee94be
+  ref: 93addabb6ee23b978a6c3b115ed963cc9f058d2c
 
 docs:
   hello_world: |
