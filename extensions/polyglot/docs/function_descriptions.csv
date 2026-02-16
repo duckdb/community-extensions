@@ -1,0 +1,4 @@
+function,fun_type,description,comment,example
+"polyglot_transpile","scalar","Transpiles SQL queries from a specified dialect into DuckDB-compatible SQL.","","SELECT polyglot_transpile('SELECT NOW()', 'postgresql');"
+"polyglot_dialects","table","Returns a table listing all supported SQL dialect names.","","SELECT * FROM polyglot_dialects();"
+"polyglot_query","table","Transpiles a SQL query from a specified dialect and executes it, returning results with a dynamic schema.","","SELECT * FROM polyglot_query('SELECT 1 AS a, 2 AS b', 'postgresql');"
