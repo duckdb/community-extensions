@@ -19,7 +19,7 @@ extension:
 
 repo:
   github: duckdb/extension-template
-  ref: e52f46eeca9157124cbc910f52ea8637c95084a1
+  ref: 8148b0e4d1c0f4891ff357e0339224e779cd62bd
 
 docs:
   hello_world: |
