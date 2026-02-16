@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-httpfs-timeout-retry
-  ref: d416b094097357b1b0d62a5d852c9bba753bf7db
+  ref: d4b8b9dee28a6b36fe5eea8be3dddb8470ccd613
 
 docs:
   hello_world: |
