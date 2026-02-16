@@ -1,0 +1,36 @@
+extension:
+  name: httpfs_timeout_retry
+  description: Add per-operation timeout and retry for httpfs extension
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-httpfs-timeout-retry
+  ref: d416b094097357b1b0d62a5d852c9bba753bf7db
+
+docs:
+  hello_world: |
+    SET httpfs_timeout_file_operation_ms = 30000;      -- 30 seconds
+    SET httpfs_timeout_list_ms = 60000;      -- 60 seconds
+    SET httpfs_timeout_delete_ms = 30000;    -- 30 seconds
+    SET httpfs_timeout_stat_ms = 10000;      -- 10 seconds
+    SET httpfs_timeout_create_dir_ms = 20000; -- 20 seconds
+    SET http_timeout = 30000;  -- This will be used for operations without per-operation settings
+
+    SET httpfs_retries_file_operation = 3;  -- applies to open, read, and write operations
+    SET httpfs_retries_list = 3;
+    SET httpfs_retries_delete = 2;
+    SET httpfs_retries_stat = 2;
+    SET httpfs_retries_create_dir = 3;
+    SET http_retries = 3;  -- This will be used for operations without per-operation settings
+
+  extended_description: |
+    This extension allows per-operation timeout and retry config to DuckDB httpfs extension.
+    It supports a few key features:
+    - It's 100% compatible to httpfs extension, so users don't need to change any of their code.
+    - It supports a few IO operations, like, open/read/write, list, stats, etc.
