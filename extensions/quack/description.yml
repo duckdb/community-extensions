@@ -1,7 +1,7 @@
 extension:
   name: quack
   description: Provides a hello world example demo
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -14,11 +14,12 @@ extension:
   vcpkg_commit: "ce613c41372b23b1f51333815feb3edd87ef8a8b"
   # (Optional) this extension requires additional custom toolchain setup
   custom_toolchain_script: true
+  # (Optional) ';' separated list of additional platforms
+  opt_in_platforms: "windows_arm64;"
 
 repo:
   github: duckdb/extension-template
-  ref: c7d9ef3463376dc2b64959abf3a477eae2280142
-  ref_next: e52f46eeca9157124cbc910f52ea8637c95084a1
+  ref: 8148b0e4d1c0f4891ff357e0339224e779cd62bd
 
 docs:
   hello_world: |

@@ -1,0 +1,85 @@
+extension:
+  name: func_apply
+  description: Dynamic function invocation - call any scalar function or macro by name at runtime
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duckdb_func_apply
+  ref: d03cca390f97f74b04eeccd21e772de648ac6f7f
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD func_apply;
+    
+    -- Call scalar functions dynamically
+    SELECT apply('upper', 'hello world');
+    -- Result: HELLO WORLD
+    
+    SELECT apply('substr', 'hello world', 7, 5);
+    -- Result: world
+    
+    -- Call table functions dynamically
+    SELECT * FROM apply_table('range', 5);
+    -- Returns: 0, 1, 2, 3, 4
+    
+    SELECT * FROM apply_table('generate_series', 1, 10, 2);
+    -- Returns: 1, 3, 5, 7, 9
+    
+    -- Check if a function exists before calling
+    SELECT function_exists('my_custom_func');
+    -- Result: true/false
+
+  extended_description: |
+    The FuncApply extension enables dynamic function invocation in DuckDB, allowing you to
+    call any scalar function or macro by name at runtime. This is useful for data-driven
+    transformations, dynamic SQL generation, and building flexible data pipelines.
+
+    ## Functions
+
+    | Function | Description |
+    |----------|-------------|
+    | `apply(func_name, ...args)` | Call a function by name with arguments |
+    | `apply_with(func_name, args, kwargs)` | Call a function with arguments as a list |
+    | `apply_table(func_name, ...args)` | Call a table function by name with arguments |
+    | `apply_table_with(func_name, args, kwargs)` | Call a table function with arguments as a list |
+    | `function_exists(name)` | Check if a function exists |
+
+    ## Use Cases
+
+    ### Data-Driven Transformations
+
+    ```sql
+    -- Store transformation rules in a table
+    CREATE TABLE transforms (column_name VARCHAR, func_name VARCHAR);
+    INSERT INTO transforms VALUES ('name', 'upper'), ('email', 'lower');
+
+    -- Apply transformations dynamically
+    SELECT apply(t.func_name, d.value) as result
+    FROM data d JOIN transforms t ON d.column = t.column_name;
+    ```
+
+    ### Dynamic Function Selection
+
+    ```sql
+    -- Choose function based on data type
+    SELECT apply(
+        CASE typeof(value)
+            WHEN 'VARCHAR' THEN 'upper'
+            WHEN 'INTEGER' THEN 'abs'
+        END,
+        value
+    ) FROM my_table;
+    ```
+
+    ## Supported Function Types
+
+    - Scalar functions (e.g., `upper`, `abs`, `substr`)
+    - Macros (e.g., `list_sum`, `list_reverse`)
+
+    Aggregate and table functions are not supported.

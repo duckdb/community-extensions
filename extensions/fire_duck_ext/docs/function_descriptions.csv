@@ -1,0 +1,11 @@
+function,description,comment,example
+firestore_scan,"Read all documents from a Firestore collection or collection group.",,"SELECT * FROM firestore_scan('users');"
+firestore_insert,"Insert documents into a Firestore collection from a subquery.",,"CALL firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));"
+firestore_update,"Update fields on a single Firestore document.",,"CALL firestore_update('users', 'user123', 'status', 'verified');"
+firestore_delete,"Delete a single Firestore document.",,"CALL firestore_delete('users', 'user123');"
+firestore_update_batch,"Batch update multiple Firestore documents by ID list.",,"CALL firestore_update_batch('users', ['id1', 'id2'], 'status', 'reviewed');"
+firestore_delete_batch,"Batch delete multiple Firestore documents by ID list.",,"CALL firestore_delete_batch('users', ['id1', 'id2']);"
+firestore_array_union,"Add elements to an array field without duplicates.",,"CALL firestore_array_union('users', 'user123', 'tags', ['vip', 'active']);"
+firestore_array_remove,"Remove elements from an array field.",,"CALL firestore_array_remove('users', 'user123', 'tags', ['inactive']);"
+firestore_array_append,"Append elements to an array field (allows duplicates).",,"CALL firestore_array_append('users', 'user123', 'log', ['event1']);"
+firestore_clear_cache,"Clear the cached schema for all or a specific collection.",,"CALL firestore_clear_cache();"

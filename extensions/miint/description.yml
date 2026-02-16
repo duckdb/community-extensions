@@ -1,0 +1,65 @@
+extension:
+  name: miint
+  description: Bioinformatics extension for microbiome research - read/write FASTQ, SAM/BAM, BIOM, GFF, Newick trees, query NCBI, and more.
+  version: '2026020501'
+  language: C++
+  build: cmake
+  license: BSD-3-Clause
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - wasade
+
+repo:
+  github: the-miint/duckdb-miint
+  ref: e8d6f931ae151b90611a42e362bd1ca3b3da8dfe
+
+docs:
+  hello_world: |
+    -- Extract 16S rRNA gene sequences from E. coli K-12 MG1655
+    -- Fetches genome and annotations directly from NCBI
+    WITH ecoli_16s_positions AS (
+        SELECT position, stop_position, strand,
+               attributes['gene'] AS gene,
+               attributes['product'] AS product
+        FROM read_ncbi_annotation('NC_000913.3')
+        WHERE type = 'rRNA'
+          AND attributes['product'] LIKE '%16S%'
+        ORDER BY position
+    )
+    SELECT concat_ws(':', read_id, position, stop_position, strand) AS read_id,
+           sequence1[position:stop_position] AS sequence
+    FROM read_ncbi_fasta('NC_000913.3'), ecoli_16s_positions;
+
+  extended_description: |
+    MIINT (MIcrobiome INTelligence) brings SQL to bioinformatics data analysis.
+
+    **Read bioinformatics formats as tables:**
+    - `read_alignments`: SAM/BAM alignment files
+    - `read_fastx`: FASTA/FASTQ sequence files (single/paired-end)
+    - `read_biom`: BIOM abundance matrices
+    - `read_gff`: GFF3 annotation files
+    - `read_newick`: Phylogenetic trees
+    - `read_jplace`: Phylogenetic placements
+
+    **Query NCBI directly:**
+    - `read_ncbi`: Fetch sequence metadata by accession
+    - `read_ncbi_fasta`: Fetch sequences from NCBI
+    - `read_ncbi_annotation`: Fetch feature annotations from NCBI
+
+    **Alignment with SQL:**
+    - `align_minimap2`: Align sequences using minimap2
+    - `align_bowtie2`: Align sequences using bowtie2
+
+    **Write to standard formats:**
+    - `COPY ... FORMAT FASTQ/FASTA`: Export sequences
+    - `COPY ... FORMAT SAM/BAM`: Export alignments
+    - `COPY ... FORMAT BIOM`: Export abundance tables
+    - `COPY ... FORMAT NEWICK`: Export phylogenetic trees
+
+    **Analysis functions:**
+    - SAM flag checking (`alignment_is_primary`, `alignment_is_unmapped`, etc.)
+    - Sequence identity calculation (`alignment_seq_identity`)
+    - Interval compression (`compress_intervals`)
+    - Woltka OGU classification (`woltka_ogu`, `woltka_ogu_per_sample`)
+
+    See the [documentation](https://github.com/the-miint/duckdb-miint) for complete details.

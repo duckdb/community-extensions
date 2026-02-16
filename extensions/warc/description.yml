@@ -1,0 +1,81 @@
+extension:
+  name: warc
+  description: Parse WARC (Web ARChive) records for Common Crawl data processing
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  requires_toolchains: "rust"
+  maintainers:
+    - onnimonni
+
+repo:
+  github: midwork-finds-jobs/duckdb_warc
+  ref: 7184683eec41abd8dbe34b8457c780cd80648cae
+
+docs:
+  hello_world: |
+    -- Parse a WARC record from a gzip-compressed file
+    SELECT parse_warc(content) FROM read_blob('record.warc.gz');
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │                              parse_warc(content)                            │
+    │ struct(warc_version varchar, warc_headers varchar, http_version varchar,    │
+    │        http_status integer, http_headers varchar, http_body blob)           │
+    ├─────────────────────────────────────────────────────────────────────────────┤
+    │ {'warc_version': '1.0', 'warc_headers': '{"WARC-Type": "response", ...}',   │
+    │  'http_version': 'HTTP/1.1', 'http_status': 200,                            │
+    │  'http_headers': '{"content-type": "text/html", ...}',                      │
+    │  'http_body': <!doctype html>...}                                           │
+    └─────────────────────────────────────────────────────────────────────────────┘
+
+    -- Extract specific fields
+    SELECT
+        (parse_warc(content)).http_status,
+        (parse_warc(content)).http_body
+    FROM read_blob('record.warc.gz');
+
+  extended_description: |
+    The WARC extension parses WARC (Web ARChive) records, the standard format used by Common Crawl
+    and web archiving tools. It enables efficient processing of web archive data directly in DuckDB.
+
+    ## Function
+
+    ### `parse_warc(data)`
+
+    Parse a WARC record and return a struct with all components.
+
+    **Parameters:**
+    - `data` (BLOB or VARCHAR): WARC record data (auto-detects gzip compression)
+
+    **Returns:** STRUCT with fields:
+    - `warc_version` (VARCHAR): WARC format version (e.g., "1.0")
+    - `warc_headers` (VARCHAR): JSON object of WARC headers
+    - `http_version` (VARCHAR): HTTP version (e.g., "HTTP/1.1")
+    - `http_status` (INTEGER): HTTP status code (e.g., 200)
+    - `http_headers` (VARCHAR): JSON object of HTTP headers (lowercase keys)
+    - `http_body` (BLOB): Response body content
+
+    ## Common Crawl Workflow
+
+    The recommended workflow for processing Common Crawl data:
+
+    1. **Query the columnar index** (Parquet) to find records of interest
+    2. **Fetch only the specific byte ranges** you need using HTTP Range requests
+    3. **Parse with this extension**
+
+    ```sql
+    -- Example: Parse a downloaded Common Crawl record
+    -- First download: curl -r"46376769-46377713" "https://data.commoncrawl.org/crawl-data/..." > record.warc.gz
+    SELECT
+        (parse_warc(content)).http_status,
+        decode((parse_warc(content)).http_body) as html
+    FROM read_blob('record.warc.gz');
+    ```
+
+    ## Features
+
+    - Auto-detects gzip compression
+    - Handles binary content (skips body for non-text responses)
+    - HTTP header keys are lowercased for consistent access
+    - Works with both BLOB and VARCHAR input types

@@ -1,0 +1,3 @@
+function,fun_type,description,comment,example
+"force_utf8_encoding","scalar","Forces text with potentially mixed or unknown encoding to UTF-8. Handles hex-encoded byte sequences and attempts automatic encoding detection.","","SELECT force_utf8_encoding('\x5B\x7B\x22Langue\x22\x3A\x5B\x22Fran\xE7ais\x22,\x22English\x22\x5D\x7D\x5D');"
+"detect_encoding","scalar","Detects the likely encoding of input text and returns the encoding name.","","SELECT detect_encoding('\x5B\x7B\x22Langue\x22\x3A\x5B\x22Fran\xE7ais\x22,\x22English\x22\x5D\x7D\x5D');"

@@ -1,0 +1,53 @@
+extension:
+  name: level_pivot
+  description: Storage extension wrapping LevelDB with pivot semantics for structured relational tables over key-value pairs
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: GPL-3.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - halgari
+
+repo:
+  github: halgari/duckdb-level-pivot
+  ref: fffc3f36aa7e72698efe523070fab3af25340161
+
+docs:
+  hello_world: |
+    -- Attach a LevelDB database
+    ATTACH '/tmp/mydb' AS kv (TYPE level_pivot, CREATE_IF_MISSING true);
+
+    -- Create a pivot table: rows decompose into LevelDB key-value pairs
+    -- Key pattern: users##<group>##<id>##<attribute_name> → attribute_value
+    CALL level_pivot_create_table('kv', 'users', 'users##{group}##{id}##{attr}', ['group', 'id', 'name', 'email']);
+
+    -- Insert data
+    INSERT INTO kv.users VALUES ('admins', 'u1', 'Alice', 'alice@example.com');
+    INSERT INTO kv.users VALUES ('admins', 'u2', 'Bob', 'bob@example.com');
+
+    -- Query with standard SQL (filter pushdown on identity columns)
+    SELECT * FROM kv.users;
+    SELECT * FROM kv.users WHERE "group" = 'admins' AND id = 'u1';
+
+  extended_description: |
+    LevelPivot is a DuckDB storage extension that wraps LevelDB with pivot
+    semantics. It maps relational rows to LevelDB key-value pairs using
+    configurable key patterns, enabling structured multi-column SQL tables
+    on top of a key-value store.
+
+    Tables are created via level_pivot_create_table() with a key pattern
+    like 'users##{group}##{id}##{attr}' that defines how rows decompose
+    into LevelDB entries. Identity columns ({group}, {id}) form the key
+    prefix; attribute columns (name, email) each become a separate
+    LevelDB key-value pair.
+
+    Key Features:
+    - Pivot mode: decomposes rows into per-attribute LevelDB entries
+    - Raw mode: simple 2-column key-value access
+    - Configurable key patterns with identity columns and delimiters
+    - Typed columns: VARCHAR, BIGINT, INTEGER, DOUBLE, BOOLEAN
+    - Filter pushdown on identity columns for efficient prefix scans
+    - Full DML support: INSERT, INSERT INTO...SELECT, UPDATE, DELETE
+    - SIMD-optimized key parsing (AVX2, SSE2, NEON)
+    - Data persistence across DETACH/ATTACH cycles

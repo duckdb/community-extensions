@@ -1,0 +1,54 @@
+extension:
+  name: webdavfs
+  description: Allows reading and writing files over WebDAV protocol
+  version: '2026020501'
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp;linux_amd64_musl;"
+  requires_toolchains: "vcpkg"
+  maintainers:
+    - onnimonni
+  vcpkg_commit: 'dd3097e305afa53f7b4312371f62058d2e665320'
+repo:
+  github: midwork-finds-jobs/duckdb-webdavfs
+  ref: 359f4c05601798855c07954cf560a6e3beb6fc10
+
+docs:
+  hello_world: |
+    -- Load the extension
+    INSTALL webdavfs FROM community;
+    LOAD webdavfs;
+
+    -- Authenticate with any WebDAV server eg nextcloud or owncloud
+    CREATE SECRET my_storagebox (
+      TYPE WEBDAV,
+      USERNAME 'u123456',
+      PASSWORD 'password',
+      SCOPE 'webdav://webdav-server.example.com/'
+    );
+
+    -- or with Hetzner specific Storage Box
+    CREATE SECRET my_storagebox (
+      TYPE WEBDAV,
+      USERNAME 'u123456',
+      PASSWORD 'password',
+      SCOPE 'storagebox://u123456'
+    );
+
+    -- Convert local csv into parquet and upload it using WebDAV
+    COPY (
+        FROM 'local.csv'
+    ) TO 'storagebox://u123456/remote.parquet';
+    
+    -- Read The uploaded parquet file using WebDAV
+    SELECT * FROM 'storagebox://u123456/remote.parquet';
+
+  extended_description: |
+    DuckDB WebDAVfs extension enables seamless integration with WebDAV servers, allowing users to read from and write to remote file systems directly within DuckDB. This extension supports authentication mechanisms compatible with various WebDAV services, including Hetzner Storage Boxes.
+
+    WebDAV is nice because it builds on top of HTTP/HTTPS protocols. This enables DuckDB to leverage http 1.1 range feature to only download parts of files when needed, making it efficient for working with large datasets stored remotely.
+
+    Hetzner Storage Boxes are a popular choice for WebDAV storage being one of the cheapest storage options available.
+
+    See: https://github.com/midwork-finds-jobs/webdavfs/blob/main/README.md for more examples and details.

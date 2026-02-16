@@ -1,7 +1,7 @@
 extension:
   name: cache_httpfs
   description: Read cached filesystem for httpfs
-  version: 0.6.0
+  version: 0.12.5
   language: C++
   build: cmake
   license: MIT
@@ -12,18 +12,19 @@ extension:
 
 repo:
   github: dentiny/duck-read-cache-fs
-  ref: 04bd8cfafa0149c8628da7dfd2f90a29b0b62bf1
+  ref: 3aae0cd0afc5da029508f3f0a77dc07c4de9a408
 
 docs:
   hello_world: |
-    SELECT cache_httpfs_get_cache_size();
+    SELECT cache_httpfs_get_ondisk_data_cache_size();
   extended_description: |
     This extension adds a read cache filesystem to DuckDB, which acts as a wrapper of httpfs extention. 
     It supports a few key features:
     - Supports both file metadata, glob, file handle and data block cache
     - Supports both on-disk cache and in-memory cache for data blocks, with cache mode, block size, cache directories tunable
-    - Supports disk cache file eviction based on access timestamp, allows tunable disk space reservation
+    - Supports disk cache file eviction based on access timestamp or LRU, allows tunable disk space reservation
     - Supports parallel IO request, with request size and parallelism tunable
+    - Supports optional cache entries validation, by default off
     - Supports profiling for IO latency and cache hit / miss ratio for a few operations (i.e open, read, glob), which provides an insight on workload characterization
     - Exposes function to get cache size and cleanup cache
     - Provides an option to disable / enable cache, which could act as a drop-in replacement for httpfs

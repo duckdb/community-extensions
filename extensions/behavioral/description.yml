@@ -1,0 +1,43 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Tom F. (https://github.com/tomtom215/duckdb-behavioral)
+
+extension:
+  name: behavioral
+  description: Behavioral analytics functions inspired by ClickHouse (sessionize, retention, window_funnel, sequence_match, sequence_count, sequence_match_events, sequence_next_node)
+  version: 0.2.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - tomtom215
+
+repo:
+  github: tomtom215/duckdb-behavioral
+  ref: 8400aaa3c864eb620107ac8f6cbdc577d5c82e1f
+
+docs:
+  hello_world: |
+    -- Session assignment with 30-minute timeout
+    SELECT ts, sessionize(ts, INTERVAL '30 minutes') OVER (ORDER BY ts) AS session_id
+    FROM events;
+
+    -- Conversion funnel analysis
+    SELECT user_id, window_funnel(INTERVAL '1 hour', ts,
+        event = 'view', event = 'cart', event = 'purchase')
+    FROM events GROUP BY user_id;
+  extended_description: |
+    Behavioral analytics functions for DuckDB, providing complete ClickHouse parity:
+
+    - **sessionize**: Window function assigning session IDs based on timestamp gaps
+    - **retention**: Cohort retention analysis returning boolean arrays
+    - **window_funnel**: Conversion funnel step tracking with 6 composable modes
+    - **sequence_match**: Pattern matching over event sequences (NFA-based)
+    - **sequence_count**: Count non-overlapping pattern matches
+    - **sequence_match_events**: Return matched condition timestamps
+    - **sequence_next_node**: Find the next event value after a pattern match
+
+    All functions support up to 32 boolean event conditions. Pure Rust implementation
+    with zero unsafe code in business logic. Benchmarked at 830 Melem/s (sessionize)
+    and 95 Melem/s (sequence_match) on commodity hardware.

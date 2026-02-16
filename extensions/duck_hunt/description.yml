@@ -1,0 +1,130 @@
+extension:
+  name: duck_hunt
+  description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 90+ formats with severity filtering, format auto-detection, and context extraction
+  version: 1.7.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duck_hunt
+  ref: 5f18f2e8ad03e9ca43f852cf70839511de55aeb8
+
+docs:
+  readme: https://duck-hunt.readthedocs.io/
+  hello_world: |
+    -- Parse build errors (warnings and above)
+    SELECT ref_file, ref_line, message
+    FROM read_duck_hunt_log('build.log', 'auto', severity_threshold := 'warning')
+    WHERE status = 'ERROR';
+
+    -- Parse test results with all events
+    SELECT test_name, status, execution_time
+    FROM read_duck_hunt_log('pytest.json', 'pytest_json', severity_threshold := 'all')
+    WHERE status = 'FAIL';
+
+    -- Process multiple files, skip failures (new in v1.4.0)
+    SELECT * FROM read_duck_hunt_log('logs/*.json', ignore_errors := true);
+
+    -- Control log_content size for memory efficiency (new in v1.4.0)
+    SELECT * FROM read_duck_hunt_log('huge.log', content := 200);
+    SELECT * FROM read_duck_hunt_log('huge.log', content := 'smart');
+
+    -- Extract surrounding log lines for context (new in v1.6.0)
+    SELECT ref_file, message, context
+    FROM read_duck_hunt_log('build.log', 'make_error', context := 3);
+
+    -- Parse GitHub Actions ZIP archives (new in v1.4.0, requires zipfs)
+    -- INSTALL zipfs FROM community; LOAD zipfs;
+    SELECT job_name, severity, message
+    FROM read_duck_hunt_workflow_log('workflow_run.zip', 'github_actions_zip')
+    WHERE severity = 'error';
+
+    -- Debug format detection
+    SELECT format, can_parse, events_produced, is_selected
+    FROM duck_hunt_diagnose_read('build.log');
+
+    -- Build health badge
+    SELECT status_badge(
+      COUNT(*) FILTER (WHERE status = 'ERROR'),
+      COUNT(*) FILTER (WHERE status = 'WARNING')
+    ) FROM read_duck_hunt_log('build.log', 'auto');
+
+  extended_description: |
+    Duck Hunt is a comprehensive DuckDB extension for parsing and analyzing development tool outputs.
+    It provides a unified SQL interface to query test results, build logs, linting output, and CI/CD
+    pipeline data from 90+ tools and formats.
+
+    **Documentation:** <https://duck-hunt.readthedocs.io/>
+
+    **Core Table Functions:**
+    - `read_duck_hunt_log(source, format, severity_threshold, ignore_errors, content, context)` - Parse tool outputs from files
+    - `parse_duck_hunt_log(text, format, severity_threshold, content, context)` - Parse tool outputs from strings
+    - `read_duck_hunt_workflow_log(source, format, severity_threshold, ignore_errors)` - Parse CI/CD workflow logs
+    - `parse_duck_hunt_workflow_log(text, format, severity_threshold)` - Parse workflow strings
+
+    **New in v1.6.0:**
+    - `context` parameter - Include N surrounding log lines around each event
+    - Context column type: `LIST(STRUCT(line_number INT, content VARCHAR, is_event BOOL))`
+    - Works with all parsers and combines with other parameters
+
+    **New in v1.5.0:**
+    - Format groups: Use `python`, `javascript`, `lint`, `test`, `build` etc. for auto-detection
+    - 14 formats promoted to Production maturity (205 new test assertions)
+    - Cleaner codebase: 37 parsers migrated to DelegatingParser template
+
+    **New in v1.4.0:**
+    - `ignore_errors` parameter - Continue processing when individual files fail
+    - `content` parameter - Control log_content size: integer limit, `'smart'`, `'none'`, or `'full'`
+    - `github_actions_zip` format - Parse ZIP archives from GitHub Actions (requires zipfs extension)
+    - Workflow delegation - Workflow parsers auto-delegate to tool parsers (make, pytest, etc.)
+
+    **Diagnostic Functions:**
+    - `duck_hunt_detect_format(content)` - Auto-detect format, returns format name or NULL
+    - `duck_hunt_diagnose_read(path)` - Debug which parsers match a file
+    - `duck_hunt_diagnose_parse(content)` - Debug which parsers match content
+    - `duck_hunt_formats()` - List all supported formats with priorities
+
+    **Scalar Functions:**
+    - `status_badge(status)` - Convert status to badge: [ OK ], [FAIL], [WARN], [ .. ], [ ?? ]
+    - `status_badge(errors, warnings)` - Compute badge from counts
+    - `status_badge(errors, warnings, is_running)` - Badge with running state
+
+    **Severity Filtering:**
+    Filter events by severity level: `'all'` < `'info'` < `'warning'` < `'error'` < `'critical'`
+
+    **Supported Formats (90+):**
+    See: <https://duck-hunt.readthedocs.io/en/latest/formats/>
+    - **Dynamic:** `regexp:<pattern>` - Custom patterns with named capture groups
+    - **Test Frameworks:** pytest, Go test, Cargo test, JUnit, RSpec, Mocha/Chai, Google Test, NUnit/xUnit
+    - **Linting Tools:** ESLint, RuboCop, Pylint, Flake8, MyPy, Clippy, SwiftLint, PHPStan, isort, and more
+    - **Build Systems:** CMake, Make, Maven, Gradle, Cargo, MSBuild, Node.js, Python, Spack
+    - **CI/CD Engines:** GitHub Actions, GitLab CI, Jenkins, Docker, Drone CI, Terraform
+    - **Distributed Systems:** HDFS, Spark, Zookeeper, OpenStack, Android, Blue Gene/L
+    - **Infrastructure:** Kubernetes, AWS CloudTrail, VPC Flow, S3 Access, Syslog
+    - **Debugging:** Valgrind, GDB/LLDB, strace
+
+    **Schema Fields (39):**
+    See: <https://duck-hunt.readthedocs.io/en/latest/schema/>
+    - Reference context: ref_file, ref_line, ref_column (locations mentioned in logs)
+    - Log source: log_file, log_content, log_line_start, log_line_end
+    - Core: event_id, tool_name, event_type, status, severity, message
+    - Error Analysis: fingerprint, similarity_score, pattern_id
+    - Hierarchy: scope, group, unit, subunit (and corresponding _id, _status fields)
+
+    **Key Features:**
+    - Automatic format detection with diagnostic debugging
+    - Transparent compression support (GZIP built-in, ZSTD via parquet)
+    - GitHub Actions ZIP archive support (via zipfs extension)
+    - Severity-based event filtering
+    - Context extraction for surrounding log lines
+    - Error pattern clustering and fingerprinting
+    - Multi-file glob processing with ignore_errors for robust batch processing
+    - Memory-efficient content modes (limit, smart truncation, omit)
+    - Workflow delegation to tool-specific parsers
+    - Pipeline integration with stdin support
+    - Hierarchical CI/CD workflow parsing
+
+    Perfect for CI/CD analysis, automated debugging, test aggregation, quality gates, and agent-driven development workflows.

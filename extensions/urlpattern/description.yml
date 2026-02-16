@@ -1,0 +1,67 @@
+extension:
+  name: urlpattern
+  description: WHATWG URLPattern API for matching and extracting components from URLs using pattern syntax
+  version: 0.3.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw"
+  vcpkg_commit: "68a1c387f660632f2f65cdb7e8cd093a08840e5d"
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duckdb_urlpattern
+  ref: 987739dae7466f5cd11f12845fdd30c1bdbcd3d8
+
+docs:
+  hello_world: |
+    -- Test if a URL matches a pattern
+    SELECT urlpattern_test('https://example.com/users/:id', 'https://example.com/users/123');
+    -- true
+
+    -- Extract a named group from a URL
+    SELECT urlpattern_extract('https://example.com/users/:id', 'https://example.com/users/123', 'id');
+    -- '123'
+
+    -- Get full match results with all components
+    SELECT urlpattern_exec('/posts/:slug', '/posts/hello-world');
+    -- {matched: true, pathname: '/posts/hello-world', groups: {slug: 'hello-world'}, ...}
+
+    -- Use the URLPATTERN type for validated patterns
+    SELECT urlpattern_test(urlpattern('/api/:version/*'), '/api/v2/users/list');
+    -- true
+
+  extended_description: |
+    The URLPattern extension implements the [WHATWG URLPattern API](https://urlpattern.spec.whatwg.org/)
+    for DuckDB, enabling powerful URL matching, extraction, parsing, and construction.
+
+    ## Features
+
+    - **Custom URLPATTERN type** with validation and implicit casting from VARCHAR
+    - **Pattern matching** with named groups (`:name`), wildcards (`*`), and regex groups
+    - **URL parsing** into components (protocol, host, path, query, hash)
+    - **URL building** and modification from components
+    - **Query parameter extraction** as MAP or individual values
+    - **Pattern caching** for improved performance (~320k matches/sec)
+
+    ## Key Functions
+
+    | Function | Description |
+    |----------|-------------|
+    | `urlpattern_test(pattern, url)` | Test if URL matches pattern |
+    | `urlpattern_extract(pattern, url, group)` | Extract a named group |
+    | `urlpattern_exec(pattern, url)` | Get full match results as STRUCT |
+    | `url_parse(url)` | Parse URL into struct with all components |
+    | `url_build(...)` | Build URL from named components |
+    | `url_modify(url, ...)` | Modify existing URL components |
+    | `url_search_params(url)` | Get query parameters as MAP |
+
+    ## Pattern Syntax
+
+    URLPattern uses a syntax similar to Express.js routes:
+    - `:name` - Named parameter (matches any segment)
+    - `*` - Wildcard (matches everything)
+    - `/path/:id` - Path-only patterns match any protocol/host
+
+    For full documentation, see [duckdb-urlpattern.readthedocs.io](https://duckdb-urlpattern.readthedocs.io/).

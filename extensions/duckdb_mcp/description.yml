@@ -1,7 +1,7 @@
 extension:
   name: duckdb_mcp
   description: Model Context Protocol (MCP) extension for DuckDB that enables seamless integration between SQL databases and MCP servers. Provides both client capabilities for accessing remote MCP resources via SQL and server capabilities for exposing database content as MCP resources.
-  version: 1.0.0
+  version: 1.4.4
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_mcp
-  ref: main
+  ref: dce476110ac411b1cca32e410da22d6c0bb70077
 
 docs:
   hello_world: |
@@ -36,6 +36,7 @@ docs:
     
     -- Server mode: Start an MCP server to expose database content
     SELECT mcp_server_start('stdio', 'localhost', 0, '{}');
+    -- or mcp_server_start('stdio')
     
     -- Publish database tables as MCP resources
     CREATE TABLE products AS SELECT 'Widget' as name, 10.99 as price;
@@ -43,6 +44,8 @@ docs:
 
   extended_description: |
     DuckDB MCP Extension bridges SQL databases with the Model Context Protocol (MCP), enabling bidirectional integration between DuckDB and MCP servers. The extension operates in dual modes: as an MCP client for accessing remote resources and as an MCP server for exposing database content.
+
+    See the [README.md](https://github.com/teaguesterling/duckdb_mcp/blob/main/README.md) for more details.
     
     **MCP Client Capabilities**: Connect to MCP servers using multiple transport protocols (stdio, TCP, WebSocket) and access remote resources directly in SQL queries. Use the `mcp://` URI scheme with standard DuckDB functions like `read_csv()`, `read_parquet()`, and `read_json()` to seamlessly query remote data sources. Execute remote tools with `mcp_call_tool()` and discover available resources with `mcp_list_resources()`.
     

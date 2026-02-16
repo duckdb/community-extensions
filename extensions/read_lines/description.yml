@@ -1,0 +1,77 @@
+extension:
+  name: read_lines
+  description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection, and context lines around matches.
+  version: 0.1.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/duckdb_read_lines
+  ref: 4af06cb19e138ace8d7313ce983b2f54a961c559
+
+docs:
+  hello_world: |
+    -- Read all lines from a file
+    SELECT * FROM read_lines('server.log');
+
+    -- Read specific lines (positional argument)
+    SELECT * FROM read_lines('server.log', '100-200');
+
+    -- Read lines with context around matches
+    SELECT * FROM read_lines('error.log', 42, context := 3);
+
+    -- Path-embedded line selection
+    SELECT * FROM read_lines('error.log:42 +/-3');
+
+    -- Last 10 lines (from-end syntax)
+    SELECT * FROM read_lines('app.log', '+10-');
+
+    -- Glob pattern to read from multiple files
+    SELECT * FROM read_lines('logs/*.log')
+    WHERE content LIKE '%ERROR%';
+
+    -- Parse lines from a string
+    SELECT * FROM parse_lines('line1
+    line2
+    line3');
+
+  extended_description: |
+    The read_lines extension provides functions for reading line-based text files with
+    precise control over which lines to extract.
+
+    **Functions:**
+    - `read_lines(path)` - Read all lines from file(s) with glob support
+    - `read_lines(path, lines)` - Read selected lines (positional argument)
+    - `read_lines_lateral(path, lines)` - Lateral join variant for file paths from table columns
+    - `parse_lines(text, ...)` - Parse lines from a string
+
+    **Output Schema:**
+    | Column | Type | Description |
+    |--------|------|-------------|
+    | line_number | BIGINT | 1-indexed line number |
+    | content | VARCHAR | Line content (preserves original line endings) |
+    | byte_offset | BIGINT | Byte position of line start |
+    | file_path | VARCHAR | Source file path (read_lines only) |
+
+    **Line Selection:**
+    - Single line: `42` or `lines := 42`
+    - Range: `'100-200'` (inclusive)
+    - List: `[1, 5, 10]`
+    - With context: `'42 +/-3'`
+    - From end: `'+10-'` (last 10 lines), `'+5'` (5th from end)
+    - Path-embedded: `'file.py:42 +/-3'`
+    - Struct: `{start: 100, stop: 200}` or `{line: 42, context: 3}`
+
+    **Context Lines:**
+    - `before := N` - Include N lines before each match
+    - `after := N` - Include N lines after each match
+    - `context := N` - Shorthand for both before and after
+
+    **Use Cases:**
+    - Extract specific lines from log files
+    - Get error lines with surrounding context
+    - Process multiple files with glob patterns
+    - Parse multi-line string columns

@@ -1,0 +1,15 @@
+extension:
+  build: cmake
+  description: AWS CloudFront signed cookie authentication for DuckDB httpfs
+  excluded_platforms: linux_amd64_musl;windows_amd64_mingw
+  language: C++
+  license: MIT
+  maintainers:
+    - onnimonni
+  name: cloudfront
+  vcpkg_url: https://github.com/microsoft/vcpkg.git
+  vcpkg_commit: ce613c41372b23b1f51333815feb3edd87ef8a8b
+  version: '2026020501'
+repo:
+  github: midwork-finds-jobs/duckdb-cloudfront
+  ref: 176b7ee77e2c12c8a7068fde233f04f93a729c39

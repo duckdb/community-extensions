@@ -1,0 +1,13 @@
+extension:
+  name: anofox_forecast
+  description: Statistical timeseries forecasting in DuckDB. Support ARIMA, SARIMA, ETS, TBATS, MFLES, MSTL, and other models.
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;"
+  license: BSL 1.1
+  requires_toolchains: rust
+  maintainers:
+    - sipemu
+repo:
+  github: DataZooDE/anofox-forecast
+  ref: 9c9a470fc0da8c3a5b4f4d86e93b4e79f9db36a1

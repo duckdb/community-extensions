@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: paleolimbot/duckdb-geography
-  ref: e83725eb4ea245db9d2a5e02887dacfda3eb59a7
+  ref: 1f66ba5a3a0e72f53c7237987ef743605189fa69
 
 docs:
   hello_world: |
