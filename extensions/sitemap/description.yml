@@ -13,7 +13,7 @@ extension:
 repo:
   github: midwork-finds-jobs/duckdb-sitemap
   ref: 4c873c85c3f7c8dcab6154de51aa218f61677634
-  ref_next: 930a1f9769944f7b79dea991893ebe1b1ef0cfb3
+  ref_next: 15e96dfd6e5dfb6d70a9b7cc5a2675b3969e16b3
 
 docs:
   hello_world: |
