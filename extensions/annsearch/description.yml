@@ -1,0 +1,102 @@
+extension:
+  name: annsearch
+  description: Approximate nearest neighbor search with FAISS and DiskANN vector indexes for DuckDB
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+  requires_toolchains: "rust;fortran;omp"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  vcpkg_url: "https://github.com/microsoft/vcpkg.git"
+  vcpkg_commit: "e5a1490e1409d175932ef6014519e9ae149ddb7c"
+
+repo:
+  github: decisiongraph/duckdb-annsearch
+  ref: 6339a6b5650ba85a803634fac3adb73c4b9c1ff5
+
+docs:
+  hello_world: |
+    -- Create a table with vector embeddings
+    CREATE TABLE docs (id INT, embedding FLOAT[3]);
+    INSERT INTO docs VALUES
+      (1, [1.0, 0.0, 0.0]),
+      (2, [0.0, 1.0, 0.0]),
+      (3, [0.0, 0.0, 1.0]),
+      (4, [0.5, 0.5, 0.0]),
+      (5, [0.0, 0.5, 0.5]);
+
+    -- Create a FAISS index (Flat, HNSW, or IVFFlat)
+    CREATE INDEX idx ON docs USING FAISS (embedding);
+
+    -- ANN search: ORDER BY + LIMIT is automatically rewritten to use the index
+    SELECT id, array_distance(embedding, [1.0, 0.0, 0.0]::FLOAT[3]) AS dist
+    FROM docs ORDER BY dist LIMIT 3;
+
+  extended_description: |
+    The **annsearch** extension adds approximate nearest neighbor (ANN) vector
+    search to DuckDB via two index backends:
+
+    - **FAISS** (Facebook AI Similarity Search) — Flat, HNSW, and IVFFlat index types
+    - **DiskANN** (Microsoft) — Vamana graph-based index via Rust FFI
+
+    ## Creating Indexes
+
+    ```sql
+    -- FAISS Flat (exact, default)
+    CREATE INDEX idx ON docs USING FAISS (embedding);
+
+    -- FAISS HNSW
+    CREATE INDEX idx ON docs USING FAISS (embedding) WITH (type = 'HNSW', hnsw_m = 32);
+
+    -- FAISS IVFFlat
+    CREATE INDEX idx ON docs USING FAISS (embedding) WITH (type = 'IVFFlat', ivf_nlist = 100, nprobe = 10);
+
+    -- FAISS with inner product metric
+    CREATE INDEX idx ON docs USING FAISS (embedding) WITH (metric = 'IP');
+
+    -- DiskANN
+    CREATE INDEX idx ON docs USING DISKANN (embedding);
+
+    -- DiskANN with custom parameters
+    CREATE INDEX idx ON docs USING DISKANN (embedding)
+      WITH (metric = 'L2', max_degree = 64, build_complexity = 128, alpha = 1.2);
+    ```
+
+    ## Querying
+
+    The optimizer automatically rewrites `ORDER BY array_distance(...) LIMIT k`
+    queries to use ANN index scans:
+
+    ```sql
+    SELECT id, array_distance(embedding, [1.0, 0.0, 0.0]::FLOAT[3]) AS dist
+    FROM docs
+    ORDER BY dist
+    LIMIT 10;
+    ```
+
+    You can also search with filters (post-filtering with overfetch):
+
+    ```sql
+    SELECT id, array_distance(embedding, [1.0, 0.0, 0.0]::FLOAT[3]) AS dist
+    FROM docs
+    WHERE category = 'A'
+    ORDER BY dist
+    LIMIT 10;
+    ```
+
+    ## Settings
+
+    ```sql
+    -- Control overfetch multiplier for filtered queries (default: 3)
+    SET ann_overfetch_multiplier = 5;
+    ```
+
+    ## FAISS GPU Acceleration
+
+    On macOS with Apple Silicon, FAISS indexes can use Metal GPU acceleration:
+
+    ```sql
+    CREATE INDEX idx ON docs USING FAISS (embedding) WITH (gpu = true);
+    ```
