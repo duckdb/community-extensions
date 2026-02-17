@@ -11,6 +11,7 @@ extension:
 repo:
   github: midwork-finds-jobs/duckdb-web-search
   ref: cbfe75a10fbe513d5e3ae30151be427f22cfb4e5
+  ref_next: a4e07aa99050e8453b296f2572fc09e5c59f34ec
 
 docs:
   hello_world: |
