@@ -12,3 +12,4 @@ extension:
 repo:
   github: query-farm/json_schema
   ref: d506aff832d137a4eb3fa826a860e5808bf657f1
+  ref_next: 35eadbc26e74dd73981984a923197685fa1f0e38
