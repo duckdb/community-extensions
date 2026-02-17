@@ -84,3 +84,4 @@ extension:
 repo:
   github: midwork-finds-jobs/duckdb-llm
   ref: 2de6c4d2a7d1bc6cefe8adfac8ecb16c1e7b2f3e
+  ref_next: 6c9b892d9c4177264b57fbe6f9b069f240d83f00

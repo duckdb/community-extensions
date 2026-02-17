@@ -14,6 +14,7 @@ extension:
 repo:
   github: midwork-finds-jobs/duckdb-crawler
   ref: f0aad857435a2ce138c567e8af11f9d4f8ae0c25
+  ref_next: 3a4387c989fe3b794847304c4a505ed4a036c6d0
 
 docs:
   hello_world: |
