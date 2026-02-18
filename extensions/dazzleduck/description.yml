@@ -1,16 +1,18 @@
 extension:
   name: dazzleduck
   description: Arrow IPC over HTTP client with array functions and bloom filters
-  version: 0.0.3
+  version: 0.0.5
   language: C++
   build: cmake
   license: Apache-2.0
   maintainers:
     - dazzleduck-web
+  requires:
+    duckdb: ">=1.4.4"
 
 repo:
   github: dazzleduck-web/dazzleduck-sql-duckdb
-  ref: v0.0.3
+  ref: v0.0.5
 
 docs:
   hello_world: |
@@ -26,7 +28,22 @@ docs:
     - `dd_splits(url, table)`: Get table splits for parallel processing (returns endpoints, query_id, query, producer_id, split_size, query_checksum)
     - **Filter Pushdown**: WHERE clause filters are automatically sent to the remote server
     - **Projection Pushdown**: Only selected columns are fetched from the server
+    - **Aggregation Pushdown**: Automatically detects aggregation queries and pushes them to the remote server, transferring only aggregated results instead of all rows
     - **Split Mode**: Enable parallel execution with `split := true` parameter
+
+    Supported aggregations for pushdown:
+
+    | Aggregate | Non-split mode | Split mode |
+    |-----------|:-:|:-:|
+    | `COUNT(*)` | Yes | Yes |
+    | `COUNT(col)` | Yes | Yes |
+    | `SUM(col)` | Yes | Yes |
+    | `MIN(col)` | Yes | Yes |
+    | `MAX(col)` | Yes | Yes |
+    | `AVG(col)` | Yes | No (local fallback) |
+    | `COUNT(DISTINCT col)` | Yes | No (local fallback) |
+
+    In split mode, only split-safe aggregations (those whose partial results can be merged across splits) are pushed down. Non-split-safe aggregations like `AVG` and `COUNT(DISTINCT ...)` fall back to local execution automatically. If any aggregate in a query is not supported for pushdown, the entire query falls back to local execution.
 
     ### Array Functions
     - `dd_array_contains_all(haystack, needle)`: Check if all needle elements exist in haystack
@@ -60,6 +77,12 @@ docs:
 
     -- With parallel execution (split mode)
     SELECT * FROM dd_read_arrow('https://server:8081', source_table := 'mydb.mytable', split := true);
+
+    -- Aggregation pushdown (aggregations executed on server)
+    SELECT region, count(*), sum(amount)
+    FROM dd_read_arrow('https://server:8081', source_table := 'orders')
+    WHERE status = 'pending'
+    GROUP BY region;
 
     -- Inspect table splits
     SELECT * FROM dd_splits('https://server:8081', source_table := 'mydb.mytable');

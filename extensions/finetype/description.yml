@@ -1,0 +1,116 @@
+extension:
+  name: finetype
+  description: Semantic type classification — detects 151 data types (emails, URLs, dates, UUIDs, etc.) from raw strings
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - hughcameron
+
+repo:
+  github: noon-org/duckdb-finetype
+  ref: 93addabb6ee23b978a6c3b115ed963cc9f058d2c
+
+docs:
+  hello_world: |
+    -- Classify a value into one of 151 semantic types
+    D SELECT finetype('user@example.com') AS detected_type;
+    ┌───────────────────────┐
+    │     detected_type     │
+    │        varchar        │
+    ├───────────────────────┤
+    │ identity.person.email │
+    └───────────────────────┘
+
+    -- Get detailed classification with confidence and recommended DuckDB type
+    D SELECT finetype_detail('192.168.1.1') AS detail;
+    ┌───────────────────────────────────────────────────────────────────────────────┐
+    │                                    detail                                     │
+    │                                    varchar                                    │
+    ├───────────────────────────────────────────────────────────────────────────────┤
+    │ {"type":"technology.internet.ip_v4","confidence":0.9908,"duckdb_type":"INET"} │
+    └───────────────────────────────────────────────────────────────────────────────┘
+
+    -- Normalize values for safe TRY_CAST to detected types
+    D SELECT finetype_cast('2024-01-15') AS normalized;
+    ┌────────────┐
+    │ normalized │
+    │  varchar   │
+    ├────────────┤
+    │ 2024-01-15 │
+    └────────────┘
+
+    -- Classify all scalar values in a JSON document
+    D SELECT finetype_unpack('{"email":"user@test.com","active":true}') AS annotated;
+
+  extended_description: |
+    FineType is a CharCNN-based semantic type classifier that detects 151 data types from raw string values.
+    It uses a character-level convolutional neural network trained on synthetic data to classify values into
+    a three-level taxonomy: `domain.category.type`.
+
+    ## Functions
+
+    ### `finetype(value VARCHAR) → VARCHAR`
+    Classify a single value. Returns the full semantic type label.
+
+    ```sql
+    SELECT finetype('https://example.com');  -- technology.internet.uri
+    SELECT finetype('2024-01-15');           -- datetime.date.iso
+    SELECT finetype('true');                 -- technology.development.boolean
+    ```
+
+    ### `finetype_detail(value VARCHAR) → VARCHAR`
+    Classify with full detail — returns JSON with type, confidence (0.0–1.0), and recommended DuckDB type.
+
+    ```sql
+    SELECT finetype_detail('user@example.com');
+    -- {"type":"identity.person.email","confidence":0.9992,"duckdb_type":"VARCHAR"}
+    ```
+
+    ### `finetype_cast(value VARCHAR) → VARCHAR`
+    Normalize a value for safe `TRY_CAST()` to its detected DuckDB type.
+    Handles date format conversion (US/EU → ISO), boolean normalization, UUID lowercasing, numeric cleanup.
+
+    ```sql
+    SELECT finetype_cast('01/15/2024');  -- 2024-01-15 (US date → ISO)
+    SELECT finetype_cast('true');        -- true (boolean normalization)
+    ```
+
+    ### `finetype_unpack(json VARCHAR) → VARCHAR`
+    Recursively classify all scalar values in a JSON document. Returns annotated JSON with type/confidence/duckdb_type for each field.
+
+    ### `finetype_version() → VARCHAR`
+    Returns the extension version string.
+
+    ## Type Taxonomy
+
+    151 types organized into 6 domains:
+    - **datetime**: dates, times, timestamps, epochs, durations (30 types)
+    - **technology**: URLs, IPs, UUIDs, booleans, versions (25 types)
+    - **geography**: coordinates, locations, addresses (15 types)
+    - **identity**: names, emails, phones, payments (20 types)
+    - **representation**: numbers, text, files, scientific (18 types)
+    - **container**: JSON, XML, CSV, arrays, key-value (10 types)
+
+    ## Use Cases
+
+    **Data profiling** — Detect column types in messy CSV/Parquet data:
+    ```sql
+    SELECT column_name, finetype(value) AS detected_type, count(*) AS cnt
+    FROM my_table UNPIVOT (value FOR column_name IN (*))
+    GROUP BY column_name, detected_type
+    ORDER BY column_name, cnt DESC;
+    ```
+
+    **Schema inference** — Get DuckDB-native type recommendations:
+    ```sql
+    SELECT column_name,
+           finetype_detail(value)::JSON->>'duckdb_type' AS recommended_type
+    FROM my_table UNPIVOT (value FOR column_name IN (*))
+    GROUP BY ALL;
+    ```
+
+    For more information, see the [FineType documentation](https://github.com/noon-org/finetype).
