@@ -1,5 +1,5 @@
 extension:
-  name: annsearch
+  name: ann
   description: Approximate nearest neighbor search with FAISS and DiskANN vector indexes for DuckDB
   version: 0.1.0
   language: C++
@@ -13,8 +13,8 @@ extension:
   vcpkg_commit: "e5a1490e1409d175932ef6014519e9ae149ddb7c"
 
 repo:
-  github: decisiongraph/duckdb-annsearch
-  ref: a41fc7cf11ceeb4fc2b3bb25dfcd0edfab15bce8
+  github: decisiongraph/duckdb-ann
+  ref: f5fc58e02ca6a051ef68a9b35103d716ea016c85
 
 docs:
   hello_world: |
@@ -35,7 +35,7 @@ docs:
     FROM docs ORDER BY dist LIMIT 3;
 
   extended_description: |
-    The **annsearch** extension adds approximate nearest neighbor (ANN) vector
+    The **ann** extension adds approximate nearest neighbor (ANN) vector
     search to DuckDB via two index backends:
 
     - **FAISS** (Facebook AI Similarity Search) — Flat, HNSW, and IVFFlat index types
