@@ -1,7 +1,7 @@
 extension:
   name: finetype
-  description: Semantic type classification — detects 151 data types (emails, URLs, dates, UUIDs, etc.) from raw strings
-  version: 0.1.0
+  description: Semantic type classification — detects 168 data types (emails, URLs, dates, UUIDs, etc.) from raw strings
+  version: 0.2.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,11 +12,11 @@ extension:
 
 repo:
   github: noon-org/duckdb-finetype
-  ref: 93addabb6ee23b978a6c3b115ed963cc9f058d2c
+  ref: 0c79f5efb0c98c683f79e6add9f1c52d4d7210f1
 
 docs:
   hello_world: |
-    -- Classify a value into one of 151 semantic types
+    -- Classify a value into one of 168 semantic types
     D SELECT finetype('user@example.com') AS detected_type;
     ┌───────────────────────┐
     │     detected_type     │
@@ -31,7 +31,7 @@ docs:
     │                                    detail                                     │
     │                                    varchar                                    │
     ├───────────────────────────────────────────────────────────────────────────────┤
-    │ {"type":"technology.internet.ip_v4","confidence":0.9908,"duckdb_type":"INET"} │
+    │ {"type":"technology.internet.ip_v4","confidence":0.9998,"duckdb_type":"INET"} │
     └───────────────────────────────────────────────────────────────────────────────┘
 
     -- Normalize values for safe TRY_CAST to detected types
@@ -44,12 +44,12 @@ docs:
     └────────────┘
 
     -- Classify all scalar values in a JSON document
-    D SELECT finetype_unpack('{"email":"user@test.com","active":true}') AS annotated;
+    D SELECT finetype_unpack('{"email":"user@example.com","active":true}') AS annotated;
 
   extended_description: |
-    FineType is a CharCNN-based semantic type classifier that detects 151 data types from raw string values.
-    It uses a character-level convolutional neural network trained on synthetic data to classify values into
-    a three-level taxonomy: `domain.category.type`.
+    FineType is a tiered CharCNN semantic type classifier that detects 168 data types from raw string values.
+    It uses a hierarchical architecture of 34 character-level convolutional neural networks to classify values
+    into a three-level taxonomy: `domain.category.type`.
 
     ## Functions
 
@@ -57,9 +57,9 @@ docs:
     Classify a single value. Returns the full semantic type label.
 
     ```sql
-    SELECT finetype('https://example.com');  -- technology.internet.uri
+    SELECT finetype('https://example.com');  -- technology.internet.url
     SELECT finetype('2024-01-15');           -- datetime.date.iso
-    SELECT finetype('true');                 -- technology.development.boolean
+    SELECT finetype('true');                 -- representation.boolean.terms
     ```
 
     ### `finetype_detail(value VARCHAR) → VARCHAR`
@@ -87,13 +87,13 @@ docs:
 
     ## Type Taxonomy
 
-    151 types organized into 6 domains:
-    - **datetime**: dates, times, timestamps, epochs, durations (30 types)
-    - **technology**: URLs, IPs, UUIDs, booleans, versions (25 types)
-    - **geography**: coordinates, locations, addresses (15 types)
-    - **identity**: names, emails, phones, payments (20 types)
-    - **representation**: numbers, text, files, scientific (18 types)
-    - **container**: JSON, XML, CSV, arrays, key-value (10 types)
+    168 types organized into 6 domains:
+    - **datetime**: dates, times, timestamps, epochs, durations, offsets (35 types)
+    - **technology**: URLs, IPs, UUIDs, booleans, versions, codes (30 types)
+    - **geography**: coordinates, locations, addresses, transportation (17 types)
+    - **identity**: names, emails, phones, payments, medical (30 types)
+    - **representation**: booleans, numbers, text, files, scientific (25 types)
+    - **container**: JSON, XML, CSV, arrays, key-value (11 types)
 
     ## Use Cases
 
