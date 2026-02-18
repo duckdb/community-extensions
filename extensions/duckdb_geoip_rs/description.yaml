@@ -1,0 +1,50 @@
+extension:
+  name: duckdb_geoip_rs
+  description: Retrieve geo ip data from MMDB database
+  version: 0.1.2
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - william-billaud
+
+repo:
+  github: william-billaud/duckdb-geoip-rs
+  ref: 49fdbf9e35f54dd6402c2473575880691b6ed12c
+
+docs:
+  hello_world: |
+    -- Before, export mmdb path : export MAXMIND_MMDB_DIR="`pwd`"
+
+    -- Create sample data
+    CREATE TABLE ip_list (ip VARCHAR);
+    INSERT INTO ip_list VALUES ('1.1.1.1'), ('8.8.8.8'), ('80.8.8.8'), ('90.9.250.1'), ('not_anip');
+
+    -- Get associated geo ip data
+    SELECT ip, geoip_asn_org(ip),geoip_asn_num(ip),geoip_city(ip), geoip_country_iso(ip) from ip_list;
+
+    ┌────────────┬───────────────────┬───────────────────┬────────────────┬───────────────────────┐
+    │     ip     │ geoip_asn_org(ip) │ geoip_asn_num(ip) │ geoip_city(ip) │ geoip_country_iso(ip) │
+    │  varchar   │      varchar      │      varchar      │    varchar     │        varchar        │
+    ├────────────┼───────────────────┼───────────────────┼────────────────┼───────────────────────┤
+    │ 1.1.1.1    │ CLOUDFLARENET     │ 13335             │                │                       │
+    │ 8.8.8.8    │ GOOGLE            │ 15169             │                │ US                    │
+    │ 80.8.8.8   │ Orange            │ 3215              │                │ RE                    │
+    │ 90.9.250.1 │ Orange            │ 3215              │ Lyon           │ FR                    │
+    │ not_anip   │                   │                   │                │                       │
+    └────────────┴───────────────────┴───────────────────┴────────────────┴───────────────────────┘
+  extended_description: |
+    Path to a directory containing GeoLite2-City.mmdb and GeoLite2-ASN.mmdb files must be exported to MAXMIND_MMDB_DIR environment variable. Defaulting to /usr/share/GeoIP.
+
+    This extension depends on the inet core extensions, which will be automatically installed, except if you do not have access to the internet.
+
+    This extension export 4 function using MaxminDB database:
+
+    * geoip_asn_org(ip : VARCHAR)-> VARCHAR
+    * geoip_asn_num(ip : VARCHAR)-> VARCHAR
+    * geoip_city(ip : VARCHAR)-> VARCHAR
+    * geoip_country_iso(ip : VARCHAR) -> VARCHAR
+
+    All the function will return an empty value on empty/non found value
