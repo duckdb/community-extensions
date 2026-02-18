@@ -13,3 +13,4 @@ extension:
 repo:
   github: midwork-finds-jobs/duckdb-cloudfront
   ref: 176b7ee77e2c12c8a7068fde233f04f93a729c39
+  ref_next: 5d5309e77ff5a59dad1dd09f94772729fb83cc5a
