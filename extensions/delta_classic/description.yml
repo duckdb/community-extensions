@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: djouallah/delta_classic
-  ref: 0f82dafdd5ab8f5c4ec4d90b21b4f2d569fcf642
+  ref: fdb489d9c28f4dc7e8690cbf92a5f9cb34733124
 
 docs:
   hello_world: |
