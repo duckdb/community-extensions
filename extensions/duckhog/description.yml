@@ -1,0 +1,18 @@
+extension:
+  name: duckhog
+  description: Query PostHog data warehouse from DuckDB over Arrow Flight SQL
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - bill-ph
+
+repo:
+  github: PostHog/duckhog
+  ref: 0e50a17c01d77065f665c51f362d8410298159b6
+
+docs:
+  hello_world: |
+    ATTACH 'hog:my_database?user=username&password=pw&flight_server=grpc+tls://localhost:8815' AS posthog_db;
+    SELECT * FROM posthog_db.events LIMIT 10;
