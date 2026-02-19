@@ -3,10 +3,10 @@ extension:
   description: A duckdb extension which combines data quality and data preparation tools for tabular data.
   language: C++
   build: cmake
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;linux_arm64;linux_amd64_musl;" 
   license: BSL 1.1
   maintainers:
     - jrosskopf
 repo:
   github: DataZooDE/anofox-tabular
-  ref: 058ad4ea3ecb38ed00e8a4c135b0f427d119c8b4
+  ref: f5de13f6bd2aba433d3bd24f92df53852ff04798
