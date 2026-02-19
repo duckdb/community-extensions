@@ -12,4 +12,4 @@ extension:
 repo:
   github: query-farm/hashfuncs
   ref: 48e11295173572e2d7f22ceb513352f4051b3def
-  ref_next: 2f3444aed451beab950937d4eedf1e5047f8c4de
+  ref_next: 1cadff705ae134578e6291394599dc5b67ece98d
