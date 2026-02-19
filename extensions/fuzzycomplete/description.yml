@@ -14,4 +14,4 @@ extension:
 repo:
   github: query-farm/fuzzycomplete
   ref: 74630cc8548a8ee6b32129abdc8bd70e1cf2bf87
-  ref_next: 95e72a7b4a40bd3b269c14d1c54b2fb3b1ca9542
+  ref_next: 24d95eff386b66695fcadc84b21744c363af74bd
