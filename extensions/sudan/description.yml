@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: Osman-Geomatics93/duckdb-sudan-
-  ref: 28e983b9fd5bf36e47d48648da54664e9578e9c0
+  ref: 357272de15c3be0bb2ed27eb0da2b35dbd8fedaa
 
 docs:
   hello_world: |
