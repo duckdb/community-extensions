@@ -1,0 +1,38 @@
+extension:
+  name: delta_classic
+  description: Attach a directory of Delta tables as a single DuckDB database with automatic schema discovery
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - djouallah
+
+repo:
+  github: djouallah/delta_classic
+  ref: fdb489d9c28f4dc7e8690cbf92a5f9cb34733124
+
+docs:
+  hello_world: |
+    -- Load required extensions
+    LOAD delta;
+    LOAD delta_classic;
+
+    -- Attach a directory of Delta tables as a single database
+    ATTACH '/path/to/delta/tables' AS mydb (TYPE delta_classic);
+
+    -- Query tables directly
+    SELECT * FROM mydb.main.orders LIMIT 10;
+  extended_description: |
+    Delta Classic lets you attach a directory of Delta Lake tables as a single
+    DuckDB database, instead of attaching each table individually. It discovers
+    tables by scanning for subdirectories containing a _delta_log folder.
+
+    The extension supports two directory layouts:
+    - Single-schema: the attached path directly contains Delta tables
+    - Multi-schema: the attached path contains subdirectories, each treated as
+      a schema, with Delta tables inside them
+
+    All Delta reading is delegated to the existing Delta extension via internal
+    ATTACH ... (TYPE DELTA). Supports PIN_SNAPSHOT and all storage backends
+    (local filesystem, S3, ABFSS, GCS).
