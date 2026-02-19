@@ -15,8 +15,9 @@ on:
 
 jobs:
   test_against_latest:
-    if: false
+    # if: false
     uses: ./.github/workflows/build.yml 
     with:
-      duckdb_version: 'main'
+      duckdb_version: 'v1.5-variegata'
+      ci_tools_version: 'v1.5-variegata'
       deploy: 'false'

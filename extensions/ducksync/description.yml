@@ -1,7 +1,7 @@
 extension:
   name: ducksync
   description: Intelligent query result caching between DuckDB and Snowflake with TTL and smart refresh
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: danjsiegel/ducksync
-  ref: b490211394692a80da97ac609484a12302f9d2b3
+  ref: c37f1e725f88117c672643afa9dc444d3c9d01b7
+  ref_next: 585d4e34e188cae8b49dd970fe73ce784ea9f0f4
 
 docs:
   hello_world: |
@@ -18,15 +19,19 @@ docs:
     INSTALL ducksync FROM community;
     LOAD ducksync;
     
-    -- Setup storage (requires PostgreSQL for DuckLake catalog)
+    -- Option A: Use an existing DuckLake catalog
+    ATTACH 'ducklake:postgres:host=localhost dbname=ducklake user=postgres password=secret' AS my_lake (DATA_PATH '/data');
+    SELECT * FROM ducksync_init('my_lake');
+
+    -- Option B: Full setup (attaches DuckLake automatically)
     SELECT * FROM ducksync_setup_storage(
         'host=localhost port=5432 dbname=ducklake user=postgres password=secret',
         '/data/ducksync'
     );
-    
+
     -- Register Snowflake source (requires existing DuckDB secret)
     SELECT * FROM ducksync_add_source('prod', 'snowflake', 'my_snowflake_secret');
-    
+
     -- Create a cache with 1-hour TTL
     SELECT * FROM ducksync_create_cache(
         'customers_cache',
@@ -36,10 +41,10 @@ docs:
         3600
     );
     
-    -- Refresh the cache
-    SELECT * FROM ducksync_refresh('customers_cache');
-    
     -- Query via smart routing (cache hit or passthrough)
+    SELECT * FROM ducksync_refresh('customers_cache');
+
+    -- Query via smart routing: cache hit → DuckLake, miss → Snowflake passthrough
     SELECT * FROM ducksync_query(
         'SELECT * FROM PROD.PUBLIC.CUSTOMERS WHERE region = ''US''',
         'prod'
@@ -52,7 +57,13 @@ docs:
     DuckSync provides intelligent query result caching between DuckDB and Snowflake. It uses 
     DuckLake for storage (PostgreSQL catalog + Parquet files) and features transparent query 
     routing, TTL-based expiration, and smart refresh based on source table metadata.
-    
+
+    **Core workflow:**
+    1. Register a Snowflake source with `ducksync_add_source`
+    2. Define a cache with `ducksync_create_cache` (SQL query + monitor tables + TTL)
+    3. Populate with `ducksync_refresh` (fetches from Snowflake, stores in DuckLake)
+    4. Query with `ducksync_query` — automatically routes to cache or Snowflake
+
     **Features:**
     - **Smart Query Routing**: `ducksync_query()` automatically routes to cache or Snowflake
     - **Named Queries**: Cache complex queries under friendly names
@@ -60,7 +71,8 @@ docs:
     - **Smart Refresh**: Only refreshes when source tables have changed (checks `last_altered`)
     - **Direct Access**: Query cached data as standard DuckLake tables
     - **AST-Based Rewriting**: Safe query transformation that only modifies table references
-    
+    - **Configurable Metadata Schema**: Pass an optional `schema_name` to `ducksync_init` or `ducksync_setup_storage` for multi-tenant environments
+
     **Prerequisites:**
     - PostgreSQL database (for DuckLake catalog)
     - Snowflake account with a configured DuckDB secret
@@ -71,5 +83,5 @@ docs:
     2. Checks if each table is cached (by cache name or monitored table)
     3. If ALL tables cached → rewrites query to use local DuckLake tables
     4. If ANY table not cached → passes entire query to Snowflake
-    
+
     For complete documentation, visit the [extension repository](https://github.com/danjsiegel/ducksync).

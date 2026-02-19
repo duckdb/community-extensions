@@ -1,0 +1,234 @@
+extension:
+  name: polyglot
+  description: Transpile SQL from 34 different dialects into DuckDB SQL
+  version: 0.1.4
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "linux_amd64_musl;windows_arm64;osx_amd64"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - tobilg
+
+repo:
+  github: tobilg/duckdb-polyglot
+  ref: e4344f75f72ee3552afdd05924e0464771ed3b31
+
+docs:
+  hello_world: |
+    -- Transpile a PostgreSQL query to DuckDB SQL
+    D SELECT polyglot_transpile('SELECT NOW()', 'postgresql');
+    ┌──────────────────────────────────────────────────┐
+    │ polyglot_transpile('SELECT NOW()', 'postgresql') │
+    │                     varchar                      │
+    ├──────────────────────────────────────────────────┤
+    │ SELECT CURRENT_TIMESTAMP                         │
+    └──────────────────────────────────────────────────┘
+
+    -- Transpile a Snowflake query to DuckDB SQL
+    D SELECT polyglot_transpile('SELECT DATEDIFF(''day'', ''2020-01-01'', ''2025-10-12'')', 'snowflake');
+    ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │ polyglot_transpile('SELECT DATEDIFF(''day'', ''2020-01-01'', ''2025-10-12'')', 'snowflake')      │
+    │                                            varchar                                               │
+    ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+    │ SELECT DATE_DIFF('DAY', CAST('2020-01-01' AS DATE), CAST('2025-10-12' AS DATE))                  │
+    └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+    -- Transpile between two non-DuckDB dialects
+    D SELECT polyglot_transpile('SELECT DATEDIFF(''day'', ''2020-01-01'', ''2025-10-12'')', 'snowflake', 'postgresql');
+
+    -- Validate SQL syntax
+    D SELECT polyglot_validate('SELECT 1', 'generic');
+    ┌────────────────────────────────────────────────────────────┐
+    │  polyglot_validate('SELECT 1', 'generic')                  │
+    │ struct(valid boolean, message varchar, line integer, ...)  │
+    ├────────────────────────────────────────────────────────────┤
+    │ {'valid': true, 'message': , 'line': 0, 'col': 0}          │
+    └────────────────────────────────────────────────────────────┘
+
+    -- Parse SQL into an AST (JSON)
+    D SELECT polyglot_parse('SELECT 1', 'generic');
+
+    -- Optimize a SQL statement
+    D SELECT polyglot_optimize('SELECT a FROM t WHERE b = 1', 'generic');
+
+    -- List all supported SQL dialects
+    D SELECT * FROM polyglot_dialects() LIMIT 5;
+    ┌──────────────┐
+    │ dialect_name │
+    │   varchar    │
+    ├──────────────┤
+    │ generic      │
+    │ postgresql   │
+    │ mysql        │
+    │ bigquery     │
+    │ snowflake    │
+    └──────────────┘
+
+    -- Transpile and execute a query from another dialect
+    D SELECT * FROM polyglot_query('SELECT 1 AS a, 2 AS b', 'postgresql');
+    ┌───────┬───────┐
+    │   a   │   b   │
+    │ int32 │ int32 │
+    ├───────┼───────┤
+    │     1 │     2 │
+    └───────┴───────┘
+
+    -- Trace column lineage through a SQL statement
+    D SELECT * FROM polyglot_lineage('SELECT a FROM t', 'generic', 'a');
+    ┌───────────┬──────────────┐
+    │ node_name │ source_table │
+    │  varchar  │   varchar    │
+    ├───────────┼──────────────┤
+    │ a         │              │
+    │ t.a       │              │
+    └───────────┴──────────────┘
+
+    -- Diff two SQL statements at the AST level
+    D SELECT * FROM polyglot_diff('SELECT a FROM t', 'SELECT b FROM t', 'generic');
+    ┌───────────┬────────────┐
+    │ edit_type │ expression │
+    │  varchar  │  varchar   │
+    ├───────────┼────────────┤
+    │ remove    │ a          │
+    │ insert    │ b          │
+    └───────────┴────────────┘
+
+  extended_description: |
+    The polyglot extension enables SQL transpilation from 34 different SQL dialects into DuckDB-compatible SQL, powered by the `polyglot-sql` crate. It can transpile, validate, parse, optimize, and execute SQL queries, as well as trace column lineage and diff SQL statements.
+
+    ## Supported Dialects
+
+    The extension supports 34 SQL dialects: `athena`, `bigquery`, `clickhouse`, `cockroachdb`, `databricks`, `datafusion`, `doris`, `dremio`, `drill`, `druid`, `duckdb`, `dune`, `exasol`, `fabric`, `generic`, `hive`, `materialize`, `mysql`, `oracle`, `postgresql`, `presto`, `redshift`, `risingwave`, `singlestore`, `snowflake`, `solr`, `spark`, `sqlite`, `starrocks`, `tableau`, `teradata`, `tidb`, `trino`, `tsql`.
+
+    Some dialects also accept aliases (e.g., `postgres` for `postgresql`, `mssql` or `sqlserver` for `tsql`, `memsql` for `singlestore`).
+
+    ## Scalar Functions
+
+    ### `polyglot_transpile(sql, from_dialect [, to_dialect])`
+
+    Transpiles SQL queries from a specified dialect into DuckDB-compatible SQL. An optional third parameter allows specifying a target dialect other than DuckDB.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to transpile
+    - `from_dialect` (VARCHAR): The source SQL dialect name
+    - `to_dialect` (VARCHAR, optional): The target SQL dialect name (defaults to DuckDB)
+
+    **Returns:** VARCHAR - The transpiled SQL
+
+    **Examples:**
+    ```sql
+    SELECT polyglot_transpile('SELECT NOW()', 'postgresql');
+    -- Returns: SELECT CURRENT_TIMESTAMP
+
+    SELECT polyglot_transpile('SELECT DATEDIFF(''day'', ''2020-01-01'', ''2025-10-12'')', 'snowflake', 'postgresql');
+    ```
+
+    ### `polyglot_validate(sql, dialect)`
+
+    Validates SQL syntax against a dialect's grammar and returns a struct with validity status and error details.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to validate
+    - `dialect` (VARCHAR): The SQL dialect name
+
+    **Returns:** STRUCT(valid BOOLEAN, message VARCHAR, line INTEGER, col INTEGER)
+
+    **Examples:**
+    ```sql
+    SELECT polyglot_validate('SELECT 1', 'generic');
+    -- Returns: {'valid': true, 'message': , 'line': 0, 'col': 0}
+
+    SELECT polyglot_validate('SLECT 1', 'generic');
+    -- Returns: {'valid': false, 'message': ..., 'line': 0, 'col': 0}
+    ```
+
+    ### `polyglot_parse(sql, dialect)`
+
+    Parses SQL into an AST (Abstract Syntax Tree) and returns it as a JSON array.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to parse
+    - `dialect` (VARCHAR): The SQL dialect name
+
+    **Returns:** VARCHAR - JSON string representing the AST
+
+    **Example:**
+    ```sql
+    SELECT polyglot_parse('SELECT 1', 'generic');
+    ```
+
+    ### `polyglot_optimize(sql, dialect)`
+
+    Applies simplification and canonicalization optimization passes to a SQL statement.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to optimize
+    - `dialect` (VARCHAR): The SQL dialect name
+
+    **Returns:** VARCHAR - The optimized SQL string
+
+    **Example:**
+    ```sql
+    SELECT polyglot_optimize('SELECT a FROM t WHERE b = 1', 'generic');
+    ```
+
+    ## Table Functions
+
+    ### `polyglot_dialects()`
+
+    Returns a table listing all 34 supported SQL dialect names.
+
+    **Returns:** A table with column `dialect_name` (VARCHAR)
+
+    **Example:**
+    ```sql
+    SELECT * FROM polyglot_dialects();
+    ```
+
+    ### `polyglot_query(sql, from_dialect)`
+
+    Transpiles a SQL query from a specified dialect into DuckDB SQL and executes it, returning results with a dynamic schema matching the query columns.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to transpile and execute
+    - `from_dialect` (VARCHAR): The source SQL dialect name
+
+    **Returns:** Table with dynamic schema based on the query result columns
+
+    **Example:**
+    ```sql
+    SELECT * FROM polyglot_query('SELECT 1 AS a, 2 AS b', 'postgresql');
+    ```
+
+    ### `polyglot_lineage(sql, dialect, column_name)`
+
+    Traces a named column's dependency graph through a SQL statement, returning each node and its source table.
+
+    **Parameters:**
+    - `sql` (VARCHAR): The SQL query string to analyze
+    - `dialect` (VARCHAR): The SQL dialect name
+    - `column_name` (VARCHAR): The column name to trace
+
+    **Returns:** A table with columns `node_name` (VARCHAR) and `source_table` (VARCHAR)
+
+    **Example:**
+    ```sql
+    SELECT * FROM polyglot_lineage('SELECT a FROM t', 'generic', 'a');
+    ```
+
+    ### `polyglot_diff(source_sql, target_sql, dialect)`
+
+    Compares two SQL statements at the AST level and emits each change as a row with an edit type and the affected expression.
+
+    **Parameters:**
+    - `source_sql` (VARCHAR): The original SQL query
+    - `target_sql` (VARCHAR): The modified SQL query
+    - `dialect` (VARCHAR): The SQL dialect name
+
+    **Returns:** A table with columns `edit_type` (VARCHAR) and `expression` (VARCHAR). Edit types include: `insert`, `remove`, `move`, `update`, `keep`.
+
+    **Example:**
+    ```sql
+    SELECT * FROM polyglot_diff('SELECT a FROM t', 'SELECT b FROM t', 'generic');
+    ```

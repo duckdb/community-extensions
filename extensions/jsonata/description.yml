@@ -13,3 +13,4 @@ extension:
 repo:
   github: query-farm/jsonata
   ref: 4f087e852214aea931d3301982f64effec3f3b22
+  ref_next: 4eb30c3a3ab02d8bb01efe44774ac332fe198a7a

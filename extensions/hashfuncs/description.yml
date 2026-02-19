@@ -11,4 +11,5 @@ extension:
   version: '2025120401'
 repo:
   github: query-farm/hashfuncs
-  ref: a5898a4aae082444894238cdeaafb12f54e09401
+  ref: 48e11295173572e2d7f22ceb513352f4051b3def
+  ref_next: 2f3444aed451beab950937d4eedf1e5047f8c4de
