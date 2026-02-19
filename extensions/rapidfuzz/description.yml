@@ -13,4 +13,4 @@ extension:
 repo:
   github: query-farm/rapidfuzz
   ref: eb2fe18d3f60205722521ff2ddd8eb3c932c7888
-  ref_next: 54697c85ae0d25bebd1743c9b8e1b1eb68f59482
+  ref_next: 97e57f3fb87b551533e31b912bfbca27ddb1dd65
