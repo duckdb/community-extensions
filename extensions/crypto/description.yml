@@ -14,4 +14,4 @@ extension:
 repo:
   github: query-farm/crypto
   ref: 9308fe3e74a56b3dd5b046533bac582532bdc7bd
-  ref_next: 4d7cb8da0017939aac2d979d016e42a7be7df378
+  ref_next: 2fa32bf08440d7f882c70b88d38e306973be96b7
