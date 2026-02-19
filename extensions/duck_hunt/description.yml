@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
-  description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 90+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.7.1
+  description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
+  version: 1.8.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  ref: 5f18f2e8ad03e9ca43f852cf70839511de55aeb8
+  ref: 3ff499f4880a0efd9bc3e6d44e5766bf3aa5f9d1
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
@@ -46,6 +46,14 @@ docs:
     SELECT format, can_parse, events_produced, is_selected
     FROM duck_hunt_diagnose_read('build.log');
 
+    -- LATERAL join for per-file parsing (new in v1.7.0)
+    SELECT f.filename, e.*
+    FROM glob('logs/*.log') f,
+    LATERAL read_duck_hunt_log(f.filename) e;
+
+    -- Load custom parser from config file (new in v1.8.0)
+    SELECT duck_hunt_load_parser_config('my_parser.yml');
+
     -- Build health badge
     SELECT status_badge(
       COUNT(*) FILTER (WHERE status = 'ERROR'),
@@ -64,6 +72,22 @@ docs:
     - `parse_duck_hunt_log(text, format, severity_threshold, content, context)` - Parse tool outputs from strings
     - `read_duck_hunt_workflow_log(source, format, severity_threshold, ignore_errors)` - Parse CI/CD workflow logs
     - `parse_duck_hunt_workflow_log(text, format, severity_threshold)` - Parse workflow strings
+
+    **New in v1.8.0:**
+    - Unity Test XML parser - Parse NUnit 3 format test results (requires webbed extension)
+    - Config-based parser system - Define custom parsers via JSON config files
+    - Unity Editor build log parser
+    - File-based parser interface for efficient XML parsing
+    - Security hardening - Path traversal prevention, 100MB file size limits
+    - Performance - Static regex patterns, thread-safe ParserRegistry
+
+    **New in v1.7.0:**
+    - LATERAL join support for `read_duck_hunt_log` and `parse_duck_hunt_log`
+    - Streaming parser support for large files
+    - `ruff_json` parser for Ruff Python linter JSON output
+    - `include_unparsed` parameter for regexp parser debugging
+    - Improved DuckDB test parser with better failure extraction
+    - Line ending normalization (CRLF/CR support)
 
     **New in v1.6.0:**
     - `context` parameter - Include N surrounding log lines around each event
@@ -95,7 +119,7 @@ docs:
     **Severity Filtering:**
     Filter events by severity level: `'all'` < `'info'` < `'warning'` < `'error'` < `'critical'`
 
-    **Supported Formats (90+):**
+    **Supported Formats (110+):**
     See: <https://duck-hunt.readthedocs.io/en/latest/formats/>
     - **Dynamic:** `regexp:<pattern>` - Custom patterns with named capture groups
     - **Test Frameworks:** pytest, Go test, Cargo test, JUnit, RSpec, Mocha/Chai, Google Test, NUnit/xUnit
