@@ -8,14 +8,14 @@ extension:
   maintainers:
     - onnimonni
   requires_toolchains: "rust;fortran;omp"
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;osx_amd64;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw"
   vcpkg_url: "https://github.com/microsoft/vcpkg.git"
   vcpkg_commit: "e5a1490e1409d175932ef6014519e9ae149ddb7c"
 
 repo:
   github: decisiongraph/duckdb-ann
-  ref: de42b3e6e960c417a171225cde0124f238a91da2
-  ref_next: 744ea961f06660463c8a87ee0085e3b900abfcc9
+  ref: 5b9041342ebd03c1d7f50a2cb54e18cd8aa8b89e
+  ref_next: 74134a583af5df2751e23dc0b884aec143b3d03d
 
 docs:
   hello_world: |
