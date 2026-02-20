@@ -4,6 +4,9 @@ extension:
   version: 0.1.0
   language: C++
   build: cmake
+  # duckhog requires Arrow Flight/FlightSQL via vcpkg; Arrow does not support wasm32-emscripten.
+  # Exclude all WASM platforms until Arrow (or dependency strategy) supports those targets.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   requires_toolchains: parser_tools
   license: MIT
   maintainers:
