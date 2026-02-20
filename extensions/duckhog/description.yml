@@ -4,6 +4,7 @@ extension:
   version: 0.1.0
   language: C++
   build: cmake
+  requires_toolchains: parser_tools
   license: MIT
   maintainers:
     - bill-ph
