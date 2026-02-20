@@ -1,0 +1,27 @@
+extension:
+  name: read_dbf
+  description: Read DBF (dBase) files with support for general DBF formats and field types.  
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - tocharan
+
+repo:
+  github: tocharan/duckdb-dbf
+  ref: 5c656fae4bf35447191085aec9549d07d931016d
+
+docs:
+  hello_world: |
+    -- Read all rows from a dbffile
+    SELECT * FROM read_dbf('filename.dbf');
+    
+  extended_description: |
+    The read_dbf extension provides functions for reading DBF (dBase) files, which are commonly used in legacy applications and GIS data formats. It supports a wide range of DBF formats and field types, allowing you to easily integrate DBF data into your DuckDB queries.
+
+    **Functions:**
+    - `read_dbf(path)` - Read all rows from a DBF file
+
+    **Output Schema:**
+    The output schema will depend on the structure of the DBF file being read. Each column in the DBF file will be represented as a column in the output, with appropriate data types based on the field types defined in the DBF file.
