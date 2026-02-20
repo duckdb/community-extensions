@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: tocharan/duckdb-dbf
-  ref: d1c61235e09821be9680d713b499651ad7ade518
+  ref: 5c656fae4bf35447191085aec9549d07d931016d
 
 docs:
   hello_world: |
