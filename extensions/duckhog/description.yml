@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: PostHog/duckhog
-  ref: 0e50a17c01d77065f665c51f362d8410298159b6
+  ref: 996199891ebb47e9fcff64bb04586b1b7de5e2f2
 
 docs:
   hello_world: |
