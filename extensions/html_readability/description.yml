@@ -1,7 +1,7 @@
 extension:
   name: html_readability
   description: Extract readable content from HTML using Mozilla's Readability algorithm
-  version: 0.1.0
+  version: '2026020501'
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-html-readability
-  ref: 53ebdc43c1014db969d9bb50359e0eb9d2cf5e6d
+  ref: 80d0e21b734dd5152e1af14236c75ffd0e930474
 
 docs:
   hello_world: |
