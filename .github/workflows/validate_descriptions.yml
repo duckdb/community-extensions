@@ -1,0 +1,44 @@
+name: Validate Extension Descriptions
+
+on:
+  pull_request:
+    paths:
+      - 'extensions/*/description.yml'
+      - 'schema/description.cue'
+      - 'scripts/validate_descriptions.sh'
+      - '.github/workflows/validate_descriptions.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'extensions/*/description.yml'
+      - 'schema/description.cue'
+      - 'scripts/validate_descriptions.sh'
+      - '.github/workflows/validate_descriptions.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Validate description.yml files
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install CUE
+        uses: cue-lang/setup-cue@v1.0.1
+        with:
+          version: 'latest'
+
+      - name: Validate description.yml files
+        run: |
+          chmod +x scripts/validate_descriptions.sh
+          ./scripts/validate_descriptions.sh
+
+      - name: Summary
+        if: success()
+        run: |
+          echo "✅ All description.yml files validated successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Total files validated:** $(find extensions -name 'description.yml' | wc -l)" >> $GITHUB_STEP_SUMMARY
