@@ -11,6 +11,7 @@ extension:
 repo:
   github: djouallah/delta_classic
   ref: fdb489d9c28f4dc7e8690cbf92a5f9cb34733124
+  ref_next: 1b3fc8a2020f149e5a05965b9b27a82d509f75bd
 
 docs:
   hello_world: |
