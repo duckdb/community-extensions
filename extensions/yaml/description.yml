@@ -13,8 +13,8 @@ extension:
   
 repo:
   github: teaguesterling/duckdb_yaml
-  ref: 8e844144050cfcaf5366804d0d9fe1efe24d1435
-  ref_next: 8e844144050cfcaf5366804d0d9fe1efe24d1435
+  ref: 7ed901d105c0365641552133d4ec5c15295667cb
+  ref_next: 7ed901d105c0365641552133d4ec5c15295667cb
 
 docs:
   hello_world: |
