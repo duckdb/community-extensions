@@ -7,14 +7,11 @@ extension:
   license: MIT
   maintainers:
     - teaguesterling
-
-  # cmark-gfm not in default vcpkg release
-  vcpkg_commit: "bffcbb75f71553824aa948a7e7b4f798662a6fa7"
-
+  vcpkg_commit: bffcbb75f71553824aa948a7e7b4f798662a6fa7
 repo:
   github: teaguesterling/duckdb_markdown
-  ref: '3903fd0c027e9661f299ffdfba75dbb1047a9db2'
-
+  ref: 6468c047a3f2c2d33c6eaeeed70de6e77966be56
+  ref_next: 6468c047a3f2c2d33c6eaeeed70de6e77966be56
 docs:
   hello_world: |
     -- Load the extension
