@@ -1,6 +1,6 @@
 extension:
   name: clamp
-  description: Provides mathematical clamp functions for numeric types in DuckDB, including general clamping, saturate, and clamp01. Ensures values stay within a specified range and handles NULLs and NaNs correctly.
+  description: Provides mathematical clamp functions for numeric types in DuckDB, including general clamping, saturate, and others. Ensures values stay within a specified range and handles NULLs and NaNs correctly.
   version: 0.1.0
   language: C++
   build: cmake
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: oglego/duckdb_clamp
-  ref: 396931a5b87990912fa5901057210fd079d7ae25
+  ref: 636947f33bdce27f980c8c0f40e3bb1024c0ba79
 
 docs:
   hello_world: |
@@ -23,6 +23,11 @@ docs:
     SELECT clamp(NULL, 0, 10);   -- Returns NULL
     SELECT clamp(5, NULL, 10);   -- Returns NULL
     SELECT clamp(5, 0, NULL);    -- Returns NULL
+
+    -- Convenience clip (alias for clamp)
+    SELECT clip(15, 10, 20);  -- Returns 15
+    SELECT clip(5, 10, 20);   -- Returns 10
+    SELECT clip(25, 10, 20);  -- Returns 20
 
     -- Saturate (equivalent to clamp(x, 0.0, 1.0))
     SELECT saturate(0.5);        -- Returns 0.5
@@ -38,6 +43,21 @@ docs:
     SELECT clamp(CAST('NaN' AS DOUBLE), 0, 10); -- Returns NaN
     SELECT saturate(NULL);                      -- Returns NULL
 
+    -- Wrap a value into a range [min, max) using modular arithmetic
+    SELECT wrap(11, 0, 10);      -- Returns 1
+    SELECT wrap(25, 10, 20);     -- Returns 15
+    SELECT wrap(5, 10, 20);      -- Returns 15
+
+    -- Pingpong a value between min and max
+    SELECT pingpong(11, 0, 10);  -- Returns 9
+    SELECT pingpong(12, 10, 20); -- Returns 12
+    SELECT pingpong(28, 10, 20); -- Returns 12
+
+    -- Fract (returns the fractional part of a number)
+    SELECT fract(1.75);          -- Returns 0.75
+    SELECT fract(-0.1);          -- Returns 0.9
+    SELECT fract(10);            -- Returns 0.0
+
   extended_description: |
     The Clamp extension provides functions for numerical restriction:
 
@@ -46,9 +66,17 @@ docs:
        - Throws an exception if `min > max`
        - Returns NULL if any argument is NULL
 
-    2. **saturate(value)**: Convenience function to clamp values between 0.0 and 1.0.
+    2. **clip(value, min, max)**: Alias for `clamp(value, min, max)`.
 
-    3. **clamp01(value)**: Alias for `saturate(value)`.
+    3. **saturate(value)**: Convenience function to clamp values between 0.0 and 1.0.
+
+    4. **clamp01(value)**: Alias for `saturate(value)`.
+
+    5. **wrap(value, min, max)**: Wrap a value x into the range [min, max) using modular arithmetic.
+
+    6. **pingpong(value, min, max)**: Return a value that "bounces" back and forth between the min and max.
+
+    7. **fract(value)**: Return the fractional part of a number.
 
     This extension ensures safe handling of edge cases including:
     - NaN values
