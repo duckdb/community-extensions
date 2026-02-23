@@ -7,11 +7,10 @@ extension:
   license: MIT
   maintainers:
     - teaguesterling
-
 repo:
   github: teaguesterling/sitting_duck
-  ref: 'acfa07a8da6c6d6b6df45180f6f6a48970e1f7b7'
-  
+  ref: 2d5903cb0127faa5060df9beb9e847c9e9e665ad
+  ref_next: 2d5903cb0127faa5060df9beb9e847c9e9e665ad
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
