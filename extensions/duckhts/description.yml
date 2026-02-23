@@ -1,7 +1,7 @@
 extension:
   name: duckhts
-  description: Read HTS (VCF/BCF/BAM/CRAM/FASTA/FASTQ/GTF/GFF) files in DuckDB via htslib
-  version: 0.1.2
+  description: Read HTS (VCF/BCF/BAM/CRAM/FASTA/FASTQ/GTF/GFF) files in DuckDB via htslib, including indexed FASTA region queries
+  version: 0.1.3
   language: C
   build: cmake
   license: MIT
@@ -22,7 +22,7 @@ docs:
     LOAD duckhts;
 
     -- Read a VCF/BCF file (tidy FORMAT columns)
-    SELECT CHROM, POS, REF, ALT, FORMAT_GT
+    SELECT CHROM, POS, REF, ALT, SAMPLE_ID
     FROM read_bcf('test/data/formatcols.vcf.gz', tidy_format := true)
     LIMIT 5;
 
@@ -39,7 +39,8 @@ docs:
     Functions include:
       - read_bcf(path, [region, tidy_format])
       - read_bam(path, [region, reference, standard_tags, auxiliary_tags])
-      - read_fasta(path)
+      - read_fasta(path, [region, index_path])
+      - fasta_index(path, [index_path])
       - read_fastq(path, [mate_path, interleaved])
       - read_gff(path, [region, attributes_map])
       - read_gtf(path, [region, attributes_map])
