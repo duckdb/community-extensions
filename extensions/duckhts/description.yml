@@ -1,7 +1,6 @@
 extension:
   name: duckhts
-  description: Read HTS (VCF/BCF/BAM/CRAM/FASTA/FASTQ/GTF/GFF) files in DuckDB via htslib, including indexed FASTA region queries
-  version: 0.1.3
+  description: Read High Throughput Sequencing Files Formats in DuckDB via htslib
   language: C
   build: cmake
   license: MIT
