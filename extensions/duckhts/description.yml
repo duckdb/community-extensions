@@ -44,6 +44,10 @@ docs:
       - read_gff(path, [region, attributes_map])
       - read_gtf(path, [region, attributes_map])
       - read_tabix(path, [region, header, header_names, auto_detect, column_types])
+      - hts_header(path, [format, mode])
+      - hts_index(path, [format, index_path])
+      - hts_index_spans(path, [format, index_path])
+      - hts_index_raw(path, [format, index_path])
 
     Paired FASTQ is supported via mate_path or interleaved := true. CRAM is
     supported with an explicit reference file. For GTF/GFF, attributes can be
