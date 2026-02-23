@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_urlpattern
-  ref: 987739dae7466f5cd11f12845fdd30c1bdbcd3d8
+  ref: 91719fd6a03574be86bf53f73b3d0fc8a9c3d493
+  ref_next: 91719fd6a03574be86bf53f73b3d0fc8a9c3d493
 
 docs:
   hello_world: |
