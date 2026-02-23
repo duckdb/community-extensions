@@ -7,11 +7,10 @@ extension:
   license: MIT
   maintainers:
     - teaguesterling
-
 repo:
   github: teaguesterling/duckdb_duck_block_utils
-  ref: a0064ef1405ab86a4d007a14a0e37f0a7ba604fe
-
+  ref: 125662df9e5450105dc9b7957ad955cb53d7beec
+  ref_next: 125662df9e5450105dc9b7957ad955cb53d7beec
 docs:
   hello_world: |
     -- Build a document programmatically
