@@ -5,12 +5,16 @@ extension:
   language: C++
   build: cmake
   licence: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64;windows_arm64"
+  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
+  requires_toolchains: "parser_tools"
   maintainers:
     - thijs-s
 
 repo:
   github: ilum-cloud/duckdb-hive-metastore
-  ref: b96149326fb912baa13d47dda2085c04b9eb2a67
+  ref: 2713d9d4fa4b63e01cf151ba90218ecd325901f3
+  ref_next: d8a504cb9924cebc52d342666d1f59c4b2c9bc2f
 
 docs:
   hello_world: |
