@@ -1,0 +1,70 @@
+extension:
+  name: maxmind
+  description: Read MaxMind databases (GeoLite, GeoIP)
+  version: 0.3.1
+  language: Zig
+  build: cmake
+  license: ISC
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64;windows_amd64_rtools;windows_amd64_mingw"
+  maintainers:
+    - marselester
+
+repo:
+  github: marselester/duckdb-maxmind
+  ref: c0c5074b1e4b0ff98dde2fd5cea0c9bcc94c5856
+
+docs:
+  hello_world: |
+    SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', '');
+  extended_description: |
+    Read MaxMind databases (GeoLite, GeoIP) using table and scalar functions.
+
+    Scan all IP network blocks with `read_mmdb()`:
+
+    ```sql
+    SELECT network, city.names.en
+    FROM read_mmdb('./GeoLite2-City.mmdb')
+    WHERE city.names.en IS NOT NULL
+    LIMIT 1;
+    ┌─────────────┬───────────┐
+    │   network   │    en     │
+    ├─────────────┼───────────┤
+    │ 1.0.64.0/20 │ Hiroshima │
+    └─────────────┴───────────┘
+    ```
+
+    Limit the scan to a subnet with the `network` parameter:
+
+    ```sql
+    SELECT network, city.names.en
+    FROM read_mmdb('./GeoLite2-City.mmdb', network='1.0.0.0/8')
+    WHERE city.names.en IS NOT NULL
+    LIMIT 1;
+    ┌─────────────┬───────────┐
+    │   network   │    en     │
+    ├─────────────┼───────────┤
+    │ 1.0.64.0/20 │ Hiroshima │
+    └─────────────┴───────────┘
+    ```
+
+    Look up a record by IP address with scalar functions:
+
+    ```sql
+    SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', '').city.names.en AS en;
+    ┌───────────┐
+    │    en     │
+    ├───────────┤
+    │ Hiroshima │
+    └───────────┘
+    ```
+
+    The third parameter filters which fields to decode for faster lookups:
+
+    ```sql
+    SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', 'city').city.names.en AS en;
+    ┌───────────┐
+    │    en     │
+    ├───────────┤
+    │ Hiroshima │
+    └───────────┘
+    ```
