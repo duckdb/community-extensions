@@ -14,8 +14,8 @@ extension:
 
 repo:
   github: decisiongraph/duckdb-ann
-  ref: 5898617cd2d365571c6c8de68ca237049aaa092a
-  ref_next: 5898617cd2d365571c6c8de68ca237049aaa092a
+  ref: 69d0092b77edfd254d266a7dfbc1595e263ec3a4
+  ref_next: 69d0092b77edfd254d266a7dfbc1595e263ec3a4
 
 docs:
   hello_world: |
