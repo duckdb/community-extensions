@@ -1,0 +1,25 @@
+extension:
+  name: latency_injection_fs
+  description: Used to inject simulated latency to filesystem operations
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-filesystem-latency-injection
+  ref: a0dc5543de71f77e981f2be946ca5399db670f45
+  ref_next: d8d3d976ada91b174e72e82aac4cf1d536b6da18
+
+docs:
+  hello_world: |
+    SELECT * FROM latency_inject_fs_list_filesystems();
+  extended_description: |
+    This extension injects log-normal distribution latency to all types of filesystem operations, which could be used to local benchmark.
+    It supports a few key features:
+    - Supports wrapping user-requested filesystems, so users don't need to make any code change.
+    - Supports simulated IO operation latency, via log-normal distribution.
+    - Could be used together with rate_limit_fs to throttle operations if needed.
