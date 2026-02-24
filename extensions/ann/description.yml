@@ -1,0 +1,53 @@
+extension:
+  name: ann
+  description: ANN vector search with FAISS (Flat/HNSW/IVF) and DiskANN, Metal GPU acceleration on macOS
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - onnimonni
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw;windows_amd64_rtools"
+  requires_toolchains: "rust;vcpkg"
+
+repo:
+  github: decisiongraph/duckdb-ann
+  ref: "5c945ad8106548e47b9fc2e15fddfc8f249623d6"
+
+docs:
+  hello_world: |
+    -- Create table with vector embeddings
+    CREATE TABLE docs (id INT, embedding FLOAT[3]);
+    INSERT INTO docs VALUES
+      (1, [1.0, 0.0, 0.0]),
+      (2, [0.0, 1.0, 0.0]),
+      (3, [0.0, 0.0, 1.0]);
+
+    -- Create FAISS index (auto GPU acceleration when beneficial)
+    CREATE INDEX idx ON docs USING FAISS (embedding);
+
+    -- K-nearest neighbor search via optimizer (just use ORDER BY + LIMIT)
+    SELECT id, array_distance(embedding, [1.0, 0.0, 0.0]::FLOAT[3]) AS dist
+    FROM docs
+    ORDER BY dist
+    LIMIT 2;
+  extended_description: |
+    The `ann` extension provides approximate nearest neighbor (ANN) vector search for DuckDB using two backends:
+
+    **FAISS indexes** (Flat, HNSW, IVFFlat) with automatic query optimizer rewriting — write standard `ORDER BY array_distance(...) LIMIT k` queries and the optimizer converts them to index scans.
+
+    **DiskANN indexes** for disk-resident graphs that scale to millions of vectors without requiring everything in memory.
+
+    **GPU acceleration**: On Apple Silicon, FAISS Flat and IVF indexes can be transparently accelerated via Metal. Use `mode='auto'` (default) to let the heuristic decide, `mode='gpu'` to force it, or `mode='cpu'` to disable.
+
+    ```sql
+    -- FAISS with explicit options
+    CREATE INDEX idx ON docs USING FAISS (embedding)
+      WITH (type = 'HNSW', hnsw_m = 32, metric = 'L2');
+
+    -- DiskANN index
+    CREATE INDEX idx ON docs USING DISKANN (embedding);
+
+    -- Check GPU availability
+    SELECT * FROM faiss_gpu_info();
+    ```
