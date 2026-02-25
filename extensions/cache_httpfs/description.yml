@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: dentiny/duck-read-cache-fs
-  ref: b8ed5898d173f17af7e9dd15e49d986293c01d0b
-  ref_next: 98700b8650dd3151aedaaeaa516baa2c174b4879
+  ref: d3618a6fd8654db431f0f357cd08c89035411ad6
+  ref_next: b431844ca1b7f03b2207e28236bd7afb4cc78f15
 
 docs:
   hello_world: |
