@@ -14,4 +14,4 @@ extension:
 repo:
   github: query-farm/inflector
   ref: 5f2fa551e1c8ca6fdf50f8752afc637fb7a1ceee
-  ref_next: 15d7d6a04ff4db940ca05750a766b5fae024905b
+  ref_next: 2e88fdb219f28135de5e5eed56db0a2e92b54686
