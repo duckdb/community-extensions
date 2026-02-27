@@ -1,0 +1,88 @@
+extension:
+  name: ducktinycc
+  description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC
+  language: C
+  build: cmake
+  license: MIT
+  requires_toolchains: "python3"
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64
+  maintainers:
+    - "DuckTinyCC Contributors"
+
+
+repo:
+  github: duckdb/duckdb-internal
+  ref: main
+
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD ducktinycc;
+
+    -- Compile and register a simple C function as a SQL UDF
+    SELECT ok, mode, code
+    FROM tcc_module(
+      mode := 'quick_compile',
+      source := 'const char *hello_from_c(void){ return "hello from C"; }',
+      symbol := 'hello_from_c',
+      sql_name := 'hello_from_c',
+      return_type := 'cstring',
+      arg_types := []
+    );
+
+    -- Call the registered C UDF
+    SELECT hello_from_c() AS msg;
+
+  extended_description: |
+    DuckTinyCC is a DuckDB C extension for in-process JIT compiled C UDFs using TinyCC (Tiny C Compiler). 
+    It allows you to write and register C functions as SQL scalar UDFs directly from SQL, with full support 
+    for typed arguments, return values, and complex types like structs, lists, and maps.
+
+    Type Correspondences:
+    | C Type Token  | C Type                                          | DuckDB Type   | Notes                                             |
+    |---------------|------------------------------------------------|---------------|----------------------------------------------------|
+    | void          | void                                            | BIGINT (NULL) | Returns NULL in SQL                               |
+    | bool          | int/bool                                        | BOOLEAN       |                                                   |
+    | i8, u8        | int8_t, uint8_t                                 | TINYINT       |                                                   |
+    | i16, u16      | int16_t, uint16_t                               | SMALLINT      |                                                   |
+    | i32, u32      | int32_t, uint32_t                               | INTEGER       |                                                   |
+    | i64, u64      | int64_t, uint64_t                               | BIGINT        |                                                   |
+    | f32, f64      | float, double                                   | FLOAT, DOUBLE |                                                   |
+    | ptr/pointer   | void *                                          | UBIGINT       | Opaque pointer handle                             |
+    | cstring       | const char *                                    | VARCHAR       | NULL pointer -> SQL NULL                          |
+    | blob/buffer   | ducktinycc_blob_t (ptr, len)                   | BLOB          | NULL ptr -> SQL NULL                              |
+    | uuid          | ducktinycc_hugeint_t                            | UUID          |                                                   |
+    | date          | ducktinycc_date_t                               | DATE          |                                                   |
+    | time          | ducktinycc_time_t                               | TIME          |                                                   |
+    | timestamp     | ducktinycc_timestamp_t                          | TIMESTAMP     |                                                   |
+    | interval      | ducktinycc_interval_t                           | INTERVAL      |                                                   |
+    | decimal       | ducktinycc_decimal_t                            | DECIMAL(18,3) |                                                   |
+    | list_i64      | ducktinycc_list_t (ptr, validity, offset, len) | LIST(INT64)   | Variable-length list                              |
+    | i64[N]        | ducktinycc_array_t (ptr, validity, offset)     | ARRAY(INT64,N)| Fixed-size array (N elements)                     |
+    | struct<...>   | ducktinycc_struct_t (field_ptrs, field_*valid) | STRUCT        | Fixed-width scalar members                        |
+    | map<k;v>      | ducktinycc_map_t (key_ptr, value_ptr, ...)     | MAP           | Fixed-width scalar key/value types                |
+
+    Key Features:
+      - In-process JIT compilation via TinyCC (no external compiler required)
+      - Compile and register C functions as SQL scalar UDFs on-the-fly
+      - Support for scalar, list, array, struct, and map types
+      - Row and batch wrapper modes for different performance characteristics
+      - Session-based build state management
+      - Type-safe wrapper code generation
+      - Memory helpers for direct pointer and buffer manipulation
+      - Discovery helpers for system paths and library probing
+
+    Main Functions:
+      - tcc_module(...) - Main entry point for all compilation and configuration modes
+      - tcc_system_paths(...) - Discover include and library search paths
+      - tcc_library_probe(...) - Resolve library names to filesystem paths
+      - tcc_alloc/tcc_free_ptr - Allocate and free process-local C memory
+      - tcc_read_*/tcc_write_* - Typed reads/writes from allocated memory
+
+    Modes:
+      Configuration: config_get, config_set, config_reset, tcc_new_state, list
+      Build: add_include, add_sysinclude, add_library_path, add_library, add_option, add_define, add_header, add_source, tinycc_bind
+      Compile: compile, quick_compile, codegen_preview, c_struct, c_union, c_bitfield, c_enum
+
+    Note: WASM and Windows MSVC builds are not supported. MinGW/Rtools is supported on Windows.
