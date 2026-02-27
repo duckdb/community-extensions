@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: marselester/duckdb-maxmind
-  ref: c0c5074b1e4b0ff98dde2fd5cea0c9bcc94c5856
+  ref: 8df8fe223fd2e280310578568973b41801edecb8
 
 docs:
   hello_world: |
