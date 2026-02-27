@@ -1,7 +1,7 @@
 extension:
   name: flock
   description: LLM & RAG extension to combine analytics and semantic analysis
-  version: 0.5.0
+  version: 0.6.0
   language: SQL & C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: dais-polymtl/flock
-  ref: 7f1c36abe481b97c9e2c6e7303f36005c8d242fa
+  ref: 172a46e463c6c9dbf2aae5cdce955806eb717f26
 
 docs:
   hello_world: |
