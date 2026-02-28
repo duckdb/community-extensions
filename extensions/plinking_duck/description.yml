@@ -1,0 +1,61 @@
+extension:
+  name: plinking_duck
+  description: Read PLINK 2 genomics file formats and run common genetic analyses directly in SQL
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  maintainers:
+    - teaguesterling
+
+repo:
+  github: teaguesterling/plinking_duck
+  ref: bd45bb7d43f592f106fd4d514e8644e7ac6f672b
+
+docs:
+  hello_world: |
+    -- Read variant metadata from a .pvar file
+    SELECT CHROM, POS, ID, REF, ALT
+    FROM read_pvar('cohort.pvar')
+    WHERE CHROM = '22';
+
+    -- Read genotypes in tidy format (one row per variant x sample)
+    SELECT chrom, pos, iid, genotype
+    FROM read_pfile('cohort', tidy := true)
+    LIMIT 10;
+
+    -- Compute allele frequencies
+    SELECT * FROM plink_freq('cohort.pgen')
+    WHERE ALT_FREQ > 0.01;
+
+    -- Hardy-Weinberg equilibrium QC filter
+    SELECT * FROM plink_hardy('cohort.pgen')
+    WHERE P_HWE > 1e-6;
+
+  extended_description: |
+    PlinkingDuck brings [PLINK 2](https://www.cog-genomics.org/plink/2.0/) genotype,
+    variant, and sample data into DuckDB, letting you query genomics datasets with
+    standard SQL instead of format-specific command-line tools.
+
+    **File readers:**
+    - `read_pvar(path)` — variant metadata (.pvar/.bim)
+    - `read_psam(path)` — sample metadata (.psam/.fam)
+    - `read_pgen(path)` — binary genotypes (.pgen)
+    - `read_pfile(prefix)` — unified fileset reader with tidy mode, sample subsetting, region and variant filtering
+
+    **Analysis functions:**
+    - `plink_freq` — per-variant allele frequencies via fast genotype counting
+    - `plink_hardy` — Hardy-Weinberg equilibrium exact test
+    - `plink_missing` — per-variant or per-sample missingness rates
+    - `plink_ld` — pairwise linkage disequilibrium (r², D, D')
+    - `plink_score` — polygenic risk scoring with mean imputation
+
+    All functions support projection pushdown (skip genotype decompression for
+    metadata-only queries), parallel scanning, sample subsetting, and region
+    filtering. Legacy PLINK 1 formats (.bim/.fam) are auto-detected.
+
+    Built on [pgenlib](https://github.com/chrchang/plink-ng) for efficient access
+    to the compressed .pgen binary format without full decompression.
+
+    For full documentation, see [plinking-duck.readthedocs.io](https://plinking-duck.readthedocs.io).
