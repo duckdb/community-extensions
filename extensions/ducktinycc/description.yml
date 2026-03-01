@@ -1,7 +1,7 @@
 extension:
   name: ducktinycc
   description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC
-  version: 0.0.2.1
+  version: 0.0.3
   language: C
   build: cmake
   license: MIT
