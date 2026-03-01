@@ -13,8 +13,7 @@ extension:
 
 repo:
   github: duckdb/duckdb-internal
-  ref: 7a76cd633534b4f97deca359b530c367c57d6499
-
+  ref: 96853f4e107721606635abffc1d529c492d80d94
 
 docs:
   hello_world: |
