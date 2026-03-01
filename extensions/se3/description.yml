@@ -1,0 +1,32 @@
+extension:
+  name: se3
+  description: Provides SE(3) rigid transformations (combinations of rotations and translations in 3D) as DuckDB scalar functions.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: ""
+  maintainers:
+    - jokasimr
+repo:
+  github: jokasimr/se3
+  ref: v0.1.0
+
+docs:
+  hello_world: |
+    SELECT se3_apply(
+        quat_from_axis_angle(
+            struct_pack(x:=0.0, y:=0.0, z:=1.0), -- rotation axis (Z)
+            pi()/2.0                             -- 90 degrees
+        ),
+        struct_pack(x:=1.0, y:=0.0, z:=0.0)      -- point
+    );                                           -- returns (0., 1., 0.)
+  extended_description: |
+    This extension provides SE(3) rigid transformations, implemented as DuckDB scalar functions.
+
+    Features:
+    - Sequences of rotations and translations can be combined to a 7 DOF struct that represents one combined translation then rotation. See `se3_compose`.
+    - Transformations can be efficiently applied to points in 3D without calling trigonometric functions. See `se3_apply()`.
+
+    For full documentation see: https://github.com/jokasimr/se3.
