@@ -1,0 +1,47 @@
+extension:
+  name: hive_metastore
+  description: Connect to your Hive Metastore, attach it as a native DuckDB catalog and query the data inside with ease!
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64;windows_arm64"
+  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
+  requires_toolchains: "parser_tools"
+  maintainers:
+    - thijs-s
+
+repo:
+  github: ilum-cloud/duckdb-hive-metastore
+  ref: 2713d9d4fa4b63e01cf151ba90218ecd325901f3
+  ref_next: d8a504cb9924cebc52d342666d1f59c4b2c9bc2f
+
+docs:
+  hello_world: |
+    -- Attach the Hive Metastore as a catalog in DuckDB
+    ATTACH 'thrift://<host>:<port>' AS <catalog_name> (TYPE hive_metastore);
+
+    -- You are ready to rock!
+    SELECT * FROM <catalog_name>.<schema_name>.<table_name>;
+
+    -- For querying tables from object storages, you still need to set up the storage extensions (e.g. s3)
+    CREATE SECRET s3 (TYPE S3, KEY_ID 'access-key', SECRET 'secret-key', ENDPOINT 'localhost:9000');
+  extended_description: |
+    DuckDB Hive Metastore extension enables DuckDB to connect to Apache Hive Metastore via Thrift protocol and query tables stored in DuckDB-supported formats. The extension provides seamless integration with the Hive ecosystem while leveraging DuckDB's powerful analytical capabilities.
+
+    ## Key Features
+    - Implementation of Hive catalog as a native DuckDB catalog
+    - Automatic schema discovery, including support for complex data types such as arrays and maps
+    - Support for Parquet, CSV, Iceberg, Delta, ORC, and Avro
+
+    ## Usage
+    The usage of the extension revolves around attaching the Hive Metastore as a catalog in DuckDB and then querying the tables as if they were native DuckDB tables. The attach command looks like any other DuckDB attach command:
+
+    ```sql
+    ATTACH 'thrift://<host>:<port>' AS <catalog_name> (<args>);
+    ```
+
+    Supported arguments include:
+    - `TYPE` (required): Must be set to `hive_metastore` to indicate that we want to use the Hive Metastore extension
+    - `WAREHOUSE_LOCATION`: The warehouse location path. Used for table storage location resolution (mostly not required, but can be useful in some cases).
+    - `DEFAULT_SCHEMA`: The database/schema name to use when queries don't specify one. Defaults to `default` if not provided.
