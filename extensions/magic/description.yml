@@ -10,9 +10,9 @@ extension:
     - carlopi
 
 repo:
-  github: carlopi/duckdb_magic
+  github: carlopi/duckdb-magic
   ref: 6a214b48b6dc760e398c73131e00ee62f2c5f1bc
-  ref_next: 8028df97ce0ddd9fe6abddd566f0a44a05534ad0
+  ref_next: c962b82a70ad44c93d06a9d7c2a1dbe817a5146a
 
 docs:
   hello_world: |
