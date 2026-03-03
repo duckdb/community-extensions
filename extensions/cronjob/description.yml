@@ -64,5 +64,5 @@ extension:
   version: '2025120401'
 repo:
   github: quackscience/duckdb-extension-cronjob
-  ref: 040dbecd552e6b373fb1bb4582935d243693978e
-  ref_next: 91822698a42f8d8bd615d352b3a61fbcee852ba6
+  andium: 040dbecd552e6b373fb1bb4582935d243693978e
+  ref: 91822698a42f8d8bd615d352b3a61fbcee852ba6

@@ -13,5 +13,5 @@ extension:
   version: '2025120401'
 repo:
   github: query-farm/crypto
-  ref: 9308fe3e74a56b3dd5b046533bac582532bdc7bd
-  ref_next: 2fa32bf08440d7f882c70b88d38e306973be96b7
+  andium: 9308fe3e74a56b3dd5b046533bac582532bdc7bd
+  ref: 2fa32bf08440d7f882c70b88d38e306973be96b7

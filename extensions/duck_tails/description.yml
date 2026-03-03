@@ -11,8 +11,8 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duck_tails
+  andium: eb4985203fe332d104bcf605097355ab9d155b77
   ref: eb4985203fe332d104bcf605097355ab9d155b77
-  ref_next: eb4985203fe332d104bcf605097355ab9d155b77
 docs:
   hello_world: |
     -- Load the extension
