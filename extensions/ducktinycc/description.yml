@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: sounkou-bioinfo/DuckTinyCC
-  ref: 2be30bb7e89cf1230e7a282314c9ca04dc52d68e
+  ref: afe3411fd87c7e8577c0aaf60b6c0484f793065e
 
 docs:
   hello_world: |
