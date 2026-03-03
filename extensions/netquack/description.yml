@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: hatamiarash7/duckdb-netquack
+  andium: 912f04bebd6057b093c3cae57a3bf5cbefb98980
   ref: 912f04bebd6057b093c3cae57a3bf5cbefb98980
-  ref_next: 912f04bebd6057b093c3cae57a3bf5cbefb98980
 
 docs:
   extended_description: |

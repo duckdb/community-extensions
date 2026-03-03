@@ -13,5 +13,5 @@ extension:
   version: '2025120401'
 repo:
   github: query-farm/fuzzycomplete
-  ref: 74630cc8548a8ee6b32129abdc8bd70e1cf2bf87
-  ref_next: 24d95eff386b66695fcadc84b21744c363af74bd
+  andium: 74630cc8548a8ee6b32129abdc8bd70e1cf2bf87
+  ref: 24d95eff386b66695fcadc84b21744c363af74bd

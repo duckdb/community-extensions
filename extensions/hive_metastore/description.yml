@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: ilum-cloud/duckdb-hive-metastore
-  ref: 2713d9d4fa4b63e01cf151ba90218ecd325901f3
-  ref_next: d8a504cb9924cebc52d342666d1f59c4b2c9bc2f
+  andium: 2713d9d4fa4b63e01cf151ba90218ecd325901f3
+  ref: d8a504cb9924cebc52d342666d1f59c4b2c9bc2f
 
 docs:
   hello_world: |

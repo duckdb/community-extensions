@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: dentiny/duckdb-filesystem-latency-injection
-  ref: a0dc5543de71f77e981f2be946ca5399db670f45
-  ref_next: d8d3d976ada91b174e72e82aac4cf1d536b6da18
+  andium: a0dc5543de71f77e981f2be946ca5399db670f45
+  ref: d8d3d976ada91b174e72e82aac4cf1d536b6da18
 
 docs:
   hello_world: |

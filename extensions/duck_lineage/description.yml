@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: ilum-cloud/duck_lineage
-  ref: 8815e68c7a2003b221a24cbdbdfc553d7498713c
-  ref_next: 460a98c5d4d6e35e7bff8e765b8555b35e410123
+  andium: 8815e68c7a2003b221a24cbdbdfc553d7498713c
+  ref: 460a98c5d4d6e35e7bff8e765b8555b35e410123
 
 docs:
   hello_world: |

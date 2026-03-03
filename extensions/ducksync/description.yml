@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: danjsiegel/ducksync
-  ref: b490211394692a80da97ac609484a12302f9d2b3
-  ref_next: 585d4e34e188cae8b49dd970fe73ce784ea9f0f4
+  andium: b490211394692a80da97ac609484a12302f9d2b3
+  ref: 585d4e34e188cae8b49dd970fe73ce784ea9f0f4
 
 docs:
   hello_world: |

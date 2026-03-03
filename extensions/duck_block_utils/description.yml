@@ -9,8 +9,8 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_duck_block_utils
+  andium: 125662df9e5450105dc9b7957ad955cb53d7beec
   ref: 125662df9e5450105dc9b7957ad955cb53d7beec
-  ref_next: 125662df9e5450105dc9b7957ad955cb53d7beec
 docs:
   hello_world: |
     -- Build a document programmatically
