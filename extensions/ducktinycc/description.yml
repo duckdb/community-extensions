@@ -1,7 +1,7 @@
 extension:
   name: ducktinycc
   description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC
-  version: 0.0.3
+  version: 0.0.3.9000
   language: C
   build: cmake
   license: MIT
@@ -12,8 +12,8 @@ extension:
 
 
 repo:
-  github: duckdb/duckdb-internal
-  ref: 96853f4e107721606635abffc1d529c492d80d94
+  github: sounkou-bioinfo/DuckTinyCC
+  ref: 2be30bb7e89cf1230e7a282314c9ca04dc52d68e
 
 docs:
   hello_world: |
@@ -27,7 +27,7 @@ docs:
       source := 'const char *hello_from_c(void){ return "hello from C"; }',
       symbol := 'hello_from_c',
       sql_name := 'hello_from_c',
-      return_type := 'cstring',
+      return_type := 'varchar',
       arg_types := []
     );
 
@@ -70,22 +70,21 @@ docs:
 
     | Token family | Examples |
     |---|---|
-    | Scalars | void (return only), bool/boolean, i8/u8/i16/u16/i32/u32/i64/u64, f32/f64, ptr/pointer/c_ptr, varchar/text/string/cstring, blob/bytea/binary/varbinary/buffer/bytes, uuid, date, time, timestamp/datetime, interval, decimal/numeric |
+    | Scalars | void (return only), bool, i8/u8/i16/u16/i32/u32/i64/u64, f32/f64, ptr, varchar, blob, uuid, date, time, timestamp, interval, decimal |
     | Composites (recursive) | list<type>, type[], type[N], struct<name:type;...>, map<key_type;value_type>, union<name:type;...> |
-    | Legacy compatibility | list_i64 style list tokens are still accepted |
 
     SQL <-> C bridge correspondences:
 
     | SQL token family | C bridge type |
     |---|---|
-    | varchar/text/string/cstring | const char * |
-    | blob/bytea/binary/varbinary/buffer/bytes | ducktinycc_blob_t |
+    | varchar | const char * |
+    | blob | ducktinycc_blob_t |
     | list<...>, type[] | ducktinycc_list_t |
     | type[N] | ducktinycc_array_t |
     | struct<...> | ducktinycc_struct_t |
     | map<...> | ducktinycc_map_t |
     | union<...> | ducktinycc_union_t |
-    | decimal/numeric | ducktinycc_decimal_t (DuckDB DECIMAL(18,3) at registration) |
+    | decimal | ducktinycc_decimal_t (DuckDB DECIMAL(18,3) at registration) |
 
     Function result schemas:
 
