@@ -1,0 +1,41 @@
+extension:
+  name: delta_export
+  description: Export DuckLake catalog tables to Delta Lake format
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - djouallah
+
+repo:
+  github: djouallah/delta_export
+  ref: 85eaf9ac5b65cc59d5fe8d5b36f4535ae85541c0
+
+docs:
+  hello_world: |
+    -- Load required extensions
+    LOAD ducklake;
+    LOAD delta_export;
+
+    -- Attach a DuckLake catalog
+    ATTACH 'ducklake:metadata.ducklake' AS lake (DATA_PATH '/path/to/data');
+    USE lake;
+
+    -- Create and populate a table
+    CREATE TABLE orders (id INTEGER, amount DOUBLE);
+    INSERT INTO orders VALUES (1, 99.99), (2, 149.50);
+
+    -- Export all DuckLake tables to Delta Lake format
+    CALL delta_export();
+  extended_description: |
+    Delta Export reads DuckLake internal metadata and writes Delta Lake
+    checkpoint files (Parquet, JSON transaction log, and _last_checkpoint)
+    for each table in the catalog.
+
+    This enables interoperability between DuckLake-managed data and any
+    system that reads Delta Lake format, such as Apache Spark, Databricks,
+    Microsoft Fabric, and other Delta-compatible engines.
+
+    Works with both DuckDB and SQLite-backed DuckLake catalogs, and
+    supports all storage backends including local filesystem and ABFSS.
