@@ -1,0 +1,35 @@
+extension:
+  name: rdf
+  description: A DuckDB extension to read and write RDF
+  version: 2.5.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nonodename
+
+repo:
+  github: nonodename/duck_rdf
+  ref: 77599d424bc7b1bbbbab1442a0c4b0036c61ce8d
+
+docs:
+  hello_world: |
+    -- 0. Assuming the extension is already installed and loaded
+    
+    -- 1. Get number of ntriples in a directory
+    SELECT COUNT(*) FROM read_rdf('data/shards/*.nt');
+  
+    -- 2. Get subjects and predicates of a turtle file
+    select subject, predicate from read_rdf('test/rdf/tests.ttl');
+    
+    -- 3. Write a query to turtle RDF, using R2RML mapping
+    COPY (SELECT empno, ename, deptno FROM emp)
+    TO 'output.nt'
+    (FORMAT r2rml, mapping 'mapping.ttl');
+
+    -- 4. Execute a full R2RML mapping (with embedded queries) to write RDF
+    COPY (SELECT 1) TO 'output.nt' (FORMAT r2rml, mapping 'mapping.ttl');
+    
+    -- 5. Check if an R2RML mapping is valid
+    SELECT is_valid_r2rml('mapping.ttl');
+    
