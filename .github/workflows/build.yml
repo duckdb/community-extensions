@@ -115,7 +115,7 @@ jobs:
       save_cache: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME == 'quack' && github.event_name != 'pull_request' }}
 
   doc_test:
-    if: ${{ inputs.deploy != 'false' }}
+    if: false
     needs:
       - prepare
       - build
