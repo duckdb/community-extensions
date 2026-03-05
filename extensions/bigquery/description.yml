@@ -13,7 +13,8 @@ extension:
 
 repo:
   github: hafenkran/duckdb-bigquery
-  ref: bcdc1d4fc59d47ee7dd55e6585e3b1db07ce909a
+  andium: bcdc1d4fc59d47ee7dd55e6585e3b1db07ce909a
+  ref: e7f096afcc24c8d319e90ff4805a078e060b96e3
 
 docs:
   hello_world: |
