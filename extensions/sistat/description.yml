@@ -4,13 +4,14 @@ extension:
   version: 0.0.1
   language: C++
   build: cmake
+  excluded_platforms: "windows_amd64_mingw"
   license: MIT
   maintainers:
     - fklezin
 
 repo:
   github: fklezin/duckdb-sistat
-  ref: 56f6e94f09265e23ee484aceedfb7c4885871690
+  ref: 820c56d80ccece57455655e1d5a07e9f9f034906
 
 docs:
   hello_world: |
