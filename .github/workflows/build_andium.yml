@@ -20,4 +20,4 @@ jobs:
     with:
       duckdb_version: 'v1.4.4'
       ci_tools_version: 'main'
-      deploy: 'false'
+      deploy: 'true'
