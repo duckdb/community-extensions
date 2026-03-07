@@ -12,6 +12,6 @@ extension:
   name: adbc_scanner
   version: '2025120801'
 repo:
+  andium: fb014f7fe4584027e73271a58fd5d60a40108b8c
   github: query-farm/adbc_scanner
-  andium: 68cca9ae72e209ad0ded48ad7360d033c639ce29
-  ref: d3e7cbd5f5d92aba0048236f867caf8074c10976
+  ref: c3209e44d138ddb5e914333d81a086423a914610
