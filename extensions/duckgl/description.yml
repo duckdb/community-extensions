@@ -9,7 +9,7 @@ extension:
     - nkwork9999
 
 repo:
-  github: nkwork9999/duckgl # あなたのリポジトリ名に合わせて
+  github: nkwork9999/duckgl
   ref: 0de60a34e7bc04141fbc6b2efd6dcad6a80ac1e8
 
 docs:
