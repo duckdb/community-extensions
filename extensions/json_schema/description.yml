@@ -11,5 +11,5 @@ extension:
   version: '2025120401'
 repo:
   github: query-farm/json_schema
-  ref: 69664ce2fb234a071c4e01690584d2c402e96705
-  ref_next: ecfeb13db765fd503ff8155c8c22b676b9c9dfc0
+  andium: 69664ce2fb234a071c4e01690584d2c402e96705
+  ref: ecfeb13db765fd503ff8155c8c22b676b9c9dfc0

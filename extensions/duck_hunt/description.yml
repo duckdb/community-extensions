@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
+  andium: ce8400922b0710fbb02e8e440380a1b9e4fa9d60
   ref: ce8400922b0710fbb02e8e440380a1b9e4fa9d60
-  ref_next: ce8400922b0710fbb02e8e440380a1b9e4fa9d60
 
 docs:
   readme: https://duck-hunt.readthedocs.io/

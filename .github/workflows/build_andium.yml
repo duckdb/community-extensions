@@ -1,10 +1,10 @@
-name: Community Extension with latest DuckDB
+name: Community Extension with DuckDB on Andium
 on:
   pull_request:
     paths-ignore:
       - '**'
       - '!scripts/build.py'
-      - '!.github/workflows/build_next.yml'
+      - '!.github/workflows/build_andium.yml'
       - '!extensions/*/description.yml'
   push:
     paths-ignore:
@@ -15,9 +15,9 @@ on:
 
 jobs:
   test_against_latest:
-    if: false
+    if: true
     uses: ./.github/workflows/build.yml 
     with:
-      duckdb_version: 'main'
+      duckdb_version: 'v1.4.4'
       ci_tools_version: 'main'
-      deploy: 'false'
+      deploy: 'true'

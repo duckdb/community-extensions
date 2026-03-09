@@ -37,9 +37,9 @@ do
       rm -f pre.db
       rm -f post.db
       for thing in $things; do
-         $DUCKDB_BINARY -unsigned pre.db -c "SET extension_directory = 'build/extensions'; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
+         $DUCKDB_BINARY -unsigned pre.db -c "SET extension_directory = 'build/extensions'; INSTALL httpfs; LOAD httpfs; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
          rm -rf temp
-         $DUCKDB_BINARY -unsigned post.db -c "SET extension_directory = 'build/extensions'; FORCE INSTALL $extension FROM 'build/extension_dir'; LOAD $extension; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
+         $DUCKDB_BINARY -unsigned post.db -c "SET extension_directory = 'build/extensions'; LOAD httpfs; FORCE INSTALL $extension FROM 'build/extension_dir'; LOAD $extension; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
          rm -rf temp
       done
 

@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-extension"
-  ref: "v0.1.17"
-  ref_next: "v0.1.18"
+  andium: "v0.1.17"
+  ref: "v0.1.18"
 
 docs:
   hello_world: |

@@ -14,5 +14,5 @@ extension:
   version: '2025120401'
 repo:
   github: query-farm/marisa
-  ref: 8feeb0b0157b7fad0694ee09c430bbabce54cbb7
-  ref_next: 7f1df16cbe53df651a71314ebf0ffc428ef10166
+  andium: 8feeb0b0157b7fad0694ee09c430bbabce54cbb7
+  ref: 7f1df16cbe53df651a71314ebf0ffc428ef10166
