@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: fklezin/duckdb-sistat
-  ref: 820c56d80ccece57455655e1d5a07e9f9f034906
+  ref: b790887427ee4bfcc75b89b6c88bdf8a40238878
 
 docs:
   hello_world: |
