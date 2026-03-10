@@ -1,7 +1,7 @@
 extension:
   name: cache_prewarm
   description: Prewarm data blocks into DuckDB's buffer pool or OS page cache for faster queries
-  version: 1.0.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
