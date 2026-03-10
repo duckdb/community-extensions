@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: northpolesec/duckdb-gcs
-  ref: f6cfaa896c4a386bc46bd2e44fad72ea609482f4
+  ref: f304b30bb7f30a1cc31272e0b77cb5bdd160ed3a
 
 docs:
   hello_world: |
