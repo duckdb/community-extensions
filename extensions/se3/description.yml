@@ -1,17 +1,17 @@
 extension:
   name: se3
   description: Provides SE(3) rigid transformations (combinations of rotations and translations in 3D) as DuckDB scalar functions.
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: ""
   requires_toolchains: "vcpkg"
   maintainers:
     - jokasimr
 repo:
   github: jokasimr/se3
-  ref: v0.1.0
+  ref: v0.2.0
 
 docs:
   hello_world: |

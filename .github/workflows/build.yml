@@ -66,10 +66,10 @@ jobs:
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
-      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ case(inputs.duckdb_version == 'v1.5-variegata', steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && '84bab45d415d22042bd0b9081aea57f362da3f35' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT, steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'ce613c41372b23b1f51333815feb3edd87ef8a8b' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT) }}
+      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ case(inputs.duckdb_version == 'v1.5.0', steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && '84bab45d415d22042bd0b9081aea57f362da3f35' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT, steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'ce613c41372b23b1f51333815feb3edd87ef8a8b' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT) }}
     env:
-      DUCKDB_LATEST_STABLE: 'v1.5-variegata'
-      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.5-variegata' }}
+      DUCKDB_LATEST_STABLE: 'v1.5.0'
+      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.5.0' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -98,7 +98,7 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.5-variegata
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.5-variegata' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.5.0' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v1.5-variegata' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
@@ -122,7 +122,7 @@ jobs:
     uses: ./.github/workflows/generate_docs.yml
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.5-variegata' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.5.0' }}
 
   archive:
     needs:
@@ -146,7 +146,7 @@ jobs:
     secrets: inherit
     with:
       deploy_latest: true
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.5-variegata' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v1.5.0' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v1.5-variegata' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
