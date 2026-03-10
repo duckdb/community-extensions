@@ -1,7 +1,7 @@
 extension:
   name: latency_injection_fs
   description: Used to inject simulated latency to filesystem operations
-  version: 0.0.1
+  version: 0.0.3
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 repo:
   github: dentiny/duckdb-filesystem-latency-injection
   andium: a0dc5543de71f77e981f2be946ca5399db670f45
-  ref: d8d3d976ada91b174e72e82aac4cf1d536b6da18
+  ref: b262f8ee4fc6938bc985a2ebb365b35758d6ada9
 
 docs:
   hello_world: |
