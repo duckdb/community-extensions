@@ -1,7 +1,7 @@
 extension:
   name: hedged_request_fs
   description: Provides hedged request for filesystem operations
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 repo:
   github: dentiny/duckdb-hedged-request
   andium: a94e1b63e9b1e6f94c6c7debbf1d49bc28f510f7
-  ref: 4fd920ae714368dc79e63620c1df07f312cfb311
+  ref: 1385375fccc1898836b1e4ead65cd3030250001e
 
 docs:
   hello_world: |
