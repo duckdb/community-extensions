@@ -11,7 +11,7 @@ extension:
     - dentiny
 repo:
   github: dentiny/duckdb-cache-prewarm
-  ref: daedc416044241580f74fb6ca7d3aa270604f747
+  ref: 9b89e31a72c8bf9f38d15d4c08c5828518f744af
 docs:
   hello_world: |
     -- Prewarm a table into the buffer pool
