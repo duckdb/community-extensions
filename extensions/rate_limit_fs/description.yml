@@ -1,18 +1,17 @@
 extension:
   name: rate_limit_fs
   description: Perform rate and burst limit on filesystem operations
-  version: 0.0.3
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - dentiny
 
 repo:
   github: dentiny/duckdb-rate-limit-filesystem
-  andium: 2d70a9f86b5d31fd6104980d5bfd47db82fcd020
-  ref: 2632f0f9b0f0cfd939f5ce38ea66d459b7d998f0
+  ref: e9e220869fca1a8ed621ea892751d71ee77df479
 
 docs:
   hello_world: |
