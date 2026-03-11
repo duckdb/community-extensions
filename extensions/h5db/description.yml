@@ -12,6 +12,7 @@ extension:
 repo:
   github: jokasimr/h5db
   ref: v0.4.0
+  andium: v0.3.0
 
 docs:
   hello_world: |
