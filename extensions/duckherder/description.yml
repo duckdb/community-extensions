@@ -12,6 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-distributed-execution
+  andium: 3191fc2f7ecd6d1b8a3f327a4a35af00fa706ca0
   ref: c225784d3155005d26c6995c8271d10678e2d555
 
 docs:
