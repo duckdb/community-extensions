@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-fakeit
-  ref: 43bb4c5012b1a630dade03f66d484844cbdb389b
+  ref: db056fba455881979bf4be35a581db01fe5a4f8c
 
 docs:
   hello_world: |
