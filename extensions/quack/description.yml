@@ -19,7 +19,8 @@ extension:
 
 repo:
   github: duckdb/extension-template
-  ref: 8148b0e4d1c0f4891ff357e0339224e779cd62bd
+  andium: 8148b0e4d1c0f4891ff357e0339224e779cd62bd
+  ref: 16fb110f74b233c9b4a4441534da2b65a8abf562
 
 docs:
   hello_world: |
