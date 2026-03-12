@@ -7,6 +7,7 @@ on:
 
 jobs:
   duckdb_ccache:
+    if: ${{ github.repository == 'duckdb/community-extensions' || github.event_name != 'schedule' }}
     name: Warm CCache using DuckDB C++ extension template
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     with:
@@ -22,6 +23,7 @@ jobs:
     secrets: inherit
 
   parse_dependency_list:
+    if: ${{ github.repository == 'duckdb/community-extensions' ||  github.event_name != 'schedule' }}
     name: Fetch VCPKG dependency list
     runs-on: ubuntu-latest
     outputs:

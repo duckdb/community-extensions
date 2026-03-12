@@ -1,7 +1,7 @@
 extension:
   name: h3
   description: Hierarchical hexagonal indexing for geospatial data
-  version: 1.4.4
+  version: 1.5.0
   language: C++
   build: cmake
   license: Apache-2.0
@@ -10,10 +10,11 @@ extension:
 
 repo:
   github: isaacbrodsky/h3-duckdb
-  ref: 7194d9950243fd58f9532eb447ea1f6919478da5
+  ref: 9425bd3cb54db29a01705706afe2ebc4861a36d7
 
 docs:
   hello_world: |
     SELECT h3_latlng_to_cell(37.7887987, -122.3931578, 9);
   extended_description: |
     The H3 extension adds support for the [H3 hierarchical hexagonal grid system](https://h3geo.org/).
+
