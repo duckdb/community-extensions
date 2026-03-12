@@ -11,7 +11,8 @@ extension:
 
 repo:
   github: kestra-io/duckdb-ion
-  ref: 75c52435dcf48e96afd79b3b9bc1dce1a5547b04
+  ref: a144356501ec0432b5025c6b8d19f643761d6f65
+  andium: 75c52435dcf48e96afd79b3b9bc1dce1a5547b04
 
 docs:
   hello_world: |

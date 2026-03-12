@@ -1,7 +1,7 @@
 extension:
   name: cache_prewarm
   description: Prewarm data blocks into DuckDB's buffer pool or OS page cache for faster queries
-  version: 0.0.1
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -11,14 +11,26 @@ extension:
     - dentiny
 repo:
   github: dentiny/duckdb-cache-prewarm
-  ref: c959856406f2b37420b9b92ee0b045de8a49e30a
+  ref: 9b89e31a72c8bf9f38d15d4c08c5828518f744af
 docs:
   hello_world: |
     -- Prewarm a table into the buffer pool
-    SELECT prewarm('my_table');
+    SELECT prewarm('table_name');
 
-    -- Prewarm with specific mode
-    SELECT prewarm('my_table', 'read');
+    -- With explicit mode
+    SELECT prewarm('table_name', 'buffer');
+
+    -- With size limit (human-readable format)
+    SELECT prewarm('table_name', 'buffer', '1GB');
+
+    -- With qualified table name
+    SELECT prewarm('my_schema.table_name');
+
+    -- Prewarm a remote file into the on-disk cache
+    SELECT prewarm_remote('https://example.com/data/file.parquet');
+
+    -- Prewarm with a glob pattern (multiple files)
+    SELECT prewarm_remote('https://example.com/data/*.parquet');
   extended_description: |
     A DuckDB extension that preloads table data blocks into the buffer pool or OS page cache,
     inspired by PostgreSQL's pg_prewarm extension.
@@ -27,5 +39,9 @@ docs:
     - `buffer` (default): Load blocks into buffer pool with pin/unpin
     - `read`: Warm OS page cache without using buffer pool
     - `prefetch`: Batch prefetch using OS hints
+
+    Remote Prewarm:
+    - `prewarm_remote` preloads remote files into the on-disk cache, requires `cache_httpfs` to be configured.
+    - Supports glob patterns and size limits.
 
     Use cases include cold start optimization and predictable query latency.
