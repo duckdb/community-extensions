@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: jatorre/duckdb-raquet
-  ref: 8c58253e4e28cdd4ddcd873db6286ef7e6ebe64a
+  ref: 48aa0e39c81eb51455055b1bc5e830462b7b6835
 
 docs:
   hello_world: |
