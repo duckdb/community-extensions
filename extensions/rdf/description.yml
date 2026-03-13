@@ -20,7 +20,7 @@ docs:
     SELECT COUNT(*) FROM read_rdf('data/shards/*.nt');
   
     -- 2. Get subjects and predicates of a turtle file
-    select subject, predicate from read_rdf('test/rdf/tests.ttl');
+    SELECT subject, predicate FROM read_rdf('test/rdf/tests.ttl');
     
     -- 3. Write a query to turtle RDF, using R2RML mapping
     COPY (SELECT empno, ename, deptno FROM emp)
@@ -33,3 +33,65 @@ docs:
     -- 5. Check if an R2RML mapping is valid
     SELECT is_valid_r2rml('mapping.ttl');
     
+  extended_description: |
+    The `duck_rdf` extension enables DuckDB to read and write RDF (Resource Description Framework)
+    data directly, using the [SERD](https://drobilla.gitlab.io/serd/doc/singlehtml/) library for
+    parsing and serialization.
+
+    ### Supported Formats
+
+    **Read:** Turtle (`.ttl`), NTriples (`.nt`), NQuads (`.nq`), TriG (`.trig`), and
+    RDF/XML (`.rdf`/`.xml`, experimental — read-only).
+
+    **Write:** NTriples, Turtle, NQuads (via R2RML mapping).
+
+    ### Reading RDF
+
+    `read_rdf()` returns six columns: `subject`, `predicate`, `object` (always populated),
+    and `graph`, `language_tag`, `datatype` (nullable). It accepts a file path or glob pattern;
+    multiple matched files are scanned in parallel.
+
+    ```sql
+    SELECT subject, predicate FROM read_rdf('data.ttl');
+    SELECT COUNT(*) FROM read_rdf('data/shards/*.nt');
+    SELECT * FROM read_rdf('data/*.dat', file_type = 'ttl', strict_parsing = false);
+    ```
+
+    **Optional parameters:**
+
+    | Parameter | Default | Description |
+    |---|---|---|
+    | `strict_parsing` | `true` | Set to `false` to allow malformed URIs |
+    | `prefix_expansion` | `false` | Expand CURIE-form URIs to full URIs (Turtle/TriG only) |
+    | `file_type` | auto-detected | Override format: `ttl`, `nt`, `nq`, `trig`, `rdf`/`xml` |
+
+    ### Writing RDF (R2RML)
+
+    Write RDF using [R2RML](https://www.w3.org/TR/r2rml/) mapping files with DuckDB's `COPY TO`
+    syntax. Two modes are supported:
+
+    **Inside-out mode** — DuckDB drives the query; the mapping has no `rr:logicalTable`:
+    ```sql
+    COPY (SELECT empno, ename, deptno FROM emp)
+    TO 'output.nt' (FORMAT r2rml, mapping 'mapping.ttl');
+    ```
+
+    **Full R2RML mode** — the mapping defines its own queries:
+    ```sql
+    COPY (SELECT 1) TO 'output.nt' (FORMAT r2rml, mapping 'mapping.ttl');
+    ```
+
+    **Write options:**
+
+    | Option | Required | Default | Description |
+    |---|---|---|---|
+    | `mapping` | Yes | — | Path to R2RML mapping file (`.ttl`) |
+    | `rdf_format` | No | `ntriples` | Output format: `ntriples`, `turtle`, or `nquads` |
+    | `ignore_non_fatal_errors` | No | `true` | Raise an exception on the first parse error when `false` |
+
+    ### Validation Helpers
+
+    ```sql
+    SELECT is_valid_r2rml('mapping.ttl');      -- validate an R2RML mapping file
+    SELECT can_call_inside_out('mapping.ttl'); -- check if inside-out mode is supported
+    ```
