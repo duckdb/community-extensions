@@ -11,7 +11,7 @@ extension:
 repo:
   github: djouallah/delta_classic
   andium: fdb489d9c28f4dc7e8690cbf92a5f9cb34733124
-  ref: 1b3fc8a2020f149e5a05965b9b27a82d509f75bd
+  ref: ff9914ee3d752b2c1c3e1ea021c7af5b922da63a
 
 docs:
   hello_world: |
