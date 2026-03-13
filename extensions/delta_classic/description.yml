@@ -1,7 +1,7 @@
 extension:
   name: delta_classic
   description: Attach a directory of Delta tables as a single DuckDB database with automatic schema discovery
-  version: 0.2.0
+  version: 0.1.0
   language: C++
   build: cmake
   license: MIT
