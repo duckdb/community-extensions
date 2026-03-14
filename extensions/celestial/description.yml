@@ -1,0 +1,19 @@
+extension:
+  name: celestial
+  description: Astronomical coordinates utilities
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - teobouvard
+
+repo:
+  github: lisa-sgs/celestial
+  ref: d6a22f954257fa3d88d5ef8ba966e2c6e6ef179a
+
+docs:
+  hello_world: |
+    SELECT spherical_angle(0, 0, 1, 0) AS radians_along_equator;
+  extended_description: |
+    The celestial extension provides functions for working with astronomical coordinates.
