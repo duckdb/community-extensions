@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/duckMuPDF
-  ref: e6f099db36eefbb23e84e27e2b79410ab14627e1
+  ref: 3faeb617a3a49ea125cad5aa9a176cc7c4f8c5b9
 
 docs:
   hello_world: |
