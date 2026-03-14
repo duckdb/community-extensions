@@ -1,0 +1,26 @@
+extension:
+  name: smiles
+  description: Parse SMILES chemical notation from SQL — molecular formula, atom/bond counts, validation
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/duckSMILES
+  ref: fd49e24
+
+docs:
+  hello_world: |
+    -- Validate SMILES
+    SELECT mol_is_valid('CCO');
+
+    -- Molecular formula
+    SELECT mol_formula('CCO');        -- C2H6O
+    SELECT mol_formula('c1ccccc1');   -- C6H6
+
+    -- Atom and bond counts
+    SELECT mol_num_atoms('CCO');      -- 3
+    SELECT mol_num_bonds('c1ccccc1'); -- 6
