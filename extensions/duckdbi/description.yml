@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/DuckDBI
-  ref: c797e7c138fe67fba8cc50e26ee94cb6f76a097a
+  ref: c1784a952174b8135c43eb275babb578a602409e
 
 docs:
   hello_world: |
