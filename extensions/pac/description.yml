@@ -1,0 +1,64 @@
+extension:
+  name: pac
+  description: Automatic query privatization using the PAC Privacy framework
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: AGPL-3.0
+  maintainers:
+    - ila
+
+repo:
+  github: cwida/pac
+  ref: 058e57f5cc36fc18d24252f362f162fdd89b235d
+
+docs:
+  hello_world: |
+    -- Declare a privacy unit table with protected columns
+    CREATE PU TABLE employees (
+        id INTEGER, department VARCHAR, salary DECIMAL(10,2),
+        PAC_KEY (id),
+        PROTECTED (salary)
+    );
+
+    INSERT INTO employees VALUES
+        (1, 'Engineering', 95000), (2, 'Engineering', 110000),
+        (3, 'Sales', 80000),      (4, 'Sales', 72000),
+        (5, 'Marketing', 85000),  (6, 'Marketing', 90000);
+
+    -- Aggregates on protected columns are automatically noised
+    SELECT department, AVG(salary)::INTEGER AS avg_salary, COUNT(*) AS headcount
+    FROM employees GROUP BY department;
+    -- ┌─────────────┬────────────┬───────────┐
+    -- │ department  │ avg_salary │ headcount │
+    -- │   varchar   │   int32    │   int64   │
+    -- ├─────────────┼────────────┼───────────┤
+    -- │ Marketing   │      95601 │        15 │
+    -- │ Engineering │     109039 │        16 │
+    -- │ Sales       │      81145 │        17 │
+    -- └─────────────┴────────────┴───────────┘
+
+  extended_description: |
+    PAC (Privacy-preserving Automatic Queries) is a DuckDB extension that
+    transparently adds noise to aggregate query results to protect against
+    Membership Inference Attacks. Unlike Differential Privacy, PAC requires
+    no per-query privacy analysis — just declare which columns are protected
+    and queries are privatized automatically.
+
+    **Key Features**:
+    - `CREATE PU TABLE` syntax to declare privacy units and protected columns
+    - `PAC_LINK` for privacy propagation through join chains
+    - Supports COUNT, SUM, AVG, MIN, MAX, COUNT(DISTINCT)
+    - Tunable privacy-utility tradeoff via `pac_mi` parameter
+
+    **How It Works**:
+    1. Mark tables with `CREATE PU TABLE`, specifying a `PAC_KEY` (privacy unit) and `PROTECTED` columns
+    2. Protected columns cannot be projected directly — they can only appear inside aggregates
+    3. The extension automatically injects calibrated noise into aggregate results
+    4. Join chains propagate privacy constraints via `PAC_LINK` foreign key declarations
+
+    **Configuration Settings**:
+    - `pac_mi`: Mutual information bound controlling the privacy-utility tradeoff (default: `1/128`)
+
+    **Requirements**:
+    - DuckDB 1.5.0+
