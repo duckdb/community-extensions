@@ -1,0 +1,60 @@
+extension:
+  name: midi
+  description: Read, analyze, generate, and play MIDI files with SQL. Provides table functions for parsing Standard MIDI Files, scalar functions for note/frequency conversion, and macOS playback via AudioToolbox.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: ""
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/duckdb-midi
+  ref: b50ec402b5c522c3cd43c5d42a982a71e5a81998
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD midi;
+
+    -- Generate a test MIDI file
+    SELECT midi_gen('/tmp/test.mid', 'scale');
+
+    -- Read all events
+    SELECT * FROM read_midi('/tmp/test.mid') LIMIT 10;
+
+    -- Analyze notes with pairing
+    SELECT note_name, count(*) as freq, round(avg(duration_sec), 2) as avg_dur
+    FROM midi_notes('/tmp/test.mid')
+    GROUP BY note_name ORDER BY freq DESC;
+
+    -- Play (macOS only)
+    SELECT midi_play('/tmp/test.mid');
+
+  extended_description: |
+    duckdb-midi brings MIDI file support to DuckDB. Parse, analyze, generate, and play
+    Standard MIDI Files entirely from SQL.
+
+    **Table Functions**:
+    - `read_midi(path)` - All MIDI events as a table (note_on, note_off, control_change, meta, etc.)
+    - `midi_notes(path)` - Note-on/off pairs with duration, velocity, and note name
+    - `midi_meta(path)` - Meta events (tempo, time signature, key signature, track names)
+
+    **Scalar Functions**:
+    - `midi_note_name(60)` → `'C4'`
+    - `midi_note_number('C4')` → `60`
+    - `midi_note_freq(69)` → `440.0`
+    - `midi_bpm_to_uspqn(120.0)` → `500000`
+    - `midi_uspqn_to_bpm(500000)` → `120.0`
+
+    **Write / Generate**:
+    - `midi_write(path, notes[], durations[], velocities[], bpm)` - Create MIDI from arrays
+    - `midi_gen(path, preset)` - Generate test MIDI (scale, chord, arpeggio, drum, chromatic)
+
+    **Playback (macOS)**:
+    - `midi_play(path)` - Play MIDI file (blocks until finished)
+    - `midi_stop()` - Stop playback
+
+    Uses [craigsapp/midifile](https://github.com/craigsapp/midifile) for SMF parsing/writing
+    and macOS AudioToolbox for playback.
