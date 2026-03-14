@@ -1,0 +1,45 @@
+extension:
+  name: raquet
+  description: "Query Raquet raster files with QUADBIN spatial indexing and PostGIS-style functions"
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - jatorre
+
+repo:
+  github: jatorre/duckdb-raquet
+  ref: bfb1418beae25cbf2d89c03ae09081e71fc5eb5e
+
+docs:
+  hello_world: |
+    -- Load extension and query a raster file
+    LOAD raquet;
+
+    -- Get pixel value at a location
+    SELECT ST_RasterValue(
+        block, band_1, -73.9857, 40.7484, 'int16', 256, 'gzip'
+    ) AS elevation
+    FROM read_parquet('dem.parquet')
+    WHERE block = quadbin_from_lonlat(-73.9857, 40.7484, 13);
+
+  extended_description: |
+    Raquet is a specification by CARTO for storing raster data in Apache Parquet
+    format with QUADBIN spatial indexing. This extension enables DuckDB to query
+    Raquet files directly using SQL.
+
+    **Features:**
+    - QUADBIN spatial indexing functions
+    - PostGIS-style raster functions (ST_RasterValue, ST_RasterSummaryStats)
+    - Region statistics within polygon geometries (ST_RegionStats)
+    - Band math operations (ST_NDVI, ST_NormalizedDifference, ST_BandMath)
+    - Raster clipping (ST_Clip, ST_ClipMask)
+    - Time-series support with CF conventions (NetCDF compatible)
+    - Cloud-native queries with predicate pushdown (S3/GCS)
+    - 10-100x faster than PostGIS Raster for analytical workloads
+
+    **Links:**
+    - [Raquet Specification](https://raquet.io)
+    - [Documentation](https://github.com/jatorre/duckdb-raquet#readme)
+    - [Performance Benchmarks](https://github.com/jatorre/duckdb-raquet/blob/main/docs/PERFORMANCE_COMPARISON.md)
