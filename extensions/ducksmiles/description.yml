@@ -1,0 +1,57 @@
+extension:
+  name: smiles
+  description: Parse SMILES chemical notation from SQL — molecular formula, atom/bond counts, validation
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/duckSMILES
+  ref: c087abde5e654bcb821e40880ff67f7e88f218bd
+
+docs:
+  hello_world: |
+    -- Validate SMILES
+    SELECT mol_is_valid('CCO');          -- true
+    SELECT mol_is_valid('invalid_xyz');  -- false
+
+    -- Molecular formula (Hill system)
+    SELECT mol_formula('CCO');           -- C2H6O  (ethanol)
+    SELECT mol_formula('c1ccccc1');      -- C6H6   (benzene)
+    SELECT mol_formula('O');             -- H2O    (water)
+    SELECT mol_formula('CC(=O)O');       -- C2H4O2 (acetic acid)
+
+    -- Atom and bond counts
+    SELECT mol_num_atoms('CCO');         -- 3 (heavy atoms)
+    SELECT mol_num_bonds('c1ccccc1');    -- 6
+
+    -- Batch processing
+    SELECT smiles, mol_formula(smiles) AS formula, mol_num_atoms(smiles) AS atoms
+    FROM (VALUES ('CCO'), ('c1ccccc1'), ('CC(=O)Oc1ccccc1C(=O)O')) AS t(smiles);
+
+  extended_description: |
+    DuckDB extension for parsing SMILES (Simplified Molecular Input Line Entry System)
+    chemical notation directly from SQL.
+
+    Self-contained lightweight SMILES parser — no RDKit or external chemistry libraries required.
+    Zero external dependencies.
+
+    **Functions:**
+
+    | Function | Description |
+    |----------|-------------|
+    | `mol_is_valid(smiles)` | Check if SMILES string is valid (returns BOOLEAN) |
+    | `mol_formula(smiles)` | Molecular formula in Hill system, e.g. `C2H6O` (returns VARCHAR) |
+    | `mol_num_atoms(smiles)` | Heavy atom count, excluding hydrogen (returns INTEGER) |
+    | `mol_num_bonds(smiles)` | Bond count (returns INTEGER) |
+
+    **Supported SMILES features:**
+    - Organic subset atoms: B, C, N, O, P, S, F, Cl, Br, I
+    - Aromatic atoms: c, n, o, s, p, b
+    - Bracket atoms: [NH3+], [Fe+2], [13C@@H]
+    - Branches, ring closures, disconnected fragments
+    - Implicit hydrogen (automatic, valence-based)
+    - Invalid SMILES returns false/NULL — never crashes
