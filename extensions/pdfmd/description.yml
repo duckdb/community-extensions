@@ -7,11 +7,10 @@ extension:
   license: MIT
   maintainers:
     - nkwork9999
-  requires_toolchains: "mupdf"
 
 repo:
   github: nkwork9999/duckMuPDF
-  ref: b4fe516edcf93dde6c972ff581e7449f60cbe9c7
+  ref: 4a181cc63be9e5eb6431e08f762fcbc20674c1c7
 
 docs:
   hello_world: |
