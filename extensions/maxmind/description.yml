@@ -1,28 +1,30 @@
 extension:
   name: maxmind
-  description: Read MaxMind databases (GeoLite, GeoIP)
-  version: 0.6.0
+  description: Read MaxMind databases (GeoLite, GeoIP, and more)
+  version: 0.7.0
   language: Zig
   build: cmake
   license: ISC
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64;windows_amd64_rtools;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - marselester
 
 repo:
   github: marselester/duckdb-maxmind
-  ref: bf0d736025a781c144797aaa790bb06560a7bf39
+  ref: e0f0918fdcae377ce9aab935e4cfa90107e423fc
 
 docs:
   hello_world: |
     SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', '');
   extended_description: |
-    Read MaxMind databases (GeoLite, GeoIP) using table and scalar functions.
-    Use `mmdb_record()` to query any MMDB file as JSON.
+    Read any MaxMind database using table and scalar functions.
+    GeoLite and GeoIP databases get typed columns;
+    other MMDB files return JSON in a `record` VARCHAR column.
 
     Scan all IP network blocks with `read_mmdb()`.
     Use the optional `network` parameter to limit the scan to a subnet,
     e.g., `read_mmdb(path, network='1.0.0.0/8')`.
+    Empty records are excluded by default; use `include_empty=true` to include them.
 
     ```sql
     SELECT network, city.names.en
@@ -48,7 +50,7 @@ docs:
     └───────────┘
     ```
 
-    Use `mmdb_record()` to query any MMDB file as JSON:
+    Use `mmdb_record()` to look up a record from any MMDB file as JSON:
 
     ```sql
     SELECT mmdb_record('./GeoLite2-City.mmdb', '1.0.64.0', 'city')::json -> 'city' -> 'names' ->> 'en' AS en;
