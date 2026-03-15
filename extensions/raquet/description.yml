@@ -5,13 +5,13 @@ extension:
   language: C++
   build: cmake
   license: Apache-2.0
+  excluded_platforms: "windows_amd64_mingw"
   maintainers:
     - jatorre
 
 repo:
   github: jatorre/duckdb-raquet
   ref: bfb1418beae25cbf2d89c03ae09081e71fc5eb5e
-
 
 docs:
   hello_world: |
