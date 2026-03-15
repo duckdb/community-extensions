@@ -1,7 +1,7 @@
 extension:
   name: anndata
   description: Read AnnData (.h5ad) files for single-cell genomics data analysis, with support for local and remote (HTTP/HTTPS/S3) files
-  version: 0.13.3
+  version: 0.14.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: honicky/anndata-duckdb-extension
-  ref: e15dd151b1ec85661f93cee146bd27bad8c00caa
+  ref: 7cedb5abdf500434c41156878d706e58912f7406
 
 docs:
   hello_world: |
@@ -81,4 +81,32 @@ docs:
 
     -- File info
     SELECT * FROM anndata_info('file.h5ad');
+    ```
+
+    ## Wildcard Multi-File Queries
+
+    All scan functions support glob patterns to query across multiple files.
+    A `_file_name` column is automatically added to identify the source file.
+
+    ```sql
+    -- Query obs metadata across all .h5ad files in a directory
+    SELECT * FROM anndata_scan_obs('samples/*.h5ad');
+
+    -- Intersection mode (default): only columns shared by all files
+    SELECT * FROM anndata_scan_obs('samples/*.h5ad', schema_mode := 'intersection');
+
+    -- Union mode: all columns, NULL where a file lacks a column
+    SELECT * FROM anndata_scan_obs('samples/*.h5ad', schema_mode := 'union');
+
+    -- Expression data across files (intersection of genes by default)
+    SELECT * FROM anndata_scan_x('samples/*.h5ad');
+
+    -- Union of genes across files
+    SELECT * FROM anndata_scan_x('samples/*.h5ad', schema_mode := 'union');
+
+    -- Works with S3 paths
+    SELECT * FROM anndata_scan_obs('s3://bucket/project/*.h5ad');
+
+    -- Multiple patterns
+    SELECT * FROM anndata_scan_obs(['batch_a/*.h5ad', 'batch_b/*.h5ad']);
     ```
