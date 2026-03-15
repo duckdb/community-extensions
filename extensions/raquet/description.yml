@@ -12,6 +12,7 @@ repo:
   github: jatorre/duckdb-raquet
   ref: bfb1418beae25cbf2d89c03ae09081e71fc5eb5e
 
+
 docs:
   hello_world: |
     -- Load extension and query a raster file
