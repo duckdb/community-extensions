@@ -9,7 +9,7 @@ extension:
     - tlinhart
 repo:
   github: tlinhart/duckdb-elasticsearch
-  ref: a64afda3d7dec3f5f7a294273b515f909833cddc
+  ref: 3e1603f37ae343920257123afdffe26f766512a9
   ref_next: d889b24d551e20b30874aa88eafbb5e7c92d3e90
 docs:
   hello_world: |
