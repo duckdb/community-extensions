@@ -15,7 +15,7 @@ repo:
 docs:
   hello_world: |
     -- Install and load the extension
-    INSTALL ducksync FROM community; 
+    INSTALL ducksync FROM community;
     LOAD ducksync;
     
     -- Option A: Use an existing DuckLake catalog
