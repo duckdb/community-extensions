@@ -5,6 +5,7 @@ extension:
   language: C++
   build: cmake
   license: Apache-2.0
+  excluded_platforms: "windows_amd64_mingw"
   maintainers:
     - jatorre
 
