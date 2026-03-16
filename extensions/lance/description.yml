@@ -12,9 +12,8 @@ extension:
 
 repo:
   github: lance-format/lance-duckdb
-  # v0.5.2
-  andium: 892b224af0f4a5508e5f3c46f1b8292155880258
-  ref: 3633381331446328924e8a1d75d8bbfec960952e
+  andium: 7d49b9195c2ab1c7dbda95c98e7b4b5c0eac81c2
+  ref: adfa8f5601d1de9fbb85f1167c3859bacc775e4d
 
 docs:
   hello_world: |
