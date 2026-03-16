@@ -11,8 +11,7 @@ extension:
 
 repo:
   github: halgari/duckdb-level-pivot
-  ref: fffc3f36aa7e72698efe523070fab3af25340161
-  ref_next: 005c79629fbb9b6959c183249d3f722b9d300c2f
+  ref: 005c79629fbb9b6959c183249d3f722b9d300c2f
 
 docs:
   hello_world: |
