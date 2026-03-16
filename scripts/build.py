@@ -27,6 +27,12 @@ with open(desc_file, 'r') as stream:
 
 print(desc)
 
+# Validate that the directory name matches the extension name
+dir_name = os.path.basename(os.path.dirname(desc_file))
+extension_name = desc['extension']['name']
+if dir_name != extension_name:
+    raise ValueError(f"Directory name '{dir_name}' does not match extension name '{extension_name}' in {desc_file}. Please rename the directory to '{extension_name}'.")
+
 # todo check other stuff like build system etc.
 
 with open('env.sh', 'w+') as hdl:
