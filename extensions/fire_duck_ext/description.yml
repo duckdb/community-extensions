@@ -1,7 +1,7 @@
 extension:
   name: fire_duck_ext
   description: Query Google Cloud Firestore directly from DuckDB using SQL
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: BorisBesky/fire_duck_ext
-  ref: 15b83084be3d51e2aa249eb05a87b5eccf42e43b
+  ref: a98168bd308dd2a90cc7ccc135a48f9694a46b4a
 
 docs:
   hello_world: |
@@ -56,7 +56,7 @@ docs:
     WHERE status = 'active';
 
     -- Update documents
-    CALL firestore_update('users', 'user123', 'status', 'verified');
+    SELECT * FROM firestore_update('users', 'user123', 'status', 'verified');
 
     -- Batch update with DuckDB filtering
     SET VARIABLE ids = (
@@ -64,18 +64,18 @@ docs:
         FROM firestore_scan('users')
         WHERE status = 'pending'
     );
-    CALL firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
+    SELECT * FROM firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
 
     -- Insert documents from a subquery (auto-generated IDs)
-    CALL firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
+    SELECT * FROM firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
 
     -- Insert with explicit document IDs from a column
-    CALL firestore_insert('users',
+    SELECT * FROM firestore_insert('users',
         (SELECT * FROM read_csv('new_users.csv')),
         document_id := 'user_id');
 
     -- Insert with explicit document ID selected from a column
-    CALL firestore_insert('users',
+    SELECT * FROM firestore_insert('users',
         (SELECT 'Alice' AS name, 30 AS age, 'alice_user_id' AS user_id),
         document_id := 'user_id');
 
@@ -115,9 +115,10 @@ docs:
     The fire_duck_ext extension enables direct SQL access to Google Cloud
     Firestore collections from DuckDB. It supports reading data with
     firestore_scan(), writing with firestore_update() and firestore_delete(),
-    batch operations, array transforms, collection group queries, and DuckDB
-    secret management for credential storage. Filter pushdown optimizes
-    queries by sending supported filters directly to Firestore.
+    batch operations, array transforms, collection group queries, SQL
+    ORDER BY / LIMIT pushdown, collection ID listings, and DuckDB secret
+    management for credential storage. Filter pushdown optimizes queries by
+    sending supported filters directly to Firestore.
 
     ## Authentication
     Secrets require `PROJECT_ID` and one of `SERVICE_ACCOUNT_JSON` or
@@ -203,6 +204,49 @@ docs:
     Use the `~collection` prefix to query across all subcollections with a
     given name. For example, `firestore_scan('~orders')` reads all documents
     from every subcollection named "orders" regardless of parent path.
+
+    ## SQL ORDER BY / LIMIT Pushdown
+    `firestore_scan()` can automatically push simple SQL `ORDER BY`,
+    `LIMIT`, and `OFFSET` clauses down to Firestore, reducing the number
+    of documents fetched for sorted and top-N queries.
+
+    Supported patterns include:
+    - `ORDER BY field`
+    - `ORDER BY field DESC`
+    - `ORDER BY field1, field2`
+    - `LIMIT n`
+    - `ORDER BY ... LIMIT n`
+    - `ORDER BY ... LIMIT n OFFSET m` (pushed as `LIMIT n + m`, with
+      DuckDB applying the final offset)
+
+    Named parameters still work and take precedence over SQL pushdown:
+    - If `order_by=` is provided, that server-side ordering is used and
+      DuckDB applies any SQL `ORDER BY` afterward.
+    - If `scan_limit=` is provided, that fetch limit is used and DuckDB
+      applies any SQL `LIMIT` afterward.
+
+    Use `EXPLAIN` to verify when SQL ordering and limits are being pushed.
+    Firestore will show entries like `Firestore Pushed Order: score DESC`
+    and `Firestore Pushed Limit: 5`.
+
+    ## Collection ID Listings
+    When `firestore_scan()` is given a document path instead of a collection
+    path, it lists that document's direct subcollection IDs instead of
+    reading documents. This is useful for discovering unknown nested
+    collection names.
+
+    The result contains a single `__document_id` column, where each row is a
+    subcollection ID.
+
+    Document-path scans support:
+    - Pagination across large numbers of subcollections
+    - SQL `ORDER BY __document_id` pushdown
+    - SQL `LIMIT` pushdown
+    - Named `order_by='__document_id'` or `order_by='__document_id DESC'`,
+      plus `scan_limit=...`
+
+    Other ordering expressions still work, but they are evaluated in DuckDB
+    after fetching the subcollection IDs.
 
     ## Missing Documents
     By default, `firestore_scan()` includes phantom/missing documents —
