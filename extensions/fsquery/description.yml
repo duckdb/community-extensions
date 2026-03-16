@@ -1,0 +1,58 @@
+extension:
+  name: fsquery
+  description: Query filesystem metadata using SQL with recursive directory traversal
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - halgari
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: halgari/fsquery
+  ref: d7a8acb6f3d5f73d1c7738da57ee3da1ce782f18
+
+docs:
+  hello_world: |
+    -- Scan a directory and find large files
+    SELECT path, size, mtime
+    FROM fsquery_scan('/home')
+    WHERE is_regular_file AND size > 1000000
+    ORDER BY size DESC
+    LIMIT 10;
+  extended_description: |
+    The **fsquery** extension adds a `fsquery_scan(path)` table function that recursively
+    traverses directories and returns file metadata including path, size, timestamps,
+    permissions, and file type flags.
+
+    ### Features
+    - **14 metadata columns**: path, mode, size, uid, gid, atime, mtime, ctime, nlink, ino, dev, is_regular_file, is_directory, is_symlink
+    - **Filter pushdown**: Path prefix filters are pushed down to avoid scanning irrelevant directories. When using `fsquery_scan()` (no explicit path), filters like `path >= '/home/user/docs'` or `path IN (...)` cause only those subtrees to be traversed.
+    - **Projection pushdown**: Only requested columns are computed, skipping unnecessary `stat` field extraction.
+    - Cross-platform support (Linux, macOS, Windows)
+
+    ### Examples
+
+    Scan a specific directory:
+    ```sql
+    SELECT path, size, mtime FROM fsquery_scan('/var/log') WHERE is_regular_file;
+    ```
+
+    Filter pushdown — only `/etc` and `/var/log` are traversed, not the entire filesystem:
+    ```sql
+    SELECT path, size FROM fsquery_scan()
+    WHERE path >= '/etc' OR path >= '/var/log';
+    ```
+
+    Find recently modified files:
+    ```sql
+    SELECT path, mtime FROM fsquery_scan('/home')
+    WHERE is_regular_file AND mtime > TIMESTAMP '2025-01-01'
+    ORDER BY mtime DESC;
+    ```
+
+    Find all symlinks:
+    ```sql
+    SELECT path FROM fsquery_scan('/usr') WHERE is_symlink;
+    ```
