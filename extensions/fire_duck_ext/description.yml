@@ -56,7 +56,7 @@ docs:
     WHERE status = 'active';
 
     -- Update documents
-    SELECT * FROM firestore_update('users', 'user123', 'status', 'verified');
+    CALL firestore_update('users', 'user123', 'status', 'verified');
 
     -- Batch update with DuckDB filtering
     SET VARIABLE ids = (
@@ -64,18 +64,18 @@ docs:
         FROM firestore_scan('users')
         WHERE status = 'pending'
     );
-    SELECT * FROM firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
+    CALL firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
 
     -- Insert documents from a subquery (auto-generated IDs)
-    SELECT * FROM firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
+    CALL firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
 
     -- Insert with explicit document IDs from a column
-    SELECT * FROM firestore_insert('users',
+    CALL firestore_insert('users',
         (SELECT * FROM read_csv('new_users.csv')),
         document_id := 'user_id');
 
     -- Insert with explicit document ID selected from a column
-    SELECT * FROM firestore_insert('users',
+    CALL firestore_insert('users',
         (SELECT 'Alice' AS name, 30 AS age, 'alice_user_id' AS user_id),
         document_id := 'user_id');
 
