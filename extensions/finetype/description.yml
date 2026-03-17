@@ -1,6 +1,6 @@
 extension:
   name: finetype
-  description: Semantic type classification — detects 168 data types (emails, URLs, dates, UUIDs, etc.) from raw strings
+  description: Semantic type classification — detects 250 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
   version: 0.2.0
   language: Rust
   build: cargo
@@ -11,12 +11,12 @@ extension:
     - hughcameron
 
 repo:
-  github: noon-org/duckdb-finetype
-  ref: 0c79f5efb0c98c683f79e6add9f1c52d4d7210f1
+  github: meridian-online/duckdb-finetype
+  ref: b7620cb76150450a05a36a9ac53b8b29b86363f4
 
 docs:
   hello_world: |
-    -- Classify a value into one of 168 semantic types
+    -- Classify a value into one of 250 semantic types
     D SELECT finetype('user@example.com') AS detected_type;
     ┌───────────────────────┐
     │     detected_type     │
@@ -47,7 +47,7 @@ docs:
     D SELECT finetype_unpack('{"email":"user@example.com","active":true}') AS annotated;
 
   extended_description: |
-    FineType is a tiered CharCNN semantic type classifier that detects 168 data types from raw string values.
+    FineType is a tiered CharCNN semantic type classifier that detects 250 data types from raw string values.
     It uses a hierarchical architecture of 34 character-level convolutional neural networks to classify values
     into a three-level taxonomy: `domain.category.type`.
 
@@ -87,13 +87,14 @@ docs:
 
     ## Type Taxonomy
 
-    168 types organized into 6 domains:
-    - **datetime**: dates, times, timestamps, epochs, durations, offsets (35 types)
-    - **technology**: URLs, IPs, UUIDs, booleans, versions, codes (30 types)
-    - **geography**: coordinates, locations, addresses, transportation (17 types)
-    - **identity**: names, emails, phones, payments, medical (30 types)
-    - **representation**: booleans, numbers, text, files, scientific (25 types)
-    - **container**: JSON, XML, CSV, arrays, key-value (11 types)
+    250 types organized into 7 domains:
+    - **container**: JSON, XML, CSV, arrays, key-value (12 types)
+    - **datetime**: dates, times, timestamps, epochs, durations, offsets (84 types)
+    - **finance**: currencies, accounting, market identifiers, transactions (31 types)
+    - **geography**: coordinates, locations, addresses, transportation (25 types)
+    - **identity**: names, emails, phones, payments, medical (34 types)
+    - **representation**: booleans, numbers, text, files, scientific (36 types)
+    - **technology**: URLs, IPs, UUIDs, booleans, versions, codes (28 types)
 
     ## Use Cases
 
@@ -113,4 +114,4 @@ docs:
     GROUP BY ALL;
     ```
 
-    For more information, see the [FineType documentation](https://github.com/noon-org/finetype).
+    For more information, see the [FineType documentation](https://github.com/meridian-online/finetype).
