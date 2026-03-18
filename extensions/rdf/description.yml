@@ -1,7 +1,7 @@
 extension:
   name: rdf
   description: A DuckDB extension to read and write RDF
-  version: 2.5.0
+  version: 2.6.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nonodename/duck_rdf
-  ref: 77599d424bc7b1bbbbab1442a0c4b0036c61ce8d
+  ref: 1048152aea9de44c0ca8c0aba23331df1335d0ea
 
 docs:
   hello_world: |
@@ -65,6 +65,15 @@ docs:
     | `prefix_expansion` | `false` | Expand CURIE-form URIs to full URIs (Turtle/TriG only) |
     | `file_type` | auto-detected | Override format: `ttl`, `nt`, `nq`, `trig`, `rdf`/`xml` |
 
+    The experimental `read_sparql(endpoint, query)` sends a SPARQL SELECT query to a remote endpoint and returns the result set as a DuckDB table. Column names are derived from the SPARQL variable names; all columns are VARCHAR. Unbound variables are returned as empty strings.
+
+    ```sql
+    -- Count number of humans in wikidata
+    SELECT * FROM read_sparql(
+                'https://query.wikidata.org/sparql',
+                'SELECT (COUNT(*) AS ?count) WHERE {   ?item wdt:P31 wd:Q5 .}'
+            );
+    ```
     ### Writing RDF (R2RML)
 
     Write RDF using [R2RML](https://www.w3.org/TR/r2rml/) mapping files with DuckDB's `COPY TO`
