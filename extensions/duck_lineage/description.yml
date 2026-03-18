@@ -1,7 +1,7 @@
 extension:
   name: duck_lineage
   description: The Duck Lineage extension automatically captures query lineage events and sends them to an Open Lineage backend.
-  version: 0.1.1
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: ilum-cloud/duck_lineage
-  andium: 8815e68c7a2003b221a24cbdbdfc553d7498713c
-  ref: 460a98c5d4d6e35e7bff8e765b8555b35e410123
+  andium: c6786b5e3baa508aa72654884faadca4b25bde64
+  ref: 9a4324ee86db62f8c31f784af62fcd265412e9d9
 
 docs:
   hello_world: |
@@ -66,5 +66,4 @@ docs:
 
     Limitations:
     - Lineage captured from Prepared Statements is less detailed
-    - No column-level lineage (dataset-level granularity only)
     - Requires an external OpenLineage-compatible backend for event storage
