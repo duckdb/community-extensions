@@ -12,6 +12,6 @@ extension:
   requires_toolchains: rust
   version: '2025120401'
 repo:
+  andium: f6aae9315965ce5eeba233aa147ddc7f42b5dda5
   github: query-farm/inflector
-  andium: 5f2fa551e1c8ca6fdf50f8752afc637fb7a1ceee
-  ref: 2e88fdb219f28135de5e5eed56db0a2e92b54686
+  ref: cb2c34bc7386b4e91150b0116ce0a24f3cb1cf3d
