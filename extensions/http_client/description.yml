@@ -48,7 +48,7 @@ extension:
   - Okabintaro
   - rustyconover
   name: http_client
-  version: '2025120401'
+  version: '2026031901'
 repo:
   github: query-farm/httpclient
-  ref: 8cd2b68349581f733f325c32a16e9fc237ab3eba
+  ref: 94abcad25371d61659ba2f540437348d903e0b33
