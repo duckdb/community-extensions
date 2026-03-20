@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: polydbms/sheetreader-duckdb
-  ref: 887013792794aaac8bffd040fcb2439dd797ad53
+  ref: e2b9366c4c409f012a6a31191e629c96628e17e6
 
 docs:
   hello_world: |
