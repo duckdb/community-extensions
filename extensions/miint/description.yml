@@ -19,7 +19,7 @@ repo:
 docs:
   hello_world: |
     -- Extract 16S rRNA gene sequences from E. coli K-12 MG1655
-    -- Fetches genome and annotations directly from NCBI
+    -- Fetches genome and annotations directly from NCBI 
     WITH ecoli_16s_positions AS (
         SELECT position, stop_position, strand,
                attributes['gene'] AS gene,
