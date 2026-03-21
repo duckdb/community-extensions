@@ -50,5 +50,6 @@ extension:
   name: http_client
   version: '2025120401'
 repo:
+  andium: e9730fc28af6757f663246f06956a8cab7ad9a55
   github: query-farm/httpclient
-  ref: 8cd2b68349581f733f325c32a16e9fc237ab3eba
+  ref: 7269c51927a0238402f2e6deb5d7d5e2f13de838
