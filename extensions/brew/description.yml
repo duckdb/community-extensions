@@ -1,7 +1,7 @@
 extension:
   name: brew
   description: Get locally homebrew casks, packages and formulas and their dependencies as nicely types tables
-  version: 0.7.0
+  version: 0.8.0
   language: C++
   build: cmake
   license: MIT
@@ -12,10 +12,19 @@ extension:
 
 repo:
   github: adriens/duckdb-brew
-  ref: 8ded0c1eb77b23a3349c7c02b631f2ede305752c
+  ref: 8ccc4bccd4d8108a91639faa01dfdc805d799d36
 
 docs:
   hello_world: |
+    -- Get brew version
+    SELECT brew_version() as brew_version;
+
+    -- View all configuration with categories
+    SELECT name, value, category FROM brew_config();
+
+    -- Run brew doctor to check system health (categorized)
+    FROM brew_doctor();
+
     -- Get all casks
     from brew_casks();
 
