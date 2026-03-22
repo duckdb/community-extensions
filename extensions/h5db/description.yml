@@ -1,7 +1,7 @@
 extension:
   name: h5db
   description: Read HDF5 datasets and attributes
-  version: 0.5.0
+  version: 0.5.1
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
     - jokasimr
 repo:
   github: jokasimr/h5db
-  ref: v0.5.0
+  ref: v0.5.1
   andium: v0.3.0
 
 docs:
