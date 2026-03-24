@@ -1,7 +1,7 @@
 extension:
   name: miint
   description: Bioinformatics extension for microbiome research - read/write FASTQ, SAM/BAM, BIOM, GFF, Newick trees, query NCBI, and more.
-  version: '1.0.0-rc.2'
+  version: '1.0.0-rc.3'
   language: C++
   build: cmake
   license: BSD-3-Clause
@@ -9,12 +9,12 @@ extension:
   maintainers:
     - wasade
   requires:
-    duckdb: "1.5.0"
+    duckdb: "1.5.1"
   requires_toolchains: rust
 
 repo:
   github: the-miint/duckdb-miint
-  ref: d4034522631f1d0b77d9bda2da76eaaae6e98fa7
+  ref: f247559c6db67501448605360e36d0372c6f069e
 
 docs:
   hello_world: |
