@@ -1,7 +1,7 @@
 extension:
   name: keboola
   description: "DuckDB extension for Keboola Storage — query and write Keboola tables using standard SQL"
-  version: "0.1.2"
+  version: "0.1.3"
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: keboola/duckdb-extension
-  ref: f0dea208ac844224c427de23640908a6f996174f
+  ref: 26321e8e720a9f488eec48685568f8dd74516617
 
 docs:
   hello_world: |
