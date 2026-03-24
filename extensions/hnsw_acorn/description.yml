@@ -1,0 +1,58 @@
+extension:
+  name: hnsw_acorn
+  description: Filtered HNSW vector search using the ACORN-1 algorithm for correct results with WHERE clauses
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - cigrainger
+
+repo:
+  github: cigrainger/duckdb-hnsw-acorn
+  ref: 158ea81c476f372e145b162274d61740dbce872e
+
+docs:
+  hello_world: |
+    -- Create a table with vectors and categories
+    CREATE TABLE docs (id INTEGER, vec FLOAT[3], category VARCHAR);
+    INSERT INTO docs VALUES
+      (1, [1.0, 0.0, 0.0], 'science'),
+      (2, [0.9, 0.1, 0.0], 'science'),
+      (3, [0.0, 1.0, 0.0], 'history'),
+      (4, [0.0, 0.0, 1.0], 'history'),
+      (5, [0.8, 0.2, 0.1], 'science'),
+      (6, [0.1, 0.9, 0.0], 'history');
+
+    -- Create HNSW index
+    CREATE INDEX idx ON docs USING HNSW (vec);
+
+    -- Filtered vector search: only 'science' docs, nearest to query
+    -- Returns exactly 2 results (upstream duckdb-vss may return fewer)
+    SELECT id, category, array_distance(vec, [1.0, 0.0, 0.0]::FLOAT[3]) AS dist
+    FROM docs
+    WHERE category = 'science'
+    ORDER BY dist
+    LIMIT 2;
+
+  extended_description: |
+    Fork of duckdb-vss that adds ACORN-1 filtered HNSW search
+    (arXiv:2403.04871). The upstream extension applies WHERE clauses
+    after the index returns top-k results, so filtered queries often
+    return fewer rows than LIMIT. This extension pushes filter
+    predicates into the HNSW graph traversal, ensuring correct result
+    counts with high recall.
+
+    Features:
+    - ACORN-1 two-hop expansion for graph connectivity under filtering
+    - Three-hop expansion for very low selectivity
+    - Selectivity-based strategy switching (post-filter / ACORN-1 / brute-force)
+    - Zone map pruning for efficient filter evaluation
+    - Per-node 90% expansion threshold (Lucene's optimization)
+    - All three distance metrics: L2, cosine, inner product
+    - Prepared statement support for parameterized query vectors
+    - Configurable via SET hnsw_acorn_threshold / hnsw_bruteforce_threshold
+
+    Benchmark (228k movies, 768-dim embeddings, LIMIT 10):
+      English (~60%): 10/10 | Japanese (~3%): 10/10
+      Korean (~1%): 10/10   | Rating >= 8.0 (~5%): 10/10
