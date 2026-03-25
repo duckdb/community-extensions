@@ -54,5 +54,6 @@ extension:
   name: httpserver
   version: '2025120401'
 repo:
+  andium: 8a53d8b7f4290608e0eb0d4dbfbafefaf04209e9
   github: Query-farm/httpserver
-  ref: 8a53d8b7f4290608e0eb0d4dbfbafefaf04209e9
+  ref: f73314d443b6752ab0f7690fd743fd23e82cb197
