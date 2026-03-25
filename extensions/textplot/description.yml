@@ -12,6 +12,6 @@ extension:
   name: textplot
   version: '2025120401'
 repo:
-  github: query-farm/textplot
   andium: d3b90faa3372d4204915343546fa0556601bf243
-  ref: d8bccda8f7ed5fa162515056866292b95864d747
+  github: query-farm/textplot
+  ref: f40c6a92e7cfc71506bb216824a74257f105c499
