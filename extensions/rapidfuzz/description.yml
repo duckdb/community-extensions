@@ -11,6 +11,6 @@ extension:
   name: rapidfuzz
   version: '2025120401'
 repo:
-  github: query-farm/rapidfuzz
   andium: eb2fe18d3f60205722521ff2ddd8eb3c932c7888
-  ref: 62a353eb3bc4919348356f02d0c8bfb353aa9e56
+  github: query-farm/rapidfuzz
+  ref: 01f607b461ee74e1b523bc3668ac2fbf2a06288a
