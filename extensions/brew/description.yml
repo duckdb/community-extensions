@@ -1,7 +1,7 @@
 extension:
   name: brew
   description: Get locally homebrew casks, packages and formulas and their dependencies as nicely types tables
-  version: 0.8.0
+  version: 0.8.1
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: adriens/duckdb-brew
-  ref: 8ccc4bccd4d8108a91639faa01dfdc805d799d36
+  ref: 60c96b1ad37ef63eb800c6ecba96c8db19774fd8
 
 docs:
   hello_world: |
