@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: princeton-ddss/lsh
-  ref: faa3d23f41e6607cb769cc455c54846e714d39ae
+  ref: a2d094e33d9a0b44ad40db4a7cac5fa3be2803a9
 
 docs:
   hello_world: |
