@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nsv-format/nsv-duckdb
-  ref: 72f056af53bad26398ef659a72b21413a14726d5
+  ref: 52da7b3a2248a4c11dbd51251c89555e9587c282
 
 docs:
   hello_world: |
