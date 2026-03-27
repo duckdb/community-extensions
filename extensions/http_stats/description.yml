@@ -9,8 +9,8 @@ extension:
     - tlinhart
 repo:
   github: tlinhart/duckdb-http-stats
-  ref: 5c083a955ce5ea6726310dd4a53476c19d2ea6e8
-  ref_next: c246eec7c37b39b78069edefa3384cd72a8a5087
+  ref: c7e3cff310bfe13e6e408ceb73865c43d6c82ef5
+  ref_next: db5ba06f18f803e9c6e34ca79568a9091ad098be
 docs:
   hello_world: |
     -- Run a query against remote source(s) with profiling enabled.
