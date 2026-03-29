@@ -1,7 +1,7 @@
 extension:
   name: webbed
-  description: Comprehensive processing extension for web markup languages (XML and HTML) that enables SQL-native analysis of structured documents with intelligent schema inference, XPath-based data extraction, and powerful HTML table parsing capabilities.
-  version: 1.4.0
+  description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
+  version: 2.0.0
   language: C++
   build: cmake
   license: MIT
@@ -11,8 +11,8 @@ extension:
   vcpkg_commit: 68a1c387f660632f2f65cdb7e8cd093a08840e5d
 repo:
   github: teaguesterling/duckdb_webbed
-  andium: 7d264c0f5b181718c0fc43e89a145cae7b063077
-  ref: 7d264c0f5b181718c0fc43e89a145cae7b063077
+  andium: 9e5b67fb362d023c228a1793e4784d67466faf6e
+  ref: 9e5b67fb362d023c228a1793e4784d67466faf6e
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
@@ -57,7 +57,7 @@ docs:
 
     **Document Block Processing**: Convert HTML documents to and from structured block representations with `html_to_duck_blocks()` and `duck_blocks_to_html()`. Supports paragraphs, headings, code blocks, tables, lists, inline formatting (bold, italic, links, etc.), and frontmatter preservation. Integrates with the `duck_block_utils` extension for full Markdown support.
 
-    **Smart Schema Inference & File Reading**: Automatically flatten XML/HTML documents into relational tables with intelligent type detection for dates, numbers, booleans, and nested structures. Functions like `read_xml()` and `read_html()` provide direct file-to-table conversion with configurable options for error handling, maximum file sizes, and schema customization.
+    **Smart Schema Inference & File Reading**: Automatically flatten XML/HTML documents into relational tables with intelligent type detection for dates, numbers, booleans, and nested structures. Functions like `read_xml()` and `read_html()` provide direct file-to-table conversion with configurable options including `datetime_format` presets, `nullstr` for custom NULL values, and schema customization. **SAX streaming** (v2.0) automatically handles files over 16MB using a push parser that processes XML in 64KB chunks — peak memory stays proportional to a single record, not the file size.
 
     **Key XML Functions**:
     - `read_xml(pattern)` - Read XML files with automatic schema inference
@@ -85,4 +85,4 @@ docs:
 
     See https://duckdb-webbed.readthedocs.io for comprehensive documentation and examples.
 
-    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling, memory-safe RAII implementation, and 100% test coverage. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
+    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 68 test suites with 2511 assertions, including DOM/SAX equivalence testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
