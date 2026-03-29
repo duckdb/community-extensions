@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: pdet/Scrooge-McDuck
-  ref: 203d57e48652410d44522d4006366985e147aa33
+  ref: fe1be95f5cd9843d6e80647cf9d28cb5e3c18756
 
 docs:
   hello_world: |
