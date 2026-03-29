@@ -1,7 +1,7 @@
 extension:
   name: duckdb_geoip_rs
   description: Retrieve geo ip data from MMDB database
-  version: 0.1.2
+  version: 0.2.0
   language: Rust
   build: cmake
   license: MIT
@@ -12,12 +12,15 @@ extension:
 
 repo:
   github: william-billaud/duckdb-geoip-rs
-  ref: 49fdbf9e35f54dd6402c2473575880691b6ed12c
+  ref: 2de7b6b7b1f6252c91b733c0ee39e44e0ac173b5
 
 docs:
   hello_world: |
     -- Before, export mmdb path : export MAXMIND_MMDB_DIR="`pwd`"
 
+    INSTALL 'duckdb_geoip_rs' FROM community;
+    LOAD 'duckdb_geoip_rs';
+    
     -- Create sample data
     CREATE TABLE ip_list (ip VARCHAR);
     INSERT INTO ip_list VALUES ('1.1.1.1'), ('8.8.8.8'), ('80.8.8.8'), ('90.9.250.1'), ('not_anip');
@@ -37,8 +40,6 @@ docs:
     └────────────┴───────────────────┴───────────────────┴────────────────┴───────────────────────┘
   extended_description: |
     Path to a directory containing GeoLite2-City.mmdb and GeoLite2-ASN.mmdb files must be exported to MAXMIND_MMDB_DIR environment variable. Defaulting to /usr/share/GeoIP.
-
-    This extension depends on the inet core extensions, which will be automatically installed, except if you do not have access to the internet.
 
     This extension export 4 function using MaxminDB database:
 
