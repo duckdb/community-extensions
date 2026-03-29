@@ -5,9 +5,9 @@ extension:
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
   vcpkg_commit: "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0"
   requires_toolchains: "parser_tools"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
   maintainers:
     - hafenkran
 
