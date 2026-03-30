@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: Dtenwolde/dutchdb
-  ref: d3cda53c02a097c1abcde8c0e352929183d898e6
+  ref: 69720da0927b0f121dd83279920fe67fdbd8a640
 
 docs:
   hello_world: |
