@@ -1,7 +1,7 @@
 extension:
   name: duck_tails
   description: Smart Development Intelligence for DuckDB - Git-aware data analysis capabilities that allow querying git history, accessing files at any revision, and performing version-aware data analysis with SQL.
-  version: 1.3.0
+  version: 1.3.1
   language: C++
   build: cmake
   license: MIT
@@ -11,15 +11,15 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duck_tails
-  andium: 4447da9c9c8dc4c7e20b395e141b9d2d7bab2af3
-  ref: 4447da9c9c8dc4c7e20b395e141b9d2d7bab2af3
+  ref: 8bff511c120afb01137b6e79baa9964c572b20b7
+
 docs:
   hello_world: |
     -- Load the extension
     LOAD 'duck_tails';
 
     -- Query git history (defaults to current directory)
-    SELECT commit_hash, author_name, message, author_date 
+    SELECT commit_hash, author_name, message, author_date
     FROM git_log() LIMIT 5;
 
     -- Access files from git repository at specific revisions
@@ -43,7 +43,7 @@ docs:
 
     Key functions include:
     - `git_log([path])` - Query commit history
-    - `git_branches([path])` - List repository branches  
+    - `git_branches([path])` - List repository branches
     - `git_tags([path])` - List repository tags
     - `diff_text(old, new)` - Compute text differences
     - `read_git_diff(file1, [file2])` - Structured diff analysis
