@@ -1,19 +1,19 @@
 extension:
   name: ducktinycc
-  description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC
-  version: 0.0.3.9000
+  description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC — self-contained, no external runtime required
+  version: 0.0.4
   language: C
   build: cmake
   license: MIT
   requires_toolchains: "python3"
   excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64
   maintainers:
-    - "Sounkou Mahamane Toure"
+    - "sounkou-bioinfo"
 
 
 repo:
   github: sounkou-bioinfo/DuckTinyCC
-  ref: afe3411fd87c7e8577c0aaf60b6c0484f793065e
+  ref: c5160974faa374c6de40f8ea95ba01fb6d3390fc
 
 docs:
   hello_world: |
@@ -98,11 +98,14 @@ docs:
       - wrappers are generated from return_type/arg_types and registered through ducktinycc_register_signature(...)
       - wrapper_mode supports row and batch execution paths
       - code is compiled + relocated in-memory (no separate shared-library artifact)
+      - registering the same sql_name twice in a session returns false/E_INIT_FAILED (consistent across platforms); use tcc_new_state to reset before re-registering
 
-    Compile/runtime assets:
-      - compile/quick_compile use a TinyCC runtime path (headers + libraries)
-      - libtcc1.a is not strictly required for every compiled function; it is needed when generated code references TinyCC runtime helper symbols
-      - extern/system-library bindings can work without libtcc1.a when those helper symbols are not required and libraries are resolvable
+    Embedded runtime (self-contained):
+      - libtcc1.a and all TinyCC include headers (stdarg.h, stddef.h, tccdefs.h, etc.) are baked into the extension binary at build time
+      - on the first compile or quick_compile call, tcc_ensure_embedded_runtime() extracts them to a content-hash-keyed temp directory (e.g. /tmp/ducktinycc_<hash>/)
+      - subsequent calls in the same process reuse that directory without re-extracting
+      - no separate TinyCC installation or runtime path configuration is needed after deployment
+      - tcc_system_paths() shows the active runtime path and whether it resolved from the embedded extraction
 
     Project details and examples: https://github.com/sounkou-bioinfo/DuckTinyCC
 
