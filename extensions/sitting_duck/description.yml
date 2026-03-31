@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
-  description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars and pattern matching
-  version: 1.4.0
+  description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
+  version: 1.5.0
   language: C++
   build: cmake
   license: MIT
@@ -9,7 +9,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: c46dfc1a8fd7cb391b109d01fe424a858eb466e9
+  ref: 96cf501d4a8d04f9718fd26e66bc807ac676a8c4
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
@@ -61,11 +61,11 @@ docs:
     **Pattern Matching:**
     Find code structures using pattern-by-example matching with wildcards:
     ```sql
-    -- Find all eval() calls
-    SELECT * FROM ast_match('code', 'eval(__X__)', 'python');
+    -- Recursive wildcards for deep matching
+    SELECT * FROM ast_match('code', 'class __C__: %__<**>__% def __M__(self): %__<BODY*>__%', 'python');
 
-    -- Variadic patterns for flexible matching
-    SELECT * FROM ast_match('code', 'def __F__(__): %__<BODY*>__% return __Y__', 'python');
+    -- Optional and negation wildcards
+    SELECT * FROM ast_match('code', 'def __F__(__<?ARGS>__): %__<BODY*>__%', 'python');
     ```
     See: https://sitting-duck.readthedocs.io/en/latest/guide/pattern-matching/
 
@@ -73,6 +73,13 @@ docs:
     - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows
     - `parse_ast(content, language)` - Parse source code strings
     - `ast_match(source, pattern, lang)` - Pattern matching for code search
+
+    **Relational Predicates (v1.5.0):**
+    - `ast_has(source, parent_type, child_type)` - Check containment relationships
+    - `ast_inside(source, child_type, parent_type, parent_name)` - Find nodes inside specific parents
+    - `ast_precedes(source, before_type, after_type)` - Ordering predicates
+    - `ast_follows(source, after_type, before_type)` - Ordering predicates
+    - `ast_not_has(source, parent_type, child_type)` - Negated containment
 
     **Analysis Macros (file-path based):**
     - `ast_definitions(source)` - All named definitions with categories
