@@ -11,7 +11,7 @@ extension:
 repo:
   github: cwida/duckpgq-extension
   andium: 42eea114b22fad93f04cb7edf50d2b0077e464fa
-  ref: a5e633bdae73ccc41b4217fc6a836a58064088bc
+  ref: 78c7a6cd5e0e03926b28ed7ec2cdb2fe333b0c0b 
 
 docs:
   hello_world: |
