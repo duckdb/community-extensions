@@ -12,6 +12,6 @@ extension:
   name: bitfilters
   version: '2025120401'
 repo:
+  andium: 3783eb8570af2be1326348126b15951707d50bde
   github: query-farm/bitfilters
-  ref: 1acc412f932a9b88f1504bf76fc0cbdd891b97f3
-  ref_next: 3ee5114aefbda6c97dc90dd10303dd6591fac9d2
+  ref: 8117459530db778478e52b262a127e196c3d6218

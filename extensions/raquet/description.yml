@@ -1,0 +1,53 @@
+extension:
+  name: raquet
+  description: "Raster analytics on Raquet files with QUADBIN spatial indexing, raster ingestion, and PostGIS-style functions"
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - jatorre
+
+repo:
+  github: jatorre/duckdb-raquet
+  ref: c5ce3e292b867621da67a3f50ca0a0e4213fd4ff
+
+docs:
+  hello_world: |
+    -- Load extension and query a raster file
+    LOAD raquet;
+
+    -- Read a raquet file and get pixel value at a location
+    SELECT ST_RasterValue(block, band_1, ST_Point(-73.98, 40.75), metadata) AS elevation
+    FROM read_raquet_at('dem.parquet', -73.98, 40.75);
+
+    -- Tile statistics
+    SELECT block,
+           (ST_RasterSummaryStats(band_1, metadata)).mean AS avg_value
+    FROM read_raquet('dem.parquet')
+    LIMIT 5;
+
+  extended_description: |
+    Raquet is a specification by CARTO for storing raster data in Apache Parquet
+    format with QUADBIN spatial indexing. This extension enables DuckDB to query
+    Raquet files directly using SQL.
+
+    **Features:**
+    - PostGIS-style raster functions (ST_RasterValue, ST_RasterSummaryStats, ST_RegionStats)
+    - QUADBIN spatial indexing functions (polyfill, kring, parent/children)
+    - Raster ingestion from GeoTIFF/NetCDF via read_raster() (requires GDAL, optional)
+    - Band math operations (ST_NormalizedDifference, ST_BandMath)
+    - Raster clipping (ST_Clip, ST_ClipMask)
+    - Metadata validation (raquet_validate_metadata)
+    - Time-series support with CF conventions (NetCDF compatible)
+    - Cloud-native queries with predicate pushdown (S3/GCS)
+    - Native DuckDB GEOMETRY type support
+
+    **Note:** The read_raster() function requires GDAL and is only available
+    when built with GDAL support. All other functions work without GDAL.
+
+    **Links:**
+    - [Raquet Specification](https://raquet.io)
+    - [Documentation](https://github.com/jatorre/duckdb-raquet#readme)
+    - [Performance Benchmarks](https://github.com/jatorre/duckdb-raquet/blob/main/docs/PERFORMANCE_COMPARISON.md)

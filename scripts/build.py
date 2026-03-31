@@ -27,6 +27,12 @@ with open(desc_file, 'r') as stream:
 
 print(desc)
 
+# Validate that the directory name matches the extension name
+dir_name = os.path.basename(os.path.dirname(desc_file))
+extension_name = desc['extension']['name']
+if dir_name != extension_name:
+    raise ValueError(f"Directory name '{dir_name}' does not match extension name '{extension_name}' in {desc_file}. Please rename the directory to '{extension_name}'.")
+
 # todo check other stuff like build system etc.
 
 with open('env.sh', 'w+') as hdl:
@@ -34,7 +40,10 @@ with open('env.sh', 'w+') as hdl:
 	if 'canonical_name' in desc.get('repo', {}):
 		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
 	extension_ref = desc['repo']['ref']
-	if  os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
+	if os.environ['DUCKDB_VERSION'] == 'v1.4.4':
+		if 'andium' in desc['repo']:
+			extension_ref = desc['repo']['andium']
+	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
 		if 'ref_next' in desc['repo']:
 			extension_ref = desc['repo']['ref_next']
 	hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")

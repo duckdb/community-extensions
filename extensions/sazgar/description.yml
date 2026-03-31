@@ -1,7 +1,7 @@
 extension:
   name: sazgar
   description: "System monitoring & SQL query routing for DuckDB - 25+ table functions for CPU, memory, disk, network, processes, Docker, GPU. Execute queries on remote databases via PostgreSQL wire protocol with SQLGlot dialect translation (PostgreSQL, MySQL, ClickHouse, Snowflake, BigQuery)."
-  version: 1.0.0
+  version: 1.1.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: 79781cfbc77286c3202d035e42bcde5dac1f204b
+  ref: e1bc94605ad475dc137f6a8227392497140d2767
 
 docs:
   hello_world: |
@@ -335,7 +335,7 @@ docs:
     - **GitHub Repository:** https://github.com/Angelerator/Sazgar
     - **License:** MIT
     - **Language:** Pure Rust 🦀
-    - **DuckDB Version:** 1.4.3+
+    - **DuckDB Version:** 1.5.0+
 
     ---
 

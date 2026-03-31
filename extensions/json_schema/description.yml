@@ -10,6 +10,6 @@ extension:
   name: json_schema
   version: '2025120401'
 repo:
+  andium: 69664ce2fb234a071c4e01690584d2c402e96705
   github: query-farm/json_schema
-  ref: 69664ce2fb234a071c4e01690584d2c402e96705
-  ref_next: ecfeb13db765fd503ff8155c8c22b676b9c9dfc0
+  ref: 0f7d4b08ab527cafcf85232e70d83e49f7130fa3

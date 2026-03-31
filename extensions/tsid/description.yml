@@ -79,6 +79,6 @@ extension:
   name: tsid
   version: '2025120401'
 repo:
+  andium: d72eb53d09523d21f93be28016a85302c4319182
   github: quackscience/duckdb-extension-tsid
-  ref: d72eb53d09523d21f93be28016a85302c4319182
-  ref_next: 0708f4a60ed81b5d4fa5e92034cd26b5a15dcce7
+  ref: e0edb6c7afacdd8b08b9013cf2364226be8a8400

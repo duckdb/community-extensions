@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-pdal
-  ref: 47d5cfcc23405a32dd5c1ca75e1b2aa87382ede6
+  andium: 47d5cfcc23405a32dd5c1ca75e1b2aa87382ede6
+  ref: b59f4628ff0bc20a464d66d56b15fa5bd9d71b38
 
 docs:
   hello_world: |

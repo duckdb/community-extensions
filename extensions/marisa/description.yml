@@ -13,6 +13,6 @@ extension:
   name: marisa
   version: '2025120401'
 repo:
+  andium: 8feeb0b0157b7fad0694ee09c430bbabce54cbb7
   github: query-farm/marisa
-  ref: 8feeb0b0157b7fad0694ee09c430bbabce54cbb7
-  ref_next: 7f1df16cbe53df651a71314ebf0ffc428ef10166
+  ref: 13123f4de215118a4c005bfca9dde0b856e74247

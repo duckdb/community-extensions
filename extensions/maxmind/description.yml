@@ -1,25 +1,30 @@
 extension:
   name: maxmind
-  description: Read MaxMind databases (GeoLite, GeoIP)
-  version: 0.3.1
+  description: Read MaxMind databases (GeoLite, GeoIP, and more)
+  version: 0.8.0
   language: Zig
   build: cmake
   license: ISC
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64;windows_amd64_rtools;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - marselester
 
 repo:
   github: marselester/duckdb-maxmind
-  ref: 8df8fe223fd2e280310578568973b41801edecb8
+  ref: fb1ac77c034c9e8d1fae5840439f10ce8da20282
 
 docs:
   hello_world: |
     SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', '');
   extended_description: |
-    Read MaxMind databases (GeoLite, GeoIP) using table and scalar functions.
+    Read any MaxMind database using table and scalar functions.
+    GeoLite and GeoIP databases get typed columns;
+    other MMDB files return JSON in a `record` VARCHAR column.
 
-    Scan all IP network blocks with `read_mmdb()`:
+    Scan all IP network blocks with `read_mmdb()`.
+    Use the optional `network` parameter to limit the scan to a subnet,
+    e.g., `read_mmdb(path, network='1.0.0.0/8')`.
+    Empty records are excluded by default; use `include_empty=true` to include them.
 
     ```sql
     SELECT network, city.names.en
@@ -33,24 +38,11 @@ docs:
     └─────────────┴───────────┘
     ```
 
-    Limit the scan to a subnet with the `network` parameter:
+    Look up a record by IP address with typed scalar functions that return structs.
+    The third parameter filters which fields to decode for faster lookups (pass `''` for all fields).
 
     ```sql
-    SELECT network, city.names.en
-    FROM read_mmdb('./GeoLite2-City.mmdb', network='1.0.0.0/8')
-    WHERE city.names.en IS NOT NULL
-    LIMIT 1;
-    ┌─────────────┬───────────┐
-    │   network   │    en     │
-    ├─────────────┼───────────┤
-    │ 1.0.64.0/20 │ Hiroshima │
-    └─────────────┴───────────┘
-    ```
-
-    Look up a record by IP address with scalar functions:
-
-    ```sql
-    SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', '').city.names.en AS en;
+    SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', 'city').city.names.en AS en;
     ┌───────────┐
     │    en     │
     ├───────────┤
@@ -58,10 +50,10 @@ docs:
     └───────────┘
     ```
 
-    The third parameter filters which fields to decode for faster lookups:
+    Use `mmdb_record()` to look up a record from any MMDB file as JSON:
 
     ```sql
-    SELECT geolite_city('./GeoLite2-City.mmdb', '1.0.64.0', 'city').city.names.en AS en;
+    SELECT mmdb_record('./GeoLite2-City.mmdb', '1.0.64.0', 'city')::json -> 'city' -> 'names' ->> 'en' AS en;
     ┌───────────┐
     │    en     │
     ├───────────┤

@@ -31,7 +31,7 @@ docs:
       arg_types := []
     );
 
-    -- Call the registered C UDF
+    -- Call the registered C UDF 
     SELECT hello_from_c() AS msg;
 
   extended_description: |

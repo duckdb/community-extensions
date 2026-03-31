@@ -1,0 +1,32 @@
+extension:
+  name: gh
+  description: Experimental gh:// filesystem support
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - carlopi
+
+repo:
+  github: carlopi/duckdb-gh
+  ref: 61fe83aff23da586fd36c9f480f4dd0d966cb87c
+
+docs:
+  hello_world: |
+    -- Read a CSV straight from GitHub
+    SELECT * FROM read_csv('gh://duckdb/duckdb@main/data/csv/issue2934.csv') LIMIT 5;
+    
+    -- Star counts for all DuckDB repos
+    SELECT name, stargazers_count, language
+    FROM gh_repo('duckdb/*')
+    ORDER BY stargazers_count DESC;
+    
+    -- Open issues for a repo
+    SELECT number, title, labels
+    FROM gh_issues('duckdb/duckdb')
+    ORDER BY number DESC
+    LIMIT 20;
+    
+    -- Recursively read all CSVs under a directory
+    SELECT count(*) FROM read_csv('gh://duckdb/duckdb@main/data/csv/glob/**/*.csv');

@@ -7,10 +7,11 @@ on:
 
 jobs:
   duckdb_ccache:
+    if: ${{ github.repository == 'duckdb/community-extensions' || github.event_name != 'schedule' }}
     name: Warm CCache using DuckDB C++ extension template
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     with:
-      duckdb_version: 'v1.4.4'
+      duckdb_version: 'v1.5.1'
       ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
       extra_toolchains: ''
       extension_name: 'quack'
@@ -22,6 +23,7 @@ jobs:
     secrets: inherit
 
   parse_dependency_list:
+    if: ${{ github.repository == 'duckdb/community-extensions' ||  github.event_name != 'schedule' }}
     name: Fetch VCPKG dependency list
     runs-on: ubuntu-latest
     outputs:
@@ -40,7 +42,7 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     needs: parse_dependency_list
     with:
-      duckdb_version: 'v1.4.4'
+      duckdb_version: 'v1.5.1'
       ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
       extra_toolchains: ';rust;go;fortran;parser_tools;'
       extension_name: 'capi_quack'

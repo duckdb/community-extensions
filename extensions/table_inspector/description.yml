@@ -1,7 +1,7 @@
 extension:
   name: table_inspector
   description: Observability into DuckDB storage internals at the database, table, and column levels
-  version: 0.0.1
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -11,8 +11,9 @@ extension:
     - dentiny
 repo:
   github: dentiny/duckdb-table-inspector
-  ref: 13b830f3ccee4b4be3058a8211ad2f566c1ef698
-  ref_next: 7fb029e2cde2904a572aee40b94684dfd5f55d19
+  andium: 13b830f3ccee4b4be3058a8211ad2f566c1ef698
+  ref: 4d106bcadf9b2d26e15febb752827a60f1d0ed27
+
 docs:
   hello_world: |
     -- List all attached persistent databases with file sizes

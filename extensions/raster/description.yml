@@ -1,0 +1,89 @@
+extension:
+  name: raster
+  description: DuckDB Extension for reading and writing raster files using SQL.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  license: MIT
+  maintainers:
+    - ahuarte47
+
+repo:
+  github: ahuarte47/duckdb-raster
+  ref: a3d6d6df7aba56946198d70b6ac0d39218909463
+
+docs:
+  hello_world: |
+    SELECT short_name, long_name, help_url FROM RT_Drivers();
+
+    ┌────────────────┬──────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
+    │   short_name   │                        long_name                         │                      help_url                       │
+    │    varchar     │                         varchar                          │                       varchar                       │
+    ├────────────────┼──────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
+    │ VRT            │ Virtual Raster                                           │ https://gdal.org/drivers/raster/vrt.html            │
+    │ DERIVED        │ Derived datasets using VRT pixel functions               │ https://gdal.org/drivers/raster/derived.html        │
+    │ GTiff          │ GeoTIFF                                                  │ https://gdal.org/drivers/raster/gtiff.html          │
+    │ COG            │ Cloud optimized GeoTIFF generator                        │ https://gdal.org/drivers/raster/cog.html            │
+    │  ·             │          ·                                               │                    ·                                │
+    │  ·             │          ·                                               │                    ·                                │
+    │  ·             │          ·                                               │                    ·                                │
+    │ EHdr           │ ESRI .hdr Labelled                                       │ https://gdal.org/drivers/raster/ehdr.html           │
+    │ Zarr           │ Zarr                                                     │ NULL                                                │
+    └────────────────┴──────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────┘
+
+    SELECT * FROM RT_Read('path/to/raster/file.tif');
+
+    ┌───────┬───────────┬────────────┬────────────────────────────────┬─────────────────────────┬───────┬────────┬────────┬───────┬───────┬────────────┬────────────┐
+    │  id   │     x     │     y      │            bbox                │       geometry          │ level │ tile_x │ tile_y │ cols  │ rows  │  metadata  │ databand_1 │
+    │ int64 │  double   │   double   │ struct(xmin, ymin, xmax, ymax) │  geometry('epsg:25830') │ int32 │ int32  │ int32  │ int32 │ int32 │    JSON    │    BLOB    │
+    ├───────┼───────────┼────────────┼────────────────────────────────┼─────────────────────────┼───────┼────────┼────────┼───────┼───────┤────────────┤────────────┤
+    │     0 │ 545619.75 │ 4724508.25 │ {                              │      POLYGON ((...))    │     0 │      0 │      0 │   320 │     8 │ {...}      │ ...        │
+    │       │           │            │   'xmin': 545539.75,           │                         │       │        │        │       │       │            │            │
+    │       │           │            │   'ymin': 4724506.25,          │                         │       │        │        │       │       │            │            │
+    │       │           │            │   'xmax': 545699.75,           │                         │       │        │        │       │       │            │            │
+    │       │           │            │   'ymax': 4724510.25           │                         │       │        │        │       │       │            │            │
+    │       │           │            │ }                              │                         │       │        │        │       │       │            │            │
+    ├───────┼───────────┼────────────┼────────────────────────────────┼─────────────────────────┼───────┼────────┼────────┼───────┼───────┤────────────┤────────────┤
+    │     1 │ 545619.75 │ 4724504.25 │ {                              │      POLYGON ((...))    │     0 │      0 │      1 │   320 │     8 │ {...}      │ ...        │
+    │       │           │            │   'xmin': 545539.75,           │                         │       │        │        │       │       │            │            │
+    │       │           │            │   'ymin': 4724502.25,          │                         │       │        │        │       │       │            │            │
+    │       │           │            │   'xmax': 545699.75,           │                         │       │        │        │       │       │            │            │
+    │       │           │            │   'ymax': 4724506.25           │                         │       │        │        │       │       │            │            │
+    │       │           │            │ }                              │                         │       │        │        │       │       │            │            │
+    └───────┴───────────┴────────────┴────────────────────────────────┴─────────────────────────┴───────┴────────┴────────┴───────┴───────┴────────────┴────────────┘
+
+  extended_description: |
+    Extension for DuckDB for reading and writing raster files using SQL.
+
+    The main purpose with this extension is to be able to read raster files as tables in DuckDB, and then perform band algebra operations on the raster data using SQL.
+    A raster is just a datacube, and the idea is to be able to manipulate it as such.
+
+    The extension uses the [GDAL library](https://gdal.org/) to read raster files, and it supports a wide range of raster formats.
+
+    The `RT_Read` function is the main function to read raster files, extract metadata, and perform basic operations on the raster data before returning a geoparquet-like
+    DuckDB table. The function takes the path to the raster file as an argument, and other optional parameters, and returns a table with the following columns:
+
+    - `id`: A unique identifier for each tile.
+    - `x`: The center x coordinate of the tile.
+    - `y`: The center y coordinate of the tile.
+    - `bbox`: The bounding box of the tile, represented as a struct with the following fields: `xmin`, `ymin`, `xmax`, `ymax`.
+    - `geometry`: The geometry of the tile, represented as a polygon.
+    - `level`: The zoom level of the tile.
+    - `tile_x`: The x coordinate of the tile in the zoom level.
+    - `tile_y`: The y coordinate of the tile in the zoom level.
+    - `cols`: The number of columns in the tile.
+    - `rows`: The number of rows in the tile.
+    - `metadata`: A JSON object with the metadata of the tile.
+    - `databand_x`: A BLOB with the data of the x-th band of the tile. The number of bands and their names can be obtained from the `metadata` column.
+
+    The `RT_Read` function provides a `datacube` option that allows to return a single `datacube` BLOB column with the N-dimensional array with the
+    data of all the bands of the tile, instead of one BLOB per band.
+
+    This extension is still in early development, and there are many features that I want to add in the future:
+
+    - Functions to transform the data band BLOBs into ARRAYS or other structures. The idea is to be able to do algebra operations with the data of the tiles directly in SQL.
+    - Filter pushdown on tiles is planned, LIMIT/OFFSET pushdown is already supported.
+    - `COPY` function to write raster files from the loaded tables.
+    - Compression formats for the data band BLOBs (`GZip`, `ZSTD`?).
+    - Integration with DuckDB File System.

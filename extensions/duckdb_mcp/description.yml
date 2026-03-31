@@ -1,7 +1,7 @@
 extension:
   name: duckdb_mcp
   description: Model Context Protocol (MCP) extension for DuckDB that enables seamless integration between SQL databases and MCP servers. Provides both client capabilities for accessing remote MCP resources via SQL and server capabilities for exposing database content as MCP resources.
-  version: 1.5.1
+  version: 2.1.0
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_mcp
-  ref: a40e34191cc7172c257eef7bae34288cf0be90da
-  ref_next: a40e34191cc7172c257eef7bae34288cf0be90da
+  ref: b1eb63dc8c333ae58380f2967da08eebcd2c0cc2
 
 docs:
   hello_world: |
@@ -68,5 +67,21 @@ docs:
     - `mcp_server_status()` - Check server status
     - `mcp_publish_table(table, uri, format)` - Publish table as resource
     - `mcp_publish_query(sql, uri, format, interval)` - Publish query results
+    - `mcp_publish_execution_tool(name, desc, sql, props, required, bindings)` - Publish execution tools with prepared parameter binding
+
+    **State Introspection** (v2.1):
+    - `mcp_tools()` - Query all published tools as a table
+    - `mcp_resources()` - Query all published resources as a table
+    - `mcp_server_config()` - Server configuration as key-value pairs
+    - `mcp_list_tools()` - No-arg tool listing (works before and after server start)
+
+    **v2.0 Highlights**:
+    - **Execution tools** with multi-statement SQL and per-statement typed parameter binding
+    - **Typed JSON output** preserving DuckDB types (numbers, booleans) instead of stringifying
+    - **Prompt/template support** for MCP prompts list and get
+    - **JSONL and text output formats** alongside JSON and CSV
+    - **Read-only enforcement** in query, export, and describe tools
+    - **Per-instance state** replacing global singletons for safe multi-database usage
+    - Extensive security hardening and bug fixes
     
     The extension implements the complete JSON-RPC 2.0 MCP protocol with support for multiple transport mechanisms. It enables powerful use cases including database federation, remote data access, tool orchestration, and exposing database insights to external MCP-compatible systems. Perfect for integration with AI agents, data pipelines, and distributed analytical workflows.

@@ -77,6 +77,6 @@ extension:
   name: webmacro
   version: '2025120401'
 repo:
+  andium: 43a4ba8fcc13219be487d0ac12d68d66ac1d8268
   github: quackscience/duckdb-extension-webmacro
-  ref: 43a4ba8fcc13219be487d0ac12d68d66ac1d8268
-  ref_next: c3e1b90b0c8c72295c5950b5ac286261f8e2c9be
+  ref: 76e83c478fad9c30e5703a194911ae96bfc2ed94

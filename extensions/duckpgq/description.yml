@@ -1,7 +1,7 @@
 extension:
   name: duckpgq
   description: Extension that adds support for SQL/PGQ and graph algorithms
-  version: 0.2.7
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: cwida/duckpgq-extension
-  ref: ffeee447afd82247fd5ffd1f3f314392d6f7dab1
+  andium: 42eea114b22fad93f04cb7edf50d2b0077e464fa
+  ref: a5e633bdae73ccc41b4217fc6a836a58064088bc
 
 docs:
   hello_world: |
