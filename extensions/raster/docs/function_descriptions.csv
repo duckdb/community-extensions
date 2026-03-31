@@ -1,0 +1,3 @@
+function,description,comment,example
+RT_Drivers,"Returns the list of supported GDAL raster drivers.","","SELECT RT_Drivers();"
+RT_Read,"Reads a raster file and returns a table with the raster data.","","SELECT * FROM RT_Read('path/to/raster/file.tif');"
