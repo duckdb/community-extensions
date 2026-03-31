@@ -1,60 +1,117 @@
 extension:
-  name: duckhts
-  description: Read High Throughput Sequencing Files Formats in DuckDB via htslib
-  language: C
-  build: cmake
-  license: MIT
+  name: "duckhts"
+  description: "DuckDB extension for reading HTS file formats via htslib"
+  version: "1.1.4"
+  language: "C"
+  build: "cmake"
+  license: "MIT"
   requires_toolchains: "python3"
-  excluded_platforms: windows_amd64;windows_arm64
+  excluded_platforms: "windows_amd64;windows_arm64"
   maintainers:
-    - "Sounkou Mahamane Toure <sounkoutoure@gmail.com>"
- 
+    - "sounkou-bioinfo"
 
 repo:
-  github: RGenomicsETL/duckhts
-  ref: c368699c8eafc527ee1db83b76f9c1f504550082
-
+  github: "RGenomicsETL/duckhts"
+  ref: "58d427c8dcfc0b6212ccb9234ee25aa411b57ecd"
 
 docs:
   hello_world: |
     -- Load the extension
     LOAD duckhts;
-
+    
     -- Read a VCF/BCF file (tidy FORMAT columns)
     SELECT CHROM, POS, REF, ALT, SAMPLE_ID
     FROM read_bcf('test/data/formatcols.vcf.gz', tidy_format := true)
     LIMIT 5;
-
+    
     -- Read a BAM/SAM file
     SELECT QNAME, RNAME, POS, READ_GROUP_ID, SAMPLE_ID
     FROM read_bam('test/data/rg.sam.gz')
     LIMIT 5;
-
   extended_description: |
-    DuckHTS provides table functions for common high-throughput sequencing (HTS)
-    formats using htslib. Query VCF/BCF/BAM/CRAM/FASTA/FASTQ/GTF/GFF and
-    tabix-indexed files directly in SQL.
+    DuckHTS provides DuckDB table functions for common high-throughput sequencing (HTS) formats using htslib. Query VCF, BCF, BAM, CRAM, FASTA, FASTQ, GTF, GFF, and tabix-indexed files directly in SQL.
+    
+    The extension also includes sequence utility UDFs, SAM flag predicate helpers, and HTS metadata helpers.
+    
+    Functions included in this extension:
+    
+    ### Readers
+    - `read_bcf(path, region := NULL, index_path := NULL, tidy_format := FALSE, additional_csq_column_types := NULL)`: Read VCF and BCF variant data with typed INFO, FORMAT, typed CSQ/ANN/BCSQ subfields, optional tidy sample output, and optional bcftools-style CSQ type overrides.
+    - `read_bam(path, standard_tags := FALSE, auxiliary_tags := FALSE, region := NULL, index_path := NULL, reference := NULL, sequence_encoding := 'string', quality_representation := 'string')`: Read SAM, BAM, and CRAM alignments with optional typed SAMtags and auxiliary tag maps. Use sequence_encoding := 'nt16' to return SEQ as UTINYINT[] and quality_representation := 'phred' to return QUAL as UTINYINT[] instead of VARCHAR.
+    - `read_fasta(path, region := NULL, index_path := NULL, sequence_encoding := 'string')`: Read FASTA records or indexed FASTA regions as sequence rows. Use sequence_encoding := 'nt16' to return SEQUENCE as UTINYINT[] (htslib nt16 4-bit codes) instead of VARCHAR.
+    - `read_bed(path, region := NULL, index_path := NULL)`: Read BED3-BED12 interval files with canonical typed columns and optional tabix-backed region filtering.
+    - `fasta_nuc(path, bed_path := NULL, bin_width := NULL, region := NULL, index_path := NULL, bed_index_path := NULL, include_seq := FALSE)`: Compute bedtools nuc-style nucleotide composition for supplied BED intervals or generated fixed-width bins over a FASTA reference.
+    - `read_fastq(path, interleaved := FALSE, mate_path := NULL, sequence_encoding := 'string', quality_representation := 'string', input_quality_encoding := 'phred33')`: Read single-end, paired-end, or interleaved FASTQ files with optional legacy quality decoding. By default, FASTQ qualities are interpreted as modern Phred+33 input. Use sequence_encoding := 'nt16' to return SEQUENCE as UTINYINT[] and quality_representation := 'phred' to return QUALITY as UTINYINT[] instead of VARCHAR. input_quality_encoding accepts 'phred33', 'auto', 'phred64', or 'solexa64'.
+    - `read_gff(path, header_names := NULL, header := FALSE, column_types := NULL, auto_detect := FALSE, attributes_map := FALSE, region := NULL, index_path := NULL)`: Read GFF annotations with optional parsed attribute maps and indexed region filtering.
+    - `read_gtf(path, header_names := NULL, header := FALSE, column_types := NULL, auto_detect := FALSE, attributes_map := FALSE, region := NULL, index_path := NULL)`: Read GTF annotations with optional parsed attribute maps and indexed region filtering.
+    - `read_tabix(path, header_names := NULL, header := FALSE, column_types := NULL, auto_detect := FALSE, region := NULL, index_path := NULL)`: Read generic tabix-indexed text data with optional header handling and type inference.
+    - `fasta_index(path, index_path := NULL)`: Build a FASTA index (.fai) and return a single row with columns success (BOOLEAN) and index_path (VARCHAR).
+    
+    ### Metadata
+    - `detect_quality_encoding(path, max_records := 10000)`: Inspect a FASTQ file's observed quality ASCII range and report compatible legacy encodings with a heuristic guessed encoding.
+    - `read_hts_header(path, format := NULL, mode := NULL)`: Inspect HTS headers in parsed, raw, or combined form across supported formats.
+    - `read_hts_index(path, format := NULL, index_path := NULL)`: Inspect high-level HTS index metadata such as sequence names and mapped counts.
+    - `read_hts_index_spans(path, format := NULL, index_path := NULL)`: Expand index metadata into span and chunk rows suitable for low-level index inspection.
+    - `read_hts_index_raw(path, format := NULL, index_path := NULL)`: Return the raw on-disk HTS index blob together with basic identifying metadata.
+    
+    ### Compression
+    - `bgzip(path, output_path := NULL, threads := 4, level := -1, keep := TRUE, overwrite := FALSE)`: Compress a plain file to BGZF and return the created output path and byte counts.
+    - `bgunzip(path, output_path := NULL, threads := 4, keep := TRUE, overwrite := FALSE)`: Decompress a BGZF-compressed file and return the created output path and byte counts.
+    
+    ### Indexing
+    - `bam_index(path, index_path := NULL, min_shift := 0, threads := 4)`: Build a BAM or CRAM index and report the written index path and format.
+    - `bcf_index(path, index_path := NULL, min_shift := NULL, threads := 4)`: Build a TBI or CSI index for a VCF or BCF file and report the written index path and format.
+    - `tabix_index(path, preset := 'vcf', index_path := NULL, min_shift := 0, threads := 4, seq_col := NULL, start_col := NULL, end_col := NULL, comment_char := NULL, skip_lines := NULL)`: Build a tabix index for a BGZF-compressed text file using a preset or explicit coordinate columns.
+    
+    ### Variants
+    - `bcftools_liftover(chrom, pos, ref, alt, chain_path, dst_fasta_ref, src_fasta_ref, max_snp_gap, max_indel_inc, lift_mt, end_pos, no_left_align)`: Row-oriented liftover kernel intended to mirror bcftools +liftover semantics as closely as possible while returning one STRUCT per input row with fields: src_chrom, src_pos, src_ref, src_alt, dest_chrom, dest_pos, dest_end, dest_ref, dest_alt, mapped, reverse_complemented, swap, reject_reason, and note. Set no_left_align := true to skip post-liftover left-alignment of lifted indels (mirrors --no-left-align in bcftools +liftover).
+    - `duckdb_liftover(table_name, chrom_col, pos_col, ref_col := NULL, alt_col := NULL, chain_path := NULL, dst_fasta_ref := NULL, src_fasta_ref := NULL, max_snp_gap := 1, max_indel_inc := 250, lift_mt := false, end_pos_col := NULL, no_left_align := false)`: DuckDB-specific wrapper over bcftools_liftover that takes either a table name or a derived-table expression plus column-name strings for chrom/pos/ref/alt and returns the lifted table. The no_left_align parameter mirrors --no-left-align in bcftools +liftover.
+    - `bcftools_score(bcf_path, summary_path, use := NULL, columns := 'PLINK', columns_file := NULL, q_score_thr := NULL, use_variant_id := FALSE, counts := FALSE, samples := NULL, force_samples := FALSE, regions := NULL, regions_file := NULL, regions_overlap := 1, targets := NULL, targets_file := NULL, targets_overlap := 0, apply_filters := NULL, include := NULL, exclude := NULL)`: Compute polygenic scores from one genotype BCF/VCF and one summary-statistics file with bcftools +score-compatible GT/DS/HDS/AP/GP/AS dosage semantics, sample subsetting, and region/target/FILTER-string controls.
+    - `bcftools_munge_row(chrom, pos, a1, a2, id, p, z, or, beta, n, n_cas, n_con, info, frq, se, lp, ac, neff, neffdiv2, het_i2, het_p, het_lp, dire, fasta_ref, iffy_tag := 'IFFY', mismatch_tag := 'REF_MISMATCH', ns := NULL, nc := NULL, ne := NULL)`: Normalize one summary-statistics row into GWAS-VCF-style fields (chrom/pos/ref/alt/effect metrics), resolving REF/ALT orientation against a FASTA reference and applying swap-aware sign/frequency/count transforms. The output flag `alleles_swapped` means REF/ALT orientation was swapped to match the FASTA reference.
+    - `duckdb_munge(table_name, preset := '', column_map := map([''], ['']), column_map_file := '', fasta_ref := NULL, iffy_tag := 'IFFY', mismatch_tag := 'REF_MISMATCH', ns := NULL, nc := NULL, ne := NULL)`: DuckDB macro wrapper over bcftools_munge_row that maps source columns (via preset or explicit map) and returns normalized GWAS-VCF-style rows with lean outputs and explicit `alleles_swapped` semantics. Output columns: chrom, pos, id, ref, alt, alleles_swapped, filter, ns, ez, nc, es, se, lp, af, ac, ne (16 columns). For METAL meta-analysis output with SI/I2/CQ/ED columns, use duckdb_munge_metal.
+    - `duckdb_munge_metal(table_name, preset := '', column_map := map([''], ['']), column_map_file := '', fasta_ref := NULL, iffy_tag := 'IFFY', mismatch_tag := 'REF_MISMATCH', ns := NULL, nc := NULL, ne := NULL)`: Extended munge macro with METAL meta-analysis output columns. Same as duckdb_munge but additionally emits: si (imputation info, from INFO input), i2 (Cochran's I² heterogeneity, from HET_I2), cq (Cochran's Q -log10 p, from HET_LP or -log10(HET_P)), and ed (effect direction string, from DIRE; +/- flipped on allele swap). The R wrapper rduckhts_munge() auto-dispatches to this macro when metal keys (INFO, HET_I2, HET_P, HET_LP, DIRE) are present in the resolved column map.
+    
+    ### Sequence UDFs
+    - `seq_revcomp(sequence)`: Compute the reverse complement of a DNA sequence using A, C, G, T, and N bases.
+    - `seq_canonical(sequence)`: Return the lexicographically smaller of a sequence and its reverse complement.
+    - `seq_hash_2bit(sequence)`: Encode a short DNA sequence as a 2-bit unsigned integer hash.
+    - `seq_encode_4bit(sequence)`: Encode an IUPAC DNA sequence as a list of 4-bit base codes, preserving ambiguity symbols including N.
+    - `seq_decode_4bit(codes)`: Decode a list of 4-bit IUPAC DNA base codes back into a sequence string.
+    - `seq_gc_content(sequence)`: Compute GC fraction for a DNA sequence as a value between 0 and 1.
+    - `seq_kmers(sequence, k, canonical := FALSE)`: Expand a sequence into positional k-mers with optional canonicalization.
+    
+    ### SAM Flag UDFs
+    - `sam_flag_bits(flag)`: Decode a SAM flag into a struct of boolean bit fields using explicit SAM-oriented names such as `is_paired`, `is_proper_pair`, `is_next_segment_unmapped`, and `is_supplementary`.
+    - `sam_flag_has(flag, mask)`: Test whether any bits from the provided SAM flag mask are set in a flag value.
+    - `is_forward_aligned(flag)`: Test whether a mapped segment is aligned to the forward strand. Returns `NULL` for unmapped segments because SAM flag `0x10` does not define genomic strand when `0x4` is set.
+    - `is_paired(flag)`: Test whether the SAM flag indicates that the template has multiple segments in sequencing (`0x1`).
+    - `is_proper_pair(flag)`: Test whether the SAM flag indicates that each segment is properly aligned according to the aligner (`0x2`).
+    - `is_unmapped(flag)`: Test whether the read itself is unmapped according to the SAM flag.
+    - `is_next_segment_unmapped(flag)`: Test whether the next segment in the template is flagged as unmapped (`0x8`).
+    - `is_reverse_complemented(flag)`: Test whether `SEQ` is stored reverse complemented (`0x10`); for mapped reads this corresponds to reverse-strand alignment.
+    - `is_next_segment_reverse_complemented(flag)`: Test whether `SEQ` of the next segment in the template is stored reverse complemented (`0x20`).
+    - `is_first_segment(flag)`: Test whether the read is marked as the first segment in the template.
+    - `is_last_segment(flag)`: Test whether the read is marked as the last segment in the template.
+    - `is_secondary(flag)`: Test whether the alignment is marked as secondary.
+    - `is_qc_fail(flag)`: Test whether the read failed vendor or pipeline quality checks.
+    - `is_duplicate(flag)`: Test whether the alignment is flagged as a duplicate.
+    - `is_supplementary(flag)`: Test whether the alignment is marked as supplementary.
+    
+    ### CIGAR Utils
+    - `cigar_has_soft_clip(cigar)`: Test whether a CIGAR string contains any soft-clipped segment (`S`).
+    - `cigar_has_hard_clip(cigar)`: Test whether a CIGAR string contains any hard-clipped segment (`H`).
+    - `cigar_left_soft_clip(cigar)`: Return the left-end soft-clipped length from a CIGAR string, or zero if the alignment does not start with `S`.
+    - `cigar_right_soft_clip(cigar)`: Return the right-end soft-clipped length from a CIGAR string, or zero if the alignment does not end with `S`.
+    - `cigar_query_length(cigar)`: Return the query-consuming length from a CIGAR string, counting `M`, `I`, `S`, `=`, and `X`.
+    - `cigar_aligned_query_length(cigar)`: Return the aligned query length from a CIGAR string, counting `M`, `=`, and `X` but excluding clips and insertions.
+    - `cigar_reference_length(cigar)`: Return the reference-consuming length from a CIGAR string, counting `M`, `D`, `N`, `=`, and `X`.
+    - `cigar_has_op(cigar, op)`: Test whether a CIGAR string contains at least one instance of the requested operator.
+    
+    Operational notes:
+    - Paired FASTQ is supported via `mate_path` or `interleaved := true`.
+    - CRAM reads are supported with an explicit reference file.
+    - GTF/GFF attributes can be returned as a parsed `MAP` with `attributes_map := true` via `read_gff` or `read_gtf`.
+    - Optional SAM tag columns and an auxiliary tag map are available through `standard_tags` and `auxiliary_tags`.
+    - Tabix readers support `header`, `header_names`, type inference with `auto_detect`, and explicit `column_types`.
+    - MSVC builds (`windows_amd64`/`windows_arm64`) are not supported; use MinGW/RTools on Windows.
 
-    Functions include:
-      - read_bcf(path, [region, tidy_format])
-      - read_bam(path, [region, reference, standard_tags, auxiliary_tags])
-      - read_fasta(path, [region, index_path])
-      - fasta_index(path, [index_path])
-      - read_fastq(path, [mate_path, interleaved])
-      - read_gff(path, [region, attributes_map])
-      - read_gtf(path, [region, attributes_map])
-      - read_tabix(path, [region, header, header_names, auto_detect, column_types])
-      - hts_header(path, [format, mode])
-      - hts_index(path, [format, index_path])
-      - hts_index_spans(path, [format, index_path])
-      - hts_index_raw(path, [format, index_path])
-
-    Paired FASTQ is supported via mate_path or interleaved := true. CRAM is
-    supported with an explicit reference file. For GTF/GFF, attributes can be
-    returned as a parsed MAP using attributes_map := true. Optional SAMtags
-    columns and an auxiliary tag map are available via standard_tags and
-    auxiliary_tags. Tabix files can use header/header_names and type inference
-    via auto_detect or explicit column_types.
-
-    MSVC builds (windows_amd64/windows_arm64) are not supported. MinGW/RTools
-    is supported on Windows.
