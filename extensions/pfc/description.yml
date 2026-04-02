@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: ImpossibleForge/pfc-duckdb
-  ref: 8b228c10ea644aa7c7998a9b4ed0284a9d33e2ca
+  ref: 417b7d74c44bb9eb0d355bf466fa392d9cb17656
 
 docs:
   hello_world: |
@@ -35,22 +35,39 @@ docs:
     The **pfc** extension lets you query [PFC-JSONL](https://github.com/ImpossibleForge/pfc-jsonl)
     compressed log files directly in DuckDB — no decompression step, no intermediate files.
 
+    ## Why PFC-JSONL?
+
+    PFC-JSONL achieves **better compression than gzip, zstd, and bzip2** on real structured
+    log data by combining BWT + rANS entropy coding tuned for repetitive JSONL patterns.
+    On top of superior compression, every `.pfc` file supports **random block access** —
+    only the blocks you need are ever decompressed.
+
+    | Compressor      | Typical ratio on log data |
+    |-----------------|--------------------------|
+    | gzip            | ~31 %                    |
+    | zstd            | ~28 %                    |
+    | bzip2           | ~27 %                    |
+    | **PFC-JSONL**   | **~23 %**                |
+
     ## Key Features
 
     - **Block-level timestamp filtering** via `ts_from` / `ts_to` parameters.
-      Entire blocks outside the requested time window are skipped before decompression.
-      A 1-hour query on a 30-day file with hourly blocks reads ~1/720 of the data.
+      Entire blocks outside the requested time window are skipped *before* decompression.
+      A 1-hour query on a 30-day file with hourly blocks reads ~1/720 of the data (~720× speedup).
 
-    - **Community Mode**: The PFC-JSONL binary includes a built-in free tier —
-      5 GB/day without any license key. Usage is tracked locally, no phone-home.
+    - **Community Mode — no account, no signup, no phone-home.**
+      The PFC-JSONL binary ships with a built-in free tier: **5 GB of decompressed output per
+      UTC day**, tracked locally in `~/.pfc/usage.json`. Nothing leaves your machine.
 
     - **Simple API**: one column `line VARCHAR` per row (raw JSON string).
       Combine with DuckDB's built-in `json` extension for field extraction and analytics.
 
+    - **Linux and macOS only.** Windows users: use WSL2.
+
     ## Requirements
 
     The extension calls the [PFC-JSONL binary](https://github.com/ImpossibleForge/pfc-jsonl)
-    for block decompression. Install once:
+    (v3.4+) for block decompression. Install once:
 
     ```bash
     curl -L https://github.com/ImpossibleForge/pfc-jsonl/releases/latest/download/pfc_jsonl-linux-x64 \
