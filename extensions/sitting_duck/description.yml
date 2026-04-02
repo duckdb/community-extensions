@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.5.0
+  version: 1.6.0
   language: C++
   build: cmake
   license: MIT
@@ -9,7 +9,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: 96cf501d4a8d04f9718fd26e66bc807ac676a8c4
+  ref: 286322cb7a32ee023de1ad5117eb90c4c8e955c2
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
@@ -69,10 +69,20 @@ docs:
     ```
     See: https://sitting-duck.readthedocs.io/en/latest/guide/pattern-matching/
 
+    **CSS Selector Queries (v1.6.0):**
+    Query AST nodes using CSS selector syntax — bootstrapped with sitting duck's own CSS grammar:
+    ```sql
+    SELECT name FROM ast_select('src/*.py', '.func:has(.call#execute):not(:has(try_statement))');
+    ```
+    Supports type selectors, `#name`, `.semantic` (~80 aliases), combinators, `:has()`, `:not(:has())`.
+    Bare type matching: `if` matches `if` + `if_statement` + `if_clause`.
+
     **Table Functions:**
-    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows
+    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows (parallel)
     - `parse_ast(content, language)` - Parse source code strings
     - `ast_match(source, pattern, lang)` - Pattern matching for code search
+    - `ast_select(source, css_selector)` - CSS selector queries
+    - `ast_type_map(language)` - Node type discovery across languages
 
     **Relational Predicates (v1.5.0):**
     - `ast_has(source, parent_type, child_type)` - Check containment relationships
