@@ -1,7 +1,7 @@
 extension:
   name: crawler
-  description: SQL-native web crawler with HTML extraction and MERGE support
-  version: '2026020501'
+  description: SQL-native web crawler with HTML/SPA extraction and MERGE support
+  version: '2026040201'
   language: C++
   build: cmake
   license: MIT
@@ -13,8 +13,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-crawler
-  andium: f0aad857435a2ce138c567e8af11f9d4f8ae0c25
-  ref: 7725ede99eff1657a2cee770048be33328ae9f02
+  ref: 3830ded85ce76c67ab9c63ce8667758c8fa1dd76
 
 docs:
   hello_world: |
@@ -31,21 +30,24 @@ docs:
     - `jq()` and `htmlpath()` functions for CSS selector-based extraction
     - `html.readability` for article extraction
     - `html.schema` for JSON-LD/microdata parsing
+    - `html.hydration` for SPA framework state (Next.js, Nuxt, Vue/Pinia, Apollo)
     - `CRAWLING MERGE INTO` syntax for upsert operations
+
+    New in v0.4.0 - SPA hydration state extraction:
+    ```sql
+    -- Extract Next.js page data without regex
+    SELECT html.hydration['__NEXT_DATA__']->'props'->'pageProps' as data
+    FROM crawl(['https://prisma.fi/']);
+
+    -- Extract Nuxt/Vue product data
+    SELECT html.hydration['unified_datalayer_product']->>'name' as name,
+           html.hydration['unified_datalayer_product']->>'price' as price
+    FROM crawl(['https://www.lidl.fi/p/milbona-mozzarella/p10032843']);
+    ```
 
     Example with read_html (like Google Sheets =IMPORTHTML):
     ```sql
     SELECT * FROM read_html('https://en.wikipedia.org/wiki/...', 'table.wikitable', 1);
-    SELECT * FROM read_html('https://example.com/page', 'js=jobs');
-    ```
-
-    Example with extraction:
-    ```sql
-    SELECT
-        url,
-        jq(html.document, '.price', 'data-amount') as price,
-        html.readability.title as article_title
-    FROM crawl(['https://example.com/products']);
     ```
 
     Example with MERGE:
