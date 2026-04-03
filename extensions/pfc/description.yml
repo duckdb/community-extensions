@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: ImpossibleForge/pfc-duckdb
-  ref: 76034041efdb75e730fbfaf3426b40219b3fb773
+  ref: 0f164bb9815a2235fab46a24547f6bdf72111aee
 
 docs:
   hello_world: |
@@ -37,17 +37,18 @@ docs:
 
     ## Why PFC-JSONL?
 
-    PFC-JSONL achieves **better compression than gzip, zstd, and bzip2** on real structured
+    PFC-JSONL achieves **better compression than gzip and zstd** on real structured
     log data by combining BWT + rANS entropy coding tuned for repetitive JSONL patterns.
     On top of superior compression, every `.pfc` file supports **random block access** —
     only the blocks you need are ever decompressed.
 
-    | Compressor      | Typical ratio on log data |
-    |-----------------|--------------------------|
-    | gzip            | ~31 %                    |
-    | zstd            | ~28 %                    |
-    | bzip2           | ~27 %                    |
-    | **PFC-JSONL**   | **~23 %**                |
+    Ratios measured on realistic JSONL log data (8 services, mixed log levels):
+
+    | Compressor      | Compression ratio | vs PFC-JSONL       |
+    |-----------------|-------------------|--------------------|
+    | gzip            | ~14.5 %           | 26 % larger        |
+    | zstd            | ~16 %             | 34 % larger        |
+    | **PFC-JSONL**   | **~11 %**         | —                  |
 
     ## Key Features
 
