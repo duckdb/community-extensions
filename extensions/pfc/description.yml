@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: ImpossibleForge/pfc-duckdb
-  ref: 0f164bb9815a2235fab46a24547f6bdf72111aee
+  ref: a6b84a8d44f437bf6ebba68f7a22c8b8b310b47a
 
 docs:
   hello_world: |
