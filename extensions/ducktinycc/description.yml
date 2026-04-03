@@ -1,12 +1,12 @@
 extension:
   name: ducktinycc
   description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC — self-contained, no external runtime required
-  version: 0.0.4
+  version: 0.1.0
   language: C
   build: cmake
   license: MIT
   requires_toolchains: "python3"
-  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
   maintainers:
     - "sounkou-bioinfo"
 
@@ -109,4 +109,4 @@ docs:
 
     Project details and examples: https://github.com/sounkou-bioinfo/DuckTinyCC
 
-    Community package excludes WASM and Windows targets.
+    Community package excludes WASM targets.
