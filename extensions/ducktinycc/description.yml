@@ -1,7 +1,7 @@
 extension:
   name: ducktinycc
   description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC — self-contained, no external runtime required
-  version: 0.0.4
+  version: 0.1.0
   language: C
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: sounkou-bioinfo/DuckTinyCC
-  ref: c5160974faa374c6de40f8ea95ba01fb6d3390fc
+  ref: 11c0d30bf358b0dfbe3ac7b06f22e3c326c8284d
 
 docs:
   hello_world: |
@@ -109,4 +109,4 @@ docs:
 
     Project details and examples: https://github.com/sounkou-bioinfo/DuckTinyCC
 
-    Community package excludes WASM and Windows targets.
+    Community package excludes WASM targets.
