@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: yutannihilation/duckdb-ext-st-read-multi
-  ref: b8a2b75b0ffcb7650768aee7ceb182c212a960e0
+  ref: 700ac7fbb42f0fdf10861286077b4796dec3bf6e
 
 docs:
   hello_world: |
