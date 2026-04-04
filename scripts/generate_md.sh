@@ -57,15 +57,39 @@ do
       if [ -s "extensions/$extension/docs/function_descriptions.csv" ]; then
          cp extensions/$extension/docs/function_descriptions.csv $DOCS/functions.csv
          $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example.regexp_replace('({{|}})', '{{ "\1" }}', 'g') || ']' as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
-         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example || ']' as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
+         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example.regexp_replace('({{|}})', '{{ "\1" }}', 'g') || ']' as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
          rm $DOCS/functions.csv
       fi
 
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM new_settings) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
+      else
+         echo > $DOCS/$extension/settings.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
+      else
+         echo > $DOCS/$extension/functions.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions_overloads) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
+      else
+         echo > $DOCS/$extension/functions_overloads.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM description) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
+      else
+         echo > $DOCS/$extension/extension.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM types) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
+      else
+         echo > $DOCS/$extension/types.md
+      fi
 
       rm -f pre.db
       rm -f post.db
