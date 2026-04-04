@@ -57,6 +57,6 @@ extension:
   name: open_prompt
   version: '2025120401'
 repo:
-  github: quackscience/duckdb-extension-openprompt
   andium: 5328a2ff7100887263259ccc5ad8c03b8c6bc58a
-  ref: b9b0d6884f43e515fda0977fc891598d874f490f
+  github: quackscience/duckdb-extension-openprompt
+  ref: 4e42c145ab1d10a534c71f2b5ad704c6d911a280

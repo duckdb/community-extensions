@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.8.0
+  version: 1.9.0
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  andium: ce8400922b0710fbb02e8e440380a1b9e4fa9d60
-  ref: ce8400922b0710fbb02e8e440380a1b9e4fa9d60
+  andium: da4f3d787f5bea20fba247b703b46abc9833ebeb
+  ref: da4f3d787f5bea20fba247b703b46abc9833ebeb
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
@@ -52,6 +52,10 @@ docs:
     FROM glob('logs/*.log') f,
     LATERAL read_duck_hunt_log(f.filename) e;
 
+    -- Comma-separated format fallback chain (new in v1.9.0)
+    SELECT ref_file, ref_line, message
+    FROM read_duck_hunt_log('build.log', 'gcc_text,make_error,cmake_build');
+
     -- Load custom parser from config file (new in v1.8.0)
     SELECT duck_hunt_load_parser_config('my_parser.yml');
 
@@ -73,6 +77,14 @@ docs:
     - `parse_duck_hunt_log(text, format, severity_threshold, content, context)` - Parse tool outputs from strings
     - `read_duck_hunt_workflow_log(source, format, severity_threshold, ignore_errors)` - Parse CI/CD workflow logs
     - `parse_duck_hunt_workflow_log(text, format, severity_threshold)` - Parse workflow strings
+
+    **New in v1.9.0:**
+    - Comma-separated format strings - Try multiple parsers in order (e.g., `'gcc_text,make_error'`)
+    - Fuzzy format name suggestions - Typos get helpful "Did you mean?" errors
+    - Pytest parser enrichment fix - Actual assertion errors instead of "Test failed"
+    - Pytest dedup - One event per failure instead of duplicates from inline+summary
+    - function_name extraction for pytest test events
+    - Parser message quality - 14 parsers fixed to include test/method names in messages
 
     **New in v1.8.0:**
     - Unity Test XML parser - Parse NUnit 3 format test results (requires webbed extension)

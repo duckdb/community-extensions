@@ -1,7 +1,7 @@
 extension:
   name: pac
   description: Automatic query privatization using the PAC Privacy framework
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: AGPL-3.0
@@ -10,55 +10,60 @@ extension:
 
 repo:
   github: cwida/pac
-  ref: 058e57f5cc36fc18d24252f362f162fdd89b235d
+  ref: 597f6d0cffb70ec85e1752c04c6b7abafb43a583
 
 docs:
   hello_world: |
-    -- Declare a privacy unit table with protected columns
-    CREATE PU TABLE employees (
-        id INTEGER, department VARCHAR, salary DECIMAL(10,2),
-        PAC_KEY (id),
-        PROTECTED (salary)
-    );
+    -- Generate TPC-H benchmark data
+    INSTALL tpch;
+    LOAD tpch;
+    CALL dbgen(sf=1);
 
-    INSERT INTO employees VALUES
-        (1, 'Engineering', 95000), (2, 'Engineering', 110000),
-        (3, 'Sales', 80000),      (4, 'Sales', 72000),
-        (5, 'Marketing', 85000),  (6, 'Marketing', 90000);
+    -- Mark customer as the privacy unit
+    ALTER TABLE customer ADD PAC_KEY (c_custkey);
+    ALTER TABLE customer SET PU;
 
-    -- Aggregates on protected columns are automatically noised
-    SELECT department, AVG(salary)::INTEGER AS avg_salary, COUNT(*) AS headcount
-    FROM employees GROUP BY department;
-    -- ┌─────────────┬────────────┬───────────┐
-    -- │ department  │ avg_salary │ headcount │
-    -- │   varchar   │   int32    │   int64   │
-    -- ├─────────────┼────────────┼───────────┤
-    -- │ Marketing   │      95601 │        15 │
-    -- │ Engineering │     109039 │        16 │
-    -- │ Sales       │      81145 │        17 │
-    -- └─────────────┴────────────┴───────────┘
+    -- Protect sensitive customer columns
+    ALTER PU TABLE customer ADD PROTECTED (c_custkey);
+    ALTER PU TABLE customer ADD PROTECTED (c_name);
+    ALTER PU TABLE customer ADD PROTECTED (c_address);
+    ALTER PU TABLE customer ADD PROTECTED (c_acctbal);
+
+    -- Define join chain: lineitem -> orders -> customer
+    ALTER TABLE orders ADD PAC_LINK (o_custkey) REFERENCES customer(c_custkey);
+    ALTER TABLE lineitem ADD PAC_LINK (l_orderkey) REFERENCES orders(o_orderkey);
+
+    -- Aggregates on linked tables are automatically noised
+    SELECT l_returnflag, l_linestatus, SUM(l_extendedprice)
+    FROM lineitem GROUP BY ALL;
 
   extended_description: |
-    PAC (Privacy-preserving Automatic Queries) is a DuckDB extension that
-    transparently adds noise to aggregate query results to protect against
-    Membership Inference Attacks. Unlike Differential Privacy, PAC requires
-    no per-query privacy analysis — just declare which columns are protected
-    and queries are privatized automatically.
-
-    **Key Features**:
-    - `CREATE PU TABLE` syntax to declare privacy units and protected columns
-    - `PAC_LINK` for privacy propagation through join chains
-    - Supports COUNT, SUM, AVG, MIN, MAX, COUNT(DISTINCT)
-    - Tunable privacy-utility tradeoff via `pac_mi` parameter
+    PAC (Probably Approximately Correct) is a DuckDB extension that automatically
+    privatizes SQL queries, protecting against Membership Inference Attacks by adding
+    calibrated noise to aggregate results. Unlike Differential Privacy, PAC works
+    transparently — no per-query privacy analysis by a specialist is needed.
 
     **How It Works**:
-    1. Mark tables with `CREATE PU TABLE`, specifying a `PAC_KEY` (privacy unit) and `PROTECTED` columns
+    1. Declare a **privacy unit** table with `CREATE PU TABLE` or `ALTER TABLE SET PU`,
+       specifying a `PAC_KEY` (unique identifier) and `PROTECTED` columns
     2. Protected columns cannot be projected directly — they can only appear inside aggregates
-    3. The extension automatically injects calibrated noise into aggregate results
-    4. Join chains propagate privacy constraints via `PAC_LINK` foreign key declarations
+    3. The extension **automatically rewrites** query plans to inject calibrated noise
+    4. Join chains propagate privacy via `PAC_LINK` foreign key declarations
 
-    **Configuration Settings**:
-    - `pac_mi`: Mutual information bound controlling the privacy-utility tradeoff (default: `1/128`)
+    **Supported Aggregates**: `SUM`, `COUNT`, `AVG`, `MIN`, `MAX`, `COUNT(DISTINCT)`
+
+    **Key Settings**:
+    - `pac_mi` — Mutual information bound controlling the privacy-utility tradeoff (default: `1/128`).
+      Lower values = more noise = more privacy. Set to `0` for deterministic (no noise) mode.
+    - `pac_seed` — RNG seed for reproducible noised results
+
+    **Privacy Propagation**: PAC automatically follows foreign key chains declared
+    with `PAC_LINK` to find the privacy unit. For example, querying `lineitem` with
+    a link chain `lineitem -> orders -> customer` will automatically join back to
+    `customer` to hash the privacy unit key, without any changes to your query.
+
+    **More information**: See the [PAC repository](https://github.com/cwida/pac) for
+    full documentation, examples, and benchmarks.
 
     **Requirements**:
     - DuckDB 1.5.0+

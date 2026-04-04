@@ -12,6 +12,6 @@ extension:
   requires_toolchains: rust
   version: '2025120401'
 repo:
-  github: query-farm/evalexpr_rhai
   andium: f4493ade6aa592402b1b80a3eec002d94254b5e9
-  ref: 7b731c7870b6fe5ca9fd62dc57a8ec0bfe850cc2
+  github: query-farm/evalexpr_rhai
+  ref: c00bfae40225e39c66415b3bc5d8dcd64130b20f

@@ -9,8 +9,9 @@ extension:
     - teobouvard
 
 repo:
-  github: lisa-sgs/celestial
+  github: lisa-sgs/duckdb-celestial
   ref: d6a22f954257fa3d88d5ef8ba966e2c6e6ef179a
+  andium: d6a22f954257fa3d88d5ef8ba966e2c6e6ef179a
 
 docs:
   hello_world: |

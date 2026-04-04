@@ -1,0 +1,53 @@
+extension:
+  name: keboola
+  description: "DuckDB extension for Keboola Storage — query and write Keboola tables using standard SQL"
+  version: "0.1.4"
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
+  maintainers:
+    - keboola
+
+repo:
+  github: keboola/duckdb-extension
+  ref: 734fc53e46a3c76d7612d2db1dfacd01ae634a8a
+
+docs:
+  hello_world: |
+    -- Install and load the extension
+    INSTALL keboola FROM community;
+    LOAD keboola;
+
+    -- Connect to Keboola Storage
+    ATTACH 'https://connection.keboola.com' AS kbc (
+        TYPE keboola,
+        TOKEN 'my-storage-api-token'
+    );
+
+    -- Read data
+    SELECT * FROM kbc."in.c-crm".contacts WHERE status = 'active';
+
+    -- Write data
+    INSERT INTO kbc."in.c-crm".contacts VALUES ('42', 'Alice', 'alice@acme.com');
+
+    -- Use secrets for credential management
+    CREATE SECRET my_kbc (
+        TYPE keboola,
+        TOKEN 'my-storage-api-token',
+        URL 'https://connection.keboola.com'
+    );
+    ATTACH '' AS kbc2 (TYPE keboola, SECRET my_kbc);
+  extended_description: |
+    The Keboola extension exposes Keboola Storage as a native DuckDB database.
+    Once attached, you can use standard SQL to read from and write to Keboola
+    tables, join Keboola data with local DuckDB tables, and manage schemas.
+
+    **Features:**
+    - SELECT with filter and projection pushdown to Keboola Query Service
+    - INSERT, UPDATE, DELETE via Keboola Storage Importer API
+    - CREATE TABLE, CREATE SCHEMA, DROP TABLE, DROP SCHEMA DDL support
+    - SNAPSHOT mode: pull all data locally for offline/low-latency queries
+    - Secret management for secure credential storage
+    - Native Keboola type mapping (Snowflake types → DuckDB types)
+    - Table and column descriptions from KBC metadata

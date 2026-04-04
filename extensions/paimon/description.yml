@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: polardb/duckdb-paimon
-  andium: a1eb46684f3000d40d49ed54aa72ce450e7bad5e
-  ref: 2e0a3888317b684e255f71a127ce7677757bd865
+  andium: d1bba0fa7767e3761de45521f3ecdaf465807c57
+  ref: 0764988fac3c37161ae465dd9232ff95213db329
 
 docs:
   hello_world: |
