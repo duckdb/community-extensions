@@ -1,17 +1,17 @@
 extension:
   name: nanoarrow
   description: Allows the consumption and production of the Apache Arrow interprocess communication (IPC) format, both from files and directly from stream buffers.
-  version: 1.4.0
+  version: 1.4.1
   language: C++
   build: cmake
   license: MIT
   maintainers:
-    - paleolimbot 
+    - paleolimbot
     - pdet
     - evertlammerts
 repo:
   github: paleolimbot/duckdb-nanoarrow
-  ref: 81ec79bc35090c65f6a7c9066bd373b5dd3b7e73
+  ref: 42e4199a67c4cd0789087562a025e87e7130fdc3
 
 docs:
   hello_world: |
@@ -29,9 +29,9 @@ docs:
 
 
   extended_description: |
-    The Arrow IPC library allows users to read and write data in the Arrow IPC stream format. 
-    This can be done by either reading and producing `.arrow` files or by directly reading buffers using their pointers and sizes. 
-    It is important to note that reading buffers is dangerous, as an incorrect pointer can crash the database system. 
+    The Arrow IPC library allows users to read and write data in the Arrow IPC stream format.
+    This can be done by either reading and producing `.arrow` files or by directly reading buffers using their pointers and sizes.
+    It is important to note that reading buffers is dangerous, as an incorrect pointer can crash the database system.
     This process is temporary and will be deprecated in the future, as clients (e.g., the Python DuckDB client) will have a function that internally extracts these buffers from an Arrow stream.
 
 
