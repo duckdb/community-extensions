@@ -1,7 +1,7 @@
 extension:
   name: rdf
   description: A DuckDB extension to read and write RDF
-  version: 2.6.0
+  version: 2.7.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nonodename/duck_rdf
-  ref: 1048152aea9de44c0ca8c0aba23331df1335d0ea
+  ref: 1e79fecbdfbd390bda11172ff87488b1c5c6526b
 
 docs:
   hello_world: |
@@ -32,6 +32,15 @@ docs:
     
     -- 5. Check if an R2RML mapping is valid
     SELECT is_valid_r2rml('mapping.ttl');
+
+    -- 6. Pivot RDF to a wide table
+    SELECT * FROM pivot_rdf('data.ttl');
+
+    -- 7. Read a SPARQL endpoint
+    SELECT * FROM read_sparql(
+             'https://query.wikidata.org/sparql',
+             'SELECT (COUNT(*) AS ?count) WHERE { ?item wdt:P31 wd:Q5 .}'
+         );
     
   extended_description: |
     The `duck_rdf` extension enables DuckDB to read and write RDF (Resource Description Framework)
@@ -65,7 +74,15 @@ docs:
     | `prefix_expansion` | `false` | Expand CURIE-form URIs to full URIs (Turtle/TriG only) |
     | `file_type` | auto-detected | Override format: `ttl`, `nt`, `nq`, `trig`, `rdf`/`xml` |
 
-    The experimental `read_sparql(endpoint, query)` sends a SPARQL SELECT query to a remote endpoint and returns the result set as a DuckDB table. Column names are derived from the SPARQL variable names; all columns are VARCHAR. Unbound variables are returned as empty strings.
+    `pivot_rdf()` takes the same path/glob argument as read_rdf() and returns a pivoted table, 
+    one column per predicate, at least one row per subject. (To operate on arbitrary file sizes 
+    subjects may be repeated if encountered out of sequence). While a pivot is possible in the 
+    SQL domain, it is subject to memory limits which this function aims to avoid by doing two 
+    passes on the RDF, the first profiling the shape of the data using `profile_rdf()`.
+
+    The experimental `read_sparql(endpoint, query)` sends a SPARQL SELECT query to a remote 
+    endpoint and returns the result set as a DuckDB table. Column names are derived from the 
+    SPARQL variable names; all columns are VARCHAR. Unbound variables are returned as empty strings.
 
     ```sql
     -- Count number of humans in wikidata
