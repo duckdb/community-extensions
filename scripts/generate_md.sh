@@ -61,11 +61,35 @@ do
          rm $DOCS/functions.csv
       fi
 
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM new_settings) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
+      else
+         echo > $DOCS/$extension/settings.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
+      else
+         echo > $DOCS/$extension/functions.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions_overloads) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
+      else
+         echo > $DOCS/$extension/functions_overloads.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM description) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
+      else
+         echo > $DOCS/$extension/extension.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM types) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
+      else
+         echo > $DOCS/$extension/types.md
+      fi
 
       rm -f pre.db
       rm -f post.db
