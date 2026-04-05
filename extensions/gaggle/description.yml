@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: CogitatorTech/gaggle
-  ref: a8d64093515a390da66b961ead8e1bb088baed83
+  ref: 49d34fca42eb72213e424ba7741e15881b269f81
 
 docs:
   hello_world: |
