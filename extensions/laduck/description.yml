@@ -1,0 +1,46 @@
+extension:
+  name: laduck
+  description: Run LLMs inside DuckDB. Text generation, embeddings, and zero-shot classification from SQL via llama.cpp
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - hamidr
+  excluded_platforms:
+    - wasm_mvp
+    - wasm_eh
+
+repo:
+  github: hamidr/laduck
+  ref: 5ae28c7ae05717c349dbb8613cca788ce5f6bf35
+
+docs:
+  hello_world: |
+    LOAD laduck;
+    SELECT llm_load_model('hf://Qwen/Qwen2-0.5B-Instruct-GGUF/qwen2-0_5b-instruct-q2_k.gguf', 'qwen');
+    SELECT llm_complete('Explain SQL joins in one sentence:', 'qwen');
+    SELECT * FROM llm_models();
+
+  extended_description: |
+    LaDuck embeds llama.cpp directly into DuckDB for local LLM inference from SQL.
+    No API keys, no external services, everything runs in-process.
+
+    ## Features
+    - **Text generation**: `llm_complete(text, model)` generates text completions
+    - **Embeddings**: `llm_embed(text, model)` returns float arrays for semantic search
+    - **Classification**: `llm_classify(text, model, labels)` zero-shot classification in a single forward pass
+    - **Model sources**: Load from local files, HuggingFace (`hf://`), or DuckDB storage (`db://`)
+    - **Portable databases**: Store models inside `.duckdb` files with `llm_store_model()`
+    - **GPU acceleration**: Metal (macOS), CUDA (NVIDIA), Vulkan/ROCm (AMD)
+
+    ## Functions
+    - `llm_load_model(source, name)` - Load a GGUF model
+    - `llm_complete(text, model [, max_tokens, temperature, top_p])` - Generate text
+    - `llm_embed(text, model)` - Compute embedding vector
+    - `llm_classify(text, model, labels)` - Zero-shot classification
+    - `llm_models()` - List loaded models
+    - `llm_backends()` - List available compute backends
+    - `llm_unload_model(name)` - Free model from memory
+    - `llm_store_model(name)` - Save model into DuckDB database
+    - `llm_delete_model(name)` - Remove stored model
