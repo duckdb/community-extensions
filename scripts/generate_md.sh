@@ -46,7 +46,7 @@ do
       mkdir -p $DOCS/$extension
       mkdir -p $DOCS/../screenshot
       
-      $DUCKDB_BINARY post.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})', '{{ "\\1" }}', 'g');"
+      $DUCKDB_BINARY post.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})', '{{ \"\\1\" }}', 'g');"
       $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_no_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || examples.list_transform(lambda x: x.jekyll_format_function()).list_reduce(lambda x, y : x || ', ' || y) || ']' END AS examples FROM (FROM (SELECT function_name, function_type, description, comment, examples FROM functions ORDER BY function_name, function_type) EXCEPT (SELECT function_name, function_type, description, comment, examples FROM pre.functions ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
       $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_with_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || examples.list_transform(lambda x: x.jekyll_format_function()).list_reduce(lambda x, y : x || ', ' || y) || ']' END AS examples FROM (FROM ( SELECT count(*), function_name, function_type, description, comment, examples FROM functions GROUP BY ALL ORDER BY function_name, function_type) EXCEPT (SELECT count(*), function_name, function_type, description, comment, examples FROM pre.functions GROUP BY ALL ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
       $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'post.db'; CREATE OR REPLACE TABLE functions AS FROM post.fun_no_overload GROUP BY ALL ORDER BY ALL;"
@@ -57,7 +57,7 @@ do
 
       if [ -s "extensions/$extension/docs/function_descriptions.csv" ]; then
          cp extensions/$extension/docs/function_descriptions.csv $DOCS/functions.csv
-         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})', '{{ "\\1" }}', 'g');"
+         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})', '{{ \"\\1\" }}', 'g');"
          $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example.jekyll_format_function() || ']' as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
          $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example.jekyll_format_function() || ']' as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
          rm $DOCS/functions.csv
