@@ -1,0 +1,44 @@
+extension:
+  name: zeek
+  description: Read Zeek network security monitor log files with automatic schema detection and type-aware parsing
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - ynadji
+
+repo:
+  github: ynadji/zeek-duckdb
+  ref: 668d2e090b54514354ebabacd9981822d4bb68a1
+
+docs:
+  hello_world: |
+    INSTALL zeek FROM community;
+    LOAD inet; # if you want to automatically parse IPs and CIDRs.
+    LOAD zeek;
+
+    -- Read a Zeek log file (supports .gz compression and globs)
+    SELECT * FROM read_zeek('conn.log.gz');
+
+    -- Filter by service
+    SELECT ts, id_orig_h, id_resp_h, service
+    FROM read_zeek('conn.log.gz')
+    WHERE service = 'http';
+  extended_description: |
+    The zeek extension adds a `read_zeek()` table function for natively reading
+    [Zeek](https://zeek.org/) (formerly Bro) network security monitor TSV log files.
+
+    Features include:
+
+    - automatic schema detection from Zeek log headers (`#fields`, `#types`)
+    - automatic gzip/zstd decompression
+    - glob pattern support for reading multiple files at once
+    - proper NULL handling for Zeek's unset (`-`) and empty (`(empty)`) markers
+    - type-aware parsing with rich type mappings:
+      - `time` to `TIMESTAMP WITH TIME ZONE`
+      - `interval` to `INTERVAL`
+      - `addr`/`subnet` to `INET` (with `inet=false` option for `VARCHAR`)
+      - `port` to `USMALLINT`
+      - `vector[T]`/`set[T]` to `LIST[T]`
+    - optional `filename` column for tracking source files across globs
