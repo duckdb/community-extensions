@@ -1,7 +1,7 @@
 extension:
   name: raster
   description: DuckDB Extension for reading and writing raster files using SQL.
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-raster
-  ref: a3d6d6df7aba56946198d70b6ac0d39218909463
+  ref: 73445fb480b443259d4b50b90771165ba3f6cd4b
 
 docs:
   hello_world: |
@@ -53,6 +53,14 @@ docs:
     │       │           │            │ }                              │                         │       │        │        │       │       │            │            │
     └───────┴───────────┴────────────┴────────────────────────────────┴─────────────────────────┴───────┴────────┴────────┴───────┴───────┴────────────┴────────────┘
 
+    SELECT
+        RT_Blob2ArrayInt32(databand_1, true) AS r,
+        RT_Blob2ArrayInt32(databand_2, true) AS g,
+        RT_Blob2ArrayInt32(databand_3, true) AS b
+    FROM
+        RT_Read('path/to/raster/file.tif')
+    ;
+
   extended_description: |
     Extension for DuckDB for reading and writing raster files using SQL.
 
@@ -82,7 +90,6 @@ docs:
 
     This extension is still in early development, and there are many features that I want to add in the future:
 
-    - Functions to transform the data band BLOBs into ARRAYS or other structures. The idea is to be able to do algebra operations with the data of the tiles directly in SQL.
     - Filter pushdown on tiles is planned, LIMIT/OFFSET pushdown is already supported.
     - `COPY` function to write raster files from the loaded tables.
     - Compression formats for the data band BLOBs (`GZip`, `ZSTD`?).

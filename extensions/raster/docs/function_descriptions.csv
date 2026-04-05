@@ -1,3 +1,4 @@
 function,description,comment,example
 RT_Drivers,"Returns the list of supported GDAL raster drivers.","","SELECT RT_Drivers();"
 RT_Read,"Reads a raster file and returns a table with the raster data.","","SELECT * FROM RT_Read('path/to/raster/file.tif');"
+RT_Blob2Array,"Transforms the BLOB data of the data band columns into an array of a numeric data type.","","SELECT RT_Blob2ArrayInt32(databand_1, true) AS r FROM RT_Read('path/to/raster/file.tif');"

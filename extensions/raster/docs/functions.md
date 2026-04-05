@@ -8,6 +8,12 @@
 | [`RT_Drivers`](#rt_drivers) | Returns the list of supported GDAL RASTER drivers and file formats. |
 | [`RT_Read`](#rt_read) | Reads a raster file and returns a table with the raster data. |
 
+**[Scalar Functions](#scalar-functions)**
+
+| Function | Summary |
+| --- | --- |
+| [`RT_Blob2Array`](#rt_blob2array) | Transforms the BLOB data of the data band columns into an array of a numeric data type. |
+
 ----
 
 ## Table Functions
@@ -89,22 +95,21 @@ The data band columns are a BLOB with the following internal structure:
 + A Header describes the raster tile data stored in the BLOB.
 	+ `magic` (uint16_t): Magic code to identify a BLOB as a raster block (`0x5253`)
 	+ `compression` (uint8_t): Compression algorithm code used for the tile data. `0=NONE` is the unique option now, but more can be added in the future.
-	+ `data_type` (uint8_t): GDALDataType of the tile data:
+	+ `data_type` (uint8_t): RasterDataType of the tile data:
 
 		| Code | Data Type | Description |
 		|------|-----------|-------------|
-		| 0    | GDT_Unknown | Unknown or unspecified type |
-		| 1    | GDT_Byte | Eight bit unsigned integer |
-		| 14   | GDT_Int8 | 8-bit signed integer |
-		| 2    | GDT_UInt16 | Sixteen bit unsigned integer |
-		| 3    | GDT_Int16 | Sixteen bit signed integer |
-		| 4    | GDT_UInt32 | Thirty two bit unsigned integer |
-		| 5    | GDT_Int32 | Thirty two bit signed integer |
-		| 12   | GDT_UInt64 | 64 bit unsigned integer |
-		| 13   | GDT_Int64 | 64 bit signed integer |
-		| 15   | GDT_Float16 | Sixteen bit floating point |
-		| 6    | GDT_Float32 | Thirty two bit floating point |
-		| 7    | GDT_Float64 | Sixty four bit floating point |
+		| 0    | UNKNOWN | Unknown or unspecified type |
+		| 1    | UINT8 | Eight bit unsigned integer |
+		| 2    | INT8 | 8-bit signed integer |
+		| 3    | UINT16 | Sixteen bit unsigned integer |
+		| 4    | INT16 | Sixteen bit signed integer |
+		| 5    | UINT32 | Thirty two bit unsigned integer |
+		| 6    | INT32 | Thirty two bit signed integer |
+		| 7    | UINT64 | 64 bit unsigned integer |
+		| 8    | INT64 | 64 bit signed integer |
+		| 9    | FLOAT | Thirty two bit floating point |
+		| 10   | DOUBLE | Sixty four bit floating point |
 
 	+ `bands` (int32_t): Number of bands or layers in the data buffer
 	+ `cols` (int32_t): Number of columns in the data buffer
@@ -114,5 +119,89 @@ The data band columns are a BLOB with the following internal structure:
 + `data`[] (uint8_t): Interleaved pixel data for all bands, stored in row-major order. The size of this array depends on the data type, number of bands, and tile dimensions.
 
 By using `RT_Read`, the extension also provides “replacement scans” for common raster file formats, allowing you to query files of these formats as if they were tables directly.
+
+----
+
+## Scalar Functions
+
+### RT_Blob2Array
+
+#### Signature
+
+```sql
+RT_Blob2ArrayUInt8  (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayInt8   (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayUInt16 (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayInt16  (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayUInt32 (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayInt32  (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayUInt64 (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayInt64  (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayFloat  (blob BLOB, filter_nodata BOOLEAN)
+RT_Blob2ArrayDouble (blob BLOB, filter_nodata BOOLEAN)
+```
+
+#### Description
+
+Transforms the BLOB data of the data band columns into an array of a numeric data type.
+
+```sql
+SELECT
+	RT_Blob2ArrayInt32(databand_1, true) AS r,
+	RT_Blob2ArrayInt32(databand_2, true) AS g,
+	RT_Blob2ArrayInt32(databand_3, true) AS b
+FROM
+	RT_Read('path/to/raster/file.tif')
+;
+```
+
+Function accepts the following parameters:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `blob` | BLOB | The BLOB column of the data band to transform. |
+| `filter_nodata` | BOOLEAN | Whether to filter out NoData values from the array. If `true`, the function will exclude NoData values from the resulting array. |
+
+Extension provides a different function for each numeric data type:
+
+| Function | Description |
+| -------- | ----------- |
+| `RT_Blob2ArrayUInt8` | Transforms a BLOB data column into an array of UINT8 values |
+| `RT_Blob2ArrayInt8` | Transforms a BLOB data column into an array of INT8 values |
+| `RT_Blob2ArrayUInt16` | Transforms a BLOB data column into an array of UINT16 values |
+| `RT_Blob2ArrayInt16` | Transforms a BLOB data column into an array of INT16 values |
+| `RT_Blob2ArrayUInt32` | Transforms a BLOB data column into an array of UINT32 values |
+| `RT_Blob2ArrayInt32` | Transforms a BLOB data column into an array of INT32 values |
+| `RT_Blob2ArrayUInt64` | Transforms a BLOB data column into an array of UINT64 values |
+| `RT_Blob2ArrayInt64` | Transforms a BLOB data column into an array of INT64 values |
+| `RT_Blob2ArrayFloat` | Transforms a BLOB data column into an array of FLOAT values |
+| `RT_Blob2ArrayDouble` | Transforms a BLOB data column into an array of DOUBLE values |
+
+Functions return a struct with the following fields:
+
++ `data_type` (INT): RasterDataType code of the data in the BLOB.
++ `bands` (INT): Number of bands or layers in the data buffer.
++ `cols` (INT): Number of columns in the tile.
++ `rows` (INT): Number of rows in the tile.
++ `no_data` (DOUBLE): NoData value for the tile (To consider when applying algebra operations). `-infinity` if not defined.
++ `values` (ARRAY): An array with the pixel values of the tile for the corresponding band and data type.
+
+This allows you to do algebra operations with the data of the tiles directly in SQL:
+
+```sql
+WITH __input AS (
+	SELECT
+		RT_Blob2ArrayInt32(databand_1, false) AS r
+	FROM
+		RT_Read('path/to/raster/file.tif', blocksize_x := 512, blocksize_y := 512)
+)
+SELECT
+	list_min(r.values) AS r_min,
+	list_stddev_pop(r.values) AS r_avg,
+	list_max(r.values) AS r_max
+FROM
+	__input
+;
+```
 
 ----
