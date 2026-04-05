@@ -1,0 +1,38 @@
+extension:
+  name: pdfmd
+  description: Read PDF files from SQL using MuPDF - extract text, metadata, and convert to Markdown
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/duckMuPDF
+  ref: 4b44c53c41e7cf21bb36dfeb2152d6a2e0543c49
+
+docs:
+  hello_world: |
+    -- Extract text from a PDF
+    SELECT pdf_text('/path/to/document.pdf');
+
+    -- Get page count
+    SELECT pdf_page_count('/path/to/document.pdf');
+
+    -- Get metadata as JSON
+    SELECT pdf_metadata('/path/to/document.pdf');
+
+    -- Convert PDF to Markdown
+    SELECT pdf_to_markdown('/path/to/document.pdf');
+
+    -- Extract text from a specific page
+    SELECT pdf_page_text('/path/to/document.pdf', 1);
+
+    -- Get all pages as a table
+    SELECT * FROM pdf_pages('/path/to/document.pdf');
+
+    -- Batch processing with glob
+    SELECT filename, pdf_page_count(filename)
+    FROM glob('/path/to/docs/*.pdf') t(filename);

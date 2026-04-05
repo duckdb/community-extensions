@@ -1,0 +1,8 @@
+function_name,function_type,description,comment,example
+pdf_text,scalar_function,Extract plain text from a PDF file,,SELECT pdf_text('document.pdf')
+pdf_to_markdown,scalar_function,Convert a PDF file to Markdown format,,SELECT pdf_to_markdown('document.pdf')
+pdf_page_count,scalar_function,Get the number of pages in a PDF file,,SELECT pdf_page_count('document.pdf')
+pdf_metadata,scalar_function,Get PDF metadata as a JSON string,,SELECT pdf_metadata('document.pdf')
+pdf_page_text,scalar_function,Extract text from a specific page of a PDF,,SELECT pdf_page_text('document.pdf', 1)
+pdf_pages,table_function,Return each page of a PDF as a row with text and dimensions,,SELECT * FROM pdf_pages('document.pdf')
+read_pdf,table_function,Read a PDF file and return structured page data,,SELECT * FROM read_pdf('document.pdf')
