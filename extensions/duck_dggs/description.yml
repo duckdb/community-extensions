@@ -1,0 +1,63 @@
+extension:
+  name: duck_dggs
+  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v8
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - am2222
+
+repo:
+  github: am2222/duckdb-dggs
+  ref: 3d606edc64b495c2b61281fdf2b0e66e2db30465
+
+docs:
+  hello_world: |
+    LOAD 'duck_dggs';
+    -- lon, lat → cell ID at resolution 5 (default ISEA4H grid)
+    SELECT geo_to_seqnum(0.0, 0.0, 5);
+    -- → 2380
+
+    -- cell ID → cell centre
+    SELECT seqnum_to_geo(2380, 5);
+    -- → {'lon_deg': 0.0, 'lat_deg': 0.0}
+
+    -- use a custom grid (ISEA3H — aperture 3 hexagons)
+    SELECT geo_to_seqnum(0.0, 0.0, 5,
+        dggs_params('ISEA', 3, 'HEXAGON', 0.0, 58.28252559, 11.25));
+  extended_description: |
+    `duck_dggs` transforms geographic coordinates to and from ISEA grid cell identifiers
+    across multiple reference frames, powered by [DGGRID v8](https://github.com/sahrk/DGGRID).
+
+    **Grid configuration**
+
+    All functions use ISEA4H by default (ISEA projection, aperture 4, hexagon topology).
+    Pass a `dggs_params` struct as the last argument to use a different grid:
+
+    ```sql
+    dggs_params(projection, aperture, topology, azimuth_deg, pole_lat_deg, pole_lon_deg)
+    ```
+
+    Common presets:
+
+    | Grid | Call |
+    |------|------|
+    | ISEA4H (default) | `dggs_params('ISEA', 4, 'HEXAGON', 0.0, 58.28252559, 11.25)` |
+    | ISEA3H | `dggs_params('ISEA', 3, 'HEXAGON', 0.0, 58.28252559, 11.25)` |
+    | ISEA4T (triangles) | `dggs_params('ISEA', 4, 'TRIANGLE', 0.0, 58.28252559, 11.25)` |
+    | ISEA4D (diamonds) | `dggs_params('ISEA', 4, 'DIAMOND', 0.0, 58.28252559, 11.25)` |
+    | FULLER4H | `dggs_params('FULLER', 4, 'HEXAGON', 0.0, 58.28252559, 11.25)` |
+
+    **Utility functions:**
+
+    - `duck_dggs_version()` — extension version string
+    - `dggs_params(projection, aperture, topology, azimuth_deg, pole_lat_deg, pole_lon_deg)` — build a grid configuration
+
+    **Transform functions** (each has a `res` and optional `params` overload):
+
+    - From geo: `geo_to_seqnum`, `geo_to_geo`, `geo_to_plane`, `geo_to_projtri`, `geo_to_q2dd`, `geo_to_q2di`
+    - From seqnum: `seqnum_to_geo`, `seqnum_to_plane`, `seqnum_to_projtri`, `seqnum_to_q2dd`, `seqnum_to_q2di`, `seqnum_to_seqnum`
+    - From Q2DI: `q2di_to_seqnum`, `q2di_to_geo`, `q2di_to_plane`, `q2di_to_projtri`, `q2di_to_q2dd`, `q2di_to_q2di`
+    - From Q2DD: `q2dd_to_seqnum`, `q2dd_to_geo`, `q2dd_to_plane`, `q2dd_to_projtri`, `q2dd_to_q2dd`, `q2dd_to_q2di`
+    - From projtri: `projtri_to_seqnum`, `projtri_to_geo`, `projtri_to_plane`, `projtri_to_projtri`, `projtri_to_q2dd`, `projtri_to_q2di`
