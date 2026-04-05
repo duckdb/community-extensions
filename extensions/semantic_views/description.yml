@@ -1,0 +1,37 @@
+extension:
+  name: semantic_views
+  description: "Semantic views -- a declarative layer for dimensions, metrics, and relationships"
+  version: 0.5.5
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;linux_arm64_musl;windows_arm64"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - anentropic
+
+repo:
+  github: anentropic/duckdb-semantic-views
+  ref: a1d5b07eee4e63bbabcc074b5c3292a68c5c6c47
+
+docs:
+  hello_world: |
+    -- Create sample data
+    CREATE TABLE demo(region VARCHAR, amount DECIMAL(10,2));
+    INSERT INTO demo VALUES ('US', 100), ('US', 200), ('EU', 150);
+
+    -- Define a semantic view
+    CREATE SEMANTIC VIEW sales AS
+      TABLES (d AS demo PRIMARY KEY (region))
+      DIMENSIONS (d.region AS d.region)
+      METRICS (d.revenue AS SUM(d.amount));
+
+    -- Query it
+    FROM semantic_view('sales', dimensions := ['region'], metrics := ['revenue']);
+  extended_description: |
+    Semantic views let you define dimensions, metrics, joins, and filters once,
+    then query any combination. The extension handles GROUP BY, JOIN, and filter
+    composition automatically. Supports multi-table joins with PK/FK relationships,
+    fan trap detection, role-playing dimensions, derived metrics, and FACTS.
+
+    Documentation: https://anentropic.github.io/duckdb-semantic-views/
