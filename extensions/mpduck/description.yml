@@ -1,0 +1,54 @@
+extension:
+  name: mpduck
+  description: Read and write FIS Prophet files (.rpt, .prn, .fac)
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - MatthewMooreZA
+
+repo:
+  github: MatthewMooreZA/mpduck
+  ref: 5ef84a7a00f77671772390cd84615d8aa34634de
+
+docs:
+  hello_world: |
+    INSTALL mpduck;
+    LOAD mpduck;
+
+    -- Query a single FIS Prophet file directly by extension
+    SELECT * FROM 'model_points.rpt';
+    SELECT * FROM 'model_points.prn';
+    SELECT * FROM 'model_points.fac';
+
+    -- Use glob patterns directly in FROM
+    SELECT * FROM 'data/*.rpt';
+
+    -- Use read_mpfile() explicitly for a single file or glob
+    SELECT * FROM read_mpfile('model_points.rpt');
+    SELECT * FROM read_mpfile('data/*.rpt');
+
+    -- Read multiple files or globs with read_mpfile()
+    SELECT * FROM read_mpfile(['mp_2024.rpt', 'mp_2025.rpt']);
+    SELECT * FROM read_mpfile(['region_a*.rpt', 'region_b*.rpt']);
+
+    -- Export data to FIS Prophet format (format auto-detected from extension)
+    COPY (SELECT * FROM my_table) TO 'output.rpt';
+    COPY (SELECT * FROM my_table) TO 'output.prn';
+    COPY (SELECT * FROM my_table) TO 'output.fac';
+
+    -- Export with explicit format
+    COPY (SELECT * FROM my_table) TO 'output.rpt' (FORMAT mpfile);
+
+    -- Embed key-value metadata at the top of the output file
+    COPY (SELECT * FROM my_table) TO 'output.rpt' (
+        KV_METADATA {run_date: '2024-01-01', version: '1.0'}
+    );
+
+    -- Omit the VARIABLE_TYPES schema row
+    COPY (SELECT * FROM my_table) TO 'output.rpt' (INCLUDE_TYPES false);
+
+  extended_description: |
+    mpduck is a DuckDB extension for reading and writing FIS Prophet files in
+    `.rpt`, `.prn`, and `.fac` formats, enabling data interchange for actuarial workflows.
