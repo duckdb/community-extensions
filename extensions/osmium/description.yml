@@ -1,0 +1,25 @@
+extension:
+  name: osmium
+  description: Read OpenStreetMap data from OSM XML and PBF files
+  version: 0.3.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - jake-low
+
+repo:
+  github: jake-low/duckdb-osmium
+  ref: 4d5e8f77c16f4e1bd720b9735c70670eaae51d02
+
+docs:
+  hello_world: |
+    LOAD osmium;
+    SELECT id, tags['name'] AS name, geometry
+    FROM 'example.osm.pbf'
+    WHERE kind = 'node' AND tags['place'] = 'city';
+  extended_description: |
+    The osmium extension adds support for reading [OpenStreetMap](https://www.openstreetmap.org/)
+    data from OSM XML and PBF files via [libosmium](https://osmcode.org/libosmium/). It supports
+    constructing Geometries (Point, LineString, Polygon, etc) from OSM elements, which makes it
+    easy to transform OSM data into formats like GeoJSON and GeoParquet.
