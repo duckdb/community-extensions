@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: hamidr/laduck
-  ref: 5ae28c7ae05717c349dbb8613cca788ce5f6bf35
+  ref: d0a42dcc63ecf4926875f455096b97ff56d0cb20
 
 docs:
   hello_world: |
