@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-web-search
-  ref: 0b16e39d408621cd00ad00d6a0c97487f2dedb34
+  ref: 31b017c382f3d9122b77c2b06f84413002395199
 
 docs:
   hello_world: |
