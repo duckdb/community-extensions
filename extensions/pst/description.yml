@@ -25,7 +25,7 @@ docs:
     └────────────────┘
 
     -- Query contacts (supports remote URIs)
-    D SELECT given_name, surname FROM read_pst_contacts('https://example.com/outlook.pst');
+    D SELECT given_name, surname FROM read_pst_contacts('https://github.com/intellekthq/duckdb-pst/raw/refs/heads/main/test/unittest.pst');
     ┌────────────┬─────────┐
     │ given_name │ surname │
     │  varchar   │ varchar │
