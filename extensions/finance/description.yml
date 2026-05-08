@@ -1,0 +1,24 @@
+extension:
+  name: finance
+  description: SQL-native quant finance functions for DuckDB
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - leonardovida
+repo:
+  github: leonardovida/duckdb-finance
+  ref: 0b7aea15167b6fda3bb99ca66a3b217f9524f581
+docs:
+  hello_world: |
+    SELECT
+      fin_bsm_price('call', 100.0, 100.0, 1.0, 0.05, 0.20) AS price,
+      fin_simple_return(105.0, 100.0) AS simple_return;
+  extended_description: |
+    DuckDB Finance adds SQL-native quant finance analytics to DuckDB under the
+    fin_ namespace. It includes return and risk analytics, option pricing and
+    Greeks, fixed-income and cash-flow helpers, portfolio math, technical
+    indicators, table functions, and GS Quant-inspired local workflow helpers.
+    The extension is deterministic and local: it does not call Goldman Sachs,
+    market-data vendors, or remote pricing services.
