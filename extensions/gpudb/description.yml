@@ -1,7 +1,7 @@
 extension:
   name: gpudb
   description: GPU-accelerated analytical operators for DuckDB on NVIDIA CUDA and Apple Silicon Metal. First SQL execution engine that targets Apple Silicon GPUs.
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: singhpratech/duckdbgpumetaldbram
-  ref: f0be207946084505aaaadd6e08345b412e8e8eb7
+  ref: 87e70adcee913d721e8d029a6d5b99911799405f
 
 docs:
   hello_world: |
