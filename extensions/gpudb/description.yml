@@ -1,0 +1,66 @@
+extension:
+  name: gpudb
+  description: GPU-accelerated analytical operators for DuckDB on NVIDIA CUDA and Apple Silicon Metal. First SQL execution engine that targets Apple Silicon GPUs.
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
+  maintainers:
+    - singhpratech
+
+repo:
+  github: singhpratech/duckdbgpumetaldbram
+  ref: f0be207946084505aaaadd6e08345b412e8e8eb7
+
+docs:
+  hello_world: |
+    LOAD gpudb;
+    -- GPU-accelerated SUM (CUDA on NVIDIA, Metal on Apple Silicon, CPU fallback otherwise)
+    SELECT gpu_sum(value::BIGINT) FROM range(1000000) AS t(value);
+
+    -- Verify against native sum
+    SELECT
+      gpu_sum(value::BIGINT) AS gpu,
+      sum(value::BIGINT) AS native
+    FROM range(1000000) AS t(value);
+  extended_description: |
+    `gpudb` adds GPU-accelerated aggregate operators that DuckDB transparently
+    dispatches to:
+
+      * `gpu_sum(BIGINT)` — GPU SUM
+      * `gpu_min(BIGINT)` — GPU MIN
+      * `gpu_max(BIGINT)` — GPU MAX
+
+    On NVIDIA hardware (CUDA backend, sm_70+) these run on the device with
+    PCIe-amortized transfer. On Apple Silicon (Metal backend, M1+) they use
+    the unified memory architecture so transfer cost is zero and sustained
+    kernel bandwidth approaches LPDDR5X peak (~92% of 546 GB/s on M4 Max
+    int64 SUM).
+
+    A hybrid CPU/GPU planner picks the backend that wins for each cardinality
+    regime — this addresses the open problem from Rosenfeld/Breß CSUR 2022
+    and Cao SIGMOD 2024.
+
+    Performance highlights vs single-thread CPU baseline:
+      * SUM 1B int64 (HOT, resident column): Metal 5.28× on M4 Max,
+        CUDA ~22× on RTX 4090
+      * GROUP BY 500M rows × 1M unique groups: Metal 4.89×, CUDA 21.8×
+      * TPC-H SF1 GROUP BY: Metal 2.08×, CUDA 4.8×
+
+    The extension auto-selects the best backend at load time. If no GPU is
+    available it falls back cleanly to the CPU implementation — same SQL
+    surface either way. Honest benchmark notes (where GPU loses to CPU)
+    are documented in the project's BENCHMARK.md.
+
+    Source: https://github.com/singhpratech/duckdbgpumetaldbram
+
+    Known limitations (v0.1.1):
+      * Float64 SUM on Apple Silicon falls back to host loop (Apple GPUs
+        do not implement IEEE-754 doubles in MSL); same correctness, no
+        GPU speedup for that one type
+      * GROUP BY currently supports BIGINT keys + BIGINT SUM; broader
+        type coverage planned in v0.2
+      * Window functions: SUM OVER (), SUM OVER (ORDER BY), and
+        SUM OVER (PARTITION BY ... ORDER BY ...) all supported and
+        verified against native sum() in the SQL test suite
