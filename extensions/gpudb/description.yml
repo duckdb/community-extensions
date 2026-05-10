@@ -42,11 +42,13 @@ docs:
     regime — this addresses the open problem from Rosenfeld/Breß CSUR 2022
     and Cao SIGMOD 2024.
 
-    Performance highlights vs single-thread CPU baseline:
-      * SUM 1B int64 (HOT, resident column): Metal 5.28× on M4 Max,
-        CUDA ~22× on RTX 4090
-      * GROUP BY 500M rows × 1M unique groups: Metal 4.89×, CUDA 21.8×
-      * TPC-H SF1 GROUP BY: Metal 2.08×, CUDA 4.8×
+    Performance highlights (vs single-thread CPU baseline; cells cite
+    specific rows in BENCHMARK.md, append-only log):
+      * SUM 1B int64 (HOT, resident column) on M4 Max: Metal 5.28×
+      * Peak SUM ratio on RTX 4090: CUDA ~22.8× (size-dependent)
+      * GROUP BY 500M rows × 1M unique groups on M4 Max: Metal 4.89×
+      * GROUP BY 50M rows × 10M unique groups on RTX 4090: CUDA 21.8×
+      * TPC-H SF1 GROUP BY (6M × 1.5M unique) on M4 Max: Metal 2.08×
 
     The extension auto-selects the best backend at load time. If no GPU is
     available it falls back cleanly to the CPU implementation — same SQL
