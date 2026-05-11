@@ -1,7 +1,7 @@
 extension:
   name: ducksmiles
-  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, and SELFIES molecular analysis from SQL
-  version: 0.1.0
+  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, SELFIES, and Wildman-Crippen LogP from SQL
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 34b7b1ea6bf61cb66c373323b015ee5f17dd897f
+  ref: b34ffe7a20aeac2cc0c46debb3ab7179fdc726fc
 
 docs:
   hello_world: |
@@ -25,6 +25,13 @@ docs:
 
     -- Molecular weight
     SELECT round(mol_weight('c1ccccc1'), 2);  -- 78.11
+
+    -- Wildman-Crippen LogP (matches RDKit Crippen.MolLogP)
+    SELECT round(logp_crippen('c1ccccc1'), 4);            -- 1.6866 (benzene)
+    SELECT round(logp_crippen('CC(=O)Oc1ccccc1C(=O)O'), 4); -- aspirin
+
+    -- Expand implicit hydrogens to explicit [H] atoms in SMILES
+    SELECT add_hydrogens('CCO');         -- [C]([C]([O][H])([H])[H])([H])([H])[H]
 
     -- InChI layer extraction
     SELECT inchi_formula('InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)');  -- C2H4O2
@@ -42,14 +49,25 @@ docs:
     library dependencies (no RDKit required).
 
     **Supported Formats:**
-    - SMILES: Molecular validation, formula, weight, atom/bond counts
+    - SMILES: Molecular validation, formula, weight, atom/bond counts, LogP
     - InChI/InChIKey: Layer extraction, stereochemistry detection, skeleton matching
     - MOL/SDF: V2000/V3000 block parsing, molecule counting
     - PDB/CIF/XYZ: Protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: Bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **28 scalar SQL functions** for molecular property extraction, format conversion,
-    and structural comparison. Ideal for cheminformatics datasets, drug discovery
-    pipelines, and molecular ML feature engineering.
+    **37 scalar SQL functions** for molecular property extraction, format conversion,
+    structural comparison, and physicochemical property prediction. Ideal for
+    cheminformatics datasets, drug discovery pipelines, and molecular ML feature
+    engineering.
 
-    **Architecture:** Rust (core logic) + C++ (DuckDB integration via FFI)
+    **LogP:** `logp_crippen()` implements the Wildman-Crippen atom-contribution
+    method (110 SMARTS patterns, 68 atom types) and matches RDKit's
+    `Crippen.MolLogP` exactly for small molecules.
+
+    **Hydrogen expansion:** `add_hydrogens()` returns a SMILES with all implicit
+    H atoms broken out as explicit `[H]` vertices (verbose bracket form, round-trips
+    through the parser). Useful as a preprocessing primitive for any descriptor
+    that needs explicit hydrogens, and composes safely with `logp_crippen` (the
+    internal H expansion is idempotent).
+
+    **Architecture:** Rust (core logic, 5 crates) + C++ (DuckDB integration via FFI)
