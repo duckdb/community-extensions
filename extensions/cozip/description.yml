@@ -1,23 +1,24 @@
 extension:
   name: cozip
-  description: Read and validate cozip priority indexes from DuckDB
-  version: 0.1.0
+  description: Cloud-Optimized ZIP reader for DuckDB
+  version: 1.0.0
   language: C++
   build: cmake
   license: MIT
   maintainers:
-    - Asterisk Labs
+    - csaybar
 repo:
   github: asterisk-labs/cozip_reader
-  ref: main
+  ref: afd930e59f33ba43ef23db8e8fec5a30ece451e9
 docs:
   hello_world: |
     LOAD cozip;
-    SELECT * FROM cozip_index('test/data/flat_store_6files.cozip');
-    SELECT cozip_integrity_hash_ok('test/data/flat_store_6files.cozip');
+
+    SELECT *
+    FROM read_cozip('https://huggingface.co/datasets/Major-TOM/Core-VIIRS-Nighttime-Light/resolve/main/2024/MAJORTOM-VIIRS-NTL_2024_median_000.zip')
+    LIMIT 10;
   extended_description: |
-    cozip is a ZIP-compatible layout that places a compact binary index in the first entry
-    (__cozip__) so readers can locate priority files without scanning the Central Directory first.
-    This extension validates the current cozip core format, checks the FNV-1a integrity hash over
-    the index payload and archive tail, and exposes the priority index through scalar functions and
-    the cozip_index(path) table function.
+    cozip replaces the Central Directory scan with a Parquet metadata file,
+    locatable through a compact binary index at byte 0 of the archive.
+    read_cozip(path) reads that Parquet directly. Works on local files and
+    remote URLs (HTTPS, S3, HuggingFace), on native and WebAssembly.
