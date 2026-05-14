@@ -1,0 +1,68 @@
+extension:
+  name: table_guard
+  description: Enforces table-level access control via an allowlist mechanism, blocking queries to unauthorized tables with a PermissionException
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - yoogoc
+
+repo:
+  github: yoogoc/duckdb-table-guard
+  ref: 0ba95aa9e8b793c1470cc005d63b47bb3006c8de
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD table_guard;
+
+    -- Set the allowlist (once per connection, comma-separated)
+    PRAGMA table_guard_allow('mydb.public.patients, mydb.public.visits');
+
+    -- Allowed queries work normally
+    SELECT * FROM mydb.public.patients;
+
+    -- Blocked tables raise a PermissionException
+    SELECT * FROM mydb.public.audit_log;
+    -- Error: TableGuard: "mydb.public.audit_log" is not in the allowlist.
+
+    -- Metadata queries are also filtered
+    SELECT table_name FROM duckdb_tables();
+    -- Only shows: patients, visits
+
+    -- Check current status
+    PRAGMA table_guard_status;
+
+  extended_description: |
+    The Table Guard extension provides table-level access control for DuckDB through an allowlist mechanism.
+    Only tables explicitly added to the allowlist can be queried; all other table accesses are blocked.
+
+    ### Key Features
+
+    - **Table-level allowlist**: restrict queries to only the tables you explicitly permit
+    - **Catalog.schema.table granularity**: support `catalog.schema.table`, `schema.table`, or bare `table` patterns, with `*` as wildcard
+    - **One-time configuration**: the allowlist can only be set once per connection, preventing runtime tampering
+    - **Metadata filtering**: automatically filters `duckdb_tables()`, `duckdb_views()`, and `duckdb_columns()` so only allowed tables are visible
+    - **Enable/disable toggle**: temporarily disable the guard without losing the allowlist configuration
+
+    ### PRAGMA Commands
+
+    | Command | Description |
+    |---------|-------------|
+    | `PRAGMA table_guard_allow('entries')` | Set the allowlist (one-time, comma-separated) |
+    | `PRAGMA table_guard_enable` | Enable the guard (requires allowlist to be set first) |
+    | `PRAGMA table_guard_disable` | Disable the guard (allowlist is preserved) |
+    | `PRAGMA table_guard_status` | Print current guard state |
+
+    ### Allowlist Format
+
+    Entries are comma-separated and support three levels of specificity:
+
+    | Format | Example | Meaning |
+    |--------|---------|---------|
+    | `catalog.schema.table` | `mydb.public.patients` | Exact match |
+    | `schema.table` | `public.patients` | Any catalog |
+    | `table` | `patients` | Any catalog and schema |
+    | Wildcard `*` | `mydb.*.patients` | Match any value for that component |
