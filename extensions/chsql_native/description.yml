@@ -1,7 +1,7 @@
 extension:
   name: chsql_native
   description: ClickHouse Native Client & File Reader for chsql
-  version: 0.1.3
+  version: 0.1.4
   language: Rust
   build: cmake
   license: MIT
@@ -12,8 +12,8 @@ extension:
     - adubovikov
 
 repo:
-  github: quackscience/duckdb-extension-clickhouse-native
-  ref: 2674d67f6715b4fb7d49f9a7f12c382a5f013f33
+  github: Query-farm/duckdb-extension-clickhouse-native
+  ref: 27ef6a15f6c904eb5b062c66256143618d7836ab
 
 docs:
   hello_world: |
