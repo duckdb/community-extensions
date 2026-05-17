@@ -1,7 +1,7 @@
 extension:
   name: cozip
   description: Cloud-Optimized ZIP reader for DuckDB
-  version: 1.1.0
+  version: 1.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
     - ryali93
 repo:
   github: asterisk-labs/cozip_reader
-  ref: 3c7021429f6460e2feebced7c61982a863cce1d0
+  ref: 593d2853a294c33dc1c505c5d7c504159b332489
 docs:
   hello_world: |
     INSTALL cozip FROM community;
