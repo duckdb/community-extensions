@@ -1,0 +1,13 @@
+extension:
+  name: ranges
+  description: A DuckDB extension for range operations
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - abelcha
+repo:
+  github: abelcha/duckdb-ranges
+  ref: main
+
