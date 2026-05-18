@@ -1,7 +1,7 @@
 extension:
   name: raster
-  description: DuckDB Extension for reading and writing raster files using SQL.
-  version: 0.7.0
+  description: DuckDB extension for reading and writing geospatial raster data using SQL.
+  version: 1.0.0
   language: C++
   build: cmake
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
@@ -11,10 +11,176 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-raster
-  ref: 689a24f187049ffe7c06ef334af5d0ec62bcdae0
+  ref: 6eab8f18cce95d9f9ffef97cb7d75eeeef4905d3
 
 docs:
   hello_world: |
+    -- List available GDAL raster drivers and formats:
+    SELECT short_name, long_name, help_url FROM RT_Drivers();
+
+    ┌────────────────┬──────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
+    │   short_name   │                        long_name                         │                      help_url                       │
+    │    varchar     │                         varchar                          │                       varchar                       │
+    ├────────────────┼──────────────────────────────────────────────────────────┼─────────────────────────────────────────────────────┤
+    │ VRT            │ Virtual Raster                                           │ https://gdal.org/drivers/raster/vrt.html            │
+    │ GTiff          │ GeoTIFF                                                  │ https://gdal.org/drivers/raster/gtiff.html          │
+    │ COG            │ Cloud optimized GeoTIFF generator                        │ https://gdal.org/drivers/raster/cog.html            │
+    │  ·             │          ·                                               │                    ·                                │
+    │  ·             │          ·                                               │                    ·                                │
+    │  ·             │          ·                                               │                    ·                                │
+    │ ENVI           │ ENVI .hdr Labelled                                       │ https://gdal.org/drivers/raster/envi.html           │
+    │ Zarr           │ Zarr                                                     │ NULL                                                │
+    │ HTTP           │ HTTP Fetching Wrapper                                    │ NULL                                                │
+    └────────────────┴──────────────────────────────────────────────────────────┴─────────────────────────────────────────────────────┘
+
+    -- Read a raster file — one row per tile, one datacube column per band:
+    SELECT * FROM RT_Read('path/to/raster/file.tif');
+
+    ┌───────┬───────────┬────────────┬────────────────────────────────┬─────────────────────────┬───────┬────────┬────────┬───────┬───────┬────────────┬────────────┐
+    │  id   │     x     │     y      │              bbox              │        geometry         │ level │ tile_x │ tile_y │ cols  │ rows  │  metadata  │ databand_1 │
+    │ int64 │  double   │   double   │ struct(xmin, ymin, xmax, ymax) │ geometry('epsg:25830')  │ int32 │ int32  │ int32  │ int32 │ int32 │    JSON    │    BLOB    │
+    ├───────┼───────────┼────────────┼────────────────────────────────┼─────────────────────────┼───────┼────────┼────────┼───────┼───────┼────────────┼────────────┤
+    │     0 │ 545619.75 │ 4724508.25 │ {xmin: 545539.75, ...}         │ POLYGON ((...))         │     0 │      0 │      0 │   320 │     8 │ {...}      │ ...        │
+    │     1 │ 545619.75 │ 4724504.25 │ {xmin: 545539.75, ...}         │ POLYGON ((...))         │     0 │      0 │      1 │   320 │     8 │ {...}      │ ...        │
+    └───────┴───────────┴────────────┴────────────────────────────────┴─────────────────────────┴───────┴────────┴────────┴───────┴───────┴────────────┴────────────┘
+
+    -- Compute NDVI directly in SQL using band algebra:
+    WITH __input AS (
+        SELECT
+            databand_1 AS red,
+            databand_2 AS nir
+        FROM
+            RT_Read('path/to/raster/file.tif', blocksize_x := 512, blocksize_y := 512)
+    )
+    SELECT
+        RT_Cube2TypeFloat((nir - red) / (nir + red)) AS ndvi
+    FROM
+        __input
+    ;
+
+    -- Extract pixel values into SQL arrays for aggregate analysis:
+    WITH __input AS (
+        SELECT RT_Cube2ArrayFloat(databand_1, true) AS band
+        FROM RT_Read('path/to/raster/file.tif', blocksize_x := 512, blocksize_y := 512)
+    )
+    SELECT
+        list_min(band.values)        AS band_min,
+        list_stddev_pop(band.values) AS band_stddev,
+        list_max(band.values)        AS band_max
+    FROM __input
+    ;
+
+    -- Write a raster file using COPY ... FORMAT RASTER:
+    COPY (
+        SELECT geometry, databand_1, databand_2, databand_3
+        FROM RT_Read('path/to/raster/file.tif')
+    )
+    TO 'path/to/output/file.tif'
+    WITH (
+        FORMAT RASTER,
+        DRIVER 'COG',
+        CREATION_OPTIONS ('COMPRESS=LZW'),
+        RESAMPLING 'nearest',
+        COMPUTE_VALID_ENVELOPE true,
+        SRS 'EPSG:25830',
+        GEOMETRY_COLUMN 'geometry',
+        DATABAND_COLUMNS ['databand_3', 'databand_2', 'databand_1']
+    );
+
+    -- Clip raster tiles to a polygon geometry and write to a new file:
+    LOAD spatial;
+    LOAD json;
+
+    COPY (
+        WITH __clip_layer AS (
+            SELECT geom FROM ST_Read('./test/data/CATAST_Pol_Township-PNA.geojson')
+        ),
+        __dataset AS (
+            SELECT id, x, y, tile_x, tile_y, cols, rows, geometry, databand_1, metadata
+            FROM
+                __clip_layer,
+                RT_Read([
+                    './test/data/mosaic/SCL.tif-land-clip00.tiff',
+                    './test/data/mosaic/SCL.tif-land-clip01.tiff',
+                    './test/data/mosaic/SCL.tif-land-clip10.tiff',
+                    './test/data/mosaic/SCL.tif-land-clip11.tiff'
+                ])
+            WHERE ST_Intersects(__clip_layer.geom, geometry)
+        ),
+        __clipped AS (
+            SELECT
+                RT_CubeClip(databand_1,
+                            tile_x,
+                            tile_y,
+                           (metadata->'blocksize_x')::INTEGER,
+                           (metadata->'blocksize_y')::INTEGER,
+                           (metadata->'transform')::DOUBLE[],
+                            __clip_layer.geom,
+                           (metadata->'bands'->0->'nodata')::DOUBLE
+                ) AS databand,
+                * EXCLUDE(databand_1)
+            FROM __clip_layer, __dataset
+        )
+        SELECT geometry, databand FROM __clipped
+    )
+    TO 'path/to/output/clipped.tiff'
+    WITH (
+        FORMAT RASTER,
+        DRIVER 'GTiff',
+        CREATION_OPTIONS ('COMPRESS=LZW'),
+        RESAMPLING 'nearest',
+        SRS 'EPSG:32630',
+        GEOMETRY_COLUMN 'geometry',
+        DATABAND_COLUMNS ['databand']
+    );
+
+  extended_description: |
+    A DuckDB extension for reading and writing geospatial raster data using SQL.
+
+    It exposes raster files (e.g. GeoTIFF, COG, VRT) as standard DuckDB tables, with one row per tile
+    and one datacube column per band. You can filter, transform, and aggregate raster data using plain
+    SQL, and write results back to any GDAL-supported raster format.
+
+    The extension uses the [GDAL library](https://gdal.org/) for raster I/O, supporting a wide range
+    of formats including GeoTIFF, COG, Erdas Imagine, GDAL Virtual (VRT), and more.
+
+    Both `databand` and `datacube` columns share the same underlying type: a BLOB encoding an
+    N-dimensional array of pixel values together with a small binary header (dimensions, data type,
+    nodata value). The terms are interchangeable — they only differ in how `RT_Read` names the output
+    columns. By default, one `databand_N` column is returned per raster band. When the `datacube`
+    option is `true`, all bands are merged into a single `datacube` column.
+
+    **RT_Read** is the primary table function. It accepts a file path (or a list of paths for mosaics)
+    and returns a tiled representation of the raster with the following columns:
+
+    - `id`: Unique tile identifier.
+    - `x`, `y`: Center coordinates of the tile (same CRS as the source file).
+    - `bbox`: Bounding box struct (`xmin`, `ymin`, `xmax`, `ymax`).
+    - `geometry`: Tile footprint as a POLYGON geometry.
+    - `level`, `tile_x`, `tile_y`: Tile grid coordinates.
+    - `cols`, `rows`: Actual pixel dimensions of the tile.
+    - `metadata`: JSON with band properties, CRS, geotransform, and driver metadata.
+    - `databand_1`, `databand_2`, … (or `datacube`): BLOB columns with pixel data per band.
+
+    `RT_Read` supports filter pushdown on all non-BLOB columns. Use `bbox` or `geometry` to spatially
+    filter tiles before pixel data is loaded from disk.
+
+    **RT_Write** (`COPY … FORMAT RASTER`) exports a table back to a new raster file. Key options:
+
+    - `DRIVER`: GDAL driver name (e.g. `GTiff`, `COG`).
+    - `CREATION_OPTIONS`: Key=VALUE strings passed to the GDAL driver.
+    - `RESAMPLING`: Resampling method (`nearest`, `bilinear`, `cubic`, …).
+    - `ENVELOPE`: Explicit spatial extent `[xmin, ymin, xmax, ymax]`.
+    - `COMPUTE_VALID_ENVELOPE`: Derive extent from valid (non-nodata) pixels instead of tile footprints.
+    - `SRS`: Output CRS as EPSG code or WKT string.
+    - `GEOMETRY_COLUMN`: Name of the geometry column (default: `geometry`).
+    - `DATABAND_COLUMNS`: Ordered list of datacube columns to write as raster bands.
+
+    **Band algebra** is performed directly in SQL using the `RT_Cube*` scalar functions. Arithmetic
+    operators `+`, `-`, `*`, `/`, `^`, `%` are overloaded for datacube columns. Use `RT_Cube2Type<T>`
+    to cast the result to the desired storage type, and `RT_Cube2Array<T>` to extract pixel values into
+    a flat SQL array for aggregate operations.
+
     SELECT short_name, long_name, help_url FROM RT_Drivers();
 
     ┌────────────────┬──────────────────────────────────────────────────────────┬─────────────────────────────────────────────────────┐
@@ -130,13 +296,13 @@ docs:
         ),
         __clipped AS (
             SELECT RT_CubeClip(databand_1,
-                            tile_x,
-                            tile_y,
-                            (metadata->>'blocksize_x')::INTEGER,
-                            (metadata->>'blocksize_y')::INTEGER,
-                            (metadata->>'transform')::DOUBLE[],
-                            __clip_layer.geom,
-                            (metadata->>'bands'->>0->>'nodata')::DOUBLE
+                               tile_x,
+                               tile_y,
+                              (metadata->'blocksize_x')::INTEGER,
+                              (metadata->'blocksize_y')::INTEGER,
+                              (metadata->'transform')::DOUBLE[],
+                               __clip_layer.geom,
+                              (metadata->'bands'->0->'nodata')::DOUBLE
                 ) AS databand, * EXCLUDE(databand_1)
             FROM
                 __clip_layer,

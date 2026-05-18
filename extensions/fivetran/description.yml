@@ -12,4 +12,4 @@ extension:
   version: 2026012700
 repo:
   github: lnkuiper/fivetran
-  ref: 1ff6cb2f6b91b7be7bda3f310b546efa605b5034
+  ref: cdd9a4104e8c76e6498661ff0948222cabbf60df

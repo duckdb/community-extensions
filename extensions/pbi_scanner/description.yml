@@ -23,7 +23,7 @@ docs:
 extension:
   name: pbi_scanner
   description: DuckDB extension for querying Power BI Semantic Models with DAX.
-  version: '0.0.3'
+  version: '0.0.4'
   language: C++
   build: cmake
   license: MIT
@@ -32,4 +32,4 @@ extension:
     - crazy-treyn
 repo:
   github: crazy-treyn/pbi_scanner
-  ref: dcde225628f30353a26d1c60c3dfc951d12ba7a6
+  ref: 6ae413fb6d6c9eb7e9b97758f41f346ac85b45a1
