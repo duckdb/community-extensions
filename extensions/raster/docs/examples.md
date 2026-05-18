@@ -39,7 +39,11 @@ SELECT * FROM RT_Read('./test/data/overlay-sample.tiff', blocksize_x := 512, blo
 Use the `/vsis3/` prefix to instruct GDAL's virtual file system to read directly from S3. For public buckets, disable signature checking first:
 
 ```sql
+-- Enable public S3 access via GDAL.
 SELECT RT_GdalConfig('AWS_NO_SIGN_REQUEST', 'YES');
+
+-- Linux: Maybe also set the CA bundle path if you encounter SSL errors.
+-- SELECT RT_GdalConfig('CURL_CA_BUNDLE', '/etc/ssl/certs/ca-certificates.crt');
 
 SELECT
     *
@@ -77,9 +81,46 @@ FROM
 ;
 ```
 
-<img src="images/read_multiple.png" alt="read_multiple.png" width="800"/>
+<p align="center"><img src="images/read_multiple.png" alt="read_multiple.png" width="600"/></p>
 
 > **Note on `separate_bands`:** By default (`separate_bands := false`), the input files are treated as tiles of a larger mosaic and the result has the same number of bands as each individual file. Setting `separate_bands := true` places each file into its own band of the VRT dataset, which is useful when reading spectrally different bands stored in separate files (see the NDVI example in [Section 5](#5-end-to-end-earth-observation-analysis)).
+
+`RT_Read` accepts pattern-based file paths with wildcards (`*`) and recursive globbing (`**`) to read multiple files without having to list them all explicitly.
+
+```sql
+-- Use a wildcard pattern to read multiple files
+SELECT
+    geometry, databand_1
+FROM
+    RT_Read('path/to/mosaic/raster-*.tif')
+;
+```
+
+Spatial manipulation is supported, so you can filter tiles by their spatial location or use the `geometry` or `bbox` columns to perform spatial operations and analyses.
+
+```sql
+LOAD spatial;
+
+-- Filter tiles by spatial location
+SELECT
+	x, y, bbox, geometry
+FROM
+	RT_Read('path/to/raster/file.tif')
+WHERE
+	ST_Intersects(geometry, ST_GeomFromText('POLYGON((...)))'))
+;
+```
+
+You can also read raster data at the pixel level using the `RT_ReadCells` function, which returns one row per value cell in the raster, along with its pixels and spatial coordinates.
+
+```sql
+-- Read raster file at the pixel level, one row per value cell with one column per band
+SELECT
+	id, x, y, geometry, pixel_x, pixel_y, band_1, band_2, band_3
+FROM
+	RT_ReadCells('path/to/raster/file.tif')
+;
+```
 
 ---
 
@@ -106,7 +147,7 @@ WITH (
 );
 ```
 
-<img src="images/copy_to_raster.png" alt="copy_to_raster.png" width="800"/>
+<p align="center"><img src="images/copy_to_raster.png" alt="copy_to_raster.png" width="600"/></p>
 
 For the full list of creation options refer to the [function reference](functions.md#rt_write) and to the [GDAL driver documentation](https://gdal.org/drivers/raster/index.html).
 
@@ -138,7 +179,7 @@ WITH (
 );
 ```
 
-<img src="images/copy_to_cog.png" alt="copy_to_cog.png" width="800"/>
+<p align="center"><img src="images/copy_to_cog.png" alt="copy_to_cog.png" width="600"/></p>
 
 ### Exporting tile footprints to vector formats
 
@@ -186,7 +227,7 @@ WITH (
 );
 ```
 
-<img src="images/copy_to_geopackage.png" alt="copy_to_geopackage.png" width="800"/>
+<p align="center"><img src="images/copy_to_geopackage.png" alt="copy_to_geopackage.png" width="600"/></p>
 
 ---
 
@@ -405,6 +446,7 @@ WITH (
     DATABAND_COLUMNS ['ndvi']
 );
 ```
+<p align="center"><img src="images/sentinel2_to_ndvi.png" alt="sentinel2_to_ndvi.png" width="600"/></p>
 
 ### Step 4 — Complete AOI workflow with dynamic STAC discovery
 
@@ -424,6 +466,9 @@ LOAD http_client;
 
 -- Enable public S3 access via GDAL.
 SELECT RT_GdalConfig('AWS_NO_SIGN_REQUEST', 'YES');
+
+-- Linux: Maybe also set the CA bundle path if you encounter SSL errors.
+-- SELECT RT_GdalConfig('CURL_CA_BUNDLE', '/etc/ssl/certs/ca-certificates.crt');
 
 -- Search the STAC catalog and store all matching features.
 CREATE OR REPLACE TEMP TABLE __search_results AS
@@ -520,9 +565,7 @@ COPY (
                 n.nir,
                 n.tile_x,
                 n.tile_y,
-               (n.metadata->'blocksize_x')::INTEGER,
-               (n.metadata->'blocksize_y')::INTEGER,
-               (n.metadata->'transform')::DOUBLE[],
+                n.metadata,
                (SELECT geom FROM __aoi),
                (n.metadata->'bands'->0->'nodata')::DOUBLE
             ) AS nir,
@@ -530,9 +573,7 @@ COPY (
                 r.red,
                 r.tile_x,
                 r.tile_y,
-               (r.metadata->'blocksize_x')::INTEGER,
-               (r.metadata->'blocksize_y')::INTEGER,
-               (r.metadata->'transform')::DOUBLE[],
+                r.metadata,
                (SELECT geom FROM __aoi),
                (r.metadata->'bands'->0->'nodata')::DOUBLE
             ) AS red
@@ -560,7 +601,7 @@ WITH (
 );
 ```
 
-<img src="images/sentinel2_to_ndvi.png" alt="sentinel2_to_ndvi.png" width="800"/>
+<p align="center"><img src="images/sentinel2_to_ndvi---aoi.png" alt="sentinel2_to_ndvi---aoi.png" width="600"/></p>
 
 ---
 
