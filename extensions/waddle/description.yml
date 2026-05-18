@@ -1,5 +1,5 @@
 extension:
-  name: quack
+  name: waddle
   description: Provides a hello world example demo
   version: 0.0.2
   language: C++
@@ -19,11 +19,10 @@ extension:
 
 repo:
   github: duckdb/extension-template
-  andium: 8148b0e4d1c0f4891ff357e0339224e779cd62bd
-  ref: 16fb110f74b233c9b4a4441534da2b65a8abf562
+  ref: 5df4b9401665d23ec5f9dd08f248df08c9075232
 
 docs:
   hello_world: |
-    SELECT quack('world');
+    SELECT waddle('DuckDB!');
   extended_description: |
-    The quack extension is based on DuckDB's [Extension Template](https://github.com/duckdb/extension-template/), and it's a great starting point to get started building more advanced extensions.
+    The waddle extension is based on DuckDB's [Extension Template](https://github.com/duckdb/extension-template/), and it's a great starting point to get started building more advanced extensions.
