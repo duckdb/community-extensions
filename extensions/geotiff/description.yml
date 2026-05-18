@@ -1,0 +1,31 @@
+extension:
+  name: geotiff
+  description: Read GeoTIFF rasters as (cell_id, value) via GDAL
+  version: 0.1.2
+  language: C++
+  build: cmake
+  licence: MIT
+  maintainers:
+    - babaknaimi
+  excluded_platforms: "windows_amd64_mingw"
+
+repo:
+  github: babaknaimi/duckdb-geotiff
+  ref: 3fa51dbe85cb890dea8416c07c90f30147b9d6a4
+  
+
+docs:
+  hello_world: |
+    -- one band -> (cell_id, value)
+    INSTALL geotiff FROM community;
+    LOAD geotiff;
+    SELECT * FROM read_geotiff('cea.tif', band := 1) LIMIT 5;
+
+    -- multiple bands -> (cell_id, band1, band2, ...)
+    SELECT * FROM read_geotiff('cea.tif', band := [1,2,3]) LIMIT 5;
+  extended_description: |
+    The geotiff extension streams GeoTIFF rasters using GDAL and exposes them as
+    DuckDB table functions. For a single band it returns (cell_id BIGINT, value DOUBLE).
+    If you pass multiple bands (e.g., band := [1,2,3]) it returns a wide schema:
+    (cell_id, band1, band2, …). This is optimized for fast CTAS/UPDATE patterns
+    when building “wide” raster tables inside DuckDB.

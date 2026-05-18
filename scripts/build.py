@@ -1,7 +1,6 @@
 import os
 import sys
 import yaml
-
 # TODO: check prefix, needs to be in installation dir
 
 if 'ALL_CHANGED_FILES' in os.environ:
@@ -28,23 +27,38 @@ with open(desc_file, 'r') as stream:
 
 print(desc)
 
+# Validate that the directory name matches the extension name
+dir_name = os.path.basename(os.path.dirname(desc_file))
+extension_name = desc['extension']['name']
+if dir_name != extension_name:
+    raise ValueError(f"Directory name '{dir_name}' does not match extension name '{extension_name}' in {desc_file}. Please rename the directory to '{extension_name}'.")
+
 # todo check other stuff like build system etc.
 
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
+	if 'canonical_name' in desc.get('repo', {}):
+		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
 	extension_ref = desc['repo']['ref']
-	if  os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
+	if os.environ['DUCKDB_VERSION'] == 'v1.4.4':
+		if 'andium' in desc['repo']:
+			extension_ref = desc['repo']['andium']
+	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
 		if 'ref_next' in desc['repo']:
 			extension_ref = desc['repo']['ref_next']
 	hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
+	opt_in_platforms = desc['extension'].get('opt_in_platforms')
 	requires_toolchains = desc['extension'].get('requires_toolchains')
 	custom_toolchain_script = desc['extension'].get('custom_toolchain_script')
 	vcpkg_url = desc['extension'].get('vcpkg_url')
 	vcpkg_commit = desc['extension'].get('vcpkg_commit')
+	test_config = desc['extension'].get('test_config')
 	if excluded_platforms:
 		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
+	if opt_in_platforms:
+		hdl.write(f"COMMUNITY_EXTENSION_OPT_IN_PLATFORMS={opt_in_platforms}\n")
 	if requires_toolchains:
 		hdl.write(f"COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS={requires_toolchains}\n")
 	if vcpkg_url:
@@ -53,7 +67,6 @@ with open('env.sh', 'w+') as hdl:
 		hdl.write(f"COMMUNITY_EXTENSION_VCPKG_COMMIT={vcpkg_commit}\n")
 	if deploy:
 		hdl.write(f"COMMUNITY_EXTENSION_DEPLOY=1\n")
-	if custom_toolchain_script and custom_toolchain_script != "false":
-		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT=true\n")
-	else:
-		hdl.write(f"COMMUNITY_EXTENSION_CUSTOM_TOOLCHAIN_SCRIPT=false\n")
+	if test_config:
+		escaped_config =test_config.replace("\n", "")
+		hdl.write(f"COMMUNITY_EXTENSION_TEST_CONFIG={escaped_config}\n")

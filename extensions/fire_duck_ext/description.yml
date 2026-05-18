@@ -1,0 +1,258 @@
+extension:
+  name: fire_duck_ext
+  description: Query Google Cloud Firestore directly from DuckDB using SQL
+  version: 0.1.2
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw"
+  maintainers:
+    - BorisBesky
+
+repo:
+  github: BorisBesky/fire_duck_ext
+  ref: 2ea20258af9370ea1ef6200f8ec12113aa69127c
+
+docs:
+hello_world: |
+    LOAD fire_duck_ext;
+
+    -- Authenticate with a service account JSON file
+    CREATE SECRET my_firestore (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        SERVICE_ACCOUNT_JSON '/path/to/service-account.json'
+    );
+
+    -- Or use an API key (for dev/testing only)
+    CREATE SECRET my_firestore (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        API_KEY 'AIzaSyYourApiKeyHere'
+    );
+
+    -- To target a named database (non-default), add DATABASE to any secret
+    CREATE SECRET my_named_db (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        SERVICE_ACCOUNT_JSON '/path/to/credentials.json',
+        DATABASE 'analytics-db'
+    );
+
+    -- Read all documents in a collection
+    SELECT * FROM firestore_scan('users');
+
+    -- Filter documents (filters are pushed down to Firestore)
+    SELECT __document_id, name, email
+    FROM firestore_scan('users')
+    WHERE status = 'active';
+
+    -- Query a collection group across all documents
+    SELECT __document_id, amount, currency
+    FROM firestore_scan('~transactions')
+    WHERE amount > 100;
+
+    -- JOIN Firestore data with a local CSV
+    SELECT u.name, u.email, o.__document_id AS order_id, o.total
+    FROM firestore_scan('users') u
+    JOIN read_csv('orders.csv') o ON u.__document_id = o.user_id;
+
+    -- CTE: summarize order totals per user from Firestore
+    WITH order_totals AS (
+        SELECT user_id, SUM(total) AS lifetime_value
+        FROM firestore_scan('orders')
+        GROUP BY user_id
+    )
+    SELECT u.name, u.email, ot.lifetime_value
+    FROM firestore_scan('users') u
+    JOIN order_totals ot ON u.__document_id = ot.user_id
+    ORDER BY ot.lifetime_value DESC;
+
+    -- Update a single document field
+    CALL firestore_update('users', 'user123', 'status', 'verified');
+
+    -- Batch update documents matching a filter
+    SET VARIABLE ids = (
+        SELECT list(__document_id)
+        FROM firestore_scan('users')
+        WHERE status = 'pending'
+    );
+    CALL firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
+
+    -- Insert documents from a CSV (auto-generated IDs)
+    CALL firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
+
+    -- Insert with explicit document IDs from a column
+    CALL firestore_insert('users',
+        (SELECT * FROM read_csv('new_users.csv')),
+        document_id := 'user_id');
+
+    -- Delete a single document
+    CALL firestore_delete('users', 'user123');
+
+    -- Batch delete documents matching a filter
+    SET VARIABLE stale_ids = (
+        SELECT list(__document_id)
+        FROM firestore_scan('users')
+        WHERE last_login < now() - INTERVAL 1 YEAR
+    );
+    CALL firestore_delete_batch('users', getvariable('stale_ids'));
+
+    -- Modify array fields
+    CALL firestore_array_union('users', 'user123', 'roles', ['editor', 'reviewer']);
+    CALL firestore_array_remove('users', 'user123', 'roles', ['editor']);
+
+    -- Switch active database for the session
+    CALL firestore_connect('analytics-db');
+
+extended_description: |
+    fire_duck_ext lets you query and modify Google Cloud Firestore directly from DuckDB using SQL.
+    Whether you need to access Firestore data with SQL or integrate Firebase/Firestore workflows
+    into DuckDB pipelines, this extension provides full read and write support through standard
+    SQL statements.
+
+    Scan collections with firestore_scan(). Perform DML operations with firestore_update(),
+    firestore_insert(), and firestore_delete(). Run batch writes and deletes with
+    firestore_update_batch() and firestore_delete_batch(). Transform array fields with
+    firestore_array_union(), firestore_array_remove(), and firestore_array_append().
+
+    Query collection groups across all documents with firestore_scan('~collection').
+    List subcollections under a document with firestore_scan('collection/doc_id').
+    Push down filters directly to Firestore for efficient querying.
+    Manage authentication credentials using DuckDB secrets.
+
+    ## Authentication
+    Secrets require `PROJECT_ID` and one of `SERVICE_ACCOUNT_JSON` or
+    `API_KEY`.
+
+    `SERVICE_ACCOUNT_JSON` accepts either a file path or the full inline
+    JSON text of a Google Cloud service account key. The JSON must contain
+    at least `type`, `project_id`, `private_key`, and `client_email`.
+
+    `API_KEY` provides unauthenticated access suitable for development,
+    testing, or public databases. API key auth does not support
+    `batchWrite`, so batch operations fall back to individual requests.
+
+    If the `GOOGLE_APPLICATION_CREDENTIALS` environment variable is set,
+    the extension automatically creates an internal secret on startup that
+    matches all databases (`DATABASE '*'`), so no `CREATE SECRET` is needed.
+
+    ## Type Mapping
+    - `string` → VARCHAR
+    - `integer` → BIGINT
+    - `double` → DOUBLE
+    - `boolean` → BOOLEAN
+    - `timestamp` → TIMESTAMP
+    - `array` → LIST
+    - `map` → VARCHAR (JSON string)
+    - `vector` → ARRAY(DOUBLE, N) (embedding)
+    - `null` → NULL
+    - `geoPoint` → STRUCT(latitude DOUBLE, longitude DOUBLE)
+    - `reference` → VARCHAR
+    - `bytes` → BLOB
+
+    ## Schema Inference
+    When you call `firestore_scan()`, the extension automatically infers the
+    schema by sampling up to 100 documents from the collection. For each
+    field, it determines the DuckDB type using a voting system: the most
+    common non-null Firestore type across the sampled documents wins. Fields
+    that do not appear in every sampled document are marked nullable.
+
+    For array fields, element types are also inferred by sampling elements
+    across documents and selecting the most common element type. If a field
+    is only ever null across all samples, it defaults to VARCHAR.
+
+    A virtual `__document_id` column (VARCHAR) is always added as the first
+    column, containing the Firestore document ID (or the full document path
+    for collection group queries).
+
+    Documents with heterogeneous field types are handled gracefully at read
+    time: values that cannot be converted to the inferred column type are
+    returned as NULL.
+
+    ## Null Semantics
+    Both missing fields and explicit Firestore null values appear as NULL in
+    DuckDB. There is no way to distinguish between the two on read.
+
+    Writing NULL to a field sets it to an explicit Firestore null value; it
+    does not delete the field from the document.
+
+    `WHERE field IS NULL` is not pushed down to Firestore because Firestore's
+    IS_NULL operator only matches fields that exist and are explicitly null,
+    while DuckDB treats missing fields as NULL. `WHERE field IS NOT NULL` is
+    pushed down safely.
+
+    ## Batch Operations
+    Batch updates and deletes group writes into requests of up to 500
+    operations each using Firestore's batchWrite API. Note that batchWrite
+    is not atomic: individual writes within the batch may succeed or fail
+    independently. If batchWrite is unavailable (e.g., API key auth), the
+    extension falls back to individual operations automatically.
+
+    ## Database Targeting
+    By default, secrets target the `(default)` Firestore database. Use
+    `DATABASE 'name'` for a single named database, `DATABASE '*'` as a
+    wildcard that matches any database, or `DATABASES ['db1', 'db2']` to
+    allow a single secret to match multiple named databases. You cannot
+    specify both `DATABASE` and `DATABASES` in the same secret.
+
+    Use `CALL firestore_connect('db-name')` to set the session database.
+    All subsequent queries use this database until
+    `CALL firestore_disconnect()` is called. A per-query `database :=`
+    parameter always takes priority over the connected session database.
+
+    ## Collection Group Queries
+    Use the `~collection` prefix to query across all subcollections with a
+    given name. For example, `firestore_scan('~orders')` reads all documents
+    from every subcollection named "orders" regardless of parent path.
+
+    ## SQL ORDER BY / LIMIT Pushdown
+    `firestore_scan()` can automatically push simple SQL `ORDER BY`,
+    `LIMIT`, and `OFFSET` clauses down to Firestore, reducing the number
+    of documents fetched for sorted and top-N queries.
+
+    Supported patterns include:
+    - `ORDER BY field`
+    - `ORDER BY field DESC`
+    - `ORDER BY field1, field2`
+    - `LIMIT n`
+    - `ORDER BY ... LIMIT n`
+    - `ORDER BY ... LIMIT n OFFSET m` (pushed as `LIMIT n + m`, with
+      DuckDB applying the final offset)
+
+    Named parameters still work and take precedence over SQL pushdown:
+    - If `order_by=` is provided, that server-side ordering is used and
+      DuckDB applies any SQL `ORDER BY` afterward.
+    - If `scan_limit=` is provided, that fetch limit is used and DuckDB
+      applies any SQL `LIMIT` afterward.
+
+    Use `EXPLAIN` to verify when SQL ordering and limits are being pushed.
+    Firestore will show entries like `Firestore Pushed Order: score DESC`
+    and `Firestore Pushed Limit: 5`.
+
+    ## Collection ID Listings
+    When `firestore_scan()` is given a document path instead of a collection
+    path, it lists that document's direct subcollection IDs instead of
+    reading documents. This is useful for discovering unknown nested
+    collection names.
+
+    The result contains a single `__document_id` column, where each row is a
+    subcollection ID.
+
+    Document-path scans support:
+    - Pagination across large numbers of subcollections
+    - SQL `ORDER BY __document_id` pushdown
+    - SQL `LIMIT` pushdown
+    - Named `order_by='__document_id'` or `order_by='__document_id DESC'`,
+      plus `scan_limit=...`
+
+    Other ordering expressions still work, but they are evaluated in DuckDB
+    after fetching the subcollection IDs.
+
+    ## Missing Documents
+    By default, `firestore_scan()` includes phantom/missing documents —
+    documents that have no fields but exist as parent paths for
+    subcollections. This matches Firebase Console behavior and is controlled
+    by `show_missing` (default: `true`). Set `show_missing := false` to
+    only return documents with fields. When a collection contains only
+    phantom documents, the result includes just the `__document_id` column.

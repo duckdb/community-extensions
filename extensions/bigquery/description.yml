@@ -1,24 +1,25 @@
 extension:
   name: bigquery
-  description: Enables seamless integration and querying of BigQuery datasets within DuckDB
-  version: 1.0.0
+  description: Integrates DuckDB with Google BigQuery, allowing direct querying and management of BigQuery datasets
+  version: 0.10.0
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;osx_amd64;linux_arm64"
-  vcpkg_commit: "e01906b2ba7e645a76ee021a19de616edc98d29f"
+  vcpkg_commit: "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0"
   requires_toolchains: "parser_tools"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
   maintainers:
     - hafenkran
 
 repo:
   github: hafenkran/duckdb-bigquery
-  ref: 63a4f9dac3aa0b253f88f18a2ff43480c65a6984
+  andium: ec5cf7b0342e7a46f7505c1176d8e46d963d7815
+  ref: 2d5cf81f70a9513c1fb5f1da66036db28bfd0cbd
 
 docs:
   hello_world: |
     -- Attach to your BigQuery Project
-    D ATTACH 'project=my_gcp_project' as bq (TYPE bigquery, READ_ONLY);
+    D ATTACH 'project=my_gcp_project' AS bq (TYPE bigquery, READ_ONLY);
 
     -- Show all tables in all datasets in the attached BigQuery project
     D SHOW ALL TABLES;
@@ -27,7 +28,7 @@ docs:
     │ varchar  │     varchar      │  varchar │  varchar[]   │     varchar[]     │  boolean  │
     ├──────────┼──────────────────┼──────────┼──────────────┼───────────────────┼───────────┤
     │ bq       │ quacking_dataset │ duck_tbl │ [i, s]       │ [BIGINT, VARCHAR] │ false     │
-    | bq       | barking_dataset  | dog_tbl  | [i, s]       | [BIGINT, VARCHAR] │ false     |
+    | bq       | barking_dataset  | dog_tbl  | [i, s]       | [BIGINT, VARCHAR] │ false     │
     └──────────┴──────────────────┴──────────┴──────────────┴───────────────────┴───────────┘
 
     -- Select data from a specific table in BigQuery
@@ -41,5 +42,6 @@ docs:
     └───────┴────────────────┘
 
   extended_description: |
-    The DuckDB BigQuery Extension enables DuckDB to integrate seamlessly with Google BigQuery, allowing users to directly access, manage, and manipulate their BigQuery datasets and tables using standard SQL statements. 
+    This community-maintained extension allows DuckDB to connect to Google BigQuery using the BigQuery Storage (read/write) and REST APIs. 
+    It enables users to read, write, and manage their BigQuery datasets/tables directly from DuckDB using standard SQL queries.
     For detailed setup and usage instructions, visit the [extension repository](https://github.com/hafenkran/duckdb-bigquery).

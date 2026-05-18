@@ -1,0 +1,15 @@
+docs:
+  extended_description: |
+    See the [README](https://github.com/lnkuiper/fivetran).
+extension:
+  build: cmake
+  description: Fivetran community extension.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+    - lnkuiper
+  name: fivetran
+  version: 2026012700
+repo:
+  github: lnkuiper/fivetran
+  ref: cdd9a4104e8c76e6498661ff0948222cabbf60df

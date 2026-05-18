@@ -1,0 +1,25 @@
+extension:
+  name: ggsql
+  description: Bindings to ggsql — Grammar of Graphics based visualizations in SQL
+  version: 0.3.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - thomasp85
+  requires_toolchains: "rust"
+  # Rust dependencies pull in tiny_http, threads, and `open::that` — none of
+  # which are viable under emscripten. Skip all wasm targets.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+repo:
+  github: posit-dev/ggsql-duckdb
+  ref: b58100459367e59c2933cbbb4aa8a2c7ac0e0283
+docs:
+  hello_world: |
+    SELECT 1 AS x, 2 AS y VISUALISE x, y DRAW point;
+  extended_description: |
+    ggsql extends DuckDB's SQL with the visual query language defined by ggsql
+    (https://ggsql.org) to allow direct visualization from DuckDB. Results are
+    served from an in-process HTTP server and opened in the default browser.
+    The session setting `ggsql_output` switches to returning a URL, the raw
+    vega-lite spec, or a self-contained HTML document instead.

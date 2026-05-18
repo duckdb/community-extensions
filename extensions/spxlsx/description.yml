@@ -1,0 +1,140 @@
+extension:
+  name: spxlsx
+  description: Query SharePoint lists and Excel workbooks directly from DuckDB
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - paulmupeters
+repo:
+  github: paulmupeters/spxlsx
+  ref: v0.1.1
+docs:
+  hello_world: |
+    LOAD spxlsx;
+
+    -- Authenticate with SharePoint using the built-in OAuth device flow
+    CREATE SECRET (TYPE sharepoint, PROVIDER oauth);
+
+    -- Read rows from a SharePoint list
+    SELECT ID, Title, Created
+    FROM read_sharepoint_list(
+      'https://contoso.sharepoint.com/sites/MyTeam/Lists/Projects',
+      top := 10
+    );
+
+    -- Read an Excel workbook stored in SharePoint
+    SELECT *
+    FROM read_sharepoint_excel(
+      'https://contoso.sharepoint.com/sites/Finance/Documents/Budget2024.xlsx',
+      sheet := 'Q1 Data'
+    )
+    LIMIT 10;
+
+    -- Download an Excel workbook stored in SharePoint
+    SELECT sharepoint_download_excel(
+      'https://contoso.sharepoint.com/sites/Finance/Documents/Report.xlsx'
+    );
+
+  extended_description: |
+    spxlsx is a DuckDB extension for querying Microsoft SharePoint data directly from SQL.
+    It uses Microsoft Graph API for authentication and data access. The extension relies
+    on DuckDB's `excel` extension for reading Excel workbooks. So it is required to
+    have the `excel` extension installed when reading SharePoint-hosted Excel workbooks.
+
+    **Repository:** https://github.com/paulmupeters/spxlsx
+
+    ## Core Features
+
+    - `read_sharepoint_list(url, filter := ..., top := ...)` table function for SharePoint Lists
+    - `read_sharepoint_excel(url, ...)` table macro that reads a SharePoint-hosted Excel workbook
+    - `sharepoint_download_excel(url)` scalar function that downloads a SharePoint-hosted workbook to a temporary local file
+    - SharePoint authentication through DuckDB secrets with `PROVIDER oauth` or `PROVIDER token`
+    - Automatic attempt to load DuckDB's `excel` extension when `LOAD spxlsx` is executed
+
+    ## Authentication
+
+    The extension registers a custom SharePoint secret type. You can authenticate interactively:
+
+    ```sql
+    CREATE SECRET (TYPE sharepoint, PROVIDER oauth);
+    ```
+
+    Or by supplying an existing access token:
+
+    ```sql
+    CREATE SECRET (TYPE sharepoint, PROVIDER token, TOKEN 'your-access-token');
+    ```
+
+    Persistent secrets are also supported:
+
+    ```sql
+    CREATE PERSISTENT SECRET (TYPE sharepoint, PROVIDER oauth);
+    ```
+
+    ## Query SharePoint Lists
+
+    Read SharePoint List items as a DuckDB table:
+
+    ```sql
+    SELECT *
+    FROM read_sharepoint_list('https://contoso.sharepoint.com/sites/MyTeam/Lists/Projects');
+    ```
+
+    Optional pushdown-style parameters are available:
+
+    ```sql
+    SELECT ID, Title, Created
+    FROM read_sharepoint_list(
+      'https://contoso.sharepoint.com/sites/MyTeam/Lists/Projects',
+      filter := 'Status eq ''Active''',
+      top := 100
+    )
+    ORDER BY Created DESC;
+    ```
+
+    SharePoint column types are mapped into DuckDB types at bind time using list metadata, with
+    complex lookup/person fields exposed as strings.
+
+    ## Query Excel Files Stored in SharePoint
+
+    The fast path is the built-in `read_sharepoint_excel(...)` macro:
+
+    ```sql
+    SELECT *
+    FROM read_sharepoint_excel(
+      'https://contoso.sharepoint.com/sites/Finance/Documents/Budget2024.xlsx',
+      sheet := 'Q1 Data',
+      header := true,
+      ignore_errors := true
+    );
+    ```
+
+    Supported parameters mirror common `read_xlsx(...)` options:
+    - `sheet`
+    - `header`
+    - `all_varchar`
+    - `ignore_errors`
+    - `range`
+    - `stop_at_empty`
+    - `empty_as_varchar`
+
+    For more advanced Excel workflows, use the download helper directly with `read_xlsx(...)`:
+
+    ```sql
+    SELECT *
+    FROM read_xlsx(
+      (SELECT sharepoint_download_excel(
+        'https://contoso.sharepoint.com/sites/Finance/Documents/Report.xlsx'
+      )),
+      sheet := 'Summary',
+      range := 'A1:F100'
+    );
+    ```
+
+    ## Notes
+
+    This extension is currently experimental and not yet production-hardened. It is intended to make
+    SharePoint list data and SharePoint-hosted Excel workbooks first-class query sources in DuckDB,
+    especially for ad hoc analysis and lightweight integration workflows.

@@ -1,0 +1,23 @@
+extension:
+  name: highs
+  description: HiGHS - High Performance Optimization Software
+  version: 1.7.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - fhk
+
+repo:
+  github: fhk/highs-duckdb
+  ref: 0c343b5d3b54fb63231b445617eaff847dbdc719
+
+docs:
+  hello_world: |
+    SELECT highs_version('Test');
+  extended_description: |
+    HiGHS is software for the definition, modification and solution of large scale sparse linear optimization models.
+
+    HiGHS is freely available from [GitHub](https://github.com/ERGO-Code/HiGHS) under the MIT licence and has no third-party dependencies.
+
+

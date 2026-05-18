@@ -1,0 +1,5 @@
+function,description,comment,example
+get_substrait,Converts the provided query into a binary Substrait plan,"",""
+get_substrait_json,Converts the provided query into a Substrait plan in JSON,"",""
+from_substrait,Executes a binary Substrait plan (provided as bytes) against DuckDB and returns the results,"","" 
+from_substrait_json,Executes a Substrait plan written in JSON against DuckDB and returns the results,"",""

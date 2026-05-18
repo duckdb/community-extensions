@@ -1,0 +1,22 @@
+extension:
+  name: mooncake
+  description: Read Iceberg tables written by moonlink in real time
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - dpxcc
+  excluded_platforms: windows_amd64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads
+  requires_toolchains: rust
+
+repo:
+  github: Mooncake-Labs/duckdb_mooncake
+  ref: bd9e5f3ade4ae41d5d13d9cfd4b37b09b39996ab
+
+docs:
+  hello_world: |
+    ATTACH DATABASE 'mooncake' (TYPE mooncake, URI '/var/lib/postgresql/data/pg_mooncake/moonlink.sock', DATABASE 'postgres');
+    SELECT * FROM mooncake.public.c;
+  extended_description: |
+    For more information regarding usage, see [README.md](https://github.com/Mooncake-Labs/duckdb_mooncake/blob/v0.0.1/README.md).

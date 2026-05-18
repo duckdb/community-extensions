@@ -1,0 +1,49 @@
+extension:
+  name: quackfix
+  description: Allows the consumption FIX protocol format logs, from all supported duckdb filesystems.
+  version: 0.0.3
+  language: c++
+  build: cmake
+  license: MIT
+  maintainers:
+    - hyehudai
+
+repo:
+  github: hyehudai/quackfix
+  ref: faadfea6a8f4760c967f44902974cceabaa1bf8e
+
+docs:
+  hello_world: |
+    -- Basic FIX parsing - from http location
+    D SELECT OrderID, ExecID, LastQty FROM read_fix('https://raw.githubusercontent.com/hyehudai/QuackFIX/refs/heads/main/testdata/sample.fix') WHERE MsgType = '8' ORDER BY OrderID;
+       ─────────┬──────────┬─────────┐
+      │ OrderID │  ExecID  │ LastQty │
+      │ varchar │ varchar  │ double  │
+      ├─────────┼──────────┼─────────┤
+      │ EXEC001 │ TRADE001 │   100.0 │
+      │ EXEC002 │ TRADE002 │    50.0 │
+      │ EXEC003 │ TRADE003 │   200.0 │
+      └─────────┴──────────┴─────────┘
+
+  extended_description: |
+    
+      QuackFIX is a DuckDB extension that lets you query FIX logs directly with SQL. It parses raw FIX messages into a structured, queryable format, making FIX log analysis faster and more intuitive for trading, compliance, and financial operations.
+
+      
+      **Native DuckDB Integration** 
+      Query FIX logs directly in DuckDB—no pre-parsing, no pandas round-trips.
+      No Glue code!
+
+      **Dialect-Aware** 
+      Supports custom FIX dialects via XML dictionaries, so venue-specific tags just work.
+
+      **Fast and Scalable** 
+      Built on DuckDB’s in-memory, columnar engine to efficiently handle large log volumes.
+      
+      **Support multiple FIX dialects**
+
+      > For examples and instructions check out [User Guide](https://github.com/hyehudai/QuackFIX/blob/main/USERGUIDE.md) 
+      
+
+      
+

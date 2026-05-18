@@ -1,0 +1,54 @@
+name: Build all extensions
+on:
+  workflow_dispatch:
+    inputs:
+      duckdb_version:
+        type: string
+      duckdb_tag:
+        type: string
+      deploy:
+        type: string
+      build_extensions:
+        description: "List of extensions to build, formatted as: `['ext1', 'ext2']`"
+        type: string
+        required: false
+        default: ''
+
+
+# #
+# WARNING: BUILDING ALL EXTENSIONS AT ONCE IS NOT RECOMMENDED, USE `scripts/create_build_all_invocation.py` TO SPLIT THE BUILD INTO PARTS
+# #
+
+jobs:
+  collect_extensions:
+    outputs:
+      COMMUNITY_EXTENSION_LIST: ${{ steps.generate_list.outputs.EXTENSION_LIST }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Generate extension list
+      id: generate_list
+      run: |
+        if [[ "${{inputs.build_extensions}}" == "" ]]; then
+          ./scripts/get_extension_list.sh
+          cat extension_list
+          cat extension_list >> $GITHUB_OUTPUT
+        else
+          echo "EXTENSION_LIST=${{inputs.build_extensions}}" >> $GITHUB_OUTPUT
+        fi
+
+  build_all:
+    needs:
+      - collect_extensions
+    strategy:
+      fail-fast: false
+      matrix:
+        extension_name: ${{ fromJson(needs.collect_extensions.outputs.COMMUNITY_EXTENSION_LIST) }}
+    uses: ./.github/workflows/build.yml 
+    secrets: inherit
+    with:
+      extension_name: ${{ matrix.extension_name }}
+      duckdb_version: ${{ inputs.duckdb_version }}
+      duckdb_tag: ${{ inputs.duckdb_tag }}
+      deploy: ${{ inputs.deploy }}

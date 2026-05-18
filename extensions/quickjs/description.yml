@@ -1,0 +1,45 @@
+docs:
+  extended_description: "## QuickJS DuckDB Extension\nThis extension provides an embedded\
+    \ QuickJS-NG engine for DuckDB. It allows executing JavaScript code directly within\
+    \ your SQL queries. \n> QuickJS-NG is a small, fast, and embeddable JavaScript\
+    \ engine that supports modern JavaScript features including ES2020.\n\nThis extension\
+    \ is experimental and potentially unstable. Do not use it in production."
+  hello_world: "-- Quack JS with QuickJS\n-- Scalar\nD SELECT quickjs('2+2');\n\u250C\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2510\n\u2502 quickjs('2+2') \u2502\n\u2502    varchar    \
+    \ \u2502\n\u251C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 4              \u2502\n\u2514\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2518\n\n-- Scalar Eval\nD SELECT quickjs_eval('(a, b) => a + b',\
+    \ 5, 3);\n\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2510\n\u2502 quickjs_eval('(a, b) => a + b', 5, 3) \u2502\n\u2502\
+    \                 json                  \u2502\n\u251C\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\n\u2502 8       \
+    \                              \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n\n-- Table Eval\nD SELECT *\
+    \ FROM quickjs('parsed_arg0.map(x => x * arg1)', '[1, 2, 3, 4, 5]', 3);\n\u250C\
+    \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n\u2502 result \u2502\n\
+    \u2502  json  \u2502\n\u251C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2524\
+    \n\u2502 3      \u2502\n\u2502 6      \u2502\n\u2502 9      \u2502\n\u2502 12\
+    \     \u2502\n\u2502 15     \u2502\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\
+    \u2500\u2500\u2518\n"
+extension:
+  build: cmake
+  description: DuckDB QuickJS Runtime Extension
+  excluded_platforms: windows_amd64_mingw
+  language: C++
+  license: MIT
+  maintainers:
+  - lmangani
+  name: quickjs
+  version: '2025120401'
+repo:
+  andium: 2d31ccebd7f44babc901c84ba0fe8b560647e136
+  github: quackscience/duckdb-quickjs
+  ref: fa8ebe9a7be2ba40642208dc74d664dc7bb66659

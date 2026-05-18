@@ -1,0 +1,9 @@
+function,fun_type,description,comment,example
+"polyglot_transpile","scalar","Transpiles SQL queries from a specified dialect into DuckDB-compatible SQL. Optionally accepts a third parameter for a target dialect other than DuckDB.","","SELECT polyglot_transpile('SELECT NOW()', 'postgresql');"
+"polyglot_validate","scalar","Validates SQL syntax against a dialect's grammar and returns a struct with validity status and error details.","","SELECT polyglot_validate('SELECT 1', 'generic');"
+"polyglot_parse","scalar","Parses SQL into an AST (Abstract Syntax Tree) and returns it as a JSON array.","","SELECT polyglot_parse('SELECT 1', 'generic');"
+"polyglot_optimize","scalar","Applies simplification and canonicalization optimization passes to a SQL statement.","","SELECT polyglot_optimize('SELECT a FROM t WHERE b = 1', 'generic');"
+"polyglot_dialects","table","Returns a table listing all 34 supported SQL dialect names.","","SELECT * FROM polyglot_dialects();"
+"polyglot_query","table","Transpiles a SQL query from a specified dialect and executes it, returning results with a dynamic schema.","","SELECT * FROM polyglot_query('SELECT 1 AS a, 2 AS b', 'postgresql');"
+"polyglot_lineage","table","Traces a named column's dependency graph through a SQL statement, returning each node and its source table.","","SELECT * FROM polyglot_lineage('SELECT a FROM t', 'generic', 'a');"
+"polyglot_diff","table","Compares two SQL statements at the AST level and emits each change as a row with an edit type and the affected expression.","","SELECT * FROM polyglot_diff('SELECT a FROM t', 'SELECT b FROM t', 'generic');"

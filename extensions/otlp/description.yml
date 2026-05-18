@@ -1,0 +1,77 @@
+extension:
+  name: otlp
+  description: Read OpenTelemetry metrics, logs and traces from JSON or protobuf with a ClickHouse-inspired schema
+  version: e0f079f5c72c6fcbb37b09aa3653cb95f814fbf3
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_threads;linux_amd64_musl"
+  requires_toolchains: rust
+  maintainers:
+    - smithclay
+
+repo:
+  github: smithclay/duckdb-otlp
+  ref: v0.4.0
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD otlp;
+
+    -- Read OTLP traces from a JSON file
+    SELECT trace_id, span_name, service_name, duration
+    FROM read_otlp_traces('traces.jsonl')
+    WHERE duration > 1000000000
+    LIMIT 10;
+
+    -- Read gauge metrics from JSON (works in native and WASM)
+    SELECT timestamp, service_name, metric_name, value
+    FROM read_otlp_metrics_gauge('metrics.jsonl')
+    ORDER BY timestamp DESC;
+
+    -- Filter logs by severity while reading from S3
+    SELECT timestamp, severity_text, body, service_name
+    FROM read_otlp_logs('s3://bucket/logs-*.jsonl')
+    WHERE severity_text = 'ERROR';
+
+    -- Read protobuf format (native builds only)
+    SELECT * FROM read_otlp_traces('traces.pb') LIMIT 10;
+
+  extended_description: |
+    # OpenTelemetry for DuckDB
+
+    Query OpenTelemetry data with SQL using ClickHouse-compatible strongly-typed schemas.
+    Works with OTLP data exported from the OpenTelemetry collector's File Exporter.
+
+    ## Features
+
+    **OTLP File Reading**
+    - Table functions: `read_otlp_traces()`, `read_otlp_logs()`, `read_otlp_metrics_gauge()`, `read_otlp_metrics_sum()`, `read_otlp_metrics_histogram()`, `read_otlp_metrics_exp_histogram()`
+    - Auto-detects JSON (`.json`, `.jsonl`) and protobuf (`.pb`) formats (protobuf requires native extension)
+    - Works with DuckDB file systems: local, S3, HTTP, Azure, GCS
+    - Browser support via DuckDB-WASM (JSON format only)
+
+    **Strongly-Typed Schemas**
+    - No JSON extraction required - all fields are proper DuckDB columns
+    - Direct access: `service_name`, `trace_id`, `duration`, `value`, etc.
+    - Compatible with OpenTelemetry ClickHouse exporter schema
+    - Efficient filtering and aggregation on typed columns
+
+    ## Use Cases
+
+    - **Observability Analysis**: Query traces, logs, and metrics from exported OTLP data
+    - **OTLP File Processing**: Read and analyze OTLP exports from collectors or SDKs
+    - **Data Pipeline Testing**: Validate telemetry data before shipping to production
+    - **Local Development**: Collect and inspect OpenTelemetry data during development
+    - **Data Transformation**: Export to Parquet, CSV, or other DuckDB-supported formats
+
+    ## Limitations
+
+    - **WASM builds support JSON format only**; protobuf parsing requires native builds with the protobuf runtime
+    - Large protobuf files are processed batch-by-batch; continuous streaming is not yet supported
+
+    ## References
+
+    - [OpenTelemetry Protocol (OTLP)](https://opentelemetry.io/docs/specs/otlp/)
+    - [OpenTelemetry ClickHouse Exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/clickhouseexporter)

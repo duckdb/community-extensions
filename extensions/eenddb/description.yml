@@ -1,0 +1,34 @@
+extension:
+  name: eenddb
+  description: The long-awaited Dutch localization of DuckDB's SQL dialect
+  version: 1.4.2026
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Dtenwolde
+
+repo:
+  github: Dtenwolde/dutchdb
+  ref: f38e0bd9beef3dd0e5e52b505f66610595365498
+
+docs:
+  hello_world: |
+    LOAD eenddb;
+    CALL enable_dutch_parser();
+
+    MAAK TABEL eenden (id GEHEEL_GETAL, naam TEKST, gewicht KOMMAGETAL);
+    TOEVOEGEN AAN eenden WAARDEN (1, 'Donald', 1.2), (2, 'Daffy', 1.5), (3, 'Dagobert', 3.7);
+    SELECTEER * VAN eenden WAARBIJ gewicht > 1.3 VOLGORDE PER naam;
+
+  extended_description: >
+    EendDB ("eend" is Dutch for "duck") is the official Dutch-language SQL dialect for DuckDB.
+    After years of demand from the Dutch-speaking data engineering community, SQL queries can
+    now be written in fluent Nederlands.
+
+
+    The extension provides a complete localization of DuckDB's SQL syntax, including
+    SELECTEER (SELECT), VAN (FROM), WAARBIJ (WHERE), GROEP PER (GROUP BY),
+    VOLGORDE PER (ORDER BY), SAMENVOEGEN (JOIN), TOEVOEGEN AAN (INSERT INTO),
+    BIJWERKEN (UPDATE), VERWIJDEREN VAN (DELETE FROM), MAAK TABEL (CREATE TABLE),
+    and GOOI_WEG TABEL (DROP TABLE), among others.

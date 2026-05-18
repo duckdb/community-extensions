@@ -4,6 +4,8 @@ on:
     inputs:
       duckdb_version:
         type: string
+      deploy:
+        type: string
 
 jobs:
   collect_extensions:
@@ -12,8 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Generate extension list
       id: generate_list
@@ -33,4 +33,4 @@ jobs:
     with:
       extension_name: ${{ matrix.extension_name }}
       duckdb_version: ${{ inputs.duckdb_version }}
-      deploy: 'false'
+      deploy: ${{ inputs.deploy }}

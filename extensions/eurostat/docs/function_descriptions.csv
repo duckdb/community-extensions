@@ -1,0 +1,6 @@
+function,description,comment,example
+EUROSTAT_GetGeoLevelFromGeoCode,"Returns the level for a GEO code in the NUTS classification or if it is considered aggregates.","","SELECT EUROSTAT_GetGeoLevelFromGeoCode('PT');"
+EUROSTAT_Dataflows,"Returns info of the dataflows provided by EUROSTAT Providers.","","SELECT * FROM EUROSTAT_Dataflows(providers = ['ESTAT'], dataflows = ['DEMO_R_D2JAN'], language := 'de');"
+EUROSTAT_Endpoints,"Returns the list of supported EUROSTAT API Endpoints.","","SELECT provider_id, organization, description FROM EUROSTAT_Endpoints();"
+EUROSTAT_DataStructure,"Returns information of the data structure of an EUROSTAT Dataflow.","","SELECT * FROM EUROSTAT_DataStructure('ESTAT', 'DEMO_R_D2JAN', language := 'en');"
+EUROSTAT_Read,"Returns the dataset of an EUROSTAT Dataflow.","","SELECT * FROM EUROSTAT_Read('ESTAT', 'DEMO_R_D2JAN') LIMIT 5;"

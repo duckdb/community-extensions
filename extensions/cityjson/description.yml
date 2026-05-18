@@ -1,0 +1,52 @@
+extension:
+  name: cityjson
+  description: Read, write, and query CityJSON, CityJSONSeq, and FlatCityBuf 3D city model files.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - HideBa
+
+repo:
+  github: cityjson/duckdb-cityjson
+  ref: 0df88f9fb023e272b0fd3208e0f55445714b278c
+
+docs:
+  hello_world: |
+    -- Read a CityJSON file
+    SELECT * FROM read_cityjson('buildings.city.json');
+
+    -- Read a CityJSONSeq (line-delimited) file
+    SELECT * FROM read_cityjsonseq('buildings.city.jsonl');
+
+    -- Read a FlatCityBuf file
+    SELECT * FROM read_flatcitybuf('buildings.fcb');
+
+    -- Extract geometries as WKB at a specific Level of Detail
+    SELECT * FROM read_cityjson('buildings.city.json', lod=>'1.2');
+
+    -- Write query results to CityJSONSeq
+    COPY (SELECT * FROM read_cityjson('buildings.city.json'))
+      TO 'output.city.jsonl' (FORMAT cityjsonseq);
+
+    -- Inspect file metadata
+    SELECT * FROM cityjson_metadata('buildings.city.json');
+
+  extended_description: |
+    The CityJSON extension provides table functions for reading and writing 3D city model files
+    in CityJSON (.city.json), CityJSONSeq (.city.jsonl), and FlatCityBuf (.fcb) formats.
+    CityJSON is a JSON-based encoding for 3D city models (buildings, terrain, vegetation, etc.)
+    based on the CityGML data model.
+
+    Supported functions:
+    - `read_cityjson`, `read_cityjsonseq`, `read_flatcitybuf` — table functions for querying city objects
+    - `cityjson_metadata`, `cityjsonseq_metadata`, `flatcitybuf_metadata` — inspect file headers
+    - `COPY ... TO` with formats `cityjson`, `cityjsonseq`, and `flatcitybuf` — write query results
+
+    Additional features:
+    - Automatic schema inference from CityJSON attributes
+    - LOD-based geometry extraction as WKB blobs via the `lod` parameter
+    - Support for CityJSON v2.0 and CityJSONSeq formats
+
+    For more information on the CityJSON format, see https://www.cityjson.org/.

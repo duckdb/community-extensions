@@ -1,0 +1,34 @@
+extension:
+  name: duckdb_zarr
+  description: Explore Zarr stores with SQL through relational metadata, chunk discovery, and dense cell scans
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - d33bs
+
+repo:
+  github: wayscience/duckdb_zarr
+  ref: a4113ed729ea8896987427ef81b2d9cd16ee81cb
+
+docs:
+  hello_world: |
+    INSTALL duckdb_zarr FROM community;
+    LOAD duckdb_zarr;
+
+    SELECT * FROM zarr_groups('test/data/simple_v2.zarr');
+    SELECT * FROM zarr_arrays('test/data/simple_v2.zarr');
+    SELECT * FROM zarr_chunks('test/data/simple_v2.zarr');
+    SELECT * FROM zarr('test/data/simple_v2.zarr', 'temperature');
+  extended_description: |
+    The duckdb_zarr extension exposes Zarr stores through DuckDB table functions.
+
+    Current coverage includes:
+
+    - store discovery for local Zarr v2 and v3 layouts
+    - consolidated metadata support for remote `http://`, `https://`, and `s3://` stores
+    - group, array, and chunk enumeration with `zarr_groups()`, `zarr_arrays()`, and `zarr_chunks()`
+    - dense numeric cell scans with `zarr_cells()` and the `zarr()` convenience alias
+
+    This makes it practical to inspect Zarr metadata and query supported dense arrays with SQL directly inside DuckDB.

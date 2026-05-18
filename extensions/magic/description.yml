@@ -1,0 +1,33 @@
+extension:
+  name: magic
+  description: libmagic/file utilities ported to DuckDB
+  version: 0.0.1
+  language: C++
+  build: cmake
+  excluded_platforms: "linux_amd64_musl;windows_amd64_rtools;windows_amd64_mingw;windows_amd64"
+  license: MIT
+  maintainers:
+    - carlopi
+
+repo:
+  github: carlopi/duckdb-magic
+  andium: 6a214b48b6dc760e398c73131e00ee62f2c5f1bc
+  ref: b7f3a90e97ee7a38ac0a6f7e0558d2e366c90b05
+
+docs:
+  hello_world: |
+    --- Discover autodetected types for files in a local folder
+    SELECT magic_mime(file), magic_type(file), file
+        FROM glob('path/to/folder/**');
+    
+    --- Discover autodetected types for a remote file
+    LOAD httpfs;  --- this needs to currently be explcit once per session
+    SELECT magic_mime(file), magic_type(file), file
+        FROM glob('https://raw.githubusercontent.com/duckdb/duckdb/main/data/parquet-testing/adam_genotypes.parquet');
+    
+    --- Read file without providing detail on type
+    FROM read_any('https://raw.githubusercontent.com/duckdb/duckdb/main/data/parquet-testing/adam_genotypes.parquet');
+  extended_description: |
+    Very experimental port of libmagic (that powers file UNIX utility), allow to classify files based on the content of the header, accoring to the libmagic library.
+    Packaged with version 5.45 of the magic library. The magic.mgc database is at the moment statically compiled in the library, so it's the same across platforms but immutable.
+    Currently not available in Windows and Wasm, due to different but likely solvable vc-packaging issue, to be sorted out independently.

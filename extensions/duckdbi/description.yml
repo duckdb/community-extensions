@@ -1,0 +1,48 @@
+extension:
+  name: duckdbi
+  description: Browser-based BI dashboard extension for DuckDB. Run SQL queries and build interactive dashboards with drag-and-drop charts, all from the DuckDB CLI.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: ""
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/DuckDBI
+  ref: 59af05d91677f6a0404720b11cb31e7550f287f7
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD duckdbi;
+
+    -- Start the BI server on port 8080
+    SELECT duckdbi_start('localhost', 8080);
+
+    -- Open http://localhost:8080 in your browser
+    -- Write SQL, create charts, build dashboards
+
+    -- Stop the server when done
+    SELECT duckdbi_stop();
+
+  extended_description: |
+    DuckDBI turns DuckDB into a local BI server. The extension embeds a full single-page application
+    that serves an interactive dashboard builder directly from the DuckDB process.
+
+    **Core Features**:
+    - SQL query editor with JSON result rendering
+    - Interactive charts powered by Plotly.js (Bar, Line, Scatter, Area, 3D Scatter)
+    - Drag-and-drop dashboard layout via Gridstack.js
+    - PDF export with jsPDF and html2canvas
+    - Markdown text panels via Marked.js
+
+    **Functions**:
+    - `duckdbi_start(host, port)` - Start the HTTP server and open the dashboard UI
+    - `duckdbi_stop()` - Stop the running server
+
+    **Architecture**:
+    The extension bundles an HTTP server (cpp-httplib) and a complete SPA as a compiled-in
+    string literal. The `/api/query` endpoint executes SQL against the attached DuckDB database
+    and returns JSON results to the browser frontend. No external server or setup required.
