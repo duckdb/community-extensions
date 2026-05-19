@@ -1,7 +1,7 @@
 extension:
   name: harbor
   description: Multi-protocol HTTP service (Quack RPC, JSON SQL, DuckDB UI, admin) for DuckDB on a single port
-  version: 0.1.0
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: shreeve/duckdb-harbor
-  ref: 181ad520b37cdb9ccd8a8ed855beaa5624a83df4
+  ref: adc4410e3b4122a18ff8b91af76c6b3be17e47ad
 
 docs:
   hello_world: |
