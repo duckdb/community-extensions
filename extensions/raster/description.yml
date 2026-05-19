@@ -1,7 +1,7 @@
 extension:
   name: raster
   description: DuckDB extension for reading and writing geospatial raster data using SQL.
-  version: 1.0.0
+  version: 1.1.0
   language: C++
   build: cmake
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-raster
-  ref: 6eab8f18cce95d9f9ffef97cb7d75eeeef4905d3
+  ref: 959d2d39c531fbe86977d6b963bc9dc4a358772f
 
 docs:
   hello_world: |
@@ -112,9 +112,7 @@ docs:
                 RT_CubeClip(databand_1,
                             tile_x,
                             tile_y,
-                           (metadata->'blocksize_x')::INTEGER,
-                           (metadata->'blocksize_y')::INTEGER,
-                           (metadata->'transform')::DOUBLE[],
+                            metadata,
                             __clip_layer.geom,
                            (metadata->'bands'->0->'nodata')::DOUBLE
                 ) AS databand,
@@ -298,9 +296,7 @@ docs:
             SELECT RT_CubeClip(databand_1,
                                tile_x,
                                tile_y,
-                              (metadata->'blocksize_x')::INTEGER,
-                              (metadata->'blocksize_y')::INTEGER,
-                              (metadata->'transform')::DOUBLE[],
+                               metadata,
                                __clip_layer.geom,
                               (metadata->'bands'->0->'nodata')::DOUBLE
                 ) AS databand, * EXCLUDE(databand_1)
@@ -353,6 +349,19 @@ docs:
 
     `RT_Read` supports filter pushdown on the non-BLOB columns, which allows you to prefilter the tiles that are loaded based on their metadata or
     spatial location. For example, you can filter the tiles that intersect with a certain geometry or that have a certain value in the metadata.
+
+    You can also read raster data at the pixel level using the `RT_ReadCells` function, which returns one row per value cell in the raster,
+    along with its pixels and spatial coordinates.
+
+    This is the list of columns returned by `RT_ReadCells`:
+
+    - `id` is a unique identifier for each cell of the raster.
+    - `x` the coordinates of the center of each cell in the raster. The coordinate reference system is the same as the one of the raster file.
+    - `y` the coordinates of the center of each cell in the raster. The coordinate reference system is the same as the one of the raster file.
+    - `geometry` is the point geometry of each cell.
+    - `col` is the column index of each cell in the raster, where 0 is the leftmost column.
+    - `row` is the row index of each cell in the raster, where 0 is the topmost row.
+    - `band_1`, `band_2`, … are numeric columns, each containing the pixel values of a cell in the raster. The number of bands depends on the input file, and the data type depends on the raster data type.
 
     `COPY TO` with `FORMAT RASTER` allows to export a table with the same structure as the one returned by `RT_Read` to a new raster file.
     You can specify the driver and several creation options:
