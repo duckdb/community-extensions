@@ -1,0 +1,31 @@
+extension:
+  name: 3fs
+  description: Integrates DuckDB with the high-performance 3FS distributed file system
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Haomai
+    - Rongze
+
+repo:
+  github: open3fs/duckdb-3fs
+  ref: 5dea3a38c714240689ce588a85fbd06ec390941e
+
+docs:
+  hello_world: |
+    -- Configure the extension with your 3FS cluster details:
+    -- Set 3FS cluster name
+    SET threefs_cluster='open3fs';
+    -- Set 3FS mount root
+    SET threefs_mount_root='/3fs/';
+    -- Enable USRBIO mode for optimal performance
+    SET threefs_use_usrbio=true;
+    -- Set custom buffer size (optional)
+    SET threefs_iov_size=16384;
+    -- Read Parquet file from 3FS
+    SELECT * FROM read_parquet('3fs://3fs/aaa/price.parquet');
+    SELECT * FROM read_parquet('/3fs/aaa/price.parquet');
+  extended_description: >
+    The DuckDB 3FS extension enables DuckDB to seamlessly interact with the 3FS distributed file system, providing high-performance data access and manipulation capabilities directly from SQL.
