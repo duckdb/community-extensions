@@ -14,7 +14,7 @@ jobs:
       duckdb_version: '14eca11bd9d4a0de2ea0f078be588a9c1c5b279c'
       ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
       extra_toolchains: ''
-      extension_name: 'quack'
+      extension_name: 'waddle'
       override_repository: 'duckdb/extension-template'
       override_ref: 'main'
       exclude_archs: 'windows_amd64_mingw' # TODO: fixme: extension template fails?
