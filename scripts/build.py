@@ -16,8 +16,8 @@ if len(desc_files) > 1:
 deploy = True
 
 if len(desc_files) == 0 or len(desc_files[0]) == 0:
-	print("No changed files, only quack will be built as a test")
-	desc_files = ['extensions/quack/description.yml']
+	print("No changed files, only waddle will be built as a test")
+	desc_files = ['extensions/waddle/description.yml']
 	deploy = False
 
 desc_file = desc_files[0]
