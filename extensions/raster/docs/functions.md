@@ -28,7 +28,9 @@
 | Function | Summary |
 | --- | --- |
 | [`RT_RasterValue`](docs/#rt_rastervalue) | Returns the value in a specified band of a datacube at the specified pixel coordinates (column, row). |
+| [`RT_RasterValues`](docs/#rt_rastervalues) | Returns the values in a band of a datacube at the specified array of pixel coordinates (column, row). |
 | [`RT_CoordValue`](docs/#rt_coordvalue) | Returns the value in a specified band of a datacube at the specified world coordinates (x, y). |
+| [`RT_CoordValues`](docs/#rt_coordvalues) | Returns the values in a band of a datacube at the specified array of world coordinates (x, y). |
 | [`RT_Envelope`](docs/#rt_envelope) | Computes the bounding box of the valid (non-no-data) cells in the input datacube for a specific band and returns it as a geometry. |
 | [`RT_Polygon`](docs/#rt_polygon) | Creates a polygon geometry for each contiguous region of non-no-data values for a specific band in the datacube. |
 | [`RT_CubeClip`](docs/#rt_cubeclip) | Returns a datacube where cells outside the given geometry are replaced by the specified value. |
@@ -41,8 +43,8 @@ Aggregate functions operate on groups of rows (e.g. from a `GROUP BY` query) and
 | Function | Summary |
 | --- | --- |
 | [`RT_CubeStats_Agg`](docs/#rt_cubestats_agg) | Calculates statistics for a specific band (0-based index) in a set of datacubes. |
-| [`RT_RasterValue_Agg`](docs/#rt_rastervalue_agg) | Returns the value in a set of datacubes at the specified pixel coordinates. |
-| [`RT_CoordValue_Agg`](docs/#rt_coordvalue_agg) | Returns the value in a set of datacubes at the specified world coordinates. |
+| [`RT_RasterValue_Agg`](docs/#rt_rastervalue_agg) | Returns the value in a set of datacubes at the specified pixel coordinates (column, row). |
+| [`RT_CoordValue_Agg`](docs/#rt_coordvalue_agg) | Returns the value in a set of datacubes at the specified world coordinates (x, y). |
 
 ----
 
@@ -724,6 +726,41 @@ FROM
     RT_Read('path/to/raster/file.tif')
 ;
 ```
+----
+
+### RT_RasterValues
+
+Returns the values in a band of a datacube at the specified array of pixel coordinates (column, row).
+
+The function accepts the following parameters:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `databand` | DATACUBE | The input datacube column. |
+| `band` | INTEGER | The 0-based index of the band to read the values from. |
+| `cols` | INTEGER[] | The array of pixel column indices within the tile. |
+| `rows` | INTEGER[] | The array of pixel row indices within the tile. |
+| `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
+
+#### Signature
+
+```sql
+RT_RasterValues (datacube DATACUBE,
+                 band INTEGER,
+                 cols INTEGER[],
+                 rows INTEGER[],
+                 default_value DOUBLE)
+```
+
+#### Examples
+
+```sql
+SELECT
+    RT_RasterValues(databand_1, 0, [10, 11], [20, 21], -9999.0)
+FROM
+    RT_Read('path/to/raster/file.tif')
+;
+```
 
 ----
 
@@ -765,6 +802,44 @@ RT_CoordValue (datacube DATACUBE,
 ```sql
 SELECT
     RT_CoordValue(databand_1, 0, 545600.0, 4724500.0, metadata, -9999.0) AS value
+FROM
+    RT_Read('path/to/raster/file.tif')
+;
+```
+
+----
+
+### RT_CoordValues
+
+Returns the values in a band of a datacube at the specified array of world coordinates (x, y).
+
+The function accepts the following parameters:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `databand` | DATACUBE | The input datacube column. |
+| `band` | INTEGER | The 0-based index of the band to read the values from. |
+| `xs` | DOUBLE[] | The array of x-coordinates of the pixels within the tile. |
+| `ys` | DOUBLE[] | The array of y-coordinates of the pixels within the tile. |
+| `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size. |
+| `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
+
+#### Signature
+
+```sql
+RT_CoordValues (datacube DATACUBE,
+                band INTEGER,
+                xs DOUBLE[],
+                ys DOUBLE[],
+                metadata JSON,
+                default_value DOUBLE)
+```
+
+#### Examples
+
+```sql
+SELECT
+    RT_CoordValues(databand_1, 0, [545600.0, 545601.0], [4724500.0, 4724501.0], metadata, -9999.0)
 FROM
     RT_Read('path/to/raster/file.tif')
 ;
