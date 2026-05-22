@@ -1,0 +1,20 @@
+extension:
+  name: duckdb_slack
+  description: Search Slack messages directly from DuckDB
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-slack
+  ref: 6756020eec6c83f8ddc6a56ad9a20b1ec8510780
+
+docs:
+  hello_world: |
+    SELECT search_slack('hello world');
+  extended_description: |
+    This extension adds DuckDB integration with Slack, which allows users to directly search Slack messages using DuckDB's SQL interface.

@@ -1,0 +1,62 @@
+extension:
+  name: acp
+  description: Natural language to SQL via Claude Code using the Agent Client Protocol (ACP). Query your data with plain English via CLAUDE statements or the claude() table function.
+  version: 0.2.1
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: "rust"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - sidequery
+
+repo:
+  github: sidequery/duckdb-acp
+  ref: 4d047876179e9d5c09da98e837f77245a094541f
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD 'acp';
+
+    -- Create sample data
+    CREATE TABLE sales (id INT, product VARCHAR, amount DECIMAL, sale_date DATE);
+    INSERT INTO sales VALUES
+        (1, 'Widget', 99.99, '2024-01-15'),
+        (2, 'Gadget', 149.99, '2024-01-16'),
+        (3, 'Widget', 99.99, '2024-01-17');
+
+    -- Query with natural language (statement syntax)
+    CLAUDE what is the total revenue by product?
+
+    -- Or use the table function
+    SELECT * FROM claude('which product has the highest average sale amount?');
+
+  extended_description: |
+    The ACP extension enables natural language to SQL translation using the Agent Client Protocol (ACP). Write queries in plain English and let an AI agent explore your schema and generate accurate SQL.
+
+    **Two Query Interfaces**:
+    - Statement syntax: `CLAUDE show me the top 10 customers by revenue`
+    - Table function: `SELECT * FROM claude('what products sold the most last month?')`
+
+    **How It Works**:
+    1. The extension intercepts natural language queries
+    2. An embedded MCP server provides schema exploration tools
+    3. The agent (Claude Code) discovers tables, columns, and data patterns
+    4. SQL is generated, tested, and executed against your database
+
+    **Configuration Settings**:
+    - `acp_agent`: Agent command (default: `claude-code`)
+    - `acp_safe_mode`: Block mutation queries (default: `true`)
+    - `acp_debug`: Enable debug output (default: `false`)
+    - `acp_timeout`: Timeout in seconds (default: `300`)
+
+    **Safety Features**:
+    - Safe mode blocks INSERT, UPDATE, DELETE by default
+    - Agent has access only to SQL execution, no external tools
+    - Configurable timeout prevents runaway queries
+
+    **Requirements**:
+    - DuckDB 1.1.0+
+    - bun or Node.js (for the agent runtime)
+    - Claude Code with Anthropic API credentials or a Claude Pro/Max account

@@ -1,0 +1,20 @@
+extension:
+  name: decimal_arithmetic
+  description: Extension that adds support special decimal arithmetic functions 
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Dtenwolde
+
+repo:
+  github: duckdb/duckdb-decimal-arithmetic
+  ref: f446d50383a7034cbe0f9bc106ecdb0ed68ec2f4 
+
+docs:
+  hello_world: |
+    Adds support for `decimal_div` and `decimal_avg`
+
+  extended_description: >
+    Adds support for `decimal_div` and `decimal_avg`

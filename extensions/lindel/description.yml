@@ -1,0 +1,16 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_lindel.html).
+extension:
+  build: cmake
+  description: Linearization/Delinearization, Z-Order, Hilbert and Morton Curves
+  language: C++
+  license: Apache-2.0
+  maintainers:
+  - rustyconover
+  name: lindel
+  requires_toolchains: rust
+  version: '2025120401'
+repo:
+  andium: 3fb0a957c3e497fb3513dcf4c0f70ec599bbc0d3
+  github: query-farm/lindel
+  ref: 00929877557da619e795b4a0b014e2c48fffed76

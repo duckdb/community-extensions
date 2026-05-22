@@ -1,0 +1,2 @@
+function,description,comment,example
+spherical_angle,"Compute the angle between two points on the sphere","Input coordinates in radians (RA_1, DEC_1, RA2, DEC_2). Output angle in radians.","SELECT spherical_angle(0, 0, 1, 0);"

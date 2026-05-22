@@ -1,0 +1,47 @@
+extension:
+  name: bigquery
+  description: Integrates DuckDB with Google BigQuery, allowing direct querying and management of BigQuery datasets
+  version: 0.10.0
+  language: C++
+  build: cmake
+  license: MIT
+  vcpkg_commit: "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0"
+  requires_toolchains: "parser_tools"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  maintainers:
+    - hafenkran
+
+repo:
+  github: hafenkran/duckdb-bigquery
+  andium: ec5cf7b0342e7a46f7505c1176d8e46d963d7815
+  ref: 2d5cf81f70a9513c1fb5f1da66036db28bfd0cbd
+
+docs:
+  hello_world: |
+    -- Attach to your BigQuery Project
+    D ATTACH 'project=my_gcp_project' AS bq (TYPE bigquery, READ_ONLY);
+
+    -- Show all tables in all datasets in the attached BigQuery project
+    D SHOW ALL TABLES;
+    ┌──────────┬──────────────────┬──────────┬──────────────┬───────────────────┬───────────┐
+    │ database │      schema      │   name   │ column_names │   column_types    │ temporary │
+    │ varchar  │     varchar      │  varchar │  varchar[]   │     varchar[]     │  boolean  │
+    ├──────────┼──────────────────┼──────────┼──────────────┼───────────────────┼───────────┤
+    │ bq       │ quacking_dataset │ duck_tbl │ [i, s]       │ [BIGINT, VARCHAR] │ false     │
+    | bq       | barking_dataset  | dog_tbl  | [i, s]       | [BIGINT, VARCHAR] │ false     │
+    └──────────┴──────────────────┴──────────┴──────────────┴───────────────────┴───────────┘
+
+    -- Select data from a specific table in BigQuery
+    D SELECT * FROM bq.quacking_dataset.duck_tbl;
+    ┌───────┬────────────────┐
+    │   i   │       s        │
+    │ int32 │    varchar     │
+    ├───────┼────────────────┤
+    │    12 │ quack 🦆       │
+    │    13 │ quack quack 🦆 │
+    └───────┴────────────────┘
+
+  extended_description: |
+    This community-maintained extension allows DuckDB to connect to Google BigQuery using the BigQuery Storage (read/write) and REST APIs. 
+    It enables users to read, write, and manage their BigQuery datasets/tables directly from DuckDB using standard SQL queries.
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/hafenkran/duckdb-bigquery).

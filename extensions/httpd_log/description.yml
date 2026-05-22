@@ -1,0 +1,40 @@
+extension:
+  name: httpd_log
+  description: Reads and parses Apache HTTP server log files
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - saygox
+
+repo:
+  github: saygox/duckdb-httpd-log
+  ref: f5aad68f1050a5290ae5c69166c182e5d9d59a09
+
+docs:
+  hello_world: |
+    -- Basic usage (format auto-detected)
+    SELECT * FROM read_httpd_log('access.log');
+
+    -- Read from S3 (requires httpfs extension)
+    LOAD httpfs;
+    SELECT * FROM read_httpd_log('s3://bucket/logs/*.log.gz');
+
+    -- Auto-select format from httpd.conf
+    SELECT * FROM read_httpd_log('access.log', conf='/etc/httpd/conf/httpd.conf');
+
+    -- Specify format from httpd.conf
+    SELECT * FROM read_httpd_log('access.log', conf='httpd.conf', format_type='combined')
+
+    -- Read with custom format string
+    SELECT * FROM read_httpd_log('access.log',
+        format_str='%h %l %u %t "%r" %>s %b %D');
+
+  extended_description: |
+    - Common Log Format and Combined Log Format (auto-detected)
+    - Glob patterns, S3, gzip, and other sources via DuckDB's filesystem layer
+    - Automatic format selection from httpd.conf
+    - Parsed and normalized data (timestamps converted to UTC, request lines decomposed)
+    - Custom formats via Apache LogFormat syntax
+    - Dynamic schema generation with automatic column collision resolution

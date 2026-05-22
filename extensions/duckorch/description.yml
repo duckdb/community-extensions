@@ -1,0 +1,114 @@
+extension:
+  name: duckorch
+  description: Asset-centric data orchestration with partitions, declarative automation sensor, Snowflake-compatible CREATE DYNAMIC ASSET, MCP server, lineage and OpenLineage emission — all on DuckDB
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/duck-orch
+  ref: 89645807397b8f33c10ab0d0c347cb989c1598bd
+
+docs:
+  hello_world: |
+    LOAD duckorch;
+
+    -- 1. Set up state schema and register a directory of *.sql task files.
+    PRAGMA orch_init;
+    PRAGMA orch_register('./tasks/');
+
+    -- 2. Run the DAG (topological order, per-layer parallelism).
+    SET orch_max_parallel = 4;
+    PRAGMA orch_run;
+
+    -- 3. Asset-aware features (Phase 13+):
+    PRAGMA orch_asset_list;                            -- all registered Assets
+    PRAGMA orch_asset_partitions('analytics.daily');   -- per-partition status
+    PRAGMA orch_backfill('analytics.daily', '2026-01-01', '2026-12-31');
+
+    -- 4. Snowflake-compatible declaration (Phase 17):
+    PRAGMA orch_create_dynamic_asset(
+      'analytics.region_total',
+      '5 minutes',
+      'SELECT region, SUM(total) AS rt FROM analytics.daily GROUP BY region');
+
+    -- 5. Sensor — auto-materializes when upstream updates (Phase 15):
+    PRAGMA orch_sensor_set_interval(30);
+    PRAGMA orch_sensor_start;
+
+    -- 6. Mermaid lineage:
+    PRAGMA orch_visualize('lineage');
+
+  extended_description: |
+    duckorch is a **DuckDB-native, single-file Asset orchestrator** that
+    brings Dagster's declarative automation and Snowflake's
+    `CREATE DYNAMIC TABLE` semantics into a `LOAD duckorch;`. Designed to
+    run on a laptop or in a plane without a cloud control plane.
+
+    **Task definition (SQLMesh-style headers in plain .sql files):**
+
+        -- @asset name=analytics.user_stats
+        -- @asset_group sales
+        -- @partitions_by daily(start=2026-01-01)
+        -- @param partition_key:DATE
+        -- @automation eager AND NOT in_progress()
+        -- @freshness max_lag=60min
+        -- @check name=positive "SELECT MIN(rev) FROM ${asset}" expect gt 0
+
+        CREATE OR REPLACE TABLE analytics.user_stats AS
+        SELECT country, SUM(rev) AS rev
+        FROM analytics.clean_users
+        WHERE event_date = $partition_key
+        GROUP BY country;
+
+    Inputs auto-extracted via `sqlparser-rs`. `$partition_key` bound via
+    DuckDB `PREPARE` (multi-statement aware).
+
+    **Capabilities:**
+    - **Tasks + DAG** (Phase 0-9): directory-loaded SQL files, topological
+      execution, per-layer parallelism, exponential backoff retry, downstream
+      skip, `@test`, Mermaid (`lineage` / `dag` / `combined`), OpenLineage
+      events, table- and column-level lineage with subtype taxonomy, opt-in
+      ad-hoc query capture, DuckLake-aware OL namespace.
+    - **MCP server** (Phase 11): `duck-orch-mcp` stdio server (rmcp 0.3)
+      with 9 tools for Claude Code integration (`list_assets`, `run_pipeline`
+      with `dry_run` default, etc.).
+    - **Asset** (Phase 13): `@asset` headers promote outputs to first-class
+      Assets in `__orch__.assets` with materialization history, code_version
+      hash, declared edges. Backward compatible with `@outputs`.
+    - **Partition** (Phase 14): `@partitions_by daily/static/multi`,
+      `$partition_key` bind, `orch_backfill`, calendar-style ✅⚪ ASCII view.
+    - **AutomationCondition + Sensor** (Phase 15): DSL
+      (`eager / on_cron / on_missing / freshness_violated / in_progress`
+      + `&` / `|` / `!`), `@target_lag` throttle, background `std::thread`
+      sensor that polls and auto-fires `RunSingleTask` when conditions met.
+    - **Freshness + Asset Check** (Phase 16): `@freshness max_lag=...`,
+      `@check name=N "<SQL>" expect <op> <value>` with auto-run on success
+      and `severity=error` blocking downstream.
+    - **Snowflake `CREATE DYNAMIC ASSET`** (Phase 17): `PRAGMA
+      orch_create_dynamic_asset(name, target_lag, sql)` synthesizes Asset +
+      `automation_condition='eager()'` so the sensor picks it up. The
+      `duck-orch dynamic migrate-from-snowflake <dump>` CLI parses Snowflake
+      dumps and registers each block (skipping `WAREHOUSE`/`REFRESH_MODE`).
+
+    **3-route surface**: every feature reachable from CLI (`duck-orch ...`),
+    SQL (`PRAGMA orch_*`), and MCP (Claude Code).
+
+    **Companion CLI:** `duck-orch` with `register / run / status / graph /
+    test / validate / impact / lineage / schedule / asset / backfill /
+    automation / sensor / check / dynamic` subcommands, all `--json`-capable.
+
+    **State tables:** `__orch__.{tasks, runs, lineage_edges, column_lineage,
+    task_edges, tests, schedules, assets, asset_materializations,
+    asset_edges, asset_partitions, automation_evaluations, asset_checks,
+    asset_check_results}`.
+
+    **Architecture:** thin C++ shim (~3000 lines, registers PRAGMAs, runs
+    SQL via per-thread Connection, hosts the sensor thread, exposes
+    OptimizerExtension for ad-hoc capture) plus a Rust workspace
+    (orch_common / orch_dag / orch_lineage / orch_runtime / orch_ol /
+    orch_core / orch_cli / orch_mcp), keeping all logic in Rust while the
+    C++ layer handles DuckDB-internal calls.

@@ -1,0 +1,21 @@
+extension:
+  name: ulid
+  description: ULID data type for DuckDB
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Maxxen
+
+repo:
+  github: Maxxen/duckdb_ulid
+  ref: b8368f646d57aa1bc73a8fee37621fcb87e4ccd2
+
+docs:
+  hello_world: |
+    SELECT ulid() AS result;
+  extended_description: |
+    This extension adds a new `ULID` data type to DuckDB. 
+    A [ULID](https://github.com/ulid/spec) is similar to a UUID except that it also contains a timestamp component, which makes it more suitable for use cases where the order of creation is important. 
+    Additionally, the string representation is lexicographically sortable while preserving the sort order of the timestamps.

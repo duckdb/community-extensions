@@ -1,0 +1,108 @@
+extension:
+  name: pfc
+  description: Read PFC-JSONL compressed log files directly in DuckDB with block-level timestamp filtering
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - ImpossibleForge
+
+repo:
+  github: ImpossibleForge/pfc-duckdb
+  ref: 295d69d9af0bc750c5a4a87e919b9d97e985cc1a
+
+docs:
+  hello_world: |
+    INSTALL pfc FROM community;
+    LOAD pfc;
+    LOAD json;
+
+    -- Read a compressed PFC-JSONL log file
+    SELECT
+        line->>'$.level'   AS level,
+        line->>'$.message' AS message
+    FROM read_pfc_jsonl('/path/to/events.pfc')
+    LIMIT 10;
+
+    -- Block-level timestamp filter: only decompress relevant blocks
+    SELECT count(*) FROM read_pfc_jsonl(
+        '/path/to/events.pfc',
+        ts_from = epoch(TIMESTAMPTZ '2026-01-01 00:00:00+00'),
+        ts_to   = epoch(TIMESTAMPTZ '2026-01-02 00:00:00+00')
+    );
+  extended_description: |
+    The **pfc** extension lets you query [PFC-JSONL](https://github.com/ImpossibleForge/pfc-jsonl)
+    compressed log files directly in DuckDB — no decompression step, no intermediate files.
+
+    ## Why PFC-JSONL?
+
+    PFC-JSONL achieves **better compression than gzip and zstd** on real structured
+    log data by combining BWT + rANS entropy coding tuned for repetitive JSONL patterns.
+    On top of superior compression, every `.pfc` file supports **random block access** —
+    only the blocks you need are ever decompressed.
+
+    Ratios measured on realistic JSONL log data (8 services, mixed log levels):
+
+    | Compressor      | Compression ratio | vs PFC-JSONL       |
+    |-----------------|-------------------|--------------------|
+    | gzip            | ~12 %             | 25 % larger        |
+    | zstd            | ~14 %             | 37 % larger        |
+    | **PFC-JSONL**   | **~9 %**          | —                  |
+
+    ## Key Features
+
+    - **Block-level timestamp filtering** via `ts_from` / `ts_to` parameters.
+      Entire blocks outside the requested time window are skipped *before* decompression.
+      A 1-hour query on a 30-day file with hourly blocks reads ~1/720 of the data (~720× speedup).
+
+    - **No account, no signup, no limits.**
+      Free for personal and open-source use. Commercial use requires a license —
+      see [ImpossibleForge/pfc-jsonl](https://github.com/ImpossibleForge/pfc-jsonl).
+
+    - **Simple API**: one column `line VARCHAR` per row (raw JSON string).
+      Combine with DuckDB's built-in `json` extension for field extraction and analytics.
+
+    - **Linux and macOS only.** Windows users: use WSL2.
+
+    ## Requirements
+
+    The extension calls the [PFC-JSONL binary](https://github.com/ImpossibleForge/pfc-jsonl)
+    (v3.4+) for block decompression. Install once:
+
+    ```bash
+    curl -L https://github.com/ImpossibleForge/pfc-jsonl/releases/latest/download/pfc_jsonl-linux-x64          -o /usr/local/bin/pfc_jsonl && chmod +x /usr/local/bin/pfc_jsonl
+    ```
+
+    The binary is expected at `/usr/local/bin/pfc_jsonl`.
+    Override with the `PFC_JSONL_BINARY` environment variable.
+
+    ## File Format
+
+    Each `.pfc` file must have a companion `.pfc.bidx` binary block index,
+    written automatically by PFC-JSONL v3.4+:
+
+    ```bash
+    pfc_jsonl compress input.jsonl output.pfc
+    # Produces: output.pfc + output.pfc.bidx
+    ```
+
+    ## Analytics Example
+
+    ```sql
+    LOAD pfc;
+    LOAD json;
+
+    -- Error rate per hour for a specific day
+    SELECT
+        strftime(to_timestamp((line->>'$.ts')::BIGINT), '%H:00') AS hour,
+        count(*) FILTER (WHERE line->>'$.level' = 'ERROR')       AS errors,
+        count(*)                                                  AS total
+    FROM read_pfc_jsonl(
+        '/var/log/api.pfc',
+        ts_from = epoch(TIMESTAMPTZ '2026-03-15 00:00:00+00'),
+        ts_to   = epoch(TIMESTAMPTZ '2026-03-16 00:00:00+00')
+    )
+    GROUP BY hour
+    ORDER BY hour;
+    ```

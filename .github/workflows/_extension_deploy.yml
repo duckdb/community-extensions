@@ -1,0 +1,159 @@
+#
+# Reusable workflow that deploys the artifacts produced by .github/workflows/_extension_distribution.yml
+#
+# Note: this workflow can be used to deploy an extension from a GH artifact. It is intended for Out-of-tree
+#       extensions that live the duckdb GitHub organisation (only repo's within the same organisation can share secrets
+#       through reusable workflows)
+
+
+name: Extension Deployment
+on:
+  workflow_call:
+    inputs:
+      # The name of the extension
+      extension_name:
+        required: true
+        type: string
+      # DuckDB version to build against
+      duckdb_version:
+        required: true
+        type: string
+      # Override the duckdb tag for deployment (e.g., for releases)
+      duckdb_tag:
+        required: false
+        type: string
+        default: ""
+      # Extension CI tools version to use
+      ci_tools_version:
+        required: true
+        type: string
+      # ';' separated list of architectures to exclude, for example: 'linux_amd64;osx_arm64'
+      exclude_archs:
+        required: false
+        type: string
+        default: ""
+      # ';' separated list of architectures to opt into, for example: 'windows_arm64;linux_arm64_musl'
+      opt_in_archs:
+        required: false
+        type: string
+        default: ""
+      # Whether to upload this deployment as the latest. This may overwrite a previous deployment.
+      deploy_latest:
+        required: false
+        type: boolean
+        default: false
+      # Whether to upload this deployment under a versioned path. These will not be deleted automatically
+      deploy_versioned:
+        required: false
+        type: boolean
+        default: false
+      # Postfix added to artifact names. Can be used to guarantee unique names when this workflow is called multiple times
+      artifact_postfix:
+        required: false
+        type: string
+        default: ""
+      # Override the default deploy script with a custom script
+      deploy_script:
+        required: false
+        type: string
+        default: "./duckdb/scripts/extension-upload-single.sh"
+      repository:
+        required: false
+        type: string
+        default: ""
+      ref:
+        required: false
+        type: string
+        default: ""
+      # auto/enabled/disabled: when enabled (or enabled through auto) will skip redundant architectures to reduce CI load
+      reduced_ci_mode:
+        required: false
+        type: string
+        default: 'auto'
+jobs:
+  generate_matrix:
+    name: Generate matrix
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_matrix: ${{ steps.parse-matrices.outputs.deploy_matrix }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: 'duckdb/extension-ci-tools'
+          ref: ${{ inputs.ci_tools_version }}
+          path: extension-ci-tools
+
+      - id: parse-matrices
+        run: |
+          python3 ./extension-ci-tools/scripts/modify_distribution_matrix.py --input ./extension-ci-tools/config/distribution_matrix.json --deploy_matrix --output deploy_matrix.json --exclude "${{ inputs.exclude_archs }}" --opt_in "${{ inputs.opt_in_archs }}" --pretty --reduced_ci_mode ${{ inputs.reduced_ci_mode }}
+          deploy_matrix="`cat deploy_matrix.json`"
+          echo deploy_matrix=$deploy_matrix >> $GITHUB_OUTPUT
+          echo `cat $GITHUB_OUTPUT`
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: generate_matrix
+    if: ${{ needs.generate_matrix.outputs.deploy_matrix != '{}' && needs.generate_matrix.outputs.deploy_matrix != '' }}
+    strategy:
+      matrix: ${{fromJson(needs.generate_matrix.outputs.deploy_matrix)}}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repository }}
+          ref: ${{ inputs.ref }}
+          submodules: 'false'
+
+      - uses: actions/checkout@v3
+        with:
+          repository: 'duckdb/duckdb'
+          ref: ${{ inputs.duckdb_version }}
+          path: duckdb
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{matrix.duckdb_arch}}${{inputs.artifact_postfix}}${{startsWith(matrix.duckdb, 'wasm') && '.wasm' || ''}}
+          path: |
+            /tmp/extension
+
+      - name: Deploy
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_SECRET }}
+          AWS_ENDPOINT_URL: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ENDPOINT }}
+          BUCKET_NAME: duckdb-community-extensions
+          DUCKDB_EXTENSION_SIGNING_PK: ${{ secrets.S3_DUCKDB_ORG_COMMUNITY_SIGNING_PK }}
+          DUCKDB_DEPLOY_SCRIPT_MODE: for_real
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+        run: |
+          pwd
+          python3 -m pip install awscli
+          if [ -n "${{ inputs.duckdb_tag }}" ]; then
+            export DUCKDB_VERSION="${{ inputs.duckdb_tag }}"
+          else
+            git config --global --add safe.directory '*'
+            cd duckdb
+            git fetch --tags
+            export DUCKDB_VERSION=`git tag --points-at HEAD`
+            export DUCKDB_VERSION=${DUCKDB_VERSION:=`git log -1 --format=%h`}
+            cd ..
+          fi
+          git fetch --tags --no-recurse-submodules
+          export EXT_VERSION=`git tag --points-at HEAD`
+          export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
+          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $EXT_VERSION $DUCKDB_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
+
+  clean_cache:
+    needs:
+      - deploy
+      - generate_matrix
+    if: ${{ needs.generate_matrix.outputs.deploy_matrix != '{}' && needs.generate_matrix.outputs.deploy_matrix != '' }}
+    strategy:
+      matrix: ${{fromJson(needs.generate_matrix.outputs.deploy_matrix)}}
+    uses: ./.github/workflows/clean_caches.yml
+    secrets: inherit
+    with:
+      pattern: '*/${{ matrix.duckdb_arch }}/${{ inputs.extension_name }}.duckdb_extension.*'

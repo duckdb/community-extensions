@@ -1,0 +1,38 @@
+#
+# Clean caches for DuckDB's S3 buckets
+#
+
+name: Caches cleanup
+on:
+  workflow_call:
+    inputs:
+      # The regex pattern of the extension
+      pattern:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      # The regex pattern of the extension
+      pattern:
+        required: true
+        type: string
+
+jobs:
+  clean_caches:
+    name: Clean Caches
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Deploy
+        shell: bash
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_SECRET }}
+          AWS_DEFAULT_REGION: ${{ secrets.S3_DUCKDB_ORG_REGION }}
+          CLOUDFLARE_CACHE_PURGE_TOKEN: ${{ secrets.CLOUDFLARE_CACHE_PURGE_TOKEN }}
+          PATTERN: "${{ inputs.pattern }}"
+          DUCKDB_CLEAN_CACHES_SCRIPT_MODE: for_real
+        run: |
+          bash ./scripts/clean_caches.sh duckdb-community-extensions community-extensions "$PATTERN"
+

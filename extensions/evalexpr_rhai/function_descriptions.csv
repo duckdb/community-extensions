@@ -1,0 +1,2 @@
+function,description,comment,example
+evalexpr_rhai,Evaluate a Rhai expression,The function evaluates a Rhai expression and returns the result.  Optionally the caller and provide a context to pass to the expression.,"select evalexpr_rhai("1 + 2");"

@@ -1,0 +1,16 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_rapidfuzz.html).
+extension:
+  build: cmake
+  description: Provides adds high-performance fuzzy string matching functions, powered
+    by the RapidFuzz C++ library.
+  language: C++
+  license: MIT
+  maintainers:
+  - rustyconover
+  name: rapidfuzz
+  version: '2025120401'
+repo:
+  andium: eb2fe18d3f60205722521ff2ddd8eb3c932c7888
+  github: query-farm/rapidfuzz
+  ref: 8977f62400513f7c59887c0bef751e0f488f76e4

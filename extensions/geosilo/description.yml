@@ -1,0 +1,14 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://github.com/Query-farm/geosilo/blob/main/docs/README.md).
+extension:
+  build: cmake
+  description: Compact geometry encoding using delta-encoded coordinates. Achieves
+    3-4x smaller geometry storage and wire transfer compared to WKB.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+  - rustyconover
+  name: geosilo
+repo:
+  github: Query-farm/geosilo
+  ref: 5d4ea2de40e316da6325ee23c2fc01793703ad58

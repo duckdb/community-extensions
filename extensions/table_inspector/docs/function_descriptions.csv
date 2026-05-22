@@ -1,0 +1,5 @@
+function,description,comment,example
+inspect_storage,List all attached persistent databases with file and WAL sizes,"Returns database_name, database_file_bytes, and wal_file_bytes for each non-system, non-temporary, non-in-memory attached database",SELECT * FROM inspect_storage();
+inspect_database,List all tables with persisted data and index sizes,"Calculates data size by counting unique persistent block IDs per table, and index size from ART allocator buffers",SELECT * FROM inspect_database();
+inspect_column,Show per-segment storage details for a column,"Returns row_group_id, compression type, compressed_bytes, estimated_decompressed_bytes, and row_count for each segment","SELECT * FROM inspect_column('mytable', 'mycolumn');"
+inspect_block_usage,Show storage breakdown by component,"Breaks down a .duckdb file into table_data, index, metadata, and free_blocks with size_bytes, percentage, and block_count",SELECT * FROM inspect_block_usage();

@@ -1,0 +1,20 @@
+extension:
+  name: tarfs
+  description: glob, open and read files within `.tar` archives
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Maxxen
+
+repo:
+  github: Maxxen/duckdb_tarfs
+  ref: 6d468b45f38f16d58e49032edd76aa76c2a2b078
+
+docs:
+  hello_world: |
+    SELECT filename FROM read_blob('tar://data/csv/tar/ab.tar/*');
+  extended_description: |
+    This extension provides a duckdb file-system abstraction to read and glob files within __uncompressed__ tar archives.
+    For more information and information regarding usage, limitations and performance, see the [tarfs README](https://github.com/Maxxen/duckdb_tarfs).

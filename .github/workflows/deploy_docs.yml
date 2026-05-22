@@ -1,0 +1,55 @@
+name: Generate and Deploy Website
+on:
+  workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: "0 */6 * * *"
+
+jobs:
+  generate_docs:
+    uses: ./.github/workflows/generate_docs.yml
+
+  deploy_docs:
+    needs:
+      - generate_docs
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: generated_markdowns
+
+    - uses: actions/checkout@v4
+      with:
+        repository: 'duckdb/duckdb-web'
+        path: 'web'
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Generate docs
+      run: |
+        unzip generated_md.zip
+        cp build/docs/*.md web/community_extensions/extensions/.
+        cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
+
+    - name: Upload to duckdb/duckdb-web
+      if: false
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cd web
+        git config user.email "some-user@some-domain.com"
+        git config user.name "Quack McQuacker"
+        git checkout -B update_community_extensions
+        git add community_extensions
+        git commit -m "[update docs bot] Update community_extensions"
+        git push -f --set-upstream origin update_community_extensions
+
+    - name: Deploy website
+      if: github.repository == 'duckdb/duckdb-web'
+      working-directory: 'web/_site'
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.DUCKDB_COMMUNITY_EXTENSION_S3_SECRET }}
+        AWS_DEFAULT_REGION: ${{ secrets.S3_DUCKDB_ORG_REGION }}
+      run: |
+        aws s3 cp build/docs/community_extensions.csv s3://duckdb-community-extensions/extensions/community_extensions.csv --acl public-read
+        aws s3 cp build/docs/community_extensions.csv s3://duckdb-community-extensions/extensions/list.csv --acl public-read

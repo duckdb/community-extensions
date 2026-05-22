@@ -1,0 +1,61 @@
+name: Community Extension Generate Docs
+on:
+  workflow_dispatch:
+    inputs:
+      extension_name:
+        type: string
+      duckdb_version:
+        type: string
+  workflow_call:
+    inputs:
+      extension_name:
+        type: string
+      duckdb_version:
+        type: string
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        repository: 'duckdb/community-extensions'
+
+    - name: Set up DuckDB
+      run: |
+        wget https://github.com/duckdb/duckdb/releases/download/v1.5.3/duckdb_cli-linux-amd64.zip
+        unzip duckdb_cli-linux-amd64.zip
+        chmod +x duckdb
+
+    - name: Fetch extensions
+      if: ${{ inputs.extension_name == '' }}
+      run: |
+        ./scripts/fetch_extensions.sh ./duckdb
+
+    - uses: actions/download-artifact@v4
+      if: ${{ inputs.extension_name != '' }}
+      with:
+        name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version}}-extension-linux_amd64
+        path: build/downloaded
+
+    - name: Install downloaded extension
+      if: ${{ inputs.extension_name != '' }}
+      env:
+        NAME: ${{ inputs.extension_name }} 
+      run: |
+        ./duckdb -unsigned -c "SET extension_directory = 'build/extension_dir'; FORCE INSTALL 'build/downloaded/$NAME.duckdb_extension';"
+
+    - name: Generate docs
+      run: |
+        ./scripts/generate_md.sh ./duckdb
+        ./scripts/generate_extensions_json.py
+        zip -r build/generated_md.zip build/docs
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: generated_markdowns
+        path: |
+          build/generated_md.zip

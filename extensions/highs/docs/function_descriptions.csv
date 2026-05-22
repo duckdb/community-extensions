@@ -1,0 +1,9 @@
+  function,description,comment,example
+  highs_version,Get HiGHS version with greeting message,"Returns a greeting with HiGHS and OpenSSL version info","SELECT highs_version('Sam');"
+  highs_openssl_version,Get HiGHS and OpenSSL version with greeting,"Returns greeting with both HiGHS and OpenSSL version details","SELECT highs_openssl_version('Michael');"
+  highs_create_variables,Create optimization variables for a model,"Creates decision variables with bounds and objective coefficients","SELECT * FROM highs_create_variables('model1', 
+  'x', 0.0, 1e30, 1.0, 'continuous');"
+  highs_create_constraints,Create constraints for a model,"Defines constraint bounds for the optimization problem","SELECT * FROM highs_create_constraints('model1', 'c1', -1e30, 7.0);"
+  highs_set_coefficients,Set constraint matrix coefficients,"Associates variables with constraints using coefficient values","SELECT * FROM highs_set_coefficients('model1', 'c1', 'x', 
+  1.0);"
+  highs_solve,Solve the optimization model,"Executes HiGHS solver and returns optimal solution values","SELECT * FROM highs_solve('model1');"

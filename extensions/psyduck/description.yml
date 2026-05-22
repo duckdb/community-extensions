@@ -1,0 +1,34 @@
+extension:
+  name: psyduck
+  description: Pokemon data native in DuckDB
+  version: 1.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Ian-Fogelman
+
+repo:
+  github: Ian-Fogelman/psyduck
+  ref: c4f8faa4d25e4ca8b3cb0bac8cb958b030f1b2b5
+  
+docs:
+  hello_world: |
+    -- Create a table of pokémon and return... A duck
+    CREATE TABLE pokemon AS SELECT * FROM list_pokemon();
+    SELECT name FROM pokemon WHERE is_duck = 1 AND name LIKE '%Psyduck%';
+    
+    -- Select the top 10 pokémon
+    SELECT * FROM list_pokemon() WHERE number <= 10;
+    
+    -- Select legendary pokémon
+    SELECT * FROM list_pokemon() WHERE is_legendary = 1;
+    
+    -- Select the best pokémon
+    SELECT number, name, type1, "height(m)", "weight(kg)", base_total FROM list_pokemon() WHERE name = 'Charizard';
+
+    -- Select pokemon moves
+    SELECT * FROM list_pokemon_moves();
+    
+    -- Select gen1 items
+    SELECT * FROM list_pokemon_items();

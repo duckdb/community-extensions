@@ -1,0 +1,17 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_radio.html).
+extension:
+  build: cmake
+  description: Allow interaction with event buses like Websocket and Redis publish/subscribe
+    servers.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_amd64_rtools
+  language: C++
+  license: MIT
+  maintainers:
+  - rustyconover
+  name: radio
+  version: '2025120401'
+repo:
+  andium: 0ace6af84ec2289c23944857fd9aded06e65ec9c
+  github: query-farm/radio
+  ref: ca2f4c3109e4f3afa115923862601a8b4cc3c619

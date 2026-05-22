@@ -1,0 +1,4 @@
+function,description,comment,example
+snowflake_query,"Execute a SQL query directly against a Snowflake database and return the results as a table. Uses the specified secret for authentication credentials.","","SELECT * FROM snowflake_query('SELECT * FROM customers WHERE state = ''CA''', 'my_snowflake_secret');"
+snowflake_version,"Returns the version of the Snowflake extension.","","SELECT snowflake_version();"
+
