@@ -1,7 +1,7 @@
 extension:
   name: netquack
   description: DuckDB extension for parsing, extracting, and analyzing domains, URIs, and paths with ease.
-  version: 1.12.0
+  version: 1.12.1
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: hatamiarash7/duckdb-netquack
-  andium: 16f072791eb258f2c68891df45e7ea0aa3e1001e
-  ref: 16f072791eb258f2c68891df45e7ea0aa3e1001e
+  andium: 9784e77eb0fdc4dc7e4bc4d6049405f3bd415fc9
+  ref: 9784e77eb0fdc4dc7e4bc4d6049405f3bd415fc9
 
 docs:
   extended_description: |
