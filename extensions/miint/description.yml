@@ -1,7 +1,7 @@
 extension:
   name: miint
   description: Bioinformatics extension for microbiome research - read/write FASTQ, SAM/BAM, BIOM, GFF, Newick trees, query NCBI, and more.
-  version: '1.0.0-rc.3'
+  version: '1.0.0-rc.4'
   language: C++
   build: cmake
   license: BSD-3-Clause
@@ -9,12 +9,12 @@ extension:
   maintainers:
     - wasade
   requires:
-    duckdb: "1.5.2"
+    duckdb: "1.5.3"
   requires_toolchains: rust
 
 repo:
   github: the-miint/duckdb-miint
-  ref: 7a081072aa61f5d9db63ffc209b8dea66d9c2401
+  ref: d0df0274d0ae883dea871c201263cdbe18ac72e4
 
 docs:
   hello_world: |
@@ -43,15 +43,40 @@ docs:
     - `read_gff`: GFF3 annotation files
     - `read_newick`: Phylogenetic trees
     - `read_jplace`: Phylogenetic placements
+    - `read_mzml`: mzML files
+    - `read_mzxml`: mzXML files
 
     **Query NCBI directly:**
     - `read_ncbi`: Fetch sequence metadata by accession
     - `read_ncbi_fasta`: Fetch sequences from NCBI
     - `read_ncbi_annotation`: Fetch feature annotations from NCBI
 
+    **Query and submit to ENA:**
+    - `read_ena`: Fetch accession level detail (BioProject, BioSample, etc)
+    - `read_ena_attributes`: Fetch full deposited attributes (BioProject, BioSample, etc)
+    - `read_ena_sequences`: Fetch sequence data (BioProject, BioSample, etc)
+    - Complete submission and submission lifecycle management support, see docs
+
     **Alignment with SQL:**
     - `align_minimap2`: Align sequences using minimap2
     - `align_bowtie2`: Align sequences using bowtie2
+    - `align_mafft`: Align with MAFFT (parttree)
+    - `align_sortmerna`: Align with SortMeRNA
+    - `align_wfa2`: WFA2 pairwise alignment
+
+    **Sequence search, clustering, chimera checking, partitioning:**
+    - `search_sequences_vsearch`: Search a database of sequences with VSEARCH
+    - `cluster_sequences_vsearch`: De novo sequence clustering with VSEARCH
+    - `detect_chimera_uchime_denovo`: De novo chimera detection with VSEARCH
+    - `detect_chimera_uchime`: Reference based chimera detection with VSEARCH
+    - `rype_classify`: RY minimizer read partitioning
+
+    **Phylogeny estimation:**
+    - `phylogeny_fasttree`: Estimate a phylogeny with FastTree
+    - `tree_resolve_placement`: Fully resolve placements
+
+    **Mass spectrometry:**
+    - `massql`: A complete MassQL implementation
 
     **Write to standard formats:**
     - `COPY ... FORMAT FASTQ/FASTA`: Export sequences
@@ -64,5 +89,8 @@ docs:
     - Sequence identity calculation (`alignment_seq_identity`)
     - Interval compression (`compress_intervals`)
     - Woltka OGU classification (`woltka_ogu`, `woltka_ogu_per_sample`)
+    - Deblur amplicon denoising (`deblur`)
+    - UniFrac (PCoA, PERMANOVA) (`unifrac_pcoa`, `unifrac_permanova`)
+    - Faith Phylogenetic diversity (`unifrac_faith_pd`)
 
     See the [documentation](https://github.com/the-miint/duckdb-miint) for complete details.
