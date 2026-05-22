@@ -12,6 +12,6 @@ extension:
   name: datasketches
   version: '2025101201'
 repo:
-  andium: d7ff45ac116b81f5958d40783470557f27a97911
+  andium: d758a5a4e8dc40119ced5e74660ee841960f1788
   github: query-farm/datasketches
-  ref: d085dc1f65318caaa61d29fea18482cbd711c1b4
+  ref: 6186fc8e3a8c8d78b9d890fc0a264324d9cc1c7b

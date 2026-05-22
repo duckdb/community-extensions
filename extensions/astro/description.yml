@@ -1,7 +1,7 @@
 extension:
   name: astro
-  description: Astronomical calculations - coordinate transforms, photometry, cosmology, dust extinction, sidereal time
-  version: 1.3.0
+  description: Astronomical calculations + FITS file I/O - coordinate transforms, photometry, cosmology, dust extinction, sidereal time
+  version: 1.4.1
   language: C++
   build: cmake
   license: MIT
@@ -10,18 +10,21 @@ extension:
 
 repo:
   github: synapticore-io/astro-duck
-  ref: 72d996fc93b40c42564d6c94ed6ed042b5a858f4
+  ref: a9f49d72ff4fd4c56a4ae0927172c15b204b910b
 
 docs:
   hello_world: |
     SELECT astro_angular_separation(10.68, 41.27, 83.82, -5.39) AS separation_deg;
   extended_description: |
-    The astro extension adds 53+ astronomical calculation functions to
-    DuckDB: coordinate transforms (equatorial / galactic frames, RA/Dec
-    to XYZ), angular separation, photometry (magnitude/flux, distance
-    modulus, absolute magnitude), CCM89 + O'Donnell 1994 dust extinction
-    with UBVRIJHK bands, cosmological distances (luminosity, comoving),
-    celestial body models (stars, brown dwarfs, planets, black holes,
-    asteroids), Keplerian orbital mechanics, 3D octree spatial sectors,
-    and sidereal time / observation planning (GMST, LMST, hour angle,
-    equatorial to horizontal alt/az conversion).
+    The astro extension adds 62 functions (59 scalar + 3 FITS table
+    functions) to DuckDB: coordinate transforms (equatorial / galactic
+    frames, RA/Dec to XYZ), angular separation, photometry
+    (magnitude/flux, distance modulus, absolute magnitude), CCM89 +
+    O'Donnell 1994 dust extinction with UBVRIJHK bands, cosmological
+    distances (luminosity, comoving), celestial body models (stars,
+    brown dwarfs, planets, black holes, asteroids), Keplerian orbital
+    mechanics, 3D octree spatial sectors, sidereal time / observation
+    planning (GMST, LMST, hour angle, equatorial to horizontal alt/az
+    conversion), and FITS file I/O (fits_hdus, fits_header, read_fits
+    via cfitsio) for reading astronomical catalogs and images directly
+    from SQL.

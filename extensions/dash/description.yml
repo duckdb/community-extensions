@@ -1,7 +1,7 @@
 extension:
   name: dash
-  description: A fully local visual data explorer *within DuckDB* for building interactive dashboards and DAG pipelines.
-  version: 0.0.2
+  description: A fully visual data explorer and GUI for DuckDB. Create interactive dashboards and DAG pipelines.
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: gropaul/dash
-  ref: 7a18828c98a6c3cecfefe12a40ed3abef62e6c93
+  ref: 6508a40a98bdf3f7d6f8c64b5c564bad36b5172e
 
 docs:
   hello_world: |

@@ -11,10 +11,10 @@ extension:
 
 repo:
   github: BorisBesky/fire_duck_ext
-  ref: a98168bd308dd2a90cc7ccc135a48f9694a46b4a
+  ref: 2ea20258af9370ea1ef6200f8ec12113aa69127c
 
 docs:
-  hello_world: |
+hello_world: |
     LOAD fire_duck_ext;
 
     -- Authenticate with a service account JSON file
@@ -24,41 +24,54 @@ docs:
         SERVICE_ACCOUNT_JSON '/path/to/service-account.json'
     );
 
-    -- Or use inline JSON for the service account
-    CREATE SECRET my_firestore (
-        TYPE firestore,
-        PROJECT_ID 'my-gcp-project',
-        SERVICE_ACCOUNT_JSON '{
-            "type": "service_account",
-            "project_id": "my-gcp-project",
-            "private_key_id": "key123abc",
-            "private_key": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n",
-            "client_email": "sa@my-gcp-project.iam.gserviceaccount.com",
-            "client_id": "123456789",
-            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-            "token_uri": "https://oauth2.googleapis.com/token"
-        }'
-    );
-
-    -- Or authenticate with an API key (for dev/testing)
+    -- Or use an API key (for dev/testing only)
     CREATE SECRET my_firestore (
         TYPE firestore,
         PROJECT_ID 'my-gcp-project',
         API_KEY 'AIzaSyYourApiKeyHere'
     );
 
-    -- Read documents
+    -- To target a named database (non-default), add DATABASE to any secret
+    CREATE SECRET my_named_db (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        SERVICE_ACCOUNT_JSON '/path/to/credentials.json',
+        DATABASE 'analytics-db'
+    );
+
+    -- Read all documents in a collection
     SELECT * FROM firestore_scan('users');
 
-    -- Filter documents
+    -- Filter documents (filters are pushed down to Firestore)
     SELECT __document_id, name, email
     FROM firestore_scan('users')
     WHERE status = 'active';
 
-    -- Update documents
+    -- Query a collection group across all documents
+    SELECT __document_id, amount, currency
+    FROM firestore_scan('~transactions')
+    WHERE amount > 100;
+
+    -- JOIN Firestore data with a local CSV
+    SELECT u.name, u.email, o.__document_id AS order_id, o.total
+    FROM firestore_scan('users') u
+    JOIN read_csv('orders.csv') o ON u.__document_id = o.user_id;
+
+    -- CTE: summarize order totals per user from Firestore
+    WITH order_totals AS (
+        SELECT user_id, SUM(total) AS lifetime_value
+        FROM firestore_scan('orders')
+        GROUP BY user_id
+    )
+    SELECT u.name, u.email, ot.lifetime_value
+    FROM firestore_scan('users') u
+    JOIN order_totals ot ON u.__document_id = ot.user_id
+    ORDER BY ot.lifetime_value DESC;
+
+    -- Update a single document field
     CALL firestore_update('users', 'user123', 'status', 'verified');
 
-    -- Batch update with DuckDB filtering
+    -- Batch update documents matching a filter
     SET VARIABLE ids = (
         SELECT list(__document_id)
         FROM firestore_scan('users')
@@ -66,7 +79,7 @@ docs:
     );
     CALL firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
 
-    -- Insert documents from a subquery (auto-generated IDs)
+    -- Insert documents from a CSV (auto-generated IDs)
     CALL firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
 
     -- Insert with explicit document IDs from a column
@@ -74,51 +87,39 @@ docs:
         (SELECT * FROM read_csv('new_users.csv')),
         document_id := 'user_id');
 
-    -- Insert with explicit document ID selected from a column
-    CALL firestore_insert('users',
-        (SELECT 'Alice' AS name, 30 AS age, 'alice_user_id' AS user_id),
-        document_id := 'user_id');
+    -- Delete a single document
+    CALL firestore_delete('users', 'user123');
 
-    -- Target a specific named database
-    CREATE SECRET my_named_db (
-        TYPE firestore,
-        PROJECT_ID 'my-gcp-project',
-        SERVICE_ACCOUNT_JSON '/path/to/credentials.json',
-        DATABASE 'my-database'
+    -- Batch delete documents matching a filter
+    SET VARIABLE stale_ids = (
+        SELECT list(__document_id)
+        FROM firestore_scan('users')
+        WHERE last_login < now() - INTERVAL 1 YEAR
     );
+    CALL firestore_delete_batch('users', getvariable('stale_ids'));
 
-    -- Target multiple databases with a single secret
-    CREATE SECRET my_multi_db (
-        TYPE firestore,
-        PROJECT_ID 'my-gcp-project',
-        SERVICE_ACCOUNT_JSON '/path/to/credentials.json',
-        DATABASES ['(default)', 'analytics-db']
-    );
+    -- Modify array fields
+    CALL firestore_array_union('users', 'user123', 'roles', ['editor', 'reviewer']);
+    CALL firestore_array_remove('users', 'user123', 'roles', ['editor']);
 
-    -- Target multiple databases with an API key
-    CREATE SECRET my_multi_db (
-        TYPE firestore,
-        PROJECT_ID 'my-gcp-project',
-        API_KEY 'AIzaSyYourApiKeyHere',
-        DATABASES ['(default)', 'analytics-db']
-    );
-
-    -- Connect to a specific database for the session
+    -- Switch active database for the session
     CALL firestore_connect('analytics-db');
 
-    -- Collection group queries
-    SELECT __document_id, name, email
-    FROM firestore_scan('~data_group')
-    WHERE status = 'active';
+extended_description: |
+    fire_duck_ext lets you query and modify Google Cloud Firestore directly from DuckDB using SQL.
+    Whether you need to access Firestore data with SQL or integrate Firebase/Firestore workflows
+    into DuckDB pipelines, this extension provides full read and write support through standard
+    SQL statements.
 
-  extended_description: |
-    The fire_duck_ext extension enables direct SQL access to Google Cloud
-    Firestore collections from DuckDB. It supports reading data with
-    firestore_scan(), writing with firestore_update() and firestore_delete(),
-    batch operations, array transforms, collection group queries, SQL
-    ORDER BY / LIMIT pushdown, collection ID listings, and DuckDB secret
-    management for credential storage. Filter pushdown optimizes queries by
-    sending supported filters directly to Firestore.
+    Scan collections with firestore_scan(). Perform DML operations with firestore_update(),
+    firestore_insert(), and firestore_delete(). Run batch writes and deletes with
+    firestore_update_batch() and firestore_delete_batch(). Transform array fields with
+    firestore_array_union(), firestore_array_remove(), and firestore_array_append().
+
+    Query collection groups across all documents with firestore_scan('~collection').
+    List subcollections under a document with firestore_scan('collection/doc_id').
+    Push down filters directly to Firestore for efficient querying.
+    Manage authentication credentials using DuckDB secrets.
 
     ## Authentication
     Secrets require `PROJECT_ID` and one of `SERVICE_ACCOUNT_JSON` or

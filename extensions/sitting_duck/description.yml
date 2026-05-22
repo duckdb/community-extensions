@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.7.0
+  version: 1.7.4
   language: C++
   build: cmake
   license: MIT
@@ -9,7 +9,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: 21e47fe226f368bb57da5e58ae74f53d0ec6ba48
+  ref: f7b9c600116b3ee869d8b5a9dca9f1357d31569c
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
@@ -69,7 +69,7 @@ docs:
     ```
     See: https://sitting-duck.readthedocs.io/en/latest/guide/pattern-matching/
 
-    **CSS Selector Queries (v1.6.0, enhanced in v1.7.0):**
+    **CSS Selector Queries (v1.6.0, enhanced in v1.7.0+):**
     Query AST nodes using CSS selector syntax — bootstrapped with sitting duck's own CSS grammar:
     ```sql
     SELECT name FROM ast_select('src/*.py', '.func:has(.call#execute):not(:has(try_statement))');
@@ -77,6 +77,11 @@ docs:
     -- v1.7.0: :match (current-node) vs :contains (subtree) structural patterns
     SELECT name FROM ast_select('src/*.py', '.func:contains("db.execute()")');
     SELECT name FROM ast_select('src/*.py', 'call:match("db.execute()")');
+
+    -- v1.7.2: parse once, query many — orders of magnitude faster for interactive use
+    CREATE TABLE my_ast AS SELECT * FROM read_ast('src/**/*.py');
+    SELECT * FROM ast_select_from('my_ast', '.class:named');
+    SELECT * FROM ast_select_from('my_ast', '.func:has(return_statement)');
     ```
     Supports type selectors, `#name`, `.semantic` (~80 aliases), combinators, `:has()`, `:not()`,
     `:match()` / `:contains()` structural patterns, scope/call-graph pseudo-classes, and pseudo-element navigation.
@@ -88,6 +93,7 @@ docs:
     - `parse_ast_list(content, language)` - Parse source code strings (scalar, returns LIST<STRUCT>; v1.7.0)
     - `ast_match(source, pattern, lang)` - Pattern matching for code search
     - `ast_select(source, css_selector)` - CSS selector queries
+    - `ast_select_from(table_name, selector)` - CSS selectors on pre-parsed tables (v1.7.2)
     - `ast_type_map(language)` - Node type discovery across languages
 
     **v1.7.0 extraction suffix:**
@@ -148,7 +154,9 @@ docs:
     - `peek` - Configurable source preview
     - `qualified_name` - Scope-based path unique within a file (`C[User] F[__init__]` format; v1.7.0)
     - `signature_type`, `parameters`, `modifiers`, `annotations` - Native extraction
-    - `scope_id`, `scope_stack` - Scope resolution columns
+    - `scope` - STRUCT<current, function, class, module, stack> (v1.7.4); replaces
+      the v1.7.2 `scope_id` / `scope_stack` columns. `scope.function` lets you
+      answer "what function is this in?" as a single column read.
 
     Full schema: https://sitting-duck.readthedocs.io/en/latest/api/output-schema/
 

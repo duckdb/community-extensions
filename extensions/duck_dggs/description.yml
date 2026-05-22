@@ -1,7 +1,8 @@
 extension:
   name: duck_dggs
-  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v8, Built against DuckDB v1.5.1.
-  version: 0.1.5
+  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v8.
+  
+  version: 0.1.6
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +11,7 @@ extension:
 
 repo:
   github: am2222/duckdb-dggs
-  ref: 30524bbe189604f8da0e1b7f1572ce16100df93c
+  ref: 25b51cb5f0bdb04ffe236956e640e3e01f8440e2
 
 docs:
   hello_world: |
@@ -121,3 +122,19 @@ docs:
     - `seqnum_to_z3` / `z3_to_seqnum` — Z3 index (aperture 3 only)
     - `seqnum_to_z7` / `z7_to_seqnum` — Z7 index (aperture 7 only)
     - `seqnum_to_vertex2dd` / `vertex2dd_to_seqnum` — vertex-based 2D coordinates
+
+    **IGEO7 / Z7 bit-level operations** (operate directly on the packed 64-bit Z7 index;
+    no `dggs_params` needed; logic ported from [`allixender/igeo7_duckdb`](https://github.com/allixender/igeo7_duckdb)):
+
+    - `igeo7_from_string` / `igeo7_to_string` — compact string ↔ packed 64-bit index
+    - `igeo7_encode` — pack base cell + 20 three-bit digit slots
+    - `igeo7_encode_at_resolution` — `igeo7_encode` then truncate to a target resolution
+    - `igeo7_get_resolution` — resolution (0–20) from a packed index
+    - `igeo7_get_base_cell` — base cell ID (0–11)
+    - `igeo7_get_digit` — extract the i-th digit (1–20)
+    - `igeo7_parent` / `igeo7_parent_at` — ancestor at res-1 or a specific resolution
+    - `igeo7_get_neighbours` / `igeo7_get_neighbour` — all 6 neighbours or one by direction
+    - `igeo7_first_non_zero` — position of the first non-zero digit slot
+    - `igeo7_is_valid` — false only for the `UINT64_MAX` invalid-neighbour sentinel
+    - `igeo7_decode_str` — verbose `base-d1.d2…d20` form showing all 20 slots (SQL macro)
+    - `igeo7_string_parent` / `igeo7_string_local_pos` / `igeo7_string_is_center` — compact-string helpers (SQL macros)

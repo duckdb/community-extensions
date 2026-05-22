@@ -1,7 +1,7 @@
 extension:
   name: duck_lk
   description: Query LabKey Server tables with automatic local Parquet caching
-  version: 0.1.0
+  version: 0.1.3
   language: Rust
   build: cmake
   license: MIT OR Apache-2.0
@@ -12,17 +12,20 @@ extension:
 
 repo:
   github: nrminor/duck-lk
-  ref: 48387983a4e612012b4330f014a7a3f86af9a069
+  ref: 5c89b0a15c8294849bb3f7cbec82bf7c54a8495a
 
 docs:
   hello_world: |
-    -- Set LABKEY_BASE_URL, LABKEY_CONTAINER_PATH, and LABKEY_API_KEY env vars, then:
-    SELECT * FROM labkey_query('lists', 'People');
+    -- Set LABKEY_BASE_URL, LABKEY_CONTAINER, and LABKEY_API_KEY env vars, then:
+    CALL labkey_sync('lists', 'People');
+    FROM People LIMIT 10;
   extended_description: |
     Query LabKey Server tables directly from DuckDB with automatic local
     Parquet caching and staleness detection. Provides `labkey_query()` for
-    data access, `labkey_cache_info()` for cache inspection, and
-    `labkey_cache_clear()` for cache management. Read-only access with
-    transparent staleness detection.
+    one-shot access, `labkey_sync()` for explicit cache warming, and helper
+    functions like `labkey_cache_info()` and `labkey_cache_clear()` for cache
+    inspection and management. For best performance on repeated analysis,
+    sync the table first and then query the synced table directly so DuckDB
+    can read the cached Parquet natively.
 
     For full documentation, see the [GitHub repository](https://github.com/nrminor/duck-lk).
