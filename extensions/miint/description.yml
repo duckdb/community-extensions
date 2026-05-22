@@ -10,7 +10,7 @@ extension:
     - wasade
   requires:
     duckdb: "1.5.3"
-  requires_toolchains: rust
+  requires_toolchains: "rust;omp"
 
 repo:
   github: the-miint/duckdb-miint
