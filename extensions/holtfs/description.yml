@@ -1,0 +1,44 @@
+extension:
+  name: holtfs
+  description: Holt-backed metadata indexes for fast DuckDB file discovery
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;windows_arm64;wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  requires_toolchains: rust
+  maintainers:
+    - feichai0017
+
+repo:
+  github: feichai0017/duckdb-holtfs
+  ref: 60871b07cb98b515f75c0aaf4efcab72510a4406
+
+docs:
+  hello_world: |
+    -- Build a persistent Holt metadata index for a local lakehouse path.
+    SELECT *
+    FROM holtfs_index('/data/lake/table',
+                      mode := 'persistent',
+                      index_path := '/var/cache/duckdb/table.holt');
+
+    -- Reuse the index for repeated file discovery and partition listing.
+    SELECT entry_type, path, version
+    FROM holt_files('/var/cache/duckdb/table.holt',
+                    mode := 'persistent',
+                    prefix := '/data/lake/table/date=2026-05-22/',
+                    delimiter := '/');
+
+  extended_description: |
+    HoltFS exposes Holt-backed file metadata indexes inside DuckDB.
+    It is intended for repeated file-discovery and partition-planning
+    workloads where walking a local filesystem or object-store namespace
+    is more expensive than querying a cached metadata index.
+
+    The preview release includes persistent and in-memory indexes,
+    keys-only namespace scans, delimiter-style listing, manifest freshness
+    checks, known-prefix refresh, and exact validation against local file
+    size and modification time.
+
+    For usage and benchmark notes, see the
+    [duckdb-holtfs documentation](https://github.com/feichai0017/duckdb-holtfs).
