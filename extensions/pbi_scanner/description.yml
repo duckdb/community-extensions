@@ -1,6 +1,14 @@
 docs:
   extended_description: |
-    Query Power BI Semantic Models from DuckDB using DAX/XMLA. Authenticate with Azure CLI first (`az login`), then use `SET pbi_scanner_auth_mode='azure_cli'` for session-default auth and replace the workspace and semantic model placeholders with values you can access.
+    Query Power BI Semantic Models from DuckDB using DAX via XMLA endpoint.
+
+    - The `dax_query` function executes DAX and returns results as DuckDB tables.
+    - `pbi_tables`, `pbi_columns`, `pbi_measures`, and `pbi_relationships` expose INFO.VIEW metadata results for model exploration.
+
+    The easiest way to get started is Azure CLI auth (`az login`) with `SET pbi_scanner_auth_mode = 'azure_cli'`, but Azure CLI is not required.
+
+    You may also use the DuckDB `azure` extension to create an Azure secret. More details and examples are in the [pbi_scanner repository](https://github.com/crazy-treyn/pbi_scanner).
+
   hello_world: |
     INSTALL pbi_scanner FROM community;
     LOAD pbi_scanner;
@@ -9,12 +17,13 @@ docs:
     SELECT *
     FROM dax_query(
         'Data Source=powerbi://api.powerbi.com/v1.0/myorg/Example%20Workspace;Initial Catalog=example_semantic_model;',
-        'EVALUATE ROW("probe_ok", 1)'
+        'EVALUATE TOPN(500, FactSales)'
     );
+
 extension:
   name: pbi_scanner
   description: DuckDB extension for querying Power BI Semantic Models with DAX.
-  version: '0.0.1'
+  version: '0.0.4'
   language: C++
   build: cmake
   license: MIT
@@ -23,4 +32,4 @@ extension:
     - crazy-treyn
 repo:
   github: crazy-treyn/pbi_scanner
-  ref: 20799696c1375e93a7f540123e19323b89c3850e
+  ref: 6ae413fb6d6c9eb7e9b97758f41f346ac85b45a1

@@ -15,6 +15,6 @@ extension:
     \n  }\n}\n"
   version: '2025101201'
 repo:
-  andium: dc0cf5a12cbe32412e7fedf1b0a07f0e34150473
+  andium: 3c12d74372ff8e7f5b4577da7dce3c36aca0bb6f
   github: query-farm/airport
-  ref: 49d97c8e2c84e5dcc75dbca16ff80d8f56e028ce
+  ref: 8c0fcc5bc4de866c2ae7b20069db0e2fb06f6d86
