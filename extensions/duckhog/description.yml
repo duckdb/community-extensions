@@ -1,7 +1,7 @@
 extension:
   name: duckhog
-  description: Query PostHog data warehouse from DuckDB over Arrow Flight SQL
-  version: 0.1.0
+  description: Query Arrow Flight SQL servers that expose DuckLake-based catalogs and tables directly from DuckDB using standard SQL — including PostHog's managed data warehouse via [Duckgres](https://github.com/PostHog/duckgres).
+  version: 0.2.0
   language: C++
   build: cmake
   # duckhog requires Arrow Flight/FlightSQL via vcpkg; Arrow does not support wasm32-emscripten.
@@ -10,11 +10,11 @@ extension:
   requires_toolchains: parser_tools
   license: MIT
   maintainers:
-    - bill-ph
+    - PostHog
 
 repo:
   github: PostHog/duckhog
-  ref: 996199891ebb47e9fcff64bb04586b1b7de5e2f2
+  ref: v0.2.0
 
 docs:
   hello_world: |

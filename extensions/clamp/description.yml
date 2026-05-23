@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: oglego/duckdb_clamp
-  ref: 636947f33bdce27f980c8c0f40e3bb1024c0ba79
+  ref: f714928f05bd16e187c585d17fdcb3ea93f653dd
 
 docs:
   hello_world: |

@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: carlopi/duckdb-gh
-  ref: ef3309c931ba4530c8ab4258dce156453f922810
+  ref: 10d642a0c851756a14901c620617582fcb316177
 
 docs:
   hello_world: |

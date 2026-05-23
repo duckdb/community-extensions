@@ -11,6 +11,6 @@ extension:
   requires_toolchains: rust
   version: '2025120401'
 repo:
-  andium: 3f9906c71e7883e0f2ee8696d9e8648750bdb76b
+  andium: 3fb0a957c3e497fb3513dcf4c0f70ec599bbc0d3
   github: query-farm/lindel
-  ref: 679d6ab574f0851f9c481ffa6b252c04edc4adf2
+  ref: 00929877557da619e795b4a0b014e2c48fffed76
