@@ -5,7 +5,7 @@ extension:
   language: C++
   build: cmake
   license: BSD-3-Clause
-  excluded_platforms: "windows_amd64;windows_amd64_rtools"
+  excluded_platforms: "windows_amd64;windows_amd64_rtools;osx_amd64"
   maintainers:
     - wasade
   requires:
