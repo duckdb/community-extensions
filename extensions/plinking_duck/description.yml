@@ -1,7 +1,7 @@
 extension:
   name: plinking_duck
   description: Read PLINK 2 genomics file formats and run common genetic analyses directly in SQL
-  version: 0.4.1
+  version: 0.5.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: teaguesterling/plinking_duck
-  ref: 77be4d088b52382ed3e0568a43427e355cb2d114
+  ref: ce446b086c88df40f5447ab7ce04cc867e2fe3db
 
 docs:
   hello_world: |
@@ -43,6 +43,7 @@ docs:
     - `read_psam(path)` — sample metadata (.psam/.fam)
     - `read_pgen(path)` — binary genotypes (.pgen)
     - `read_pfile(prefix)` — unified fileset reader with orient modes (variant/genotype/sample), sample subsetting, region and variant filtering
+    - `read_plink_vcf(path)` — fast biallelic genotype extraction from VCF/VCF.gz (~3x faster than htslib)
 
     **Analysis functions:**
     - `plink_freq` — per-variant allele frequencies via fast genotype counting

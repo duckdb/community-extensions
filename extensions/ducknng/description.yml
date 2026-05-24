@@ -1,0 +1,189 @@
+extension:
+  name: "ducknng"
+  description: "\"Pure C DuckDB extension exposing a DuckDB-backed SQL and RPC server over NNG using Arrow IPC — with framed RPC, custom HTTP routes, TLS support, body codec layer, and admission controls\""
+  version: "0.1.1"
+  language: "C"
+  build: "cmake"
+  license: "MIT"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64"
+  maintainers:
+    - "sounkou-bioinfo"
+
+repo:
+  github: "sounkou-bioinfo/ducknng"
+  ref: "8dbf0738b4c6f07208174b4245ceafb79638ccb7"
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD ducknng;
+    
+    -- Start a local HTTP RPC service
+    SELECT ducknng_start_server(
+      'api',
+      'http://127.0.0.1:8080/_ducknng',
+      1,
+      134217728,
+      300000,
+      0::UBIGINT
+    );
+    
+    -- Inspect the running service
+    SELECT name, listen, execution_model
+    FROM ducknng_list_servers();
+    
+    -- Stop the service
+    SELECT ducknng_stop_server('api');
+  extended_description: |
+    Ducknng turns DuckDB into a transport-and-protocol server: DuckDB-backed SQL and manifest-declared RPC exposed over NNG transports and the built-in HTTP/HTTPS carrier, with Arrow IPC used for row-bearing payloads.
+    
+    The extension includes transport primitives, raw frame helpers, explicit query sessions, async aio handles, TLS helpers, and a low-level HTTP route layer that downstream users can extend into their own gateways, meshes, or application protocols.
+    
+    Functions included in this extension:
+    
+    ### Service Control
+    - `ducknng_start_server(name, listen, contexts, recv_max_bytes, session_idle_ms, tls_config_id[, ip_allowlist_json])`: Start a named ducknng service and choose the carrier from the listen URL scheme.
+    - `ducknng_stop_server(name)`: Stop a named ducknng service.
+    - `ducknng_service_inflight(name)`: Return the current in-flight request count for a named service. Re-evaluated on every call, making it suitable for use inside recursive poll CTEs.
+    - `ducknng_set_service_execution_model(name, model)`: Set the DuckDB connection execution model used by service-side SQL.
+    
+    ### Introspection
+    - `ducknng_list_servers()`: List registered ducknng services.
+    - `ducknng_read_monitor(name, after_seq, max_events)`: Read the bounded per-service NNG pipe monitor event stream.
+    - `ducknng_monitor_status(name)`: Return pipe monitor ring status and active-pipe counters for a running service.
+    - `ducknng_list_pipes(name)`: List currently active NNG pipes for a running service.
+    - `ducknng_log_entries()`: Return a snapshot of the most recent DuckDB log entries captured by the ducknng log ring.
+    - `ducknng_enable_log_capture()`: Wire the ducknng log ring into DuckDB's internal logger so that DuckDB log entries are captured and visible through ducknng_log_entries(). Returns TRUE if capture is active after the call, FALSE if registration failed. Safe to call multiple times.
+    
+    ### Method Registry
+    - `ducknng_register_exec_method([requires_auth])`: Register the built-in exec RPC method explicitly.
+    - `ducknng_set_method_auth(name, requires_auth)`: Set descriptor-level verified-peer-identity authorization for a registered RPC method.
+    - `ducknng_unregister_method(name)`: Unregister a method from the runtime registry.
+    - `ducknng_unregister_family(family)`: Unregister all methods in a family and return the number removed.
+    - `ducknng_list_methods()`: List the currently registered RPC methods in the runtime registry.
+    
+    ### Primitive Transport
+    - `ducknng_open_socket(protocol)`: Open a client socket handle for a supported NNG protocol.
+    - `ducknng_dial_socket(socket_id, url, timeout_ms, tls_config_id)`: Dial a URL using an opened socket handle.
+    - `ducknng_listen_socket(socket_id, url, recv_max_bytes, tls_config_id)`: Bind a socket handle to a listen URL and start its NNG listener.
+    - `ducknng_close_socket(socket_id)`: Close a client socket handle.
+    - `ducknng_send_socket_raw(socket_id, frame, timeout_ms)`: Send one raw frame through an active socket handle.
+    - `ducknng_recv_socket_raw(socket_id, timeout_ms)`: Receive one raw frame from an active socket handle.
+    - `ducknng_subscribe_socket(socket_id, topic)`: Register a raw topic prefix on a sub socket.
+    - `ducknng_unsubscribe_socket(socket_id, topic)`: Remove a raw topic prefix from a sub socket.
+    - `ducknng_list_sockets()`: List client socket handles in the runtime.
+    - `ducknng_request(url, payload, timeout_ms, tls_config_id)`: Perform a one-shot raw request and return a structured result row.
+    - `ducknng_request_socket(socket_id, payload, timeout_ms)`: Perform a raw request through a previously dialed socket handle and return a structured result row.
+    - `ducknng_request_raw(url, payload, timeout_ms, tls_config_id)`: Perform a one-shot raw request and return the raw reply frame bytes.
+    - `ducknng_request_socket_raw(socket_id, payload, timeout_ms)`: Perform a raw request through a dialed socket handle and return the raw reply frame bytes.
+    - `ducknng_decode_frame(frame)`: Decode a raw ducknng frame into envelope fields and extracted payload columns.
+    - `ducknng_frame_payload(frame)`: Extract the payload bytes from one raw ducknng frame.
+    - `ducknng_frame_payload_text(frame)`: Extract the payload as UTF-8 text when a raw ducknng frame carries a textual payload.
+    - `ducknng_frame_error_text(frame)`: Extract the protocol-level error text from a raw ducknng error frame.
+    - `ducknng_frame_version(frame)`: Extract the protocol version field from one raw ducknng frame.
+    - `ducknng_frame_type(frame)`: Extract the numeric reply type field from one raw ducknng frame.
+    - `ducknng_frame_flags(frame)`: Extract the reply flags bitset from one raw ducknng frame.
+    - `ducknng_frame_type_name(frame)`: Extract the symbolic reply type name from one raw ducknng frame.
+    - `ducknng_frame_name(frame)`: Extract the method or reply name field from one raw ducknng frame.
+    - `ducknng_frame_end_of_stream(frame)`: Report whether one raw ducknng frame carries the end-of-stream reply flag.
+    
+    ### Transport Security
+    - `ducknng_list_tls_configs()`: List registered TLS config handles and the kinds of material they contain.
+    - `ducknng_drop_tls_config(tls_config_id)`: Remove a registered TLS config handle from the runtime.
+    - `ducknng_set_tls_peer_allowlist(tls_config_id, identities_json)`: Set the default exact peer-identity allowlist on a TLS config handle.
+    - `ducknng_set_service_peer_allowlist(name, identities_json)`: Dynamically set the exact peer-identity allowlist for a running service.
+    - `ducknng_set_service_ip_allowlist(name, cidrs_json)`: Dynamically set the IP/CIDR remote-address allowlist for a running service.
+    - `ducknng_set_service_limits(name, max_open_sessions[, max_active_pipes[, max_inflight_requests[, max_sessions_per_peer_identity[, max_inflight_per_principal[, max_reply_bytes_per_principal[, max_session_open_rate_per_principal]]]]]])`: Set service resource limits.
+    - `ducknng_auth_context()`: Expose the current request context to a SQL authorization callback.
+    - `ducknng_set_service_authorizer(name, authorizer_sql)`: Install or clear a service-level SQL authorization callback evaluated uniformly for framed RPC requests before method dispatch.
+    - `ducknng_self_signed_tls_config(common_name, valid_days, auth_mode)`: Generate a self-signed development certificate and register it as a TLS config handle.
+    - `ducknng_tls_config_from_pem(cert_pem, key_pem, ca_pem, password, auth_mode)`: Register a TLS config handle from in-memory PEM material.
+    - `ducknng_tls_config_from_files(cert_key_file, ca_file, password, auth_mode)`: Register a TLS config handle from file-backed certificate material.
+    
+    ### HTTP Transport
+    - `ducknng_ncurl(url, method, headers_json, body, timeout_ms, tls_config_id)`: Perform one HTTP or HTTPS request and return an in-band result row.
+    - `ducknng_ncurl_aio(url, method, headers_json, body, timeout_ms, tls_config_id)`: Launch one asynchronous HTTP or HTTPS request and return a future-like aio handle id.
+    - `ducknng_ncurl_aio_collect(aio_ids, wait_ms)`: Wait for asynchronous ncurl handles and return one raw HTTP result row per newly collected terminal operation.
+    - `ducknng_ncurl_table(url, method, headers_json, body, timeout_ms, tls_config_id)`: Perform one HTTP or HTTPS request and parse a successful response body into a DuckDB table using the built-in body codec providers.
+    
+    ### Body Codecs
+    - `ducknng_list_codecs()`: List built-in body serialization/deserialization providers and any registered user codec hooks.
+    - `ducknng_register_codec(content_type, function_name)`: Register a user body codec that decodes a BLOB body into a single VARCHAR value through an existing scalar SQL function.
+    - `ducknng_unregister_codec(content_type)`: Remove a previously registered user body codec for a content type.
+    - `ducknng_parse_body(body, content_type)`: Parse one response/request body BLOB according to its content type.
+    
+    ### HTTP Routes
+    - `ducknng_register_http_route(service_name, method, path, handler_sql[, request_max_bytes])`: Register one exact-path HTTP route beside the framed RPC mount of an existing http:// or https:// service.
+    - `ducknng_register_http_route_pattern(service_name, method, match_kind, path_pattern, handler_sql[, request_max_bytes])`: Register one low-level HTTP route pattern beside the framed RPC mount using exact, prefix, or template matching.
+    - `ducknng_unregister_http_route(service_name, method, path)`: Remove one previously registered exact-path HTTP route from a service.
+    - `ducknng_unregister_http_route_pattern(service_name, method, match_kind, path_pattern)`: Remove one previously registered prefix, template, or explicit exact route pattern from a service.
+    - `ducknng_list_http_routes()`: List the currently registered HTTP routes across running services, including their match kind and stored path pattern.
+    - `ducknng_set_http_route_auth(service_name, method, path[, require_identity[, allow_identities_json]])`: Set authentication requirements on a registered HTTP route.
+    - `ducknng_register_http_static(service_name, path_prefix, dir_path)`: Register a prefix route that serves static files from a directory on the server filesystem.
+    - `ducknng_register_http_worker(service_name, worker_name, sql, interval_ms)`: Register a background SQL worker that runs on a recurring interval while the HTTP service is active.
+    - `ducknng_unregister_http_worker(service_name, worker_name)`: Unregister a previously registered HTTP background worker.
+    - `ducknng_list_http_workers()`: List all currently registered HTTP background workers across running services.
+    - `ducknng_http_ndjson(status, body_text)`: Convenience table macro for returning an NDJSON HTTP response from a route handler.
+    - `ducknng_http_sse(status, body_text)`: Convenience table macro for returning a Server-Sent Events HTTP response from a route handler.
+    - `ducknng_http_request()`: Expose the current HTTP request context while SQL runs inside an active route handler.
+    - `ducknng_http_request_body()`: Expose the current HTTP request body while SQL runs inside an active route handler.
+    - `ducknng_http_headers_get(headers_json, name)`: Return one header value from ducknng's canonical HTTP header JSON.
+    - `ducknng_http_headers_build(names, values)`: Build ducknng's canonical HTTP header JSON from parallel name and value lists.
+    - `ducknng_http_query_param_get(query_string, name)`: Return one decoded query-string parameter value.
+    - `ducknng_http_cookie_get(cookie_header, name)`: Return one cookie value from a Cookie header string.
+    - `ducknng_http_path_params_get(path_params_json, name)`: Return one template-route path parameter from path_params_json.
+    - `ducknng_http_header(name)`: Route-local shortcut for reading one request header by name.
+    - `ducknng_http_query_param(name)`: Route-local shortcut for reading one decoded query parameter by name.
+    - `ducknng_http_cookie(name)`: Route-local shortcut for reading one request cookie by name.
+    - `ducknng_http_path_param(name)`: Route-local shortcut for reading one template path parameter by name.
+    - `ducknng_http_response(status, headers_json, content_type, body, body_text)`: Build the one-row response shape expected by a route handler.
+    - `ducknng_http_text(status, body_text)`: Build a one-row plain-text HTTP route response.
+    - `ducknng_http_json(status, body_text)`: Build a one-row JSON HTTP route response from a text body.
+    - `ducknng_http_binary(status, body)`: Build a one-row binary HTTP route response.
+    
+    ### Async I/O
+    - `ducknng_request_raw_aio(url, frame, timeout_ms, tls_config_id)`: Launch one raw req/rep roundtrip asynchronously and return a future-like aio handle id.
+    - `ducknng_get_rpc_manifest_raw_aio(url, timeout_ms, tls_config_id)`: Launch one asynchronous manifest RPC request and return an aio handle id for the raw reply frame.
+    - `ducknng_run_rpc_raw_aio(url, sql, timeout_ms, tls_config_id)`: Launch one asynchronous metadata-only exec RPC request and return an aio handle id for the raw reply frame.
+    - `ducknng_open_query_raw_aio(url, sql, batch_rows, batch_bytes, timeout_ms, tls_config_id)`: Launch one asynchronous query_open request and return an aio handle id for the raw reply frame.
+    - `ducknng_fetch_query_raw_aio(url, session_id, session_token, batch_rows, batch_bytes, timeout_ms, tls_config_id)`: Launch one asynchronous fetch request and return an aio handle id for the raw reply frame.
+    - `ducknng_close_query_raw_aio(url, session_id, session_token, timeout_ms, tls_config_id)`: Launch one asynchronous close request and return an aio handle id for the raw reply frame.
+    - `ducknng_cancel_query_raw_aio(url, session_id, session_token, timeout_ms, tls_config_id)`: Launch one asynchronous cancel request and return an aio handle id for the raw reply frame.
+    - `ducknng_request_socket_raw_aio(socket_id, frame, timeout_ms)`: Launch one raw req/rep roundtrip asynchronously on an existing req socket handle and return an aio handle id.
+    - `ducknng_send_socket_raw_aio(socket_id, frame, timeout_ms)`: Launch one raw socket send asynchronously and return an aio handle id.
+    - `ducknng_recv_socket_raw_aio(socket_id, timeout_ms)`: Launch one raw socket receive asynchronously and return an aio handle id.
+    - `ducknng_aio_ready(aio_id)`: Return whether an aio handle has reached a terminal state.
+    - `ducknng_aio_wait(aio_ids, wait_ms)`: Wait until any requested aio handle reaches a terminal state without collecting or dropping it.
+    - `ducknng_aio_status(aio_id)`: Inspect the current or terminal status of one aio handle, including send-phase and recv-phase completion.
+    - `ducknng_aio_collect(aio_ids, wait_ms)`: Wait for any requested aio handles to finish and return one row per newly collected terminal result.
+    - `ducknng_aio_collect_decoded(aio_ids, wait_ms)`: Wait for framed aio handles, collect their terminal frame rows, and project the decoded envelope columns directly.
+    - `ducknng_aio_cancel(aio_id)`: Request cancellation of a pending aio handle.
+    - `ducknng_aio_drop(aio_id)`: Release a terminal aio handle from the runtime registry.
+    
+    ### RPC Helper
+    - `ducknng_get_rpc_manifest(url, tls_config_id)`: Request the RPC manifest and return a structured result row.
+    - `ducknng_get_rpc_manifest_raw(url, tls_config_id)`: Request the RPC manifest and return the raw reply frame as BLOB.
+    - `ducknng_run_rpc(url, sql, tls_config_id)`: Execute a metadata-oriented RPC call and return a structured result row.
+    - `ducknng_run_rpc_raw(url, sql, tls_config_id)`: Execute the exec RPC and return the raw reply frame as BLOB.
+    - `ducknng_query_rpc(url, sql, tls_config_id)`: Execute a row-returning RPC query as a session convenience wrapper and expose the fetched Arrow IPC rows as a DuckDB table.
+    
+    ### RPC Session
+    - `ducknng_open_query(url, sql, batch_rows, batch_bytes, tls_config_id)`: Open a server-side query session and return the JSON control metadata as a structured row.
+    - `ducknng_fetch_query(url, session_id, session_token, batch_rows, batch_bytes, tls_config_id)`: Fetch the next session reply and return either JSON control metadata or an Arrow IPC batch payload.
+    - `ducknng_fetch_query_table(url, session_id, session_token, batch_rows, batch_bytes, tls_config_id)`: Fetch one session row batch and decode the returned Arrow IPC payload directly into a DuckDB table.
+    - `ducknng_close_query(url, session_id, session_token, tls_config_id)`: Close a server-side query session and return the JSON control metadata as a structured row.
+    - `ducknng_cancel_query(url, session_id, session_token, tls_config_id)`: Request cancellation for a server-side query session and return the JSON control metadata as a structured row.
+    - `ducknng_open_query_raw(url, sql, batch_rows, batch_bytes, tls_config_id)`: Open a server-side query session and return the raw reply frame as BLOB.
+    - `ducknng_fetch_query_raw(url, session_id, session_token, batch_rows, batch_bytes, tls_config_id)`: Fetch the next session reply and return the raw reply frame as BLOB.
+    - `ducknng_close_query_raw(url, session_id, session_token, tls_config_id)`: Close a server-side query session and return the raw reply frame as BLOB.
+    - `ducknng_cancel_query_raw(url, session_id, session_token, tls_config_id)`: Cancel a server-side query session and return the raw reply frame as BLOB.
+    
+    Operational notes:
+    - Transport family is chosen by URL scheme. Supported listeners and clients cover inproc://, ipc://, tcp://, tls+tcp://, ws://, wss://, http://, and https:// where applicable.
+    - Arrow IPC is the normal row payload format. JSON is used for manifest documents and lightweight control metadata.
+    - Query sessions are explicit (`query_open`, `fetch`, `close`, `cancel`) and raw/session aio helpers follow the same future-like async contract through `nng_aio` handles.
+    - Expected aio launch failures return immediate terminal error handles so callers inspect errors through aio status or collect helpers instead of catching DuckDB exceptions.
+    - The default server-side DuckDB execution model is `shared_serialized_connection`; services may switch to `service_serialized_connection` or `request_connection` with ducknng_set_service_execution_model().
+    - TLS configuration can come from filesystem paths, in-memory PEM content, or self-signed development helpers.
+    - The HTTP route layer is intentionally primitive and extensible; downstream users can build tenant routing, worker orchestration, and other control-plane logic without `ducknng` sealing those policies into the core extension.
+    - Current excluded platforms are wasm and Windows.

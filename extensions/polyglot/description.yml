@@ -1,7 +1,7 @@
 extension:
   name: polyglot
   description: Transpile SQL from 34 different dialects into DuckDB SQL
-  version: 0.3.0
+  version: 0.3.2
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-polyglot
-  ref: 063c61298b3601a9dc56d5741423bacbd3a55328
+  ref: c6ec8c44cd275a57852e30f6a0c7bf537ac4c665
 
 docs:
   hello_world: |

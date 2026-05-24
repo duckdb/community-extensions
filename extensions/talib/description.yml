@@ -7,11 +7,12 @@ extension:
   license: MIT
   maintainers:
     - neuesql
+    - wuqunfei
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
 
 repo:
   github: neuesql/atm_talib
-  ref: e3f6fb79dda4e930e0fa25ce68a6a0a2383645da
+  ref: 53c4312814729d037f865126025cc4235aa4afea
 
 docs:
   hello_world: |
@@ -19,10 +20,7 @@ docs:
     SELECT t_sma([1.0, 2.0, 3.0, 4.0, 5.0], 3);
 
     -- Aggregate/window form: use OVER() for row-by-row SMA
-    SELECT date, close,
-           ta_sma(close, 14) OVER (ORDER BY date
-                                   ROWS BETWEEN 13 PRECEDING AND CURRENT ROW) AS sma_14
-    FROM ohlc;
+    SELECT date, close, ta_sma(close, 14) OVER (ORDER BY date ROWS BETWEEN 13 PRECEDING AND CURRENT ROW) AS sma_14 FROM ohlc;
 
     -- Multi-output indicators return structs (MACD, Bollinger Bands)
     SELECT t_macd(list(close ORDER BY date), 12, 26, 9) FROM ohlc;
@@ -34,10 +32,24 @@ docs:
     FROM ohlc;
   extended_description: |
     100+ TA-Lib indicators as native DuckDB functions: overlap studies
-    (SMA, EMA, BBANDS), momentum (RSI, MACD, Stochastic), volatility
-    (ATR, NATR), volume and cycle indicators, math/statistics, and
-    candlestick pattern recognizers.
+    | Category | Count | Examples |
+    |----------|-------|---------|
+    | 🔀 Overlap Studies | 8+ | `t_sma`, `t_ema`, `t_wma`, `t_dema`, `t_tema` |
+    | 🏃 Momentum | 15+ | `t_rsi`, `t_macd`, `t_willr`, `t_cci`, `t_adx` |
+    | 🔊 Volume | 1+ | `t_ad` |
+    | 🌊 Volatility | 2+ | `t_atr`, `t_natr` |
+    | 🕯️ Pattern Recognition | 49+ | `t_cdldoji`, `t_cdlhammer`, `t_cdlengulfing` |
+    | 💰 Price Transform | 2+ | `t_avgprice`, `t_bop` |
+    | 🔄 Cycle Indicators | 4+ | `t_ht_dcperiod`, `t_ht_trendline`, `t_ht_trendmode` |
+    | 📏 Statistics | 10+ | `t_linearreg`, `t_tsf`, `t_max`, `t_min` |
+    | ➗ Math Transform | 15 | `t_sin`, `t_cos`, `t_ln`, `t_sqrt` |
 
     Every function is registered in two forms:
     - Scalar (`t_*`): pass pre-collected lists, returns a list
     - Aggregate/window (`ta_*`): use with `OVER()` for row-by-row results
+    
+    | | 🏎️ Scalar `t_*` | 🧑‍💻 Aggregate `ta_*` |
+    |---|---|---|
+    | **Performance** | ⚡ Fast — one pass over the full series, O(N) | 🐢 Slower — recomputes per window frame, ~O(N × window) |
+    | **Ergonomics** | Requires `list(col ORDER BY date)` + `unnest` to rejoin rows | Natural SQL — plugs into `OVER (PARTITION BY … ORDER BY …)` |
+    | **Best for** | Backtests, full-history feature generation, large datasets | Dashboards, ad-hoc queries, mixing indicators with row-level columns |
