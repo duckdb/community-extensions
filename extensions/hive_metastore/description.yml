@@ -1,7 +1,7 @@
 extension:
   name: hive_metastore
-  description: Connect to your Hive Metastore, attach it as a native DuckDB catalog and query the data inside with ease!
-  version: 0.1.0
+  description: Attach Apache Hive Metastore as a native DuckDB catalog and read/write the data inside with ease!
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -9,39 +9,115 @@ extension:
   vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
   requires_toolchains: "parser_tools"
   maintainers:
+    - ilum-cloud
     - thijs-s
 
 repo:
   github: ilum-cloud/duckdb-hive-metastore
-  andium: 2713d9d4fa4b63e01cf151ba90218ecd325901f3
-  ref: d8a504cb9924cebc52d342666d1f59c4b2c9bc2f
+  next: 358bab899039c5934507aee66c67df3d37671ce0
+  ref: 182aea05140728a50cddc79eecce3399617da1ce
+  andium: 60f4912c75f86a89f98e28925bad7159415641cb
 
 docs:
   hello_world: |
     -- Attach the Hive Metastore as a catalog in DuckDB
     ATTACH 'thrift://<host>:<port>' AS <catalog_name> (TYPE hive_metastore);
 
-    -- You are ready to rock!
+    -- Query any HMS table as if it were native DuckDB
     SELECT * FROM <catalog_name>.<schema_name>.<table_name>;
 
-    -- For querying tables from object storages, you still need to set up the storage extensions (e.g. s3)
+    -- For object-storage-backed tables, configure storage secrets as usual
     CREATE SECRET s3 (TYPE S3, KEY_ID 'access-key', SECRET 'secret-key', ENDPOINT 'localhost:9000');
+
+    -- Create a managed table (requires WAREHOUSE_LOCATION on ATTACH)
+    ATTACH 'thrift://localhost:9083' AS hms (TYPE hive_metastore, WAREHOUSE_LOCATION 's3a://my-bucket/warehouse');
+    CREATE TABLE hms.default.events (id INT, ts TIMESTAMP, payload VARCHAR);
+    INSERT INTO hms.default.events VALUES (1, NOW(), 'hello');
   extended_description: |
-    DuckDB Hive Metastore extension enables DuckDB to connect to Apache Hive Metastore via Thrift protocol and query tables stored in DuckDB-supported formats. The extension provides seamless integration with the Hive ecosystem while leveraging DuckDB's powerful analytical capabilities.
+    The DuckDB Hive Metastore extension connects DuckDB to an Apache Hive Metastore over the Thrift protocol and
+    exposes HMS databases and tables as a first-class DuckDB catalog.
+    Reads, writes, and table creation are all implemented natively,
+    with DuckDB's format scanners handling the underlying data files.
 
-    ## Key Features
-    - Implementation of Hive catalog as a native DuckDB catalog
-    - Automatic schema discovery, including support for complex data types such as arrays and maps
-    - Support for Parquet, CSV, Iceberg, Delta, ORC, and Avro
+    ## Supported table formats
 
-    ## Usage
-    The usage of the extension revolves around attaching the Hive Metastore as a catalog in DuckDB and then querying the tables as if they were native DuckDB tables. The attach command looks like any other DuckDB attach command:
+    | Format       | SELECT   | INSERT                | CTAS | CREATE TABLE         |
+    |--------------|----------|-----------------------|------|----------------------|
+    | Parquet      | yes      | yes (non-partitioned) | yes  | yes                  |
+    | CSV / Text   | yes      | yes (non-partitioned) | yes  | yes                  |
+    | Delta Lake   | yes      | via `delta` extension | no   | no                   |
+    | Iceberg      | yes¹     | no                    | no   | no                   |
+    | Avro         | yes      | no (read-only)        | no   | metastore entry only |
+    | ORC          | partial² | no                    | no   | partial²             |
+
+    ¹ Iceberg tables created by Spark may require `unsafe_enable_version_guessing = true`.
+    ² ORC support depends on DuckDB's underlying ORC scanner.
+
+    UPDATE, DELETE, and `COPY TO` against HMS tables are not supported - this matches Hive's append-only semantics.
+
+    ## Key capabilities
+
+    - Direct Thrift communication with the metastore - no REST catalog or Hadoop classpath needed
+    - Automatic format detection from HMS `inputFormat` / `outputFormat` / SerDe metadata
+    - Schema and database discovery, including complex types (struct, array, map) from Spark-created tables
+    - Hive-style partitioning automatically applied at scan time
+    - S3-compatible object storage (AWS S3, MinIO, etc.) via DuckDB's `httpfs`
+    - Path normalization for Alibaba OSS (`oss://`), Tencent COS (`cos://`, `cosn://`) - rewritten to `s3://` so any S3-compatible secret works
+    - Avro logical-type handling: `date`, `timestamp-micros`, and `decimal` round-trip with correct SQL types
+    - INSERT and CTAS write a single `data_<uuid>.<ext>` file per statement to the table's `LOCATION`; concurrent writers do not collide
+    - CREATE TABLE creates managed (`MANAGED_TABLE`) or external (`EXTERNAL_TABLE`) entries with proper Hive type strings, interoperable with Spark and Trino readers
+
+    ## Attaching a metastore
 
     ```sql
-    ATTACH 'thrift://<host>:<port>' AS <catalog_name> (<args>);
+    ATTACH 'thrift://<host>:<port>' AS <catalog_name> (<options>);
     ```
 
-    Supported arguments include:
-    - `TYPE` (required): Must be set to `hive_metastore` to indicate that we want to use the Hive Metastore extension
-    - `WAREHOUSE_LOCATION`: The warehouse location path. Used for table storage location resolution (mostly not required, but can be useful in some cases).
-    - `DEFAULT_SCHEMA`: The database/schema name to use when queries don't specify one. Defaults to `default` if not provided.
+    Options:
+
+    - `TYPE` (required) - must be `hive_metastore`
+    - `WAREHOUSE_LOCATION` - default base path for managed tables created via `CREATE TABLE` without an explicit `LOCATION`. When set, managed tables land at `<warehouse>/<db>/<table>`.
+    - `DEFAULT_SCHEMA` - schema used when a query omits the schema name. Defaults to `default`.
+
+    ## Creating tables
+
+    ```sql
+    ATTACH 'thrift://localhost:9083' AS hms
+      (TYPE hive_metastore, WAREHOUSE_LOCATION 's3a://my-bucket/warehouse');
+
+    -- Managed Parquet table (default format)
+    CREATE TABLE hms.default.sales (id INT, amount DECIMAL(10,2), region VARCHAR);
+
+    -- External table with explicit format and location
+    CREATE TABLE hms.default.events (id INT, ts TIMESTAMP)
+      WITH (location='s3a://my-bucket/events', format='parquet');
+
+    -- Avro: metastore entry only, written by Spark/Hive
+    CREATE TABLE hms.default.shipments (id INT, ship_date DATE)
+      WITH (location='s3a://my-bucket/shipments', format='avro');
+    ```
+
+    Format and location are passed via standard SQL `WITH (...)` tags.
+    If neither `LOCATION` nor `WAREHOUSE_LOCATION` is available, `CREATE TABLE` fails with a clear error.
+
+    ## Reading Delta, Iceberg, and Avro
+
+    The extension delegates data reads to DuckDB's format scanners.
+    Install and load the relevant extension before querying:
+
+    ```sql
+    INSTALL delta;    LOAD delta;
+    INSTALL iceberg;  LOAD iceberg;
+    INSTALL avro;     LOAD avro;
+    ```
+
+    Object-storage credentials use the standard DuckDB `CREATE SECRET` flow:
+
+    ```sql
+    CREATE SECRET s3 (
+      TYPE S3,
+      KEY_ID 'access-key',
+      SECRET 'secret-key',
+      ENDPOINT 's3.amazonaws.com'
+    );
+    ```
