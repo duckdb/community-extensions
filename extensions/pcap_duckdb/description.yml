@@ -1,0 +1,47 @@
+extension:
+  name: pcap_duckdb
+  description: >
+    Read and analyze PCAP network capture files directly in DuckDB using a
+    native C++ implementation based on libpcap. Works on duckdb v1.5.3.
+
+  version: "1.0.0"
+
+  language: C++
+
+  build: cmake
+
+  licence: MIT
+
+  maintainers:
+    - siara-in
+
+  requires_toolchains:
+    - vcpkg
+
+repo:
+  github: siara-in/pcap_duckdb
+  ref: 14e5b03c9b87497f74e73015c769fe32911e51e8
+
+docs:
+  hello_world: |
+    INSTALL pcap FROM community;
+    LOAD pcap;
+
+    SELECT *
+    FROM read_pcap('capture.pcap')
+    LIMIT 10;
+
+  extended_description: |
+    The pcap extension enables direct querying of PCAP packet capture files
+    from DuckDB using SQL.
+
+    Unlike several existing PCAP processing approaches that rely on Rust
+    runtimes or external shell commands such as tcpdump/tshark, this extension
+    is implemented entirely in modern C++ using libpcap via vcpkg.
+
+    This provides:
+      * Native DuckDB integration
+      * No external shell command execution
+      * No Rust dependency chain
+      * Cross-platform builds through the DuckDB extension toolchain
+      * Efficient packet-level analytics directly in SQL
