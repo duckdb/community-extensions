@@ -1,10 +1,14 @@
 extension:
   name: firebird
-  description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, and native ATTACH.
-  version: 0.4.0
+  description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
+  version: 0.4.4
   language: C++
   build: cmake
   license: MIT
+  # libfbclient is consumed via the in-repo vcpkg.json manifest, so the
+  # community CI must spin up the vcpkg toolchain to satisfy the
+  # ibase.h / fbclient_ms dependency before configuring CMake.
+  requires_toolchains: vcpkg
   maintainers:
     - flozer
   # Platforms where libfbclient is reachable via the build's vcpkg
@@ -14,7 +18,7 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  ref: v0.4.0
+  ref: v0.4.4
 
 docs:
   hello_world: |
@@ -45,6 +49,14 @@ docs:
       JOIN read_parquet('s3://lake/departments/*.parquet') d
        ON e.dept_no = d.dept_no
      GROUP BY e.dept_no;
+
+    -- 6. Legacy database declared CHARACTER SET NONE. Firebird does
+    --    NOT transliterate NONE columns to UTF-8 on the wire; pick
+    --    the encoding the writing application used.
+    SELECT * FROM firebird_scan(
+        'C:/legacy/athenas.fdb',
+        'TABENTRADASAIDA',
+        none_encoding='win1252');
 
   extended_description: |
     duckdb-firebird exposes Firebird tables as DuckDB tables, with the
@@ -109,12 +121,34 @@ docs:
 
     DuckDB stores strings as UTF-8 internally. The extension only
     accepts `UTF8`, `UTF-8`, `NONE`, or `OCTETS` for the client
-    charset; anything else is rejected at bind time with a hint.
+    charset; anything else is rejected at bind time.
 
-    Legacy WIN1252 / ISO-8859-1 / Latin-1 databases are queryable with
-    the default `charset=UTF8` — Firebird transliterates server-side,
-    so Brazilian-Portuguese-encoded strings round-trip correctly
-    without any extra configuration.
+    Databases declared with a real character set (WIN1252, ISO8859_1,
+    UTF8, …) round-trip cleanly under the default `charset=UTF8`:
+    Firebird transliterates server-side, so `São Paulo`, `Açúcar`,
+    `Coração` arrive as valid UTF-8 without extra configuration.
+
+    Databases (or individual columns) declared `CHARACTER SET NONE`
+    are different: Firebird returns the raw bytes the writing
+    application stored, with no transliteration. The extension's
+    default `strict` mode raises an informative error the first time
+    it sees non-UTF-8 bytes; the caller must then pick the encoding
+    the source application used:
+
+    - `none_encoding='strict'` (default) — accept only valid UTF-8.
+    - `none_encoding='win1252'`         — decode bytes as
+      Windows-1252 → UTF-8.
+    - `none_encoding='iso8859_1'` (alias `'latin1'`) — decode bytes
+      as ISO-8859-1 → UTF-8.
+    - `none_encoding='blob'`            — surface NONE text columns
+      as DuckDB `BLOB` (raw bytes).
+
+    The option is accepted both by `firebird_scan(…)` and by the
+    `ATTACH ... (TYPE firebird, none_encoding 'win1252')` form. While
+    `none_encoding != 'strict'`, filter pushdown on NONE text columns
+    is deliberately disabled — the SQL literal we'd send is UTF-8
+    and would not match the raw bytes server-side. DuckDB applies
+    the post-transcode text filter above the scan.
 
     ## Verified against
 
