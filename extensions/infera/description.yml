@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: CogitatorTech/infera
-  ref: da3e4873fb0fdb616c51dbd4d061867d962eec42
+  ref: bd3a5f73bfd179bcdb14aee0f4dc234cc371325a
 
 docs:
   hello_world: |
