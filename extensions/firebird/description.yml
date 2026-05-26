@@ -1,0 +1,124 @@
+extension:
+  name: firebird
+  description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, and native ATTACH.
+  version: 0.4.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - flozer
+  # Platforms where libfbclient is reachable via the build's vcpkg
+  # manifest / FB_SDK_ROOT. WASM is excluded — libfbclient depends on
+  # native sockets / threads / file IO.
+  excluded_platforms: "wasm_mvp;wasm_threads;wasm_eh"
+
+repo:
+  github: flozer/duckdb-firebird
+  ref: v0.4.0
+
+docs:
+  hello_world: |
+    LOAD firebird;
+
+    -- 1. Live scan against a Firebird server.
+    SELECT * FROM firebird_scan(
+        'firebird://SYSDBA:masterkey@db.host:3050/srv:/data/prod.fdb?charset=UTF8',
+        'EMPLOYEE') LIMIT 10;
+
+    -- 2. Projection + filter pushdown — only EMP_NO, FIRST_NAME and the
+    --    WHERE predicate are sent to Firebird.
+    SELECT EMP_NO, FIRST_NAME
+      FROM firebird_scan('firebird://…', 'EMPLOYEE')
+     WHERE DEPT_NO = '600'
+       AND HIRE_DATE > DATE '2020-01-01';
+
+    -- 3. Discover the schema.
+    SELECT * FROM firebird_tables('firebird://…');
+
+    -- 4. Native ATTACH — every Firebird table reachable through DuckDB's catalog.
+    ATTACH 'firebird://SYSDBA:masterkey@host/path/db.fdb' AS fb (TYPE firebird);
+    SELECT * FROM fb.main.EMPLOYEE WHERE DEPT_NO = '600';
+
+    -- 5. Federated JOIN — Firebird ⋈ Parquet.
+    SELECT e.dept_no, COUNT(*), AVG(e.salary)
+      FROM firebird_scan('firebird://…', 'EMPLOYEE') e
+      JOIN read_parquet('s3://lake/departments/*.parquet') d
+       ON e.dept_no = d.dept_no
+     GROUP BY e.dept_no;
+
+  extended_description: |
+    duckdb-firebird exposes Firebird tables as DuckDB tables, with the
+    DuckDB optimiser pushing projection and filter predicates down to
+    the Firebird server. Big aggregations still happen inside DuckDB's
+    vectorised executor; you just stop maintaining a parallel ETL
+    pipeline to export Firebird data to Parquet first.
+
+    ## Surface area
+
+    - `firebird_scan(conn, table [, named params])` — single-table scan
+      with projection + filter pushdown and optional PK-range parallel
+      scan.
+    - `firebird_tables(conn)` — list user tables (and views, external
+      tables, GTTs) with PK info.
+    - `firebird_attach_sql(conn[, schema])` — emits the DDL for a
+      lightweight view-based attach when you don't want the full
+      `StorageExtension` lifetime.
+    - `ATTACH 'firebird://…' AS fb (TYPE firebird)` — native read-only
+      catalog with `SELECT * FROM fb.main.TABLE`, federated joins,
+      `DESCRIBE`, case-insensitive lookup, and connection pooling.
+
+    ## Pushdown
+
+    - **Projection**: only requested columns travel the wire.
+    - **Filters**: `=, <>, <, >, <=, >=, IS [NOT] NULL, BETWEEN, IN,
+      AND/OR, LIKE 'prefix%'` translate to Firebird SQL. Anything else
+      stays in DuckDB above the scan.
+    - **PK-range parallel scan**: opt-in via the `partitions=N` named
+      parameter — recommended for remote / Classic Firebird servers
+      where parallelism is cheap.
+    - **Manual `row_limit=N`**: emits Firebird's `ROWS N` directly.
+
+    ## Type mapping
+
+    Firebird 3 + 4 + 5 server compatibility:
+
+    - `INTEGER`, `BIGINT`, `SMALLINT`, `CHAR(N)`, `VARCHAR(N)`,
+      `NUMERIC/DECIMAL(p, s)` (up to 38 digits), `FLOAT`, `DOUBLE`,
+      `DATE`, `TIME`, `TIMESTAMP`, `BOOLEAN` — exact mapping.
+    - `INT128` → `HUGEINT`; `DECIMAL(p > 18, s)` → `DECIMAL(38, s)`.
+    - `TIMESTAMP WITH TIME ZONE` (including the FB4 extended-TZ form) →
+      DuckDB `TIMESTAMP WITH TIME ZONE` (UTC instant preserved).
+    - `TIME WITH TIME ZONE` → DuckDB `TIME WITH TIME ZONE`.
+    - `BLOB SUB_TYPE 1` (text) → `VARCHAR`; other BLOBs → `BLOB`.
+    - `DECFLOAT(16)` / `DECFLOAT(34)` currently surface NULL on fetch
+      (no native IEEE decimal-floating-point type in DuckDB). Workaround:
+      cast to VARCHAR or DECIMAL(38, s) at the source.
+
+    ## Connection-string forms
+
+        firebird://USER:PASS@HOST:PORT/DB_PATH?charset=UTF8&dialect=3&role=…
+        user=SYSDBA;password=masterkey;database=server:/data/db.fdb;charset=UTF8
+
+    A bare path (`/var/lib/firebird/test.fdb`, `C:/data/prod.fdb`) is
+    also accepted for local databases.
+
+    Override the user / password / charset / role / dialect / partitions
+    / row_limit at call time via named parameters.
+
+    ## Charset handling
+
+    DuckDB stores strings as UTF-8 internally. The extension only
+    accepts `UTF8`, `UTF-8`, `NONE`, or `OCTETS` for the client
+    charset; anything else is rejected at bind time with a hint.
+
+    Legacy WIN1252 / ISO-8859-1 / Latin-1 databases are queryable with
+    the default `charset=UTF8` — Firebird transliterates server-side,
+    so Brazilian-Portuguese-encoded strings round-trip correctly
+    without any extra configuration.
+
+    ## Verified against
+
+    - Firebird 3.0 (apt `firebird3.0-server`, CI fixture)
+    - Firebird 4.0.x (`firebirdsql/firebird:4-noble`)
+    - Firebird 5.0.4 (Windows local + `firebirdsql/firebird:5-noble`)
+    - DuckDB v1.5.3 (`StorageExtension::Register` API)
