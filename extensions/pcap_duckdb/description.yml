@@ -20,7 +20,7 @@ extension:
 
 repo:
   github: siara-in/pcap_duckdb
-  ref: 14e5b03c9b87497f74e73015c769fe32911e51e8
+  ref: 73f9bb2a42693d9e2fb5343911742bd567244259
 
 docs:
   hello_world: |
