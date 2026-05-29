@@ -1,24 +1,27 @@
 extension:
   name: firebird
   description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
-  version: 0.5.4
+  version: 0.5.5
   language: C++
   build: cmake
   license: MIT
-  # libfbclient is consumed via the in-repo vcpkg.json manifest, so the
-  # community CI must spin up the vcpkg toolchain to satisfy the
-  # ibase.h / fbclient_ms dependency before configuring CMake.
-  requires_toolchains: vcpkg
+  # libfbclient is loaded at RUNTIME via dlopen / LoadLibrary; the
+  # community CI no longer needs vcpkg to satisfy it at build time.
+  # End users must have a Firebird client library reachable on their
+  # platform's default dynamic-loader search path (or via
+  # DUCKDB_FIREBIRD_CLIENT_LIBRARY) when they first call a firebird_*
+  # function. Vendored Firebird headers under
+  # third_party/firebird/include/ (Interbase Public License) cover the
+  # compile-time requirement.
   maintainers:
     - flozer
-  # Platforms where libfbclient is reachable via the build's vcpkg
-  # manifest / FB_SDK_ROOT. WASM is excluded — libfbclient depends on
-  # native sockets / threads / file IO.
+  # WASM is still excluded because libfbclient depends on native
+  # sockets / threads / file IO, regardless of how it is loaded.
   excluded_platforms: "wasm_mvp;wasm_threads;wasm_eh"
 
 repo:
   github: flozer/duckdb-firebird
-  ref: v0.5.4
+  ref: v0.5.5
 
 docs:
   hello_world: |
