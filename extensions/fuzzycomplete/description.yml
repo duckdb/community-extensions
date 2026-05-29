@@ -12,5 +12,6 @@ extension:
   requires_toolchains: rust
   version: '2025120401'
 repo:
+  andium: 74630cc8548a8ee6b32129abdc8bd70e1cf2bf87
   github: query-farm/fuzzycomplete
-  ref: 74630cc8548a8ee6b32129abdc8bd70e1cf2bf87
+  ref: 0a4d7e9e8afd8fbb5ca045d3af87f593a98c8278

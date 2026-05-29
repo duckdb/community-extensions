@@ -12,5 +12,6 @@ extension:
   requires_toolchains: rust
   version: '2025120401'
 repo:
+  andium: 5b8e2b4701c69b196cc6386d86f811a5343ffc6e
   github: query-farm/tera
-  ref: 5b8e2b4701c69b196cc6386d86f811a5343ffc6e
+  ref: d5a49c3113cff59cd5c4e0613cfc453ef7406660

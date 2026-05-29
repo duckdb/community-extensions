@@ -12,5 +12,6 @@ extension:
   name: stochastic
   version: '2025120401'
 repo:
+  andium: afba8950037068a7a43520b18f9f6f5dcc5258ba
   github: query-farm/stochastic
-  ref: 020205b1862e9ab919ad58b1a4a496058a478519
+  ref: 350319a42ac84e8f47ec025f0c7df89b5ae8e20d

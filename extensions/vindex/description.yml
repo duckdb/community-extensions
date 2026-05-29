@@ -1,0 +1,65 @@
+extension:
+  name: vindex
+  description: Approximate nearest-neighbor vector indexes (HNSW / IVF / DiskANN / SPANN) with pluggable quantizers (Flat / RaBitQ / PQ / ScaNN)
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - Icemap
+
+repo:
+  github: Icemap/duckdb-vector-index
+  ref: v0.1.0
+
+docs:
+  hello_world: |
+    INSTALL vindex FROM community;
+    LOAD vindex;
+
+    -- Store 1536-dim embeddings and index them with HNSW + 3-bit RaBitQ.
+    CREATE TABLE docs (id INTEGER, embedding FLOAT[1536]);
+    -- ... insert rows ...
+    CREATE INDEX docs_hnsw ON docs USING HNSW (embedding)
+        WITH (metric = 'cosine', quantizer = 'rabitq', bits = 3);
+
+    -- Approximate top-10 nearest neighbours (the planner rewrites this to an
+    -- index scan; add `SET vindex_hnsw_ef_search = 200;` to trade recall vs
+    -- latency at query time).
+    SELECT id
+    FROM docs
+    ORDER BY array_cosine_distance(embedding, [0.1, 0.2, /* ... */]::FLOAT[1536])
+    LIMIT 10;
+
+  extended_description: |
+    vindex ships four approximate-nearest-neighbour index types and four
+    quantizers that can be mixed at `CREATE INDEX` time:
+
+    Algorithms:
+      * HNSW    — hierarchical navigable small world graph; the go-to in-memory
+                  baseline.
+      * IVF     — inverted-file / coarse clustering; small memory footprint,
+                  `nprobe` lets you trade recall vs latency.
+      * DiskANN — Vamana graph with the vector codes held separately from the
+                  graph blocks, so the graph can exceed RAM while queries stay
+                  fast. Requires a compressing quantizer (rabitq / pq / scann).
+      * SPANN   — IVF with closure-replica writes; higher recall than IVF at
+                  the same `nprobe`.
+
+    Quantizers:
+      * flat    — identity, exact distances, full fp32 storage.
+      * rabitq  — b-bit RaBitQ (SIGMOD 2024). Supports L2SQ, IP, and cosine.
+      * pq      — product quantization (L2SQ / IP). Rejects cosine.
+      * scann   — anisotropic PQ (ICML 2020; L2SQ / IP). Rejects cosine.
+
+    Supported DuckDB distance functions: `array_distance`, `array_cosine_distance`,
+    `array_negative_inner_product`. The planner rewrites `ORDER BY <distance>
+    LIMIT k` into a `VINDEX_INDEX_SCAN` operator whenever a matching index exists.
+
+    Session pragmas let you tune search-time recall without rebuilding the
+    index (e.g. `SET vindex_hnsw_ef_search = 200`, `SET vindex_ivf_nprobe = 32`,
+    `SET vindex_diskann_l_search = 100`).
+
+    See https://github.com/Icemap/duckdb-vector-index for the full acceptance
+    matrix, supported `WITH` options per algorithm, and persistence semantics.

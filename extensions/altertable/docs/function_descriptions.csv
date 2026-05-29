@@ -1,0 +1,3 @@
+function,description,comment,example
+altertable_query,"Execute a SELECT query on an attached Altertable database and return the results as a DuckDB table.","","SELECT * FROM altertable_query('db', 'SELECT id, name FROM users WHERE active = true');"
+altertable_execute,"Execute a remote DDL or DML statement on an attached Altertable database.","","CALL altertable_execute('db', 'CREATE TABLE my_table (id INTEGER, name VARCHAR)');"

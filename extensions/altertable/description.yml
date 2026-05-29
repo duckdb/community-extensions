@@ -1,0 +1,42 @@
+extension:
+  name: altertable
+  description: Query Altertable's lakehouse directly from your local DuckDB.
+  version: 0.2.0
+  language: C++
+  build: cmake
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
+  license: MIT
+  maintainers:
+    - redox
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+  requires_toolchains: "vcpkg;parser_tools"
+repo:
+  github: altertable-ai/duckdb-altertable
+  ref: ed5737f8066098b9c8250c666eaf660da1c99d11
+docs:
+  hello_world: |
+    INSTALL altertable FROM community;
+    LOAD altertable;
+
+    -- Attach an Altertable catalog using Arrow Flight SQL
+    ATTACH 'user=my-user password=my-pass catalog=my-altertable-catalog' AS db (TYPE ALTERTABLE);
+
+    -- Query remote Altertable tables with standard SQL
+    SELECT * FROM db.main.events;
+
+    -- Create and load remote tables through the attached database
+    CREATE TABLE db.main.example_events (id INTEGER, name VARCHAR);
+    INSERT INTO db.main.example_events VALUES (1, 'launch');
+
+    DETACH db;
+  extended_description: |
+    The Altertable extension connects DuckDB to Altertable databases over the
+    high-performance Arrow Flight SQL protocol. It lets you attach remote
+    Altertable catalogs and browse remote schemas and tables through DuckDB's
+    catalog.
+
+    Features include:
+    - `ATTACH` support for remote Altertable databases
+    - direct reads from attached schemas and tables
+    - attached writes with `CREATE TABLE`, `CREATE TABLE AS`, and `INSERT`
+    - DuckDB secrets support for storing Altertable credentials

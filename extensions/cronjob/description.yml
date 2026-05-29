@@ -63,5 +63,6 @@ extension:
   name: cronjob
   version: '2025120401'
 repo:
+  andium: 040dbecd552e6b373fb1bb4582935d243693978e
   github: quackscience/duckdb-extension-cronjob
-  ref: 040dbecd552e6b373fb1bb4582935d243693978e
+  ref: 0571110d3d5f112e4fc92dff212c2f47096d773f

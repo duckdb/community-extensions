@@ -12,5 +12,6 @@ extension:
   requires_toolchains: rust
   version: '2025120401'
 repo:
+  andium: 6266499b7b2cb8d827450dc5626725ba9449fd18
   github: query-farm/a5
-  ref: b24e35cb1ab875f7cb48d698293d0652f3c135d1
+  ref: 4aac561c114316002afde75dee0ca543e053c272

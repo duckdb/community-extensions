@@ -1,0 +1,140 @@
+extension:
+  name: duck_dggs
+  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v8.
+  
+  version: 0.1.6
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - am2222
+
+repo:
+  github: am2222/duckdb-dggs
+  ref: 25b51cb5f0bdb04ffe236956e640e3e01f8440e2
+
+docs:
+  hello_world: |
+    INSTALL duck_dggs FROM community;
+    LOAD duck_dggs;
+
+    -- Geographic point → cell ID at resolution 5 (default ISEA4H grid)
+    SELECT geo_to_seqnum('POINT(0.0 0.0)'::GEOMETRY, 5);
+    -- → 2380
+
+    -- Cell ID → cell centre point
+    SELECT seqnum_to_geo(2380, 5);
+    -- → POINT (-0.9020481125846749 -1.2067949803565235e-09)
+
+    -- Cell ID → cell boundary polygon (requires the spatial extension)
+    LOAD spatial;
+    SELECT seqnum_to_boundary(2380, 5);
+    -- → POLYGON ((...))
+
+    -- Grid statistics
+    SELECT dggs_n_cells(5);
+    -- → 10242
+
+    -- Neighbors, parent, children
+    SELECT seqnum_neighbors(2380::UBIGINT, 5);
+    -- → [2412, 2413, 2381, 2348, 2347, 2379]
+
+    SELECT seqnum_parent(2380::UBIGINT, 5);
+    -- → 599
+
+    SELECT seqnum_children(599::UBIGINT, 4);
+    -- → [2380, 2412, 2413, 2381, 2348, 2347, 2379]
+
+    -- Use a custom grid (ISEA3H — aperture 3 hexagons)
+    SELECT geo_to_seqnum('POINT(0.0 0.0)'::GEOMETRY, 5,
+        dggs_params('ISEA', 3, 'HEXAGON', 0.0, 58.28252559, 11.25));
+    -- → 572
+
+    -- Mixed-aperture sequence grid
+    SELECT dggs_n_cells(3,
+        dggs_params('ISEA', 3, 'HEXAGON', 0.0, 58.28252559, 11.25, true, '3434'));
+    -- → 362
+  extended_description: |
+    `duck_dggs` transforms geographic coordinates (as `GEOMETRY` POINT) to and from DGGS cell
+    identifiers across multiple coordinate reference frames, powered by [DGGRID v8](https://github.com/sahrk/DGGRID).
+
+    Full documentation: **https://am2222.github.io/duckdb-dggs/**
+
+    All transform functions accept a `GEOMETRY` POINT (`x` = longitude°, `y` = latitude°) and a
+    resolution integer. Every function has a second overload that accepts an explicit `dggs_params`
+    struct for full control over the grid configuration.
+
+    **Grid configuration**
+
+    All functions use ISEA4H by default (ISEA projection, aperture 4, hexagon topology).
+    Pass a `dggs_params` struct as the last argument to use a different grid:
+
+    ```sql
+    -- Standard (6 args)
+    dggs_params(projection, aperture, topology, azimuth_deg, pole_lat_deg, pole_lon_deg)
+    -- With aperture sequence (8 args)
+    dggs_params(projection, aperture, topology, azimuth_deg, pole_lat_deg, pole_lon_deg,
+                is_aperture_sequence, aperture_sequence)
+    ```
+
+    Common presets:
+
+    | Grid | Call |
+    |------|------|
+    | ISEA4H (default) | `dggs_params('ISEA', 4, 'HEXAGON', 0.0, 58.28252559, 11.25)` |
+    | ISEA3H | `dggs_params('ISEA', 3, 'HEXAGON', 0.0, 58.28252559, 11.25)` |
+    | ISEA4T (triangles) | `dggs_params('ISEA', 4, 'TRIANGLE', 0.0, 58.28252559, 11.25)` |
+    | ISEA4D (diamonds) | `dggs_params('ISEA', 4, 'DIAMOND', 0.0, 58.28252559, 11.25)` |
+    | FULLER4H | `dggs_params('FULLER', 4, 'HEXAGON', 0.0, 58.28252559, 11.25)` |
+    | Mixed aperture | `dggs_params('ISEA', 3, 'HEXAGON', 0.0, 58.28252559, 11.25, true, '3437')` |
+
+    **Utility functions:**
+
+    - `duck_dggs_version()` — extension version string
+    - `dggs_params(...)` — build a grid configuration (6-arg or 8-arg with aperture sequence)
+
+    **Grid statistics** (each has `res` and optional `params` overload):
+
+    - `dggs_n_cells` — total cell count at a resolution
+    - `dggs_cell_area_km` — average cell area in km²
+    - `dggs_cell_dist_km` — average cell spacing in km
+    - `dggs_cls_km` — characteristic length scale in km
+    - `dggs_res_info` — all stats as a struct
+
+    **Transform functions** (each has `res` and optional `params` overload):
+
+    - From GEO: `geo_to_seqnum`, `geo_to_geo`, `geo_to_plane`, `geo_to_projtri`, `geo_to_q2dd`, `geo_to_q2di`
+    - From SEQNUM: `seqnum_to_geo`, `seqnum_to_boundary`, `seqnum_to_seqnum`, `seqnum_to_plane`, `seqnum_to_projtri`, `seqnum_to_q2dd`, `seqnum_to_q2di`
+    - From Q2DI: `q2di_to_seqnum`, `q2di_to_geo`, `q2di_to_plane`, `q2di_to_projtri`, `q2di_to_q2dd`, `q2di_to_q2di`
+    - From Q2DD: `q2dd_to_seqnum`, `q2dd_to_geo`, `q2dd_to_plane`, `q2dd_to_projtri`, `q2dd_to_q2dd`, `q2dd_to_q2di`
+    - From PROJTRI: `projtri_to_seqnum`, `projtri_to_geo`, `projtri_to_plane`, `projtri_to_projtri`, `projtri_to_q2dd`, `projtri_to_q2di`
+
+    **Neighbor & hierarchy functions:**
+
+    - `seqnum_neighbors` — topologically adjacent cells
+    - `seqnum_parent` — parent cell at res-1
+    - `seqnum_all_parents` — all touching parent cells at res-1
+    - `seqnum_children` — child cells at res+1
+
+    **Hierarchical index conversions:**
+
+    - `seqnum_to_zorder` / `zorder_to_seqnum` — Z-order (Morton code) indexing
+    - `seqnum_to_z3` / `z3_to_seqnum` — Z3 index (aperture 3 only)
+    - `seqnum_to_z7` / `z7_to_seqnum` — Z7 index (aperture 7 only)
+    - `seqnum_to_vertex2dd` / `vertex2dd_to_seqnum` — vertex-based 2D coordinates
+
+    **IGEO7 / Z7 bit-level operations** (operate directly on the packed 64-bit Z7 index;
+    no `dggs_params` needed; logic ported from [`allixender/igeo7_duckdb`](https://github.com/allixender/igeo7_duckdb)):
+
+    - `igeo7_from_string` / `igeo7_to_string` — compact string ↔ packed 64-bit index
+    - `igeo7_encode` — pack base cell + 20 three-bit digit slots
+    - `igeo7_encode_at_resolution` — `igeo7_encode` then truncate to a target resolution
+    - `igeo7_get_resolution` — resolution (0–20) from a packed index
+    - `igeo7_get_base_cell` — base cell ID (0–11)
+    - `igeo7_get_digit` — extract the i-th digit (1–20)
+    - `igeo7_parent` / `igeo7_parent_at` — ancestor at res-1 or a specific resolution
+    - `igeo7_get_neighbours` / `igeo7_get_neighbour` — all 6 neighbours or one by direction
+    - `igeo7_first_non_zero` — position of the first non-zero digit slot
+    - `igeo7_is_valid` — false only for the `UINT64_MAX` invalid-neighbour sentinel
+    - `igeo7_decode_str` — verbose `base-d1.d2…d20` form showing all 20 slots (SQL macro)
+    - `igeo7_string_parent` / `igeo7_string_local_pos` / `igeo7_string_is_center` — compact-string helpers (SQL macros)

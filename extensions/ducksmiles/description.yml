@@ -1,0 +1,78 @@
+extension:
+  name: ducksmiles
+  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, SELFIES, Wildman-Crippen LogP, Morgan/ECFP fingerprints, and Tanimoto similarity from SQL
+  version: 0.4.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/duckSMILES
+  ref: f6e4c76169193e7f521578720e75aa2b952df7ac
+
+docs:
+  hello_world: |
+    -- Parse SMILES and get molecular formula
+    SELECT mol_formula('CCO');
+    -- C2H6O
+
+    -- Calculate molecular weight
+    SELECT round(mol_weight('c1ccccc1'), 2);
+    -- 78.11
+
+    -- Wildman-Crippen LogP (matches RDKit)
+    SELECT round(logp_crippen('CCO'), 4);
+    -- -0.0014
+
+    -- Morgan/ECFP fingerprint as 2048-bit BLOB (ECFP4 default)
+    SELECT bit_count(CAST(morgan_fp_bits('CC(=O)Oc1ccccc1C(=O)O') AS BIT));
+    -- 26   (aspirin popcount)
+
+    -- Tanimoto similarity between two fingerprint BLOBs (no CAST AS BIT needed)
+    SELECT round(tanimoto_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4);
+    -- 0.3333
+
+    -- Validate and extract InChI layers
+    SELECT inchi_formula('InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)');
+    -- C2H4O2
+
+    -- Convert SMILES to SELFIES (ML-friendly notation)
+    SELECT smiles_to_selfies('CCO');
+
+  extended_description: |
+    Cheminformatics toolkit for DuckDB - analyze molecular structures directly from SQL
+    without leaving your database. Pure Rust implementation with no external chemistry
+    library dependencies (no RDKit required).
+
+    **Supported Formats:**
+    - SMILES: Molecular validation, formula, weight, atom/bond counts, LogP
+    - InChI/InChIKey: Layer extraction, stereochemistry detection, skeleton matching
+    - MOL/SDF: V2000/V3000 block parsing, molecule counting
+    - PDB/CIF/XYZ: Protein structure analysis (atom, chain, residue, model counts)
+    - SELFIES: Bidirectional SMILES-SELFIES conversion for ML pipelines
+
+    **39 scalar SQL functions** for molecular property extraction, format conversion,
+    structural comparison, and physicochemical property prediction. Ideal for
+    cheminformatics datasets, drug discovery pipelines, and molecular ML feature
+    engineering.
+
+    **LogP:** `logp_crippen()` implements the Wildman-Crippen atom-contribution
+    method (110 SMARTS patterns, 68 atom types) and matches RDKit's
+    `Crippen.MolLogP` exactly for small molecules.
+
+    **Morgan / ECFP fingerprint:** `morgan_fp_bits()` ports RDKit's MorganGenerator
+    (layered BFS + hash_combine + dead-atom dedup) to Rust and returns a fixed-width
+    bit vector as `BLOB`. Defaults to ECFP4 (radius=2, 2048 bit); 3-arg overload
+    `morgan_fp_bits(smi, radius, n_bits)` exposes full control.
+
+    **Tanimoto similarity:** `tanimoto_bit(BLOB, BLOB) -> DOUBLE` computes
+    `popcount(a & b) / popcount(a | b)` directly on raw BLOB bytes (no
+    `CAST AS BIT` round-trip), processing 8 bytes at a time via `count_ones()`
+    so it lowers to POPCNT on x86_64 / CNT on aarch64. Mismatched lengths raise
+    a clear `InvalidInputException`; empty-vs-empty returns `0.0` (RDKit
+    convention). The SQL-level `bit_count(a & b)::DOUBLE / bit_count(a | b)`
+    is still available and produces bit-exact identical results.
+
+    **Architecture:** Rust (core logic, 5 crates) + C++ (DuckDB integration via FFI)

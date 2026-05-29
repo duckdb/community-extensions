@@ -10,5 +10,6 @@ extension:
   name: hashfuncs
   version: '2025120401'
 repo:
+  andium: 7680a4be752c2f0c09046eabacc384e0df66134a
   github: query-farm/hashfuncs
-  ref: a5898a4aae082444894238cdeaafb12f54e09401
+  ref: 1c362d3b8b099ab902f95b0b1158ab9e17290a5a

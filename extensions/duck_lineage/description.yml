@@ -1,0 +1,97 @@
+extension:
+  name: duck_lineage
+  description: |
+    DuckLineage automatically captures data lineage from every DuckDB query and emits OpenLineage
+    events to any OpenLineage-compatible backend such as Marquez, DataHub,or Atlan.
+    Includes column-level lineage, schema facets, DuckLake catalog support, asynchronous
+    HTTP delivery, and parent-run linking for orchestrators like Airflow and Dagster.
+    Built and maintained by Ilum Labs.
+  version: 0.2.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
+  maintainers:
+    - ilum-cloud
+    - thijs-s
+
+repo:
+  github: ilum-cloud/duck_lineage
+  ref: 7b3a7d31067f5f264272fd7f1e1b785bc0124e46
+  ref_next: 7f9f423d8626134f425312018598085fb2846d4d
+  andium: 9253a81f92b044b88eb553f5036c22e3c7715d20
+
+docs:
+  hello_world: |
+    -- Point DuckLineage at a running OpenLineage backend (e.g. Marquez at localhost:5000)
+    SET duck_lineage_url          = 'http://localhost:5000/api/v1/lineage';
+    -- SET duck_lineage_namespace = 'my-data-warehouse';
+    -- SET duck_lineage_api_key   = 'your-api-key';
+    -- SET duck_lineage_debug     = true;
+
+    -- Run any query — lineage is captured automatically, no query changes required.
+    CREATE TABLE greetings (id INTEGER, message VARCHAR);
+    INSERT INTO greetings VALUES (1, 'Hello'), (2, 'World');
+
+    -- Derived table — column-level lineage links shouted.message -> greetings.message.
+    CREATE TABLE shouted AS
+        SELECT id, upper(message) AS message FROM greetings;
+
+    SELECT * FROM shouted;
+
+    -- START/COMPLETE events with input/output datasets, schemas, column-level lineage,
+    -- SQL facet, and row-count statistics are streamed to the OpenLineage backend.
+
+  extended_description: |
+    DuckLineage is an open-source DuckDB extension by Ilum Labs that captures
+    data lineage from every query without requiring SQL changes and emits OpenLineage events to any
+    OpenLineage-compatible backend (Marquez, DataHub, Atlan, OpenMetadata, and similar). It is
+    designed to make data lineage, governance, and observability work out-of-the-box for embedded
+    analytics, local ELT pipelines, and DuckLake catalog workloads.
+
+    The extension hooks into the DuckDB optimizer pipeline, analyzes each logical query plan,
+    extracts input and output datasets together with their schemas, and asynchronously delivers
+    structured OpenLineage events over HTTP — so query performance is not impacted by the
+    lineage backend's latency.
+
+    Features:
+    - Automatic lineage capture — runs as a DuckDB optimizer extension, no query rewriting needed
+    - Full OpenLineage START / COMPLETE / FAIL event lifecycle for every executed query
+    - Input and output dataset extraction from logical query plans
+    - Schema facets (column names and types) for all tracked datasets
+    - Column-level lineage facet on output datasets, with direct/indirect transformation tagging
+      across CAST, aliases, joins, aggregation, UNION/INTERSECT/EXCEPT, window functions, CTAS,
+      INSERT INTO SELECT, file scans (CSV/Parquet), PIVOT, and UNNEST
+    - SQL job facet attached to every event (when the raw SQL string is available)
+    - Output statistics facet (row count) on COMPLETE events
+    - Lifecycle state-change facet (CREATE, DROP, ALTER, OVERWRITE, RENAME, TRUNCATE)
+    - Symlinks facet for dataset identity resolution across catalog/storage names
+    - File-based source tracking for read_csv, read_parquet, and COPY TO
+    - DuckLake catalog support with namespace automatically resolved from the catalog DATA_PATH
+    - processing_engine, dataSource and catalog facets for richer backend visualization
+    - Asynchronous event delivery via a background worker thread
+    - Exponential-backoff retry with configurable max retries
+    - Bounded in-memory event queue with overflow protection
+    - API-key (bearer) authentication for OpenLineage backends
+    - Parent-run facet derived from OPENLINEAGE_PARENT_* environment variables, so DuckDB queries
+      link cleanly as child runs of Airflow, Dagster, Prefect, or any OpenLineage-aware orchestrator
+    - Configurable dataset-prefix filtering to suppress lineage for internal/system datasets
+    - Debug logging mode that prints emitted JSON events to the console
+
+    Tracked operations:
+    - INSERT, UPDATE, DELETE, MERGE
+    - CREATE TABLE, CREATE TABLE AS, CREATE VIEW, CREATE INDEX
+    - DROP, ALTER
+    - COPY TO
+    - SELECT (read-only lineage)
+
+    Configuration (via DuckDB SET statements):
+    - duck_lineage_url: OpenLineage backend endpoint (required)
+    - duck_lineage_namespace: default dataset namespace (default: duckdb)
+    - duck_lineage_api_key: bearer token for the backend (optional)
+    - duck_lineage_debug: enable debug logging (default: false)
+    - duck_lineage_max_retries: retry attempts for failed HTTP requests (default: 3)
+    - duck_lineage_max_queue_size: max queued events before dropping (default: 10000)
+    - duck_lineage_timeout: HTTP request timeout in seconds (default: 10)
+    - duck_lineage_exclude_dataset_prefixes: comma-separated dataset prefixes to exclude from lineage

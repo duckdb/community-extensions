@@ -1,0 +1,52 @@
+extension:
+  name: paimon
+  description: Query Apache Paimon tables directly from DuckDB
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "linux_amd64_gcc4;linux_amd64_musl;osx_amd64;osx_arm64;windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;windows_arm64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - mrdrivingduck
+
+repo:
+  github: polardb/duckdb-paimon
+  andium: d1bba0fa7767e3761de45521f3ecdaf465807c57
+  ref: 0764988fac3c37161ae465dd9232ff95213db329
+
+docs:
+  hello_world: |
+    -- Query local Paimon tables
+    SELECT * FROM paimon_scan('./data/testdb.db/testtbl');
+
+    -- Configure OSS credentials for remote tables
+    CREATE SECRET my_oss (
+        TYPE paimon,
+        key_id 'your-access-key-id',
+        secret 'your-access-key-secret',
+        endpoint 'oss-cn-hangzhou.aliyuncs.com'
+    );
+
+    -- Query Paimon tables on OSS
+    SELECT * FROM paimon_scan('oss://your-bucket/warehouse', 'your_db', 'your_table');
+
+    -- Attach as catalog
+    ATTACH 'oss://my-bucket/warehouse' AS paimon_lake (TYPE paimon);
+    SHOW ALL TABLES IN paimon_lake;
+  extended_description: |
+    The Paimon extension enables DuckDB to read and query Apache Paimon format data directly.
+    Apache Paimon is a lake format that enables building a Realtime Lakehouse Architecture with
+    Flink and Spark for both streaming and batch operations.
+
+    Key features:
+    - Zero JVM dependency — Pure C++ implementation
+    - Apache Arrow data exchange for zero-copy transfers
+    - Parallel scan architecture utilizing multi-core CPUs
+    - Secure credential management via DuckDB's Secret Manager
+    - Support for local and remote OSS storage
+    - Projection pushdown optimization
+
+    Built on top of [paimon-cpp](https://github.com/alibaba/paimon-cpp), this extension brings
+    DuckDB's powerful local analytics to the Paimon data lake ecosystem.
+
+    For more information, visit the [extension repository](https://github.com/polardb/duckdb-paimon).

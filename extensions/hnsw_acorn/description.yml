@@ -1,0 +1,92 @@
+extension:
+  name: hnsw_acorn
+  description: HNSW vector search with ACORN-1 filtered search, RaBitQ quantization, metadata joins, and grouped nearest neighbors
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - cigrainger
+
+repo:
+  github: cigrainger/duckdb-hnsw-acorn
+  ref: 2f979a978957ba8c0b8205615b0a2e04bb9ea229
+
+docs:
+  hello_world: |
+    -- Create a table with vectors and categories
+    CREATE TABLE items AS
+    SELECT i AS id,
+        array_value(random(), random(), random())::FLOAT[3] AS vec,
+        (i % 5) AS category
+    FROM range(1000) t(i);
+
+    -- Create HNSW index
+    CREATE INDEX idx ON items USING HNSW (vec);
+
+    -- Filtered vector search: returns exactly 5 results matching the filter
+    SELECT id, category, array_distance(vec, [0.5, 0.5, 0.5]::FLOAT[3]) AS dist
+    FROM items
+    WHERE category = 1
+    ORDER BY dist
+    LIMIT 5;
+
+    -- Per-group nearest neighbors
+    SELECT category,
+        min_by(id, array_distance(vec, [0.5, 0.5, 0.5]::FLOAT[3]), 3) AS closest
+    FROM items GROUP BY category;
+
+    -- Metadata join (vectors + metadata in separate tables)
+    CREATE TABLE metadata AS
+    SELECT i AS id, (i % 5) AS category, 'item_' || i AS name
+    FROM range(1000) t(i);
+
+    SELECT m.name
+    FROM items JOIN metadata m ON items.id = m.id
+    WHERE m.category = 2
+    ORDER BY array_distance(vec, [0.5, 0.5, 0.5]::FLOAT[3])
+    LIMIT 5;
+
+    -- RaBitQ quantization (~21x memory reduction)
+    CREATE INDEX idx_rq ON items USING HNSW (vec) WITH (quantization = 'rabitq');
+
+  extended_description: |
+    Fork of duckdb-vss that adds ACORN-1 filtered HNSW search
+    (arXiv:2403.04871), RaBitQ binary quantization, metadata join
+    optimization, and per-group nearest neighbor search.
+
+    ACORN-1 Filtered Search:
+    The upstream extension applies WHERE clauses after the index returns
+    results, so filtered queries often return fewer rows than LIMIT. This
+    extension pushes filter predicates into the HNSW graph traversal,
+    ensuring correct result counts with high recall.
+
+    RaBitQ Quantization:
+    Compresses vectors to 1 bit per dimension with a rescore phase that
+    preserves result quality. ~21x memory reduction at 128 dims.
+      CREATE INDEX idx ON items USING HNSW (vec) WITH (quantization = 'rabitq');
+
+    Metadata Joins:
+    When vectors and metadata live in separate tables, the optimizer
+    rewrites JOIN + WHERE + ORDER BY + LIMIT into a single ACORN-1
+    filtered search. No special syntax needed.
+      SELECT m.title FROM embeddings e JOIN metadata m ON e.id = m.id
+      WHERE m.genre = 'sci-fi'
+      ORDER BY array_distance(e.vec, query) LIMIT 10;
+
+    Grouped Nearest Neighbors:
+    Per-group top-K search using standard SQL aggregation. For each
+    distinct group value, runs a separate ACORN-1 filtered search with
+    exact per-group recall.
+      SELECT category, min_by(id, array_distance(vec, query), 5)
+      FROM items GROUP BY category;
+
+    Features:
+    - ACORN-1 two-hop expansion for graph connectivity under filtering
+    - Selectivity-based strategy switching (post-filter / ACORN-1 / brute-force)
+    - RaBitQ binary quantization (~21x memory reduction at 128 dims)
+    - Metadata join optimization with zone map pruning
+    - Per-group ACORN-1 search for grouped aggregations
+    - All three distance metrics: L2, cosine, inner product
+    - Prepared statement support for parameterized query vectors
+    - Configurable thresholds: hnsw_acorn_threshold, hnsw_bruteforce_threshold

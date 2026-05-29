@@ -8,17 +8,18 @@
 extension:
   name: dplyr
   description: R dplyr pipeline syntax support for DuckDB - transpiles dplyr verbs to SQL
-  version: 0.3.1
-  language: C++
+  version: 0.4.0
+  language: Rust & C++
   build: cmake
   license: MIT
+  excluded_platforms: "windows_amd64_rtools"
   requires_toolchains: "rust"
   maintainers:
     - mrchypark
 
 repo:
   github: mrchypark/libdplyr
-  ref: 734061b2658b6ac7897398c6da051ed61b8ae3b4
+  ref: 405e38282970f5079f925549d2f574060c10313a
 
 docs:
   hello_world: |
@@ -78,28 +79,22 @@ docs:
     It transpiles dplyr pipeline syntax (using the `%>%` pipe operator) directly to SQL,
     allowing R users to write familiar data manipulation code in DuckDB.
 
-    ## Supported Functions
-    
-    ### Core Verbs
-    | Function | Description | Example |
-    | :--- | :--- | :--- |
-    | `select()` | Select/rename columns | `select(id, name)` |
-    | `filter()` | Filter rows | `filter(age > 18)` |
-    | `mutate()` | Create/modify columns | `mutate(total = price * qty)` |
-    | `rename()` | Rename columns | `rename(new = old)` |
-    | `arrange()` | Sort rows | `arrange(desc(date))` |
-    | `group_by()` | Group rows | `group_by(dept)` |
-    | `summarise()` | Aggregate data | `summarise(avg = mean(val))` |
-    | `*_join()` | Joins (inner, left, etc.) | `left_join(other, by="id")` |
-    | Set Ops | union, intersect, setdiff | `union(other)` |
-    
-    ### Helper Functions
-    *   **Aggregation**: `mean`, `sum`, `min`, `max`, `n`, `count`, `median`*, `mode`*
-    *   **Window**: `row_number`, `rank`, `lead`, `lag`, `ntile`
-    *   **Math**: `abs`, `sqrt`, `round`, `floor`, `log`, `exp`
-    *   **String**: `tolower`, `toupper`, `substr`, `trimws`
-    *   **Logic**: `ifelse`, `is.na`, `coalesce`
+    **Supported dplyr Verbs:**
+    - `select()` - Choose columns by name
+    - `filter()` - Filter rows based on conditions
+    - `mutate()` - Create new columns or modify existing ones
+    - `arrange()` - Sort rows (supports `desc()` for descending order)
+    - `group_by()` - Group data by one or more columns
+    - `summarise()` / `summarize()` - Aggregate grouped data
+    - `rename()` - Rename columns
 
+    **Aggregation Functions:**
+    - `n()` - Count rows
+    - `mean()` / `avg()` - Average
+    - `sum()` - Sum
+    - `min()` / `max()` - Minimum / Maximum
+    - `median()` / `mode()` - DuckDB-specific aggregates
+    - Other aggregate function names are passed through to DuckDB (uppercased).
 
     **Key Features:**
     - Native R dplyr syntax support with `%>%` pipe operator

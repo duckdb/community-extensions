@@ -1,17 +1,17 @@
 extension:
   name: scalarfs
   description: A collection of virtual filesystems for working with scalars
-  version: 1.3.2
+  version: 1.4.0
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - teaguesterling
-
 repo:
   github: teaguesterling/duckdb_scalarfs
-  ref: "a2ddb7e34c9b7533d22155f02fd251142dbec76a"
-
+  andium: 1e283b92ab821cc0138b5f1369fa66a86fb8c494
+  ref: 1e283b92ab821cc0138b5f1369fa66a86fb8c494
+  ref_next: 1e283b92ab821cc0138b5f1369fa66a86fb8c494
 docs:
   hello_world: |
     LOAD scalarfs;

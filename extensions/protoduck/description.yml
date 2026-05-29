@@ -1,0 +1,50 @@
+extension:
+  name: protoduck
+  description: Deserialize Protocol Buffer messages stored in DuckDB columns
+  version: 0.1.0
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - fcsnk
+
+repo:
+  github: fcsnk/protoduck
+  ref: c5bbd3a20fea31ebf21bb9ca3ca8c0771f83a0ea
+
+docs:
+  hello_world: |
+    INSTALL protoduck FROM community;
+    LOAD protoduck;
+
+    -- Register a protobuf schema at runtime
+    SELECT proto_schema_add('
+        syntax = "proto3";
+        package demo;
+        message Person {
+            string name = 1;
+            int32 age = 2;
+        }
+    ');
+
+    -- Decode a protobuf BLOB to JSON
+    SELECT proto_to_json(data, 'demo.Person') FROM people;
+
+    -- Extract a single field via dot-notation path
+    SELECT proto_get(data, 'demo.Person', 'name') FROM people;
+  extended_description: |
+    ProtoDuck is a DuckDB extension for deserializing Protocol Buffer messages
+    stored directly in table columns (BLOBs), rather than from files. It is aimed
+    at querying protobuf-encoded payloads in data lakes and analytics pipelines.
+
+    Schemas are registered at runtime via `proto_schema_add` (from `.proto`
+    source) or `proto_schema_add_binary` (from a compiled `FileDescriptorSet`).
+    Once registered, messages can be decoded to JSON with `proto_to_json` /
+    `proto_decode`, or individual fields can be pulled out with `proto_get`
+    using a path syntax that supports nested messages, repeated fields
+    (`items[0]`), and maps (`metadata["key"]`).
+
+    All protobuf scalar types, enums, oneofs, maps, and nested messages are
+    supported.

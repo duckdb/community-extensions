@@ -1,17 +1,15 @@
 extension:
   name: sitting_duck
-  description: Parse and analyze source code ASTs from 25+ programming languages with tree-sitter grammars and pattern matching
-  version: 1.3.2
+  description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
+  version: 1.7.4
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - teaguesterling
-
 repo:
   github: teaguesterling/sitting_duck
-  ref: 'acfa07a8da6c6d6b6df45180f6f6a48970e1f7b7'
-  
+  ref: f7b9c600116b3ee869d8b5a9dca9f1357d31569c
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
@@ -60,28 +58,67 @@ docs:
 
     ## Core Features
 
-    **Pattern Matching (New in v1.3.0):**
+    **Pattern Matching:**
     Find code structures using pattern-by-example matching with wildcards:
     ```sql
-    -- Find all eval() calls
-    SELECT * FROM ast_match('code', 'eval(__X__)', 'python');
+    -- Recursive wildcards for deep matching
+    SELECT * FROM ast_match('code', 'class __C__: %__<**>__% def __M__(self): %__<BODY*>__%', 'python');
 
-    -- Variadic patterns for flexible matching
-    SELECT * FROM ast_match('code', 'def __F__(__): %__<BODY*>__% return __Y__', 'python');
+    -- Optional and negation wildcards
+    SELECT * FROM ast_match('code', 'def __F__(__<?ARGS>__): %__<BODY*>__%', 'python');
     ```
     See: https://sitting-duck.readthedocs.io/en/latest/guide/pattern-matching/
 
-    **Table Functions:**
-    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows
-    - `parse_ast(content, language)` - Parse source code strings
-    - `ast_match(table, pattern, lang)` - Pattern matching for code search
+    **CSS Selector Queries (v1.6.0, enhanced in v1.7.0+):**
+    Query AST nodes using CSS selector syntax — bootstrapped with sitting duck's own CSS grammar:
+    ```sql
+    SELECT name FROM ast_select('src/*.py', '.func:has(.call#execute):not(:has(try_statement))');
 
-    **Analysis Macros:**
-    - `ast_function_metrics(table)` - Cyclomatic complexity, nesting depth, line counts
-    - `ast_security_audit(table)` - Detect eval, exec, pickle, SQL injection patterns
-    - `ast_dead_code(table)` - Find potentially unused functions/classes
-    - `ast_nesting_analysis(table)` - Identify deeply nested code
-    - `ast_definitions(table)` - All named definitions with categories
+    -- v1.7.0: :match (current-node) vs :contains (subtree) structural patterns
+    SELECT name FROM ast_select('src/*.py', '.func:contains("db.execute()")');
+    SELECT name FROM ast_select('src/*.py', 'call:match("db.execute()")');
+
+    -- v1.7.2: parse once, query many — orders of magnitude faster for interactive use
+    CREATE TABLE my_ast AS SELECT * FROM read_ast('src/**/*.py');
+    SELECT * FROM ast_select_from('my_ast', '.class:named');
+    SELECT * FROM ast_select_from('my_ast', '.func:has(return_statement)');
+    ```
+    Supports type selectors, `#name`, `.semantic` (~80 aliases), combinators, `:has()`, `:not()`,
+    `:match()` / `:contains()` structural patterns, scope/call-graph pseudo-classes, and pseudo-element navigation.
+    Bare type matching: `if` matches `if` + `if_statement` + `if_clause`.
+
+    **Table Functions:**
+    - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows (parallel)
+    - `parse_ast(content, language)` - Parse source code strings (table function)
+    - `parse_ast_list(content, language)` - Parse source code strings (scalar, returns LIST<STRUCT>; v1.7.0)
+    - `ast_match(source, pattern, lang)` - Pattern matching for code search
+    - `ast_select(source, css_selector)` - CSS selector queries
+    - `ast_select_from(table_name, selector)` - CSS selectors on pre-parsed tables (v1.7.2)
+    - `ast_type_map(language)` - Node type discovery across languages
+
+    **v1.7.0 extraction suffix:**
+    Any extraction parameter (`context`, `source`, `structure`, `peek`) can take a `+schema`
+    suffix that keeps the full column set in the output schema as NULLs without computing them:
+    ```sql
+    -- Keep peek column in schema but skip its computation
+    SELECT name, peek FROM read_ast('file.py', peek := 'none+schema');
+    ```
+    Enables SQL macros to declare stable schemas regardless of which columns they populate.
+
+    **Relational Predicates (v1.5.0):**
+    - `ast_has(source, parent_type, child_type)` - Check containment relationships
+    - `ast_inside(source, child_type, parent_type, parent_name)` - Find nodes inside specific parents
+    - `ast_precedes(source, before_type, after_type)` - Ordering predicates
+    - `ast_follows(source, after_type, before_type)` - Ordering predicates
+    - `ast_not_has(source, parent_type, child_type)` - Negated containment
+
+    **Analysis Macros (file-path based):**
+    - `ast_definitions(source)` - All named definitions with categories
+    - `ast_function_metrics(source)` - Cyclomatic complexity, nesting depth, line counts
+    - `ast_security_audit(source)` - Detect dangerous function call patterns
+    - `ast_dead_code(source)` - Find potentially unused functions/classes
+    - `ast_nesting_analysis(source)` - Identify deeply nested code
+    - `ast_definition_parent(table)` - Resolve nearest definition ancestor per node
 
     **Tree Navigation:**
     - `ast_descendants(table, node_id)` - Get subtree (O(1) using descendant_count)
@@ -115,7 +152,11 @@ docs:
     - `start_line`, `end_line`, `depth` - Position and nesting
     - `descendant_count` - For O(1) subtree queries
     - `peek` - Configurable source preview
-    - `qualified_name`, `signature_type`, `parameters`, `modifiers`, `annotations` - Native extraction
+    - `qualified_name` - Scope-based path unique within a file (`C[User] F[__init__]` format; v1.7.0)
+    - `signature_type`, `parameters`, `modifiers`, `annotations` - Native extraction
+    - `scope` - STRUCT<current, function, class, module, stack> (v1.7.4); replaces
+      the v1.7.2 `scope_id` / `scope_stack` columns. `scope.function` lets you
+      answer "what function is this in?" as a single column read.
 
     Full schema: https://sitting-duck.readthedocs.io/en/latest/api/output-schema/
 

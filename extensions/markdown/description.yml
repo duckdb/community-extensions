@@ -1,20 +1,17 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.4.0
+  version: 1.4.2
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - teaguesterling
-
-  # cmark-gfm not in default vcpkg release
-  vcpkg_commit: "bffcbb75f71553824aa948a7e7b4f798662a6fa7"
-
+  vcpkg_commit: bffcbb75f71553824aa948a7e7b4f798662a6fa7
 repo:
   github: teaguesterling/duckdb_markdown
-  ref: '3903fd0c027e9661f299ffdfba75dbb1047a9db2'
-
+  andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
+  ref: refs/tags/v1.4.2
 docs:
   hello_world: |
     -- Load the extension

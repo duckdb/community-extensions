@@ -1,7 +1,7 @@
 extension:
   name: boilstream
   description: Secure remote secrets storage with OPAQUE PAKE authentication, email/password registration, MFA login, and automatic ducklake mounting
-  version: 0.5.0
+  version: 0.6.1
   language: C++, Rust
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 45b114434ec04ffcfc2a3b0231dd9895d08336f0
+  ref: 8bb35073af2420e1d78e2c8448f4879ba61e861a
 
 docs:
   hello_world: |
@@ -61,6 +61,18 @@ docs:
     -- Query ducklake (automatically attached)
     USE my_analytics;
     SHOW TABLES;
+
+    -- Create persistent secret onto BoilStream server
+    CREATE PERSISTENT SECRET s3_minio IN boilstream (
+        TYPE S3,
+        KEY_ID 'minioadmin',
+        SECRET 'minioadmin',
+        REGION 'eu-west-1',
+        ENDPOINT 'localhost:9000',
+        USE_SSL false,
+        URL_STYLE 'path',
+        SCOPE 's3://ingestion-data/'
+    );
 
   extended_description: |
     Boilstream extension provides enterprise-grade remote secrets storage for multi-tenant DuckDB deployments.

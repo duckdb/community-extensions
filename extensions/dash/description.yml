@@ -1,7 +1,7 @@
 extension:
   name: dash
-  description: GUI to create interactive plots and dashboards *within* DuckDB
-  version: 0.0.1
+  description: A fully visual data explorer and GUI for DuckDB. Create interactive dashboards and DAG pipelines.
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -10,13 +10,21 @@ extension:
 
 repo:
   github: gropaul/dash
-  ref: 546d6cc9c412837eb585c9e4d6ce23f2b55e4f19
+  ref: c2c520e4667a42b3d5d6fa72b0f21f20b15bbdc1
 
 docs:
   hello_world: |
-    -- Start dash GUI server
+    -- Start dash GUI
     PRAGMA dash;
   extended_description: >
-    The Dash extension allows you to create interactive plots and dashboards locally *within* DuckDB.
-    For more information, please see the [Dash documentation](https://www.dash.builders/) or check out the 
-    repository [here](https://github.com/gropaul/dash).
+    The Dash extension brings interactive plots, data canvases, and dashboards directly into DuckDB. Queries you build in the GUI are automatically exposed as DuckDB macros, so you can reference them from the shell, Python, or anywhere else:
+  
+    ```sql
+    SELECT * FROM dash.refs.my_query()
+    ```
+    
+    This keeps your GUI queries and code in sync.
+    
+    Dash also supports interactive widgets: Visualize a query as a Dropdown, and macros referencing it will automatically filter to the selected value.
+    
+    →  [GitHub](https://github.com/gropaul/dash) · [Web Version](https://www.app.dash.builders/) · [Documentation & Demo](https://www.dash.builders/)

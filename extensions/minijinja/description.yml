@@ -12,5 +12,6 @@ extension:
   requires_toolchains: rust
   version: '2025120401'
 repo:
+  andium: dd070c55ee8a09aa6443f8bfe947a88aaee0315f
   github: query-farm/minijinja
-  ref: dd070c55ee8a09aa6443f8bfe947a88aaee0315f
+  ref: 64903fadf0ec747261a9aba23315a49467a440d3

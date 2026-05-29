@@ -1,0 +1,106 @@
+extension:
+  name: pic2vec
+  description: Picture-to-vector — image embeddings from SQL via tract-onnx (Rust). Bundles Meta's EUPE ViT-T/16; works with any ONNX vision model.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: rust
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - nkwork9999
+
+repo:
+  github: nkwork9999/pic2vec
+  ref: d39ef33b1389e670e1b19861ec1b6a51c3717273
+
+docs:
+  hello_world: |
+    -- Bundled EUPE ViT-T auto-loads on first call - zero setup
+    SELECT pic_embed('/path/to/image.jpg') AS embedding;
+
+    -- Quick "are these the same?" check
+    SELECT pic_match('/path/to/a.jpg', '/path/to/b.jpg');
+
+    -- Spot-the-difference: per-patch similarity
+    SELECT row, col, sim FROM (
+        SELECT unnest(pic_diff_patches('/path/to/a.jpg', '/path/to/b.jpg'),
+                      recursive := true)
+    ) WHERE sim < 0.95 ORDER BY sim ASC;
+  extended_description: |
+    `pic2vec` is a Rust+tract-onnx vision-embedding extension for DuckDB.
+    The bundled EUPE ViT-T/16 (6M params) auto-loads on first use, so the
+    simplest workflow needs zero setup. Any ONNX vision model with NCHW
+    input `[N, 3, H, W]` and a single embedding output also works.
+
+    **Highlights:**
+    - **Zero-setup embedding**: bundled EUPE ViT-T inside the extension binary
+    - **Spot-the-difference**: `pic_diff_patches`, `pic_diff_ascii`,
+      `pic_diff_save`, `pic_diff_heatmap` for spatial change detection
+    - **Fast duplicate detection**: 64-bit perceptual hash (`pic_phash`) with
+      Hamming distance — 1000× faster than full embedding for near-duplicates
+    - **Composable with vss**: cast to `FLOAT[N]` for HNSW indexing
+    - Single-file, statically-linked (no ONNX Runtime dylib needed)
+
+    **EUPE Model Sizes:**
+    | Model | Parameters | Embed Dim |
+    |-------|-----------|-----------|
+    | ViT-T/16 (bundled) | 6M | 192 |
+    | ViT-S/16 | 21M | 384 |
+    | ViT-B/16 | 86M | 768 |
+
+    **SQL Functions:**
+    Embedding & inference:
+    - `pic_embed(path[, model])` / `pic_embed_blob(blob)` / `pic_embed_batch(paths)`
+
+    Vector ops:
+    - `pic_similarity` / `pic_distance` / `pic_inner_product`
+    - `pic_normalize` / `pic_dim`
+    - `pic_match(a, b[, threshold])` — bool, takes paths or vectors
+
+    Spot-the-difference:
+    - `pic_diff_patches(a, b)` → LIST(STRUCT(row, col, sim))
+    - `pic_diff_ascii(a, b[, threshold])` → VARCHAR (CLI grid)
+    - `pic_diff_save(a, b, out_a, out_b[, threshold])` → INTEGER (red boxes)
+    - `pic_diff_heatmap(a, b, out_a, out_b)` → BOOLEAN (gradient overlay)
+
+    Perceptual hash (fast near-duplicate detection):
+    - `pic_phash(path)` → BIGINT (64-bit dHash)
+    - `pic_hamming(a, b)` → INTEGER (Hamming distance)
+    - `pic_dedupe(a, b[, threshold])` → BOOLEAN
+
+    Image metadata: `pic_image_info(path)` → STRUCT(width, height, channels, format)
+
+    Model management: `pic_load_model`, `pic_load_bundled`, `pic_download_model`,
+    `pic_unload_model`, `pic_list_models`, `pic_bundled_info`, `pic_version`.
+
+    **Example: Image similarity search**
+    ```sql
+    CREATE TABLE imgs AS
+    SELECT filename, pic_embed(filename) AS vec
+    FROM glob('/data/images/*.jpg');
+
+    SELECT a.filename, b.filename, pic_similarity(a.vec, b.vec) AS sim
+    FROM imgs a, imgs b WHERE a.filename < b.filename
+    ORDER BY sim DESC LIMIT 10;
+    ```
+
+    **Example: HNSW search via vss (large datasets)**
+    ```sql
+    INSTALL vss; LOAD vss;
+    CREATE TABLE imgs (filename VARCHAR, vec FLOAT[192]);
+    INSERT INTO imgs SELECT filename, pic_embed(filename)::FLOAT[192]
+    FROM glob('/data/images/*.jpg');
+    CREATE INDEX vec_idx ON imgs USING HNSW (vec) WITH (metric = 'cosine');
+
+    SELECT filename FROM imgs
+    ORDER BY array_cosine_distance(vec, pic_embed('/query.jpg')::FLOAT[192])
+    LIMIT 10;
+    ```
+
+    **Example: Spot the difference**
+    ```sql
+    -- Save annotated copies highlighting the differences
+    SELECT pic_diff_save('/a.jpg', '/b.jpg', '/a_diff.jpg', '/b_diff.jpg', 0.99);
+    SELECT pic_diff_heatmap('/a.jpg', '/b.jpg', '/a_heat.jpg', '/b_heat.jpg');
+    ```

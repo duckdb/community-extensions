@@ -131,17 +131,17 @@ jobs:
         run: |
           pwd
           python3 -m pip install awscli
-          git config --global --add safe.directory '*'
-          cd duckdb
-          git fetch --tags
           if [ -n "${{ inputs.duckdb_tag }}" ]; then
             export DUCKDB_VERSION="${{ inputs.duckdb_tag }}"
           else
+            git config --global --add safe.directory '*'
+            cd duckdb
+            git fetch --tags
             export DUCKDB_VERSION=`git tag --points-at HEAD`
             export DUCKDB_VERSION=${DUCKDB_VERSION:=`git log -1 --format=%h`}
+            cd ..
           fi
-          cd ..
-          git fetch --tags
+          git fetch --tags --no-recurse-submodules
           export EXT_VERSION=`git tag --points-at HEAD`
           export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
           ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $EXT_VERSION $DUCKDB_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}

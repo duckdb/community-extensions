@@ -1,0 +1,37 @@
+extension:
+  name: sistat
+  description: Query Slovenia's SiStat (SURS PX-Web API) open data directly from DuckDB with SQL.
+  version: 0.0.1
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64_mingw"
+  license: MIT
+  maintainers:
+    - fklezin
+
+repo:
+  github: fklezin/duckdb-sistat
+  ref: b790887427ee4bfcc75b89b6c88bdf8a40238878
+
+docs:
+  hello_world: |
+    SELECT title, table_id, updated
+    FROM SISTAT_Tables(language := 'en')
+    WHERE LOWER(title) LIKE '%demographics%'
+    ORDER BY updated DESC
+    LIMIT 5;
+
+    SELECT variable_code, variable_text, position, value_codes, value_texts
+    FROM SISTAT_DataStructure('05C1002S', language := 'en')
+    ORDER BY position;
+
+    SELECT * FROM SISTAT_Read('05C1002S', language := 'en') LIMIT 10;
+  extended_description: |
+    The sistat extension integrates the **Statistical Office of the Republic of Slovenia (SURS)** [SiStat](https://pxweb.stat.si/sistat/sl/Home/Help) PX-Web API into DuckDB. Query 1000+ official Slovenian datasets with SQL — no external Python or ETL required.
+
+    **Features:**
+    - **SISTAT_Tables(language)** — List all available datasets (title, table_id, updated).
+    - **SISTAT_DataStructure(table_id, language)** — Inspect dimensions, variables, and value codes before reading.
+    - **SISTAT_Read(table_id, language)** — Read datasets into DuckDB; use SQL `WHERE` and `LIMIT` as needed.
+
+    All functions accept an optional `language` argument (e.g. `'en'`, `'sl'`). Table IDs can be passed with or without the `.px` suffix. Data is fetched live from the official API. For reproducible results, materialize a snapshot into a local table.

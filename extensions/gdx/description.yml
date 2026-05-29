@@ -1,0 +1,23 @@
+extension:
+  name: gdx
+  description: Read GAMS GDX files directly into DuckDB
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - chrispahm
+  # Exclude platforms that don't build due to C++17/std::byte conflicts
+  excluded_platforms: "linux_arm64;linux_amd64_musl;windows_amd64_mingw"
+
+repo:
+  github: chrispahm/duckdb-gdx
+  ref: 23ae8f1e130ab0cad03d8d0edabd52aba9265979
+
+docs:
+  hello_world: |
+    SELECT * FROM read_gdx('transport.gdx', 'demand');
+  extended_description: |
+    Read GAMS GDX (General Algebraic Modeling System Data Exchange) files
+    directly in DuckDB. For more information, see the
+    [documentation](https://github.com/chrispahm/duckdb-gdx).

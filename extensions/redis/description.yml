@@ -103,5 +103,6 @@ extension:
   name: redis
   version: '2025120401'
 repo:
+  andium: 52d4e50c2fce74de9e9c90b15316a63350614495
   github: quackscience/duckdb-extension-redis
-  ref: 52d4e50c2fce74de9e9c90b15316a63350614495
+  ref: 72ac89b6a1f3ff0db79df58f3aae6a9040c84014

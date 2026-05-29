@@ -1,0 +1,80 @@
+extension:
+  name: harbor
+  description: Multi-protocol HTTP service (Quack RPC, JSON SQL, DuckDB UI, admin) for DuckDB on a single port
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - shreeve
+
+repo:
+  github: shreeve/duckdb-harbor
+  ref: 2c56e2dcced08f74d18f2ab74c5f340492a643ca
+
+docs:
+  hello_world: |
+    -- Load the extension and start the server in the background.
+    -- harbor_serve returns immediately; harbor_wait keeps the process
+    -- alive in daemon mode (containers, systemd).
+    LOAD harbor;
+    CALL harbor_serve(bind := '127.0.0.1', port := 9494);
+    --                                                  ┌─────────────────────────────────┐
+    --                                                  │             token               │
+    --                                                  ├─────────────────────────────────┤
+    --                                                  │ a1b2c3d4e5f6...                 │
+    --                                                  └─────────────────────────────────┘
+
+    -- Hit it from another shell:
+    --   curl http://127.0.0.1:9494/health
+    --   curl -H "Authorization: Bearer <token>" \
+    --        -X POST http://127.0.0.1:9494/sql \
+    --        -H 'Content-Type: application/json' \
+    --        -d '{"sql":"SELECT 42 AS the_answer"}'
+    --
+    --   {"ok":true,"kind":"select","columns":[{"name":"the_answer","duckdbType":"INTEGER","lossless":true}],
+    --    "data":[[42]],"rowCount":1,"timeMs":0}
+
+    -- Browser users open http://127.0.0.1:9494/ — the harbor login
+    -- page asks for the token once, sets a HttpOnly SameSite=Strict
+    -- cookie, then proxies the official DuckDB UI through.
+
+    -- A second DuckDB process can attach via the Quack RPC protocol:
+    --   ATTACH 'quack:127.0.0.1:9494' AS h (SECRET <bearer-secret>);
+    --   SELECT * FROM h.main.t;
+
+    -- Stop the server:
+    CALL harbor_stop();
+
+  extended_description: |
+    `harbor` is a single DuckDB extension. When loaded, your DuckDB
+    instance turns into a multi-protocol HTTP service on one port:
+
+    | Surface     | Endpoints                              | What it gives you                                                         |
+    |-------------|----------------------------------------|---------------------------------------------------------------------------|
+    | Quack RPC   | `POST /quack`                          | Wire-compat with stock `duckdb-quack` clients (`ATTACH 'quack:host'`)     |
+    | JSON SQL    | `POST /sql`, `/sql/sessions/*`         | NDJSON streaming + one-shot JSON, prepared params (incl. `LIST`/`STRUCT`/`MAP`), principal-owned sessions, `harbor_query_timeout_s` enforcement |
+    | DuckDB UI   | `GET /`, `/ddb/*`, `/localEvents`      | Cookie-gated proxy to the official DuckDB UI; CSP+nonce on the login page |
+    | Admin       | `/health`, `/whoami`, `/tables`, `/schema/:db/:t`, `/checkpoint`, `/sessions`, `/interrupt` | Centralized `__HARBOR_ADMIN__:resource:action` default-deny + `harbor_allow_admin_without_authz` operator opt-in |
+    | Auth        | `/auth/login`, `/auth/logout`          | Bearer / X-Harbor-Token / HMAC-signed `harbor_session` cookie             |
+
+    All on the same port, against the same in-process DuckDB, with the
+    same session pool and auth model.
+
+    **Use cases:**
+    - Operate one DuckDB process and let users hit it via whatever interface
+      fits their tool: notebook (UI), REPL (Quack), backend code (`/sql`).
+    - Bridge between SQL clients and apps without standing up a separate
+      database server.
+    - Container-native deployments — `harbor_wait()` blocks until SIGTERM
+      so harbor runs cleanly under systemd / Docker / Kubernetes.
+
+    **Status:** v0.2 release, tested across the DuckDB community-extension
+    matrix (linux_amd64/arm64, osx_amd64/arm64, windows_amd64/_mingw,
+    wasm_mvp/eh/threads).
+
+    Source, design spec, contributor guide, full release notes:
+    [github.com/shreeve/duckdb-harbor](https://github.com/shreeve/duckdb-harbor).
+
+    Tracks upstream `duckdb-quack` `v1.5-variegata` and `duckdb-ui`;
+    targets DuckDB v1.5.3.

@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: ywelsch/duckdb-prql
-  ref: 0b411575bb454e96cd5bd8aa97ba1d73ed689a34
+  ref: 1f491bb79de4ccbc6287f952ab8bad7daa17e196
 
 docs:
   hello_world: |
