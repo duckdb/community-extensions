@@ -1,7 +1,7 @@
 extension:
   name: firebird
   description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
-  version: 0.5.5
+  version: 0.5.6
   language: C++
   build: cmake
   license: MIT
@@ -21,7 +21,7 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  ref: v0.5.5
+  ref: v0.5.6
 
 docs:
   hello_world: |
