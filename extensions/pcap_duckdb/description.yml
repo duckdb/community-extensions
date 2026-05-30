@@ -14,7 +14,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: siara-in/pcap_duckdb
-  ref: 73f9bb2a42693d9e2fb5343911742bd567244259
+  ref: main
 docs:
   hello_world: |
     INSTALL pcap_duckdb FROM community;
