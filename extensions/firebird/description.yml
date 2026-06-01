@@ -1,7 +1,7 @@
 extension:
   name: firebird
   description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
-  version: 0.5.6
+  version: 0.6.0
   language: C++
   build: cmake
   license: MIT
@@ -21,7 +21,7 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  ref: v0.5.6
+  ref: v0.6.0
 
 docs:
   hello_world: |
@@ -46,14 +46,18 @@ docs:
     ATTACH 'firebird://SYSDBA:masterkey@host/path/db.fdb' AS fb (TYPE firebird);
     SELECT * FROM fb.main.EMPLOYEE WHERE DEPT_NO = '600';
 
-    -- 5. Federated JOIN — Firebird ⋈ Parquet.
+    -- 5. Firebird-native diagnostics (v0.6).
+    SELECT * FROM firebird_profile_table('fb.main.EMPLOYEE');
+    SELECT * FROM firebird_pool_stats('fb');
+
+    -- 6. Federated JOIN — Firebird ⋈ Parquet.
     SELECT e.dept_no, COUNT(*), AVG(e.salary)
       FROM firebird_scan('firebird://…', 'EMPLOYEE') e
       JOIN read_parquet('s3://lake/departments/*.parquet') d
        ON e.dept_no = d.dept_no
      GROUP BY e.dept_no;
 
-    -- 6. Legacy database declared CHARACTER SET NONE. Firebird does
+    -- 7. Legacy database declared CHARACTER SET NONE. Firebird does
     --    NOT transliterate NONE columns to UTF-8 on the wire; pick
     --    the encoding the writing application used.
     SELECT * FROM firebird_scan(
@@ -81,6 +85,11 @@ docs:
     - `ATTACH 'firebird://…' AS fb (TYPE firebird)` — native read-only
       catalog with `SELECT * FROM fb.main.TABLE`, federated joins,
       `DESCRIBE`, case-insensitive lookup, and connection pooling.
+    - `firebird_profile_table('fb.main.TABLE')` — v0.6 factual diagnostics
+      for PKs, indexes, filter/watermark candidates, view risk, and
+      recommended partitions.
+    - `firebird_pool_stats('fb')` — v0.6 connection-pool counters for one
+      attached Firebird catalog.
 
     ## Pushdown
 
@@ -105,9 +114,8 @@ docs:
       DuckDB `TIMESTAMP WITH TIME ZONE` (UTC instant preserved).
     - `TIME WITH TIME ZONE` → DuckDB `TIME WITH TIME ZONE`.
     - `BLOB SUB_TYPE 1` (text) → `VARCHAR`; other BLOBs → `BLOB`.
-    - `DECFLOAT(16)` / `DECFLOAT(34)` currently surface NULL on fetch
-      (no native IEEE decimal-floating-point type in DuckDB). Workaround:
-      cast to VARCHAR or DECIMAL(38, s) at the source.
+    - `DECFLOAT(16)` / `DECFLOAT(34)` → lossless `VARCHAR` via server-side
+      `CAST(... AS VARCHAR(64))` (v0.6).
 
     ## Connection-string forms
 
@@ -134,13 +142,13 @@ docs:
     Databases (or individual columns) declared `CHARACTER SET NONE`
     are different: Firebird returns the raw bytes the writing
     application stored, with no transliteration. The extension's
-    default `strict` mode raises an informative error the first time
-    it sees non-UTF-8 bytes; the caller must then pick the encoding
-    the source application used:
+    default `win1252` mode decodes the bytes used by many legacy Brazilian
+    and Western-European ERPs. The caller can still pick the encoding the
+    source application used:
 
-    - `none_encoding='strict'` (default) — accept only valid UTF-8.
-    - `none_encoding='win1252'`         — decode bytes as
+    - `none_encoding='win1252'` (default) — decode bytes as
       Windows-1252 → UTF-8.
+    - `none_encoding='strict'`          — accept only valid UTF-8.
     - `none_encoding='iso8859_1'` (alias `'latin1'`) — decode bytes
       as ISO-8859-1 → UTF-8.
     - `none_encoding='blob'`            — surface NONE text columns
