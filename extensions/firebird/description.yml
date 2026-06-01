@@ -1,7 +1,7 @@
 extension:
   name: firebird
   description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
-  version: 0.6.0
+  version: 0.6.1
   language: C++
   build: cmake
   license: MIT
@@ -21,7 +21,7 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  ref: v0.6.0
+  ref: v0.6.1
 
 docs:
   hello_world: |
@@ -29,7 +29,7 @@ docs:
 
     -- 1. Live scan against a Firebird server.
     SELECT * FROM firebird_scan(
-        'firebird://SYSDBA:masterkey@db.host:3050/srv:/data/prod.fdb?charset=UTF8',
+        'firebird://APP_READONLY:secret@db.host:3050/srv:/data/prod.fdb?charset=UTF8',
         'EMPLOYEE') LIMIT 10;
 
     -- 2. Projection + filter pushdown — only EMP_NO, FIRST_NAME and the
@@ -43,7 +43,7 @@ docs:
     SELECT * FROM firebird_tables('firebird://…');
 
     -- 4. Native ATTACH — every Firebird table reachable through DuckDB's catalog.
-    ATTACH 'firebird://SYSDBA:masterkey@host/path/db.fdb' AS fb (TYPE firebird);
+    ATTACH 'firebird://APP_READONLY:secret@host/path/db.fdb' AS fb (TYPE firebird);
     SELECT * FROM fb.main.EMPLOYEE WHERE DEPT_NO = '600';
 
     -- 5. Firebird-native diagnostics (v0.6).
@@ -61,7 +61,7 @@ docs:
     --    NOT transliterate NONE columns to UTF-8 on the wire; pick
     --    the encoding the writing application used.
     SELECT * FROM firebird_scan(
-        'C:/legacy/athenas.fdb',
+        'C:/legacy/company.fdb',
         'TABENTRADASAIDA',
         none_encoding='win1252');
 
@@ -120,7 +120,7 @@ docs:
     ## Connection-string forms
 
         firebird://USER:PASS@HOST:PORT/DB_PATH?charset=UTF8&dialect=3&role=…
-        user=SYSDBA;password=masterkey;database=server:/data/db.fdb;charset=UTF8
+        user=APP_READONLY;password=secret;database=server:/data/db.fdb;charset=UTF8
 
     A bare path (`/var/lib/firebird/test.fdb`, `C:/data/prod.fdb`) is
     also accepted for local databases.
