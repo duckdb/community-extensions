@@ -1,7 +1,7 @@
 extension:
   name: mongo
   description: Integrates DuckDB with MongoDB, enabling direct SQL queries over MongoDB collections without exporting data or ETL
-  version: 0.2.3
+  version: 0.2.4
   language: C++
   build: cmake
   license: MIT
@@ -13,18 +13,17 @@ extension:
 
 repo:
   github: stephaniewang526/duckdb-mongo
-  ref: e61b26addf94279f771ae2abb76fd998e5717e21
+  ref: b5c0346c911dfcb6a002ad3050ac71e540e6dd22
 
 docs:
   hello_world: |
     -- Attach to MongoDB
     ATTACH 'host=localhost port=27017' AS mongo_db (TYPE MONGO);
-    
+
     -- Query your collections
     SELECT * FROM mongo_db.mydb.mycollection LIMIT 10;
   extended_description: |
-    The duckdb-mongo extension provides direct SQL access to MongoDB collections without requiring data export or ETL processes. 
-    It supports both standalone MongoDB instances and MongoDB Atlas clusters, with automatic schema inference and filter pushdown 
-    for efficient querying. The extension enables you to run analytical SQL queries directly against MongoDB data, including 
+    The duckdb-mongo extension provides direct SQL access to MongoDB collections without requiring data export or ETL processes.
+    It supports both standalone MongoDB instances and MongoDB Atlas clusters, with automatic schema inference and filter pushdown
+    for efficient querying. The extension enables you to run analytical SQL queries directly against MongoDB data, including
     joins, aggregations, and complex analytical operations.
-
