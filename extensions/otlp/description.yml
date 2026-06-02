@@ -1,7 +1,7 @@
 extension:
   name: otlp
-  description: Read OpenTelemetry metrics, logs and traces from JSON or protobuf with a ClickHouse-inspired schema
-  version: e0f079f5c72c6fcbb37b09aa3653cb95f814fbf3
+  description: Query OpenTelemetry traces, logs, and metrics with SQL — or stream live OTLP/HTTP into DuckDB, DuckLake, or Iceberg
+  version: 92be607837490e8246ca876619cee393bff27981
   language: C++
   build: cmake
   license: MIT
@@ -12,64 +12,99 @@ extension:
 
 repo:
   github: smithclay/duckdb-otlp
-  ref: v0.4.0
+  ref: v0.5.0
 
 docs:
   hello_world: |
     -- Load the extension
     LOAD otlp;
 
-    -- Read OTLP traces from a JSON file
+    -- Traces: find the slow spans
     SELECT trace_id, span_name, service_name, duration
     FROM read_otlp_traces('traces.jsonl')
-    WHERE duration > 1000000000
+    WHERE duration > 1e9            -- longer than one second
+    ORDER BY duration DESC
     LIMIT 10;
 
-    -- Read gauge metrics from JSON (works in native and WASM)
+    -- Or run a live OTLP/HTTP endpoint and query what arrives
+    SELECT listen_url, auth_token FROM otlp_serve('otlp:localhost:4318');
+    -- POST telemetry to http://localhost:4318/v1/logs.
+    -- Rows commit automatically in the background; otlp_stop commits remaining rows.
+    SELECT status FROM otlp_stop('otlp:localhost:4318');
+    SELECT * FROM otlp_logs;
+
+    -- Metrics: latest gauge readings (works native and in the browser)
     SELECT timestamp, service_name, metric_name, value
     FROM read_otlp_metrics_gauge('metrics.jsonl')
     ORDER BY timestamp DESC;
 
-    -- Filter logs by severity while reading from S3
+    -- Logs: just the errors, read straight from S3
     SELECT timestamp, severity_text, body, service_name
     FROM read_otlp_logs('s3://bucket/logs-*.jsonl')
     WHERE severity_text = 'ERROR';
 
-    -- Read protobuf format (native builds only)
+    -- Protobuf works too, on native builds
     SELECT * FROM read_otlp_traces('traces.pb') LIMIT 10;
 
   extended_description: |
-    # OpenTelemetry for DuckDB
+    # OpenTelemetry, in SQL
 
-    Query OpenTelemetry data with SQL using ClickHouse-compatible strongly-typed schemas.
-    Works with OTLP data exported from the OpenTelemetry collector's File Exporter.
+    Point this extension at OTLP data and query it like any other table. Traces,
+    logs, and metrics arrive as proper columns — `service_name`, `trace_id`,
+    `duration`, `value` — not JSON you have to dig through. The schema follows the
+    OpenTelemetry ClickHouse exporter, so columns are typed, quick to filter, and
+    stable.
 
-    ## Features
+    There are two ways in.
 
-    **OTLP File Reading**
-    - Table functions: `read_otlp_traces()`, `read_otlp_logs()`, `read_otlp_metrics_gauge()`, `read_otlp_metrics_sum()`, `read_otlp_metrics_histogram()`, `read_otlp_metrics_exp_histogram()`
-    - Auto-detects JSON (`.json`, `.jsonl`) and protobuf (`.pb`) formats (protobuf requires native extension)
-    - Works with DuckDB file systems: local, S3, HTTP, Azure, GCS
-    - Browser support via DuckDB-WASM (JSON format only)
+    ## Read files
 
-    **Strongly-Typed Schemas**
-    - No JSON extraction required - all fields are proper DuckDB columns
-    - Direct access: `service_name`, `trace_id`, `duration`, `value`, etc.
-    - Compatible with OpenTelemetry ClickHouse exporter schema
-    - Efficient filtering and aggregation on typed columns
+    Six table functions read OTLP exports straight from disk or object storage:
 
-    ## Use Cases
+    - `read_otlp_traces()` — spans, with attributes, events, links, and a computed duration
+    - `read_otlp_logs()` — records, with severity, body, and trace correlation
+    - `read_otlp_metrics_gauge()`, `read_otlp_metrics_sum()`, `read_otlp_metrics_histogram()`, `read_otlp_metrics_exp_histogram()`
 
-    - **Observability Analysis**: Query traces, logs, and metrics from exported OTLP data
-    - **OTLP File Processing**: Read and analyze OTLP exports from collectors or SDKs
-    - **Data Pipeline Testing**: Validate telemetry data before shipping to production
-    - **Local Development**: Collect and inspect OpenTelemetry data during development
-    - **Data Transformation**: Export to Parquet, CSV, or other DuckDB-supported formats
+    JSON, JSONL, and protobuf are detected automatically. Paths can be local, a
+    glob, S3, HTTP(S), Azure, or GCS. The browser build (DuckDB-WASM) reads all
+    three formats — try the [interactive demo](https://smithclay.github.io/duckdb-otlp/).
 
-    ## Limitations
+    ## Serve live ingest (native builds)
 
-    - **WASM builds support JSON format only**; protobuf parsing requires native builds with the protobuf runtime
-    - Large protobuf files are processed batch-by-batch; continuous streaming is not yet supported
+    `otlp_serve()` starts an OTLP/HTTP endpoint inside DuckDB. Point a Collector or
+    SDK exporter at `http://localhost:4318` and the rows land in tables you can
+    query:
+
+    ```sql
+    SELECT listen_url, auth_token
+    FROM otlp_serve('otlp:localhost:4318');
+    ```
+
+    Leave `catalog` empty to land rows in the default catalog for quick local work.
+    Set it to an attached [DuckLake](https://ducklake.select) lakehouse or writable
+    Iceberg REST catalog for durable lakehouse ingest.
+
+    Ingest is buffered and group-committed. A POST returns `202 Accepted` once rows
+    are parsed and buffered; they turn durable at the next automatic background commit, currently
+    when the oldest buffered row is about 5 seconds old or admitted request-body
+    bytes reach about 64 MiB. `otlp_server_list()` reports the counters, and
+    `otlp_stop()` commits what is left before it shuts down. `otlp_flush()` is optional:
+    use it only when readers need the latest accepted rows durable immediately while
+    the server keeps running. Stop before you close the database — a plain close does
+    not commit buffered rows.
+
+    ## Use it for
+
+    - Reading and analyzing Collector or SDK exports
+    - A small, always-on OTLP sink that writes to DuckDB, DuckLake, or Iceberg
+    - Converting telemetry to Parquet, CSV, or anything DuckDB writes
+    - Inspecting traces, logs, and metrics during local development
+
+    ## Good to know
+
+    - The live server is native-only and HTTP-only — no WASM, no gRPC.
+    - File reads are capped at 100 MB each.
+    - Summary metrics and the unified `read_otlp_metrics()` are not implemented yet.
 
     ## References
 
