@@ -1,0 +1,57 @@
+extension:
+  name: quackscale
+  description: DuckDB WireGuard Extension to Quack & Ducklake over Tailscale/Headscale
+  version: 1.0.4
+  language: c++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lmangani
+    - smithclay
+
+repo:
+  github: Query-farm/quackscale
+  ref: c56dcfc3af961dcbc9409b3a11672a6843b2ad76
+
+docs:
+  hello_world: |
+    -- Quack Service on Tailnet
+    LOAD quack;
+    LOAD quackscale;
+    
+    CALL tailscale_up(
+        hostname  => 'my-duckdb-node',
+        state_dir => '~/.local/share/duckdb/quackscale'
+    );
+    
+    CALL quack_serve('quack:127.0.0.1:9494', allow_other_hostname => true, token => quack_token());
+    CALL tailscale_serve_local(port => 9494);
+    
+    FROM quack_discover(); 
+
+    -- Quack Client on Tailnet
+    LOAD quack;
+    LOAD quackscale;
+    
+    CALL tailscale_up(hostname => 'my-client', state_dir => '~/.local/share/duckdb/quackscale-client');
+    
+    CREATE SECRET (TYPE quack, TOKEN 'your-shared-token', SCOPE 'quack:100.x.x.x:9494');
+    ATTACH 'quack:100.x.x.x:9494' AS remote (TYPE quack, DISABLE_SSL true);
+    
+    FROM remote.query('SELECT 42');
+    
+    DETACH remote;
+    CALL tailscale_down();   -- a one-shot client must close tsnet, or the process hangs
+    
+extended_description: |    
+      QuackScale is a DuckDB WireGuard Community Extension enabling Quack & Ducklake usage over Tailscale/Headscale
+
+      # About QuackScale
+      QuackScale embeds a Tailscale client (libtailscale) inside DuckDB. A DuckDB process joins your private Tailscale network (tailnet) and reaches its peers over encrypted WireGuard. It needs no VPN sidecar and opens no public port.
+
+      Once your process is on the tailnet, you read any HTTP asset a peer serves as if it sat on local disk. FROM read_csv('http://my-laptop.ts.net:8000/sales.csv') pulls the file straight off another machine over the encrypted mesh, with no public URL and no copy step.
+      
+      Pair it with DuckDB's Quack HTTP protocol and you have QuackTail: SQL engines that find each other on `100.x` addresses and MagicDNS, then run `ATTACH`, `quack_query`, and DuckLake workloads across the mesh.
+            
+
+      
