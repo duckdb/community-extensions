@@ -5,6 +5,7 @@ extension:
   language: c++
   build: cmake
   license: MIT
+  excluded_platforms: 'windows_amd64;windows_arm64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;osx_amd64'
   maintainers:
     - lmangani
     - smithclay
