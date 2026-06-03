@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: shreeve/duckdb-harbor
-  ref: 2c56e2dcced08f74d18f2ab74c5f340492a643ca
+  ref: b189a546c0f3a87988c32e5fbaf3995bc01df0e7
 
 docs:
   hello_world: |
