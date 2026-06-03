@@ -1,23 +1,23 @@
 extension:
   name: finetype
-  description: Semantic type classification — detects 250 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.2.0
+  description: Semantic type classification — detects 240 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
+  version: 0.6.22
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
-  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw"
+  requires_toolchains: "rust"
   maintainers:
     - hughcameron
 
 repo:
-  github: meridian-online/duckdb-finetype
-  ref: 2b4574495b8deef84a00bce8a40570b9c248f55b
+  github: meridian-online/finetype
+  ref: v0.6.22
 
 docs:
   hello_world: |
-    -- Classify a value into one of 250 semantic types
-    D SELECT finetype('user@example.com') AS detected_type;
+    -- Classify a single value into one of 240 semantic types
+    D SELECT finetype('jane.doe@company.co.uk') AS detected_type;
     ┌───────────────────────┐
     │     detected_type     │
     │        varchar        │
@@ -25,17 +25,17 @@ docs:
     │ identity.person.email │
     └───────────────────────┘
 
-    -- Get detailed classification with confidence and recommended DuckDB type
+    -- Get detailed classification: type, confidence, recommended DuckDB type
     D SELECT finetype_detail('192.168.1.1') AS detail;
-    ┌───────────────────────────────────────────────────────────────────────────────┐
-    │                                    detail                                     │
-    │                                    varchar                                    │
-    ├───────────────────────────────────────────────────────────────────────────────┤
-    │ {"type":"technology.internet.ip_v4","confidence":0.9998,"duckdb_type":"INET"} │
-    └───────────────────────────────────────────────────────────────────────────────┘
+    ┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │                                                                     detail                                                                       │
+    │                                                                     varchar                                                                      │
+    ├──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+    │ {"type": "technology.internet.ip_v4", "confidence": 0.901, "duckdb_type": "INET", "samples": 1, "disambiguation": "multi-branch", "votes": {…}} │
+    └──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
-    -- Normalize values for safe TRY_CAST to detected types
-    D SELECT finetype_cast('2024-01-15') AS normalized;
+    -- Normalize a value for safe TRY_CAST to its detected type
+    D SELECT finetype_cast('01/15/2024') AS normalized;
     ┌────────────┐
     │ normalized │
     │  varchar   │
@@ -43,13 +43,20 @@ docs:
     │ 2024-01-15 │
     └────────────┘
 
-    -- Classify all scalar values in a JSON document
-    D SELECT finetype_unpack('{"email":"user@example.com","active":true}') AS annotated;
+    -- Classify every scalar value in a JSON document
+    D SELECT finetype_unpack('{"homepage":"https://example.com","active":true}') AS annotated;
 
   extended_description: |
-    FineType is a tiered CharCNN semantic type classifier that detects 250 data types from raw string values.
-    It uses a hierarchical architecture of 34 character-level convolutional neural networks to classify values
-    into a three-level taxonomy: `domain.category.type`.
+    FineType is a semantic type classifier that detects 240 data types from raw string values. A
+    multi-branch neural network labels each value in a single forward pass, mapping it into a
+    three-level taxonomy: `domain.category.type`.
+
+    > **Per-value classification.** These functions classify one value at a time, with no column
+    > context. They are strongest on values that are unambiguous in isolation (URLs, ISO dates,
+    > well-formed emails, IP addresses). A lone value that normally relies on its column neighbours
+    > to disambiguate (a bare UUID, a phone number) may be classified less confidently. To profile a
+    > whole column or validate a table, use the [FineType CLI](https://github.com/meridian-online/finetype),
+    > which always sees the full column.
 
     ## Functions
 
@@ -63,11 +70,13 @@ docs:
     ```
 
     ### `finetype_detail(value VARCHAR) → VARCHAR`
-    Classify with full detail — returns JSON with type, confidence (0.0–1.0), and recommended DuckDB type.
+    Classify with full detail. Returns JSON with the type, confidence (0.0–1.0), the recommended
+    DuckDB type, the number of samples seen, the disambiguation path, and the per-label vote map.
 
     ```sql
-    SELECT finetype_detail('user@example.com');
-    -- {"type":"identity.person.email","confidence":0.9992,"duckdb_type":"VARCHAR"}
+    SELECT finetype_detail('192.168.1.1');
+    -- {"type": "technology.internet.ip_v4", "confidence": 0.901, "duckdb_type": "INET",
+    --  "samples": 1, "disambiguation": "multi-branch", "votes": {"technology.internet.ip_v4": 0.901}}
     ```
 
     ### `finetype_cast(value VARCHAR) → VARCHAR`
@@ -80,21 +89,31 @@ docs:
     ```
 
     ### `finetype_unpack(json VARCHAR) → VARCHAR`
-    Recursively classify all scalar values in a JSON document. Returns annotated JSON with type/confidence/duckdb_type for each field.
+    Recursively classify every scalar value in a JSON document. Returns annotated JSON carrying the
+    type, confidence, recommended DuckDB type, and original value for each field.
+
+    ### `finetype_validate(value VARCHAR, schema_json VARCHAR) → VARCHAR`
+    Validate a single value against a JSON Schema fragment. Returns `valid` when the value conforms,
+    or the first validation error otherwise.
+
+    ```sql
+    SELECT finetype_validate('user@example.com', '{"type":"string","pattern":"^[^@]+@[^@]+$"}');  -- valid
+    SELECT finetype_validate('abc', '{"type":"string","minLength":5}');                           -- error message
+    ```
 
     ### `finetype_version() → VARCHAR`
     Returns the extension version string.
 
     ## Type Taxonomy
 
-    250 types organized into 7 domains:
-    - **container**: JSON, XML, CSV, arrays, key-value (12 types)
+    240 types organized into 7 domains:
+    - **container**: JSON, XML, CSV, arrays, key-value (11 types)
     - **datetime**: dates, times, timestamps, epochs, durations, offsets (84 types)
-    - **finance**: currencies, accounting, market identifiers, transactions (31 types)
+    - **finance**: currencies, accounting, market identifiers, transactions (28 types)
     - **geography**: coordinates, locations, addresses, transportation (25 types)
-    - **identity**: names, emails, phones, payments, medical (34 types)
-    - **representation**: booleans, numbers, text, files, scientific (36 types)
-    - **technology**: URLs, IPs, UUIDs, booleans, versions, codes (28 types)
+    - **identity**: names, emails, phones, payments, medical (33 types)
+    - **representation**: booleans, numbers, text, files, scientific (33 types)
+    - **technology**: URLs, IPs, UUIDs, versions, codes (26 types)
 
     ## Use Cases
 
