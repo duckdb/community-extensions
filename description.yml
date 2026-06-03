@@ -9,10 +9,14 @@ extension:
   version: 0.1.0
   language: C++
   build: cmake
-  licence: MIT
+  license: MIT
   maintainers:
     - trouchet
-  requires_toolchains: cmake;curl;openssl;libssh2
+  requires_toolchains:
+    - cmake
+    - curl
+    - openssl
+    - libssh2
 
 repo:
   github: trouchet/cloudfs
@@ -20,18 +24,18 @@ repo:
 
 docs:
   hello_world: |
-    -- Autenticar no SharePoint (Device Code Flow interativo)
+    -- Auth on SharePoint (Interactive Device Code Flow)
     CREATE PERSISTENT SECRET sp (
         TYPE sharepoint, PROVIDER oauth,
         TENANT_ID 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
     );
-    -- Ler Parquet direto do SharePoint (idêntico ao s3://)
+    -- Read Parquet directly on SharePoint (as s3://)
     SELECT year, sum(revenue)
     FROM read_parquet('spfs://empresa.sharepoint.com/sites/Data/Docs/**/*.parquet',
                       hive_partitioning := true)
     GROUP BY year;
 
-    -- VPS com cloudfs-agent (qualquer Linux/Mac)
+    -- VPS withcloudfs-agent (any Linux/Mac)
     CREATE SECRET servidor (TYPE vfs, PROVIDER token, TOKEN 'seu-token');
     SELECT * FROM ls('vfs://10.0.0.5:8765/data/', recursive := true);
     COPY (SELECT ...) TO 'vfs://10.0.0.5:8765/exports/resultado.parquet';
@@ -51,6 +55,6 @@ docs:
     All formats that work with s3:// work here too: Parquet, CSV, JSON,
     Delta Lake, Apache Iceberg, Hive partitioning, COPY TO, glob patterns.
 
-    cloudfs-agent is a ~8 MB static Go binary that turns any Linux server
+    cloudfs-agent is an ~8 MB static Go binary that turns any Linux server
     into a vfs:// endpoint with HTTP range reads and bearer-token auth.
     Deploy with: ./cloudfs-agent --token $(openssl rand -hex 32) --root /data
