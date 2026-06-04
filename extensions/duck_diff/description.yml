@@ -1,0 +1,60 @@
+extension:
+  name: duck_diff
+  description: Diff two relations off a primary key, reporting per-row and per-column changes
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - avaitla
+
+repo:
+  github: avaitla/duck_diff
+  ref: 8979cb488737bbdcac69c55cae4648f147100132
+
+docs:
+  hello_world: |
+    INSTALL duck_diff FROM community;
+    LOAD duck_diff;
+
+    CREATE TABLE users_v1 AS SELECT * FROM (VALUES
+        (1, 'Ada',   'ada@x.com',   100),
+        (2, 'Linus', 'linus@x.com',  50),
+        (3, 'Grace', 'grace@x.com',  75)
+    ) t(id, name, email, credits);
+
+    CREATE TABLE users_v2 AS SELECT * FROM (VALUES
+        (1, 'Ada',   'ada@x.com',   120),   -- credits changed
+        (2, 'Linus', 'linus@x.com',  50),   -- unchanged
+        (4, 'Mike',  'mike@x.com',   10)    -- new (id 3 removed)
+    ) t(id, name, email, credits);
+
+    -- One row per key: identical / different / left_only / right_only,
+    -- with a JSON summary of changed columns and expanded per-column values
+    SELECT id, diff_status, diff_data, credits_left, credits_right
+    FROM table_diff('FROM users_v1', 'FROM users_v2', pk := 'id') ORDER BY id;
+
+    -- Counts and percentages per status
+    SELECT * FROM table_diff_summary('FROM users_v1', 'FROM users_v2', pk := 'id');
+
+    -- Compare column names/types of two relations
+    SELECT * FROM schema_diff('FROM users_v1', 'FROM users_v2');
+  extended_description: |
+    `duck_diff` diffs two relations (tables, SQL queries, files — anything you can
+    `FROM`) off a primary key. For each key it reports whether the row is
+    **identical**, **different**, or exists only on one side, and exactly what
+    changed: a compact JSON `diff_data` of the changed columns plus expanded
+    `<column>_left` / `<column>_right` / `<column>_diff_status` columns in native
+    types, so you can filter and compute on the differences directly.
+
+    It supports composite primary keys, restricting or ignoring columns, numeric
+    tolerance, timestamp truncation, cross-type comparison via upcasting, and
+    surfacing non-compared context columns. `table_diff_summary` gives one-row
+    counts/percentages per status, and `schema_diff` compares column names and
+    types.
+
+    Typical uses: verifying a SQL refactor produces identical results, comparing
+    snapshots over time, spot-checking replication integrity, and golden-snapshot
+    regression tests in CI. See the
+    [extension repository](https://github.com/avaitla/duck_diff) for full
+    documentation.
