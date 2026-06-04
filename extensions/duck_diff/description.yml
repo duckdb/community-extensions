@@ -1,7 +1,7 @@
 extension:
   name: duck_diff
   description: Diff two relations off a primary key, reporting per-row and per-column changes
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: avaitla/duck_diff
-  ref: 8979cb488737bbdcac69c55cae4648f147100132
+  ref: fae4c5ca4a28a3074f73746e69ec203ddd489308
 
 docs:
   hello_world: |
