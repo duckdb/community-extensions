@@ -17,6 +17,7 @@ docs:
     INSTALL duck_diff FROM community;
     LOAD duck_diff;
 
+    -- Two snapshots of the same table
     CREATE TABLE users_v1 AS SELECT * FROM (VALUES
         (1, 'Ada',   'ada@x.com',   100),
         (2, 'Linus', 'linus@x.com',  50),
@@ -29,32 +30,109 @@ docs:
         (4, 'Mike',  'mike@x.com',   10)    -- new (id 3 removed)
     ) t(id, name, email, credits);
 
-    -- One row per key: identical / different / left_only / right_only,
-    -- with a JSON summary of changed columns and expanded per-column values
-    SELECT id, diff_status, diff_data, credits_left, credits_right
-    FROM table_diff('FROM users_v1', 'FROM users_v2', pk := 'id') ORDER BY id;
+    -- One row per key: what changed, as JSON and as typed per-column values
+    D SELECT id, diff_status, diff_data, credits_left, credits_right, credits_diff_status
+      FROM table_diff('FROM users_v1', 'FROM users_v2', pk := 'id') ORDER BY id;
+    ┌───────┬─────────────┬──────────────────────────────────────┬──────────────┬───────────────┬─────────────────────┐
+    │  id   │ diff_status │              diff_data               │ credits_left │ credits_right │ credits_diff_status │
+    │ int32 │   varchar   │                 json                 │    int32     │     int32     │       varchar       │
+    ├───────┼─────────────┼──────────────────────────────────────┼──────────────┼───────────────┼─────────────────────┤
+    │     1 │ different   │ {"credits":{"left":100,"right":120}} │          100 │           120 │ different           │
+    │     2 │ identical   │ NULL                                 │           50 │            50 │ identical           │
+    │     3 │ left_only   │ NULL                                 │           75 │          NULL │ left_only           │
+    │     4 │ right_only  │ NULL                                 │         NULL │            10 │ right_only          │
+    └───────┴─────────────┴──────────────────────────────────────┴──────────────┴───────────────┴─────────────────────┘
 
     -- Counts and percentages per status
-    SELECT * FROM table_diff_summary('FROM users_v1', 'FROM users_v2', pk := 'id');
+    D SELECT n_identical, n_different, n_left_only, n_right_only, n_total
+      FROM table_diff_summary('FROM users_v1', 'FROM users_v2', pk := 'id');
+    ┌─────────────┬─────────────┬─────────────┬──────────────┬─────────┐
+    │ n_identical │ n_different │ n_left_only │ n_right_only │ n_total │
+    │    int64    │    int64    │    int64    │    int64     │  int64  │
+    ├─────────────┼─────────────┼─────────────┼──────────────┼─────────┤
+    │           1 │           1 │           1 │            1 │       4 │
+    └─────────────┴─────────────┴─────────────┴──────────────┴─────────┘
 
-    -- Compare column names/types of two relations
-    SELECT * FROM schema_diff('FROM users_v1', 'FROM users_v2');
+    -- Compare column names/types of two relations (no rows are read)
+    D SELECT * FROM schema_diff('FROM users_v1', 'SELECT id, name FROM users_v2');
+    ┌─────────────┬───────────┬────────────┬───────────┐
+    │ column_name │ left_type │ right_type │  status   │
+    │   varchar   │  varchar  │  varchar   │  varchar  │
+    ├─────────────┼───────────┼────────────┼───────────┤
+    │ id          │ INTEGER   │ INTEGER    │ identical │
+    │ name        │ VARCHAR   │ VARCHAR    │ identical │
+    │ email       │ VARCHAR   │ NULL       │ left_only │
+    │ credits     │ INTEGER   │ NULL       │ left_only │
+    └─────────────┴───────────┴────────────┴───────────┘
   extended_description: |
-    `duck_diff` diffs two relations (tables, SQL queries, files — anything you can
-    `FROM`) off a primary key. For each key it reports whether the row is
-    **identical**, **different**, or exists only on one side, and exactly what
-    changed: a compact JSON `diff_data` of the changed columns plus expanded
+    `duck_diff` diffs two relations off a primary key. The relations are passed as
+    **query strings**, the way you would write them in SQL — `'FROM orders'`,
+    `'FROM read_csv(''x.csv'')'`, `'SELECT id, amount FROM orders WHERE region = ''EU'''` —
+    so anything you can `FROM` (tables, files, attached databases, other
+    extensions' table functions) can be diffed. For each key it reports whether the
+    row is **identical**, **different**, or exists only on one side, and exactly
+    what changed: a compact JSON `diff_data` of the changed columns plus expanded
     `<column>_left` / `<column>_right` / `<column>_diff_status` columns in native
     types, so you can filter and compute on the differences directly.
 
-    It supports composite primary keys, restricting or ignoring columns, numeric
-    tolerance, timestamp truncation, cross-type comparison via upcasting, and
-    surfacing non-compared context columns. `table_diff_summary` gives one-row
-    counts/percentages per status, and `schema_diff` compares column names and
-    types.
+    ### Functions
 
-    Typical uses: verifying a SQL refactor produces identical results, comparing
-    snapshots over time, spot-checking replication integrity, and golden-snapshot
-    regression tests in CI. See the
-    [extension repository](https://github.com/avaitla/duck_diff) for full
-    documentation.
+    | Function | Returns | Purpose |
+    |----------|---------|---------|
+    | `table_diff(left, right, pk := …)` | table | one row per key: key column(s), `diff_status`, `diff_data`, and per-column `<c>_left` / `<c>_right` / `<c>_diff_status` |
+    | `table_diff_summary(left, right, pk := …)` | one row | counts and percentages per status |
+    | `schema_diff(left, right)` | table | per-column name/type comparison: `column_name`, `left_type`, `right_type`, `status` |
+
+    ### `table_diff` parameters
+
+    | Parameter | Type | Description |
+    |-----------|------|-------------|
+    | `left`, `right` | VARCHAR | Query strings — a `FROM …` clause or a full `SELECT … FROM …`. |
+    | `pk` | VARCHAR or LIST | **Required.** Primary key column(s): a string, or a list `['a','b']` for a composite key. |
+    | `require_matching_columns` | BOOLEAN | Default `true`: both relations must have identical columns (names and types), else error. Set `false` to compare only the columns common to both sides. |
+    | `upcast_types` | BOOLEAN | Default `false`. With `require_matching_columns := false`, reconcile a column whose type differs across the two sides to their common super-type (e.g. BIGINT vs INTEGER) instead of dropping it. |
+    | `numeric_tolerance` | DOUBLE | Treat numbers within this band as equal: `abs(left - right) <= tolerance`. Compared columns only. |
+    | `timestamp_precision` | VARCHAR | Truncate timestamp columns with `date_trunc(part, …)` before comparing, e.g. `'second'`. |
+    | `null_equals_empty` | BOOLEAN | Default `false`. Treat `NULL` and `''` as equal for VARCHAR compared columns. |
+    | `columns` | LIST | Restrict the compared (non-key) columns to this list. |
+    | `ignore` | LIST | Exclude these columns from comparison. |
+    | `context` | LIST | Also expand these **non-compared** columns as `<c>_left` / `<c>_right`. Use `['*']` to surface the full row for `left_only` / `right_only` rows. |
+    | `prefix` | VARCHAR | Prefix for the meta columns (default `'diff_'`); change it if a key column would collide. |
+
+    `table_diff_summary` accepts the same parameters.
+
+    ### Cross-engine diffing
+
+    DuckDB attaches to many databases, which makes `duck_diff` useful for
+    comparing the *same* logical data across engines — where types and value
+    conventions rarely line up exactly:
+
+    ```sql
+    -- BigQuery (BIGINT ids) vs MySQL (INTEGER ids): reconcile types and
+    -- tolerate the usual cross-engine noise
+    FROM table_diff(
+      $$ FROM bigquery_query('bq', 'SELECT * FROM prod.invoices') $$,
+      $$ FROM mysql_query('my', 'SELECT * FROM prod.invoices') $$,
+      pk := 'id',
+      require_matching_columns := false,
+      upcast_types := true,
+      numeric_tolerance := 0.01,
+      timestamp_precision := 'second',
+      null_equals_empty := true
+    );
+    ```
+
+    The normalization flags affect only the equality decision — `diff_data` and
+    the expanded columns still report the raw values.
+
+    ### Typical uses
+
+    - **Refactoring SQL** (possibly onto a new database) and proving the results
+      are identical.
+    - **Snapshot comparison** — capture the differences between two points in time.
+    - **Replication integrity** — spot-check that a replica matches its source.
+    - **Regression tests in CI** — assert a model's output still matches its
+      golden snapshot, failing the build when it drifts.
+
+    Full function reference, error semantics, and performance/caching notes:
+    [extension repository](https://github.com/avaitla/duck_diff).
