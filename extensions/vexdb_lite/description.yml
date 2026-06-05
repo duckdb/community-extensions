@@ -1,0 +1,47 @@
+extension:
+  name: vexdb_lite
+  description: Vector similarity search for DuckDB — FLOAT[N] vectors, L2/Cosine/InnerProduct distance, a self-developed graph ANN index (GRAPH_INDEX), and product quantization
+  version: 0.0.15
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - vibeinging
+    - greatji
+    - TsinghuaDatabaseGroup
+    - CedarSnowy
+
+  # vexdb_lite has not been built on Windows / WebAssembly yet; exclude for now.
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: VexDB-THU/VexDB-Lite
+  ref: v0.0.15
+
+docs:
+  hello_world: |
+    -- Store 3-dimensional vectors
+    CREATE TABLE items (id INTEGER, vec FLOAT[3]);
+    INSERT INTO items VALUES (1, [1.0, 2.0, 3.0]), (2, [4.0, 5.0, 6.0]), (3, [1.0, 2.0, 4.0]);
+
+    -- Build a graph ANN index (L2 metric)
+    CREATE INDEX idx ON items USING GRAPH_INDEX (vec) WITH (metric = 'l2');
+
+    -- ANN search: ORDER BY distance LIMIT k automatically uses the index
+    SELECT id, array_distance(vec, [1.0, 2.0, 3.0]::FLOAT[3]) AS dist
+    FROM items ORDER BY dist LIMIT 2;
+  extended_description: |
+    vexdb_lite adds approximate nearest neighbor (ANN) vector search to DuckDB,
+    powered by a self-developed high-performance graph index (GRAPH_INDEX).
+
+    Features:
+      - Native FLOAT[N] vector type (no custom type needed)
+      - Distance functions: L2 / Cosine / Inner Product (with operator aliases <->, <=>, <#>, <~>)
+      - Self-developed graph ANN index via `CREATE INDEX ... USING GRAPH_INDEX`
+      - Product Quantization (PQ) for compact indexes
+      - Query optimizer rewrite: `ORDER BY distance(...) LIMIT k` -> index scan
+      - Runtime SIMD dispatch (SSE/AVX2/AVX-512/NEON)
+
+    Tuning:
+      SET vexdb_ef_search = 40;                -- search expansion factor
+      SET vexdb_brute_force_threshold = 10000; -- exact search below this row count
