@@ -1,0 +1,93 @@
+extension:
+  name: zim
+  description: Read .zim (Kiwix / openZIM) archives directly in DuckDB via libzim — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: GPL-2.0-or-later
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;windows_arm64;windows_amd64_rtools"
+  requires_toolchains: vcpkg
+  maintainers:
+    - teaguesterling
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+repo:
+  github: teaguesterling/duckdb_zim
+  ref: 7050f3ab4360cca4dbe0faa0926569708cebed3e
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD zim;
+
+    -- List every content entry in an archive (one row per entry).
+    -- A listing scan is lazy: it never decompresses the article bodies.
+    SELECT path, title, mimetype FROM read_zim('wikipedia.zim') LIMIT 10;
+
+    -- A bare FROM on a .zim file is rewritten via a replacement scan.
+    SELECT count(*) FROM 'wikipedia.zim';
+
+    -- Read across many archives at once: a glob or a LIST of paths.
+    SELECT * FROM read_zim('archives/*.zim');
+    SELECT * FROM read_zim(['wikimed.zim', 'wikipedia.zim']);
+
+    -- Narrow the scan: exact lookup, prefix listing, or a mimetype filter.
+    SELECT * FROM read_zim('wikipedia.zim', path := 'A/Berlin');
+    SELECT * FROM read_zim('wikipedia.zim', title_prefix := 'Aspirin');
+    SELECT * FROM read_zim('wikipedia.zim', mimetype := 'text/html');
+
+    -- Iterate by title (front articles) instead of by path.
+    SELECT * FROM read_zim('wikipedia.zim', listing := 'title');
+
+    -- Pull the bytes / text of a single entry by path.
+    SELECT zim_get_text('wikipedia.zim', 'A/Berlin');
+    SELECT zim_get_content('wikipedia.zim', 'I/logo.png');   -- BLOB
+    SELECT zim_has_entry('wikipedia.zim', 'A/Berlin');
+    SELECT zim_mimetype('wikipedia.zim', 'A/Berlin');
+    SELECT zim_redirect_target('wikipedia.zim', 'A/NYC');
+    SELECT zim_main_entry('wikipedia.zim');
+
+    -- Archive metadata and the self-describing mimetype histogram.
+    SELECT * FROM read_zim_metadata('wikipedia.zim');
+    SELECT zim_metadata('wikipedia.zim', 'Title');
+    SELECT zim_metadata_keys('wikipedia.zim');
+    SELECT zim_counter('wikipedia.zim');   -- mimetype -> count
+    SELECT zim_info('wikipedia.zim');      -- counts, flags, uuid
+
+  extended_description: |
+    The `zim` extension reads `.zim` files — the archive format produced by
+    [openZIM](https://openzim.org) and served by [Kiwix](https://kiwix.org) —
+    directly inside DuckDB. ZIM packages an entire website into a single
+    compressed, content-addressed file: offline Wikipedia, WikiMed, Wiktionary,
+    Project Gutenberg, Stack Exchange, iFixit, TED, and hundreds of other
+    libraries. This extension turns any such archive into a SQL-queryable table
+    without unpacking it.
+
+    **Reading archives**: `read_zim()` returns one row per content entry —
+    `path`, `title`, `mimetype`, and the (lazily materialized) `content`. The
+    scan supports **projection pushdown** and lazy content: a query that only
+    inspects the listing never decompresses article bodies. Point it at a single
+    file, a **glob**, or a `LIST(VARCHAR)` to read many archives at once, and a
+    bare `FROM 'archive.zim'` is rewritten automatically via a replacement scan.
+    Narrow the scan with exact lookup (`path` / `title`), prefix listing
+    (`path_prefix` / `title_prefix`), a `mimetype` filter, or
+    `listing := 'path' | 'title'`. Conflicting parameter modes are rejected
+    rather than silently resolved.
+
+    **Single-entry access**: `zim_get_text()` and `zim_get_content()` (BLOB)
+    fetch one entry by path; `zim_has_entry()`, `zim_mimetype()`,
+    `zim_redirect_target()`, and `zim_main_entry()` answer the common point
+    lookups without a full scan.
+
+    **Metadata**: `read_zim_metadata()` and the `zim_metadata()` /
+    `zim_metadata_keys()` scalars expose the archive's metadata (title,
+    language, publisher, illustration, …). `zim_counter()` returns the
+    self-describing mimetype histogram embedded in the archive, and `zim_info()`
+    reports entry counts, flags, and the archive UUID.
+
+    **Correctness**: every VARCHAR output is **binary-safe** — non-UTF-8 bytes
+    come back as `NULL` rather than being mangled — so the extension is safe to
+    point at arbitrary real-world archives.
+
+    Built on [libzim](https://github.com/openzim/libzim). This release is
+    search-less (built without Xapian); full-text search (`zim_search`), a
+    `zim://` virtual filesystem, and `ATTACH` support are planned for later
+    phases. Licensed GPL-2.0-or-later, inherited from libzim.
