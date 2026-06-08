@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: guillesd/duckdb-tpch-rust
-  ref: 23c5d63f09e320ed2b100dd9e2bbb30f27d4ce4e
+  ref: 4f0d6bfc13145ea01dbae051854e0a1518c2e4ce
 
 docs:
   hello_world: |
