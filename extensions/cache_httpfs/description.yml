@@ -12,7 +12,6 @@ extension:
 
 repo:
   github: dentiny/duck-read-cache-fs
-  andium: d3618a6fd8654db431f0f357cd08c89035411ad6
   ref: 8cb41caacd0a07b3a7959959247dbf4330d3288e
 
 docs:
