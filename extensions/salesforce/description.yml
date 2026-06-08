@@ -1,0 +1,58 @@
+# Submission file for https://github.com/duckdb/community-extensions
+#
+# To publish via `INSTALL salesforce FROM community; LOAD salesforce;`, copy this
+# file to community-extensions/extensions/salesforce/description.yml in a fork of
+# duckdb/community-extensions and open a PR. The community CI builds + signs the
+# extension for every supported platform from the pinned repo ref below.
+#
+# STAGED in flozer/duckdb-salesforce only. Submitting it is HUMAN-GATED (gate
+# C.5) and has NOT been done. Submission ref: v0.9.2.
+
+extension:
+  name: salesforce
+  description: Read-only access to Salesforce orgs as DuckDB SQL tables over the official REST and Bulk APIs — OAuth refresh-token or JWT-bearer auth (credentials from inline options, environment variables, or an SFDX auth URL), native ATTACH, projection + predicate pushdown, COUNT pushdown, explicit server-side aggregates with GROUP BY, lazy/auto/Bulk transports with PK chunking (Bulk blob/base64 compatibility guard), a per-job API quota governor, parent + grandparent relationship STRUCT columns with diagnostics, queryAll (archived + deleted), Tooling-API fast schema, and metadata helpers (manual cache refresh, picklist values, record types).
+  version: 0.9.2
+  language: C++
+  build: cmake
+  license: MIT
+  # Maintainer: Fernando Lozer — https://github.com/flozer
+  maintainers:
+    - flozer
+  # CI-validated platforms: linux_amd64 + windows_amd64 (baseline) + osx_arm64
+  # (extra). The rest stay excluded until built/tested (osx_amd64 = cross-compile;
+  # wasm has no sockets; mingw/arm/musl not validated). OpenSSL is the only
+  # third-party dependency, resolved from vcpkg.json by the community CI.
+  excluded_platforms: "osx_amd64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl;linux_arm64;linux_arm64_musl;windows_arm64"
+
+repo:
+  github: flozer/duckdb-salesforce
+  # community-extensions CI checks out exactly this ref to build + sign.
+  ref: v0.9.2
+
+docs:
+  hello_world: |
+    -- Published build is signed: INSTALL salesforce FROM community; LOAD salesforce;
+    -- Connect with an OAuth refresh-token Connected App.
+    -- Set SF_CLIENT_ID, SF_CLIENT_SECRET, SF_REFRESH_TOKEN, and optionally SF_LOGIN_URL.
+    ATTACH 'salesforce://myorg' AS sf (TYPE salesforce, auth_source 'env');
+    SELECT Id, Name FROM sf.Account WHERE Name = 'Acme' LIMIT 10;
+  extended_description: |
+    duckdb-salesforce attaches a Salesforce org as a read-only DuckDB catalog.
+    Tables map to sObjects; SELECT runs over REST /query (or /queryAll for
+    archived + soft-deleted rows), Bulk API 2.0 (lazy-streamed, optional
+    parallel PK chunking), or an auto-selected transport, with SOQL projection +
+    predicate pushdown and COUNT pushdown. salesforce_aggregate() runs explicit
+    server-side SOQL aggregates (MIN/MAX/SUM/AVG/COUNT, optional filter and
+    GROUP BY) without dragging rows down, and salesforce_relationships() reports
+    parent/grandparent expansion. Read-only metadata helpers are available too:
+    salesforce_refresh_metadata() (manual per-ATTACH cache refresh),
+    salesforce_picklist_values(), and salesforce_record_types(). A Bulk
+    blob/base64 compatibility guard keeps incompatible scans off Bulk, and
+    blob bodies / epoch datetimes have clear documented limitations. Opt-in
+    parent- and grandparent-relationship STRUCT columns, a per-job API quota
+    governor, and Tooling-API fast schema discovery round it out. Authentication
+    is OAuth 2.0 refresh-token or JWT
+    bearer, with credentials from inline options, environment variables, or an
+    SFDX auth URL; credentials stay in memory and are never logged; TLS
+    server-certificate verification is always on. Read-only: all mutating
+    catalog operations throw.
