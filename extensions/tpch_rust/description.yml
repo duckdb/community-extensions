@@ -6,13 +6,13 @@ extension:
   build: cmake
   license: MIT
   requires_toolchains: "rust;python3"
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64;windows_amd64_mingw;windows_amd64_rtools"
   maintainers:
     - guillesd
 
 repo:
   github: guillesd/duckdb-tpch-rust
-  ref: 4f0d6bfc13145ea01dbae051854e0a1518c2e4ce
+  ref: 997db7e13cd4342359ac3f215d20c63b434606da
 
 docs:
   hello_world: |
