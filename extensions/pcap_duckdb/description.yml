@@ -3,7 +3,7 @@ extension:
   description: >
     Read and analyze PCAP network capture files directly in DuckDB using a
     native C++ implementation based on libpcap.
-  version: "1.0.0"
+  version: "1.0.1"
   language: C++
   build: cmake
   license: MIT
@@ -14,7 +14,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: siara-in/pcap_duckdb
-  ref: b2eae6e6bafc49fa48b5f0abd68bef95ecf97c8c
+  ref: 6e96e3de4d9edf1836211a065dbaef574f2f1e3e
 docs:
   hello_world: |
     INSTALL pcap_duckdb FROM community;
