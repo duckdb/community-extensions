@@ -1,7 +1,7 @@
 extension:
   name: vexdb_lite
   description: Vector similarity search for DuckDB — FLOAT[N] vectors, L2/Cosine/InnerProduct distance, a self-developed graph ANN index (GRAPH_INDEX), and product quantization
-  version: 0.0.15
+  version: 0.0.16
   language: C++
   build: cmake
   license: MIT
@@ -16,7 +16,7 @@ extension:
 
 repo:
   github: VexDB-THU/VexDB-Lite
-  ref: v0.0.15
+  ref: v0.0.16
 
 docs:
   hello_world: |
