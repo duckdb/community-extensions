@@ -1,7 +1,7 @@
 extension:
   name: zim
-  description: Read .zim (Kiwix / openZIM) archives directly in DuckDB via libzim — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more.
-  version: 0.1.0
+  description: Read .zim (Kiwix / openZIM) archives directly in DuckDB via libzim — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more, with a zim:// filesystem and full-text search.
+  version: 0.2.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -12,7 +12,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_zim
-  ref: 7050f3ab4360cca4dbe0faa0926569708cebed3e
+  ref: e890f8586fd727a9d9c11c9af036309891085d6c
 docs:
   hello_world: |
     -- Load the extension
@@ -34,23 +34,36 @@ docs:
     SELECT * FROM read_zim('wikipedia.zim', title_prefix := 'Aspirin');
     SELECT * FROM read_zim('wikipedia.zim', mimetype := 'text/html');
 
-    -- Iterate by title (front articles) instead of by path.
-    SELECT * FROM read_zim('wikipedia.zim', listing := 'title');
+    -- Bulk content, gated by mimetype: only matching entries are decompressed,
+    -- everything else keeps its row with NULL content (pushdown, not a filter).
+    SELECT path, content FROM read_zim('wikipedia.zim', include_content := 'text/html');
 
-    -- Pull the bytes / text of a single entry by path.
+    -- The zim:// filesystem: any path-reading function can address an entry inside
+    -- the archive (read_text / read_blob, or webbed's read_html, etc.).
+    SELECT * FROM read_text('zim://wikipedia.zim/A/Berlin');
+    SELECT * FROM read_blob('zim://wikipedia.zim/I/logo.png');
+    SELECT * FROM read_text('zim://wikipedia.zim/A/B*');   -- glob over content paths
+
+    -- Full-text search over the archive's Xapian index (native builds).
+    SELECT path, title, score, snippet
+    FROM zim_search('wikipedia.zim', 'photosynthesis', max_results := 20);
+
+    -- Title autocomplete (works on every build, incl. WebAssembly).
+    SELECT path, title FROM zim_suggest('wikipedia.zim', 'Photosyn');
+
+    -- Federated: search across a whole shelf at once (glob or LIST); the `file`
+    -- column says which archive each hit came from.
+    SELECT file, path, title FROM zim_search('library/*.zim', 'insulin', max_results := 5);
+
+    -- Single-entry access, metadata, and utilities.
     SELECT zim_get_text('wikipedia.zim', 'A/Berlin');
-    SELECT zim_get_content('wikipedia.zim', 'I/logo.png');   -- BLOB
-    SELECT zim_has_entry('wikipedia.zim', 'A/Berlin');
-    SELECT zim_mimetype('wikipedia.zim', 'A/Berlin');
-    SELECT zim_redirect_target('wikipedia.zim', 'A/NYC');
     SELECT zim_main_entry('wikipedia.zim');
-
-    -- Archive metadata and the self-describing mimetype histogram.
     SELECT * FROM read_zim_metadata('wikipedia.zim');
-    SELECT zim_metadata('wikipedia.zim', 'Title');
-    SELECT zim_metadata_keys('wikipedia.zim');
-    SELECT zim_counter('wikipedia.zim');   -- mimetype -> count
-    SELECT zim_info('wikipedia.zim');      -- counts, flags, uuid
+    SELECT zim_counter('wikipedia.zim');         -- mimetype -> count histogram
+    SELECT zim_info('wikipedia.zim');            -- counts, flags, uuid
+    SELECT zim_illustration('wikipedia.zim');    -- cover image / favicon (BLOB)
+    SELECT zim_random('wikipedia.zim');          -- a random entry's path
+    SELECT zim_check('wikipedia.zim');           -- integrity check
 
   extended_description: |
     The `zim` extension reads `.zim` files — the archive format produced by
@@ -58,8 +71,8 @@ docs:
     directly inside DuckDB. ZIM packages an entire website into a single
     compressed, content-addressed file: offline Wikipedia, WikiMed, Wiktionary,
     Project Gutenberg, Stack Exchange, iFixit, TED, and hundreds of other
-    libraries. This extension turns any such archive into a SQL-queryable table
-    without unpacking it.
+    libraries. This extension turns any such archive into a SQL-queryable table —
+    or a queryable filesystem — without unpacking it.
 
     **Reading archives**: `read_zim()` returns one row per content entry —
     `path`, `title`, `mimetype`, and the (lazily materialized) `content`. The
@@ -69,25 +82,31 @@ docs:
     bare `FROM 'archive.zim'` is rewritten automatically via a replacement scan.
     Narrow the scan with exact lookup (`path` / `title`), prefix listing
     (`path_prefix` / `title_prefix`), a `mimetype` filter, or
-    `listing := 'path' | 'title'`. Conflicting parameter modes are rejected
-    rather than silently resolved.
+    `listing := 'path' | 'title'`. `include_content` accepts a mimetype or list
+    of mimetypes to decompress content for only the entries you want.
 
-    **Single-entry access**: `zim_get_text()` and `zim_get_content()` (BLOB)
-    fetch one entry by path; `zim_has_entry()`, `zim_mimetype()`,
-    `zim_redirect_target()`, and `zim_main_entry()` answer the common point
-    lookups without a full scan.
+    **The `zim://` filesystem**: a read-only filesystem registers `zim://`, so any
+    path-reading function — DuckDB's own `read_text` / `read_blob`, or
+    [`webbed`](https://github.com/teaguesterling/duckdb_webbed)'s `read_html`, or
+    anything else that goes through the file layer — can address an entry inside an
+    archive (`zim://wikipedia.zim/A/Photosynthesis`), including globs. Redirects
+    resolve like symlinks. This composes the whole ecosystem over ZIM contents with
+    no coupling and no GPL linkage into those extensions.
 
-    **Metadata**: `read_zim_metadata()` and the `zim_metadata()` /
-    `zim_metadata_keys()` scalars expose the archive's metadata (title,
-    language, publisher, illustration, …). `zim_counter()` returns the
-    self-describing mimetype histogram embedded in the archive, and `zim_info()`
-    reports entry counts, flags, and the archive UUID.
+    **Full-text search & suggestions**: when the archive carries a Xapian index,
+    `zim_search()` queries it, returning `(path, title, score, snippet, file)` ranked
+    by relevance; `zim_suggest()` gives title autocomplete and works on every build
+    (it falls back to a title-prefix listing without Xapian, so it's available on
+    WebAssembly too, where full-text search is not). Both are **federated**: the first
+    argument can be a single path, a glob, or a `LIST`, so a query runs across many
+    archives at once.
 
-    **Correctness**: every VARCHAR output is **binary-safe** — non-UTF-8 bytes
-    come back as `NULL` rather than being mangled — so the extension is safe to
-    point at arbitrary real-world archives.
+    **Metadata, scalars & utilities**: `read_zim_metadata()`, `zim_metadata()` /
+    `zim_metadata_keys()`, `zim_counter()` (the self-describing mimetype histogram),
+    and `zim_info()` (counts, flags, uuid); plus `zim_get_content` / `zim_get_text`,
+    `zim_has_entry`, `zim_redirect_target`, `zim_mimetype`, `zim_main_entry`,
+    `zim_illustration` (cover image), `zim_random`, and `zim_check` (integrity).
 
-    Built on [libzim](https://github.com/openzim/libzim). This release is
-    search-less (built without Xapian); full-text search (`zim_search`), a
-    `zim://` virtual filesystem, and `ATTACH` support are planned for later
-    phases. Licensed GPL-2.0-or-later, inherited from libzim.
+    Every VARCHAR output is **binary-safe** — non-UTF-8 bytes come back as `NULL`
+    rather than being mangled. Built on [libzim](https://github.com/openzim/libzim);
+    licensed GPL-2.0-or-later, inherited from libzim.
