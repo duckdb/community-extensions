@@ -1,7 +1,7 @@
 extension:
   name: zim
-  description: Read .zim (Kiwix / openZIM) archives directly in DuckDB via libzim — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more, with a zim:// filesystem and full-text search.
-  version: 0.2.0
+  description: Read .zim (Kiwix / openZIM) archives directly in DuckDB via libzim, from local files or remote S3/HTTP — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more, with a zim:// filesystem and full-text search.
+  version: 0.4.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -12,7 +12,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_zim
-  ref: e890f8586fd727a9d9c11c9af036309891085d6c
+  ref: a4a173f33e0dd3dfd8e6fca300b23cd49f83a1b3
 docs:
   hello_world: |
     -- Load the extension
@@ -28,6 +28,10 @@ docs:
     -- Read across many archives at once: a glob or a LIST of paths.
     SELECT * FROM read_zim('archives/*.zim');
     SELECT * FROM read_zim(['wikimed.zim', 'wikipedia.zim']);
+
+    -- Read a remote archive over S3/HTTP (LOAD httpfs first): byte-range requests
+    -- fetch only the bytes a query touches, not the whole multi-GB file.
+    SELECT zim_main_entry('https://dumps.wikimedia.org/.../wikipedia_en_simple.zim');
 
     -- Narrow the scan: exact lookup, prefix listing, or a mimetype filter.
     SELECT * FROM read_zim('wikipedia.zim', path := 'A/Berlin');
@@ -83,7 +87,13 @@ docs:
     Narrow the scan with exact lookup (`path` / `title`), prefix listing
     (`path_prefix` / `title_prefix`), a `mimetype` filter, or
     `listing := 'path' | 'title'`. `include_content` accepts a mimetype or list
-    of mimetypes to decompress content for only the entries you want.
+    of mimetypes to decompress content for only the entries you want, and
+    `WHERE path`/`title`/`mimetype` predicates are pushed down into libzim.
+
+    **Local or remote**: archives are read from local files or, with `httpfs`
+    loaded, straight from **S3/HTTP** via byte-range requests — a query against a
+    multi-GB remote archive fetches only the bytes it touches, and recently-used
+    remote handles are kept warm between calls.
 
     **The `zim://` filesystem**: a read-only filesystem registers `zim://`, so any
     path-reading function — DuckDB's own `read_text` / `read_blob`, or
