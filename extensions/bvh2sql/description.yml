@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/bvh2sql
-  ref: 1253d336b3fd7597e40d1fbed3721862ce2895b2
+  ref: 857e1042a180de4ad38ddc35d6fe912ef6f9a31e
 
 docs:
   hello_world: |
