@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: nkwork9999/pic2vec
-  ref: 674180718b5b4e63cf97288d71c4357d179b45c8
+  ref: 113ee24b4e48419e4d56dd3b4e8b0f49e9d184ee
 
 docs:
   hello_world: |
