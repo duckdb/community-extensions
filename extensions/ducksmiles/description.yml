@@ -1,7 +1,7 @@
 extension:
   name: ducksmiles
-  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, SELFIES, Wildman-Crippen LogP, Morgan/ECFP fingerprints, and Tanimoto similarity from SQL
-  version: 0.4.0
+  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, SELFIES, descriptors (LogP, MolMR, TPSA, QED, ring counts), Morgan/MACCS fingerprints, and a full bit-fingerprint similarity family from SQL
+  version: 0.5.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 51c796e9340e70c0ff8592771782916954fb4b08
+  ref: 6a66b485be14f3a6830ff82e9ff46ee1427cb92e
 
 docs:
   hello_world: |
@@ -22,17 +22,26 @@ docs:
     SELECT round(mol_weight('c1ccccc1'), 2);
     -- 78.11
 
-    -- Wildman-Crippen LogP (matches RDKit)
-    SELECT round(logp_crippen('CCO'), 4);
-    -- -0.0014
+    -- Wildman-Crippen LogP and molar refractivity (match RDKit)
+    SELECT round(logp_crippen('CCO'), 4), round(mol_mr('c1ccccc1'), 3);
+    -- -0.0014, 26.442
+
+    -- QED drug-likeness score (RDKit Chem.QED, weights_mean)
+    SELECT round(qed('CC(=O)Oc1ccccc1C(=O)O'), 3);
+    -- 0.550   (aspirin)
+
+    -- Ring-count descriptors (RDKit rdMolDescriptors)
+    SELECT num_aromatic_heterocycles('c1ccncc1'), num_saturated_carbocycles('C1CCCCC1');
+    -- 1, 1
 
     -- Morgan/ECFP fingerprint as 2048-bit BLOB (ECFP4 default)
     SELECT bit_count(CAST(morgan_fp_bits('CC(=O)Oc1ccccc1C(=O)O') AS BIT));
     -- 26   (aspirin popcount)
 
-    -- Tanimoto similarity between two fingerprint BLOBs (no CAST AS BIT needed)
-    SELECT round(tanimoto_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4);
-    -- 0.3333
+    -- Similarity between two fingerprint BLOBs: Tanimoto, Dice, Tversky, ...
+    SELECT round(tanimoto_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4),
+           round(dice_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4);
+    -- 0.3333, 0.5000
 
     -- Validate and extract InChI layers
     SELECT inchi_formula('InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)');
@@ -47,32 +56,43 @@ docs:
     library dependencies (no RDKit required).
 
     **Supported Formats:**
-    - SMILES: Molecular validation, formula, weight, atom/bond counts, LogP
-    - InChI/InChIKey: Layer extraction, stereochemistry detection, skeleton matching
-    - MOL/SDF: V2000/V3000 block parsing, molecule counting
-    - PDB/CIF/XYZ: Protein structure analysis (atom, chain, residue, model counts)
-    - SELFIES: Bidirectional SMILES-SELFIES conversion for ML pipelines
+    - SMILES: validation, formula, weight, atom/bond counts, canonicalization, aromaticity
+    - InChI/InChIKey: layer extraction, stereochemistry detection, skeleton matching
+    - MOL/SDF: V2000/V3000 block parsing, 3D geometry, molecule counting
+    - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
+    - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **39 scalar SQL functions** for molecular property extraction, format conversion,
-    structural comparison, and physicochemical property prediction. Ideal for
-    cheminformatics datasets, drug discovery pipelines, and molecular ML feature
-    engineering.
+    **110+ scalar SQL functions** for molecular property extraction, format conversion,
+    structural comparison, fingerprinting, similarity search, and physicochemical /
+    drug-likeness prediction. Ideal for cheminformatics datasets, drug discovery
+    pipelines, and molecular ML feature engineering.
 
-    **LogP:** `logp_crippen()` implements the Wildman-Crippen atom-contribution
-    method (110 SMARTS patterns, 68 atom types) and matches RDKit's
-    `Crippen.MolLogP` exactly for small molecules.
+    **Descriptors (RDKit-faithful ports):**
+    - `logp_crippen()` / `mol_mr()` - Wildman-Crippen LogP and molar refractivity from
+      a single 110-pattern atom-contribution table; match RDKit for small molecules.
+    - `tpsa()` - Ertl topological polar surface area (RDKit default scope).
+    - `qed()` - QED drug-likeness (Bickerton 2012), a port of RDKit `Chem.QED`. Maps
+      eight properties through asymmetric-double-sigmoidal desirability functions;
+      reproduces RDKit's reference values closely (paper molecules 0.253 / 0.234).
+    - Lipinski set: `num_h_donors()`, `num_h_acceptors()`, `num_rotatable_bonds()`,
+      `fraction_csp3()`, `num_heteroatoms()`.
+    - Ring counts: `num_aromatic_rings()`, `num_aliphatic_rings()`,
+      `num_saturated_rings()`, and the aromatic/saturated/aliphatic x
+      heterocycle/carbocycle splits.
 
-    **Morgan / ECFP fingerprint:** `morgan_fp_bits()` ports RDKit's MorganGenerator
-    (layered BFS + hash_combine + dead-atom dedup) to Rust and returns a fixed-width
-    bit vector as `BLOB`. Defaults to ECFP4 (radius=2, 2048 bit); 3-arg overload
-    `morgan_fp_bits(smi, radius, n_bits)` exposes full control.
+    **Fingerprints & similarity:**
+    - `morgan_fp_bits()` ports RDKit's MorganGenerator (layered BFS + hash_combine +
+      dead-atom dedup); ECFP4 / 2048-bit default, with a `(smi, radius, n_bits)` overload.
+    - `maccs_keys()` returns the 167-bit MACCS key vector.
+    - Full bit-fingerprint similarity family over raw BLOBs (no `CAST AS BIT` round-trip),
+      faithful to RDKit `DataStructs/BitOps.cpp`: `tanimoto_bit`, `dice_bit`, `cosine_bit`,
+      `kulczynski_bit`, `sokal_bit`, `mcconnaughey_bit`, `asymmetric_bit`,
+      `braun_blanquet_bit`, `russel_bit`, and asymmetric `tversky_bit(a, b, alpha, beta)`.
+      Mismatched lengths raise a clear `InvalidInputException`; empty-vs-empty returns
+      `0.0` (RDKit convention).
 
-    **Tanimoto similarity:** `tanimoto_bit(BLOB, BLOB) -> DOUBLE` computes
-    `popcount(a & b) / popcount(a | b)` directly on raw BLOB bytes (no
-    `CAST AS BIT` round-trip), processing 8 bytes at a time via `count_ones()`
-    so it lowers to POPCNT on x86_64 / CNT on aarch64. Mismatched lengths raise
-    a clear `InvalidInputException`; empty-vs-empty returns `0.0` (RDKit
-    convention). The SQL-level `bit_count(a & b)::DOUBLE / bit_count(a | b)`
-    is still available and produces bit-exact identical results.
+    **Structure tools:** SMARTS substructure search/counting, Bemis-Murcko and generic
+    scaffolds, scaffold networks, ring-system extraction, maximum common substructure
+    (MCS), and MolHash standardization.
 
     **Architecture:** Rust (core logic, 5 crates) + C++ (DuckDB integration via FFI)
