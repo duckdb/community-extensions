@@ -11,8 +11,8 @@ extension:
   vcpkg_commit: 68a1c387f660632f2f65cdb7e8cd093a08840e5d
 repo:
   github: teaguesterling/duckdb_webbed
-  andium: 1b44015bc7d0567e27d2cd4ef4a23c57607099be
-  ref: 1b44015bc7d0567e27d2cd4ef4a23c57607099be
+  andium: 465b37b04ee974d958e5a0b7559814b84f9f373b
+  ref: 465b37b04ee974d958e5a0b7559814b84f9f373b
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
