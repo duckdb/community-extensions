@@ -3,11 +3,14 @@
 
 extension:
   name: behavioral
-  description: Behavioral analytics functions inspired by ClickHouse (sessionize, retention, window_funnel, sequence_match, sequence_count, sequence_match_events, sequence_next_node)
-  version: 0.6.0
+  description: Behavioral analytics functions inspired by ClickHouse (sessionize, retention, window_funnel, window_funnel_events, sequence_match, sequence_count, sequence_match_events, sequence_next_node)
+  version: 0.8.0
   language: Rust
   build: cargo
   license: MIT
+  # The crate compiles for wasm32-unknown-emscripten since quack-rs 0.14.0
+  # (enforced by the wasm-check CI job); the wasm platforms stay excluded until
+  # an emscripten link + DuckDB-WASM load is verified end to end.
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
   requires_toolchains: "rust;python3"
   maintainers:
@@ -15,7 +18,7 @@ extension:
 
 repo:
   github: tomtom215/duckdb-behavioral
-  ref: 7f80a96d8a26f896ca96c5ffb0c756a6d0ff7ead
+  ref: 40df84a3ccc96238fcb817b9c70c8420c0e65d18
 
 docs:
   hello_world: |
@@ -33,11 +36,15 @@ docs:
     - **sessionize**: Window function assigning session IDs based on timestamp gaps
     - **retention**: Cohort retention analysis returning boolean arrays
     - **window_funnel**: Conversion funnel step tracking with 6 composable modes
+    - **window_funnel_events**: Timestamps of the best funnel chain as LIST(TIMESTAMP)
     - **sequence_match**: Pattern matching over event sequences (NFA-based)
     - **sequence_count**: Count non-overlapping pattern matches
     - **sequence_match_events**: Return matched condition timestamps
     - **sequence_next_node**: Find the next event value after a pattern match
+    - **behavioral_version**: Diagnostic scalar returning the loaded extension version
 
-    All functions support up to 32 boolean event conditions. Pure Rust implementation
+    All aggregate functions support up to 32 boolean event conditions. Invalid
+    configuration (unknown modes, malformed patterns, month-based intervals)
+    raises descriptive SQL errors. Pure Rust implementation
     with zero unsafe code in business logic. Benchmarked at 830 Melem/s (sessionize)
     and 95 Melem/s (sequence_match) on commodity hardware.
