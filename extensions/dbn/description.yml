@@ -1,0 +1,55 @@
+extension:
+  name: dbn
+  description: Read Databento DBN (Databento Binary Encoding) market-data files, including Zstd-compressed .dbn.zst captures, directly as SQL tables
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  # The readers open files with the C++ stdlib filesystem, which does not
+  # exist in the browser — exclude Wasm rather than ship a non-functional
+  # binary (it does compile, so this can be revisited if the reader moves
+  # to DuckDB's FileSystem API).
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - tbeason
+
+repo:
+  github: tbeason/duckdb-dbn
+  ref: f02302ca18112032dbcc13a63e82179f43d64f5b
+
+docs:
+  hello_world: |
+    -- Inspect a DBN file (works on .dbn and .dbn.zst)
+    SELECT * FROM dbn_metadata('XNAS-20240101.trades.dbn.zst');
+
+    -- Query a schema-specific reader
+    SELECT ts_event, instrument_id, price, size, side
+    FROM read_dbn_trades('XNAS-20240101.trades.dbn.zst')
+    WHERE side = 'B'
+    ORDER BY ts_event
+    LIMIT 10;
+
+    -- Polymorphic reader dispatches on the file's metadata.schema
+    SELECT count(*) FROM read_dbn('capture.dbn.zst');
+
+    -- Globs read many files in order as one table
+    SELECT * FROM read_dbn_mbp1('data/2024-01-*.mbp-1.dbn.zst');
+  extended_description: |
+    The `dbn` extension reads [Databento](https://databento.com) DBN
+    (Databento Binary Encoding) files directly as SQL tables — no conversion
+    step and no Python. It supports every DBN market-data schema (trades, mbo,
+    mbp-1/mbp-10, tbbo, bbo/cbbo/cmbp-1/tcbbo, ohlcv, status, imbalance,
+    statistics, definition), DBN versions 1–3, and transparent Zstd
+    decompression of the `.dbn.zst` captures Databento ships.
+
+    Each schema has a dedicated reader (`read_dbn_trades`, `read_dbn_mbo`, …),
+    plus a polymorphic `read_dbn(path)` that dispatches on the file's metadata,
+    `dbn_metadata(path)` for file inspection, and `dbn_records(path)` for raw
+    record access. Filter and projection pushdown run inside the scan, all
+    `ts_*` columns are `TIMESTAMP_NS`, and DBN "undefined" sentinels are
+    surfaced as SQL `NULL`. For live captures, `symbols := true` resolves
+    `instrument_id` to its raw symbol inline.
+
+    Decoding is differentially verified bit-identical to the official
+    `databento` Python decoder across every schema and DBN version. This is an
+    independent reader, not affiliated with Databento.
