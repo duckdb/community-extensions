@@ -1,6 +1,6 @@
 extension:
   name: ducksmiles
-  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, SELFIES, descriptors (LogP, MolMR, TPSA, QED, ring counts), Morgan/MACCS fingerprints, and a full bit-fingerprint similarity family from SQL
+  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, SELFIES; descriptors (LogP, TPSA, QED), Morgan/MACCS fingerprints + similarity, drug-likeness/toxicophore filters, and a native in-silico docking pipeline, from SQL
   version: 0.5.0
   language: C++
   build: cmake
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 5eb627da5eb04d65606eece67d96620119c9be4e
+  ref: 96c85cc2c895e5fdaecb3e2e30009d1201fa5103
 
 docs:
   hello_world: |
@@ -30,22 +30,24 @@ docs:
     SELECT round(qed('CC(=O)Oc1ccccc1C(=O)O'), 3);
     -- 0.550   (aspirin)
 
-    -- Ring-count descriptors (RDKit rdMolDescriptors)
-    SELECT num_aromatic_heterocycles('c1ccncc1'), num_saturated_carbocycles('C1CCCCC1');
-    -- 1, 1
+    -- Drug-likeness rule panels + toxicophore alerts
+    SELECT lipinski_violations('CC(=O)Oc1ccccc1C(=O)O'),
+           druglikeness_pass('CC(=O)Oc1ccccc1C(=O)O', 'veber'),
+           structural_alerts_json('O=Cc1ccccc1');
+    -- 0, 1, ["aldehyde","aldehyde_any"]
 
-    -- Morgan/ECFP fingerprint as 2048-bit BLOB (ECFP4 default)
-    SELECT bit_count(CAST(morgan_fp_bits('CC(=O)Oc1ccccc1C(=O)O') AS BIT));
-    -- 26   (aspirin popcount)
+    -- Morgan/ECFP fingerprint + similarity between two BLOBs
+    SELECT round(tanimoto_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4);
+    -- 0.3333
 
-    -- Similarity between two fingerprint BLOBs: Tanimoto, Dice, Tversky, ...
-    SELECT round(tanimoto_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4),
-           round(dice_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4);
-    -- 0.3333, 0.5000
+    -- In-silico docking: SMILES ligand vs PDB receptor -> ranked poses (JSON)
+    SELECT dock('CCO', :receptor_pdb, 1.7,0.2,0.5, 8,8,8, 20, 42);
 
-    -- Validate and extract InChI layers
-    SELECT inchi_formula('InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)');
-    -- C2H4O2
+    -- Retrospective virtual-screening enrichment over a docked, labelled library
+    SELECT roc_auc(list(score), list(is_active)),
+           enrichment_factor(list(score), list(is_active), 0.01),
+           bedroc(list(score), list(is_active), 20.0)
+    FROM docked_library;
 
     -- Convert SMILES to SELFIES (ML-friendly notation)
     SELECT smiles_to_selfies('CCO');
@@ -62,37 +64,46 @@ docs:
     - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **110+ scalar SQL functions** for molecular property extraction, format conversion,
-    structural comparison, fingerprinting, similarity search, and physicochemical /
-    drug-likeness prediction. Ideal for cheminformatics datasets, drug discovery
-    pipelines, and molecular ML feature engineering.
+    **130+ scalar SQL functions** for molecular property extraction, format conversion,
+    structural comparison, fingerprinting, similarity search, drug-likeness /
+    toxicophore filtering, and structure-based virtual screening.
 
     **Descriptors (RDKit-faithful ports):**
-    - `logp_crippen()` / `mol_mr()` - Wildman-Crippen LogP and molar refractivity from
-      a single 110-pattern atom-contribution table; match RDKit for small molecules.
-    - `tpsa()` - Ertl topological polar surface area (RDKit default scope).
-    - `qed()` - QED drug-likeness (Bickerton 2012), a port of RDKit `Chem.QED`. Maps
-      eight properties through asymmetric-double-sigmoidal desirability functions;
-      reproduces RDKit's reference values closely (paper molecules 0.253 / 0.234).
+    - `logp_crippen()` / `mol_mr()` - Wildman-Crippen LogP and molar refractivity.
+    - `tpsa()` - Ertl topological polar surface area.
+    - `qed()` - QED drug-likeness (Bickerton 2012), a port of RDKit `Chem.QED`.
     - Lipinski set: `num_h_donors()`, `num_h_acceptors()`, `num_rotatable_bonds()`,
-      `fraction_csp3()`, `num_heteroatoms()`.
-    - Ring counts: `num_aromatic_rings()`, `num_aliphatic_rings()`,
-      `num_saturated_rings()`, and the aromatic/saturated/aliphatic x
-      heterocycle/carbocycle splits.
+      `fraction_csp3()`, `num_heteroatoms()`, and the full ring-count descriptor family.
 
     **Fingerprints & similarity:**
-    - `morgan_fp_bits()` ports RDKit's MorganGenerator (layered BFS + hash_combine +
-      dead-atom dedup); ECFP4 / 2048-bit default, with a `(smi, radius, n_bits)` overload.
-    - `maccs_keys()` returns the 167-bit MACCS key vector.
-    - Full bit-fingerprint similarity family over raw BLOBs (no `CAST AS BIT` round-trip),
-      faithful to RDKit `DataStructs/BitOps.cpp`: `tanimoto_bit`, `dice_bit`, `cosine_bit`,
-      `kulczynski_bit`, `sokal_bit`, `mcconnaughey_bit`, `asymmetric_bit`,
-      `braun_blanquet_bit`, `russel_bit`, and asymmetric `tversky_bit(a, b, alpha, beta)`.
-      Mismatched lengths raise a clear `InvalidInputException`; empty-vs-empty returns
-      `0.0` (RDKit convention).
+    - `morgan_fp_bits()` (RDKit MorganGenerator, ECFP4 / 2048-bit default) and
+      `maccs_keys()` (167-bit MACCS).
+    - Full bit-fingerprint similarity family over raw BLOBs, faithful to RDKit
+      `DataStructs/BitOps.cpp`: `tanimoto_bit`, `dice_bit`, `cosine_bit`, `kulczynski_bit`,
+      `sokal_bit`, `mcconnaughey_bit`, `asymmetric_bit`, `braun_blanquet_bit`,
+      `russel_bit`, and asymmetric `tversky_bit(a, b, alpha, beta)`.
 
     **Structure tools:** SMARTS substructure search/counting, Bemis-Murcko and generic
     scaffolds, scaffold networks, ring-system extraction, maximum common substructure
     (MCS), and MolHash standardization.
 
-    **Architecture:** Rust (core logic, 5 crates) + C++ (DuckDB integration via FFI)
+    **Drug-likeness & toxicophore filtering:**
+    - `admet_json()` - a full report: descriptors plus six drug-likeness rule panels.
+    - `druglikeness_pass(smiles, rule)` for Lipinski, Veber, Ghose, Egan, Muegge and
+      Lead-likeness; `lipinski_violations()` for the Rule-of-Five count.
+    - `structural_alerts_json()` / `structural_alert_count()` over a curated
+      Brenk / PAINS reactive-group toxicophore catalogue.
+
+    **In-silico docking pipeline (structure-based virtual screening, end-to-end in SQL):**
+    - `smiles_to_pdbqt()` - 3D conformer generation (distance geometry + an L-BFGS-
+      minimised lite force field with aromatic-ring planarity) emitted as PDBQT.
+    - `prepare_receptor(pdb, ph)` - pH-dependent protonation states + polar-hydrogen
+      addition, so the receptor can donate H-bonds.
+    - `dock(smiles, pdb, cx, cy, cz, sx, sy, sz, n_runs, seed [, ph])` - flexible
+      torsion-tree docking with an AutoDock-Vina-style scoring function and 3D affinity
+      maps; returns ranked poses with coordinates as JSON.
+    - Retrospective-validation harness: `roc_auc`, `enrichment_factor(fraction)`,
+      `bedroc(alpha)` to measure how well a docked library enriches known actives.
+
+    **Architecture:** Rust (core logic, zero external chemistry crates) + C++ (DuckDB
+    integration via FFI).
