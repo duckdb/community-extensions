@@ -9,7 +9,7 @@ extension:
     - RobinL
 
 repo:
-  github: moj-analytical-services/splink_udfs
+  github: RobinL/splink_udfs
   ref: cf00056f887486d0aee0a853a764f9775aa40438
 
 docs:
