@@ -1,0 +1,39 @@
+extension:
+  name: qvd
+  description: Read (streaming) and write Qlik QVD files
+  version: 0.1.0
+  language: Rust
+  build: cmake          # community label; the actual build goes through the Rust C-API Makefile
+  license: Apache-2.0
+  # WASM excluded (file-based reading, Read+Seek); mingw/rtools/musl excluded (ABI).
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - snouhaud
+
+repo:
+  github: snouhaud/DuckDB-QVD-Extension
+  ref: 00bbbd38342afbb0dea1318dee79a8bd75179d41
+
+docs:
+  hello_world: |
+    INSTALL qvd FROM community;
+    LOAD qvd;
+
+    -- Read (streaming, bounded memory)
+    SELECT * FROM read_qvd('sales.qvd');
+    SELECT * FROM read_qvd('data/*.qvd');         -- glob
+
+    -- Write
+    COPY (SELECT * FROM sales) TO 'output.qvd' (FORMAT qvd, FIELD_NAMES (a, b));
+
+    -- Import
+    COPY sales FROM 'output.qvd' (FORMAT qvd);
+  extended_description: |
+    100% Rust extension to read and write Qlik QVD files.
+
+    - **Streaming** read (bounded memory, ~30-40x less than a naive read) with
+      native typing `BIGINT`/`DOUBLE`/`VARCHAR`/`DATE`/`TIMESTAMP`/`TIME`/
+      `INTERVAL`, projection pushdown and multi-file glob.
+    - `COPY ... TO (FORMAT qvd)` write with `FIELD_NAMES` option, and
+      `COPY tbl FROM 'x.qvd' (FORMAT qvd)` import.
