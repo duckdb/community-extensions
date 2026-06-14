@@ -34,4 +34,4 @@ docs:
     - Remote reads over SFTP via a built-in SFTP client.
     - Globbing: Combine datasets from multiple files vertically (UNION ALL).
 
-    For full documentation, see: [https://github.com/jokasimr/h5db](https://github.com/jokasimr/h5db).
+    For full documentation, see the [h5db repository](https://github.com/jokasimr/h5db).
