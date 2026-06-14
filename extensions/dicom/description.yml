@@ -7,7 +7,7 @@ extension:
   language: C++
   build: cmake
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
-  licence: MIT
+  license: MIT
   maintainers:
     - nmontesg
 
@@ -26,82 +26,12 @@ docs:
     Digital Imaging and Communication in Medicine) directly into DuckDB. It uses the powerful DCMTK
     C++ library to read DICOM files and convert them into JSON format.
 
-    -- read one file
-    FROM read_dicom('path/to/dicom_file.dcm');
-
-    -- use glob pattern
-    FROM read_dicom('path/to/dicoms/**/*.dcm');
-
-    -- import pixel data
-    FROM read_dicom('path/to/dicom_file.dcm', load_pixel_data=true);
-
-    -- extract series description per series instance
-    SELECT
-        dicom_content->'0020000E'->'Value' AS series_instance_uid,
-        any_value(dicom_content->'0008103E'->'Value') AS series_description
-    FROM read_dicom('/Users/nmontes/Downloads/slicer_export/**/*.dcm')
-    GROUP BY 1;
-
-    -- extract study description per study instance
-    SELECT
-        dicom_content->'0020000D'->'Value' AS study_instance_uid,
-        any_value(dicom_content->'00081030'->'Value') AS study_description
-    FROM read_dicom('/Users/nmontes/Downloads/slicer_export/**/*.dcm')
-    GROUP BY 1;
-
-    This extension also supports reading from remote object storage using the httpfs extension:
-
-    LOAD httpfs;
-
-    CREATE OR REPLACE SECRET my_secret (
-        TYPE s3,
-        PROVIDER config,
-        KEY_ID 'my_key',
-        SECRET 'my_secret_key',
-        URL_STYLE 'path'
-    );
-
-    -- read one file from an AWS S3 bucket
-    FROM read_dicom('s3://my-bucket/path/to/dicom_file.dcm');
-
-    -- use glob pattern
-    FROM read_dicom('s3://my-bucket/path/to/dicoms/**/*.dcm');
-
-    The extension also provides a custom `DICOM_TAG` type and scalar functions for working with DICOM tags. Tags can be
-    created in several ways:
+    For full documentation and examples, see the project
+    [`README`](https://github.com/nmontesg/duck-dicom/blob/main/README.md).
     
-    CREATE TABLE dicom_tags_test (id INTEGER, tag DICOM_TAG);
-    INSERT INTO dicom_tags_test VALUES (1, {'group': '0x0008', 'elem': '0x012D'});
+    **Key functionality:**
 
-    INSERT INTO dicom_tags_test
-    VALUES
-      (1, '0008,0008'),
-      (2, '8,8'),
-      (3, '0008,012D'),
-      (4, '8,12D'),
-      (5, '0008,012d'),
-      (6, '8,12d');
-
-    INSERT INTO dicom_tags_test
-    VALUES
-      (1, '00080008'),
-      (2, '0008012D'),
-      (3, '0008012d');
-
-    Extract the group number, element number, and keyword name from DICOM tags:
-
-    SELECT tag_group('0010,0010') AS group_id;
-    SELECT tag_element('0010,0020') AS element_id;
-    SELECT tag_name('0010,0010') AS tag_keyword;
-
-    Comprehensive example:
-
-    SELECT 
-        tag AS raw_tag,
-        tag_name(tag) AS keyword,
-        tag_group(tag) AS group_hex,
-        tag_element(tag) AS element_hex
-    FROM (
-        SELECT unnest(json_keys(dicom_content))::DICOM_TAG AS tag 
-        FROM read_dicom('/path/to/dicom_file.dcm')
-    );
+    * `read_dicom()` - Table function to import DICOM files directly into DuckDB, including support for local and remote
+    files.
+    * `DICOM_TAG` - Custom type to work with DICOM tags, including conversion to and from `VARCHAR`.
+    * `tag_group()`, `tag_element()`, `tag_name()` - Scalar functions to work with DICOM tags.
