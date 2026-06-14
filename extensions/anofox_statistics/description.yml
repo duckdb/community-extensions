@@ -1,6 +1,6 @@
 extension:
   name: anofox_statistics
-  description: A DuckDB extension for statistical regression analysis, providing OLS, Ridge, WLS, and time-series regression capabilities with complete diagnostics and inference directly in SQL.
+  description: A DuckDB extension for statistical regression analysis, providing OLS, Ridge, Elastic Net, WLS, recursive least squares, robust estimators (Huber, RANSAC, Theil-Sen), GLMs, and time-series regression with full diagnostics and inference directly in SQL.
   language: C++
   build: cmake
   license: BSL 1.1
@@ -9,4 +9,4 @@ extension:
   requires_toolchains: rust
 repo:
   github: DataZooDE/anofox-statistics
-  ref: 24403aeb0eb511273a9d885147aa38c67c2c2ea7
+  ref: 606775851e1c3f8ddf3cf975b1ff377101991f99
