@@ -53,6 +53,10 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ inputs.extension_name || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   prepare:
     outputs:
