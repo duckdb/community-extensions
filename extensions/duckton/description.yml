@@ -1,0 +1,101 @@
+extension:
+  name: duckton
+  description: A peer-to-peer DuckDB query grid — dispatch SQL to a swarm of hosts that run it redundantly and must reach a verifiable quorum, with optional TON-settled paid execution
+  version: 0.2.1
+  language: Rust
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw;windows_amd64_rtools"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - Angelerator
+
+repo:
+  github: Angelerator/duckdb-p2p
+  ref: 062dc7690cdf44675787186127e0bd2af42816c4
+
+docs:
+  hello_world: |
+    -- Inspect the protocol identity exposed by the extension.
+    SELECT * FROM p2p_info();
+    ┌───────────────────────┬──────────────┐
+    │          key          │    value     │
+    │        varchar        │   varchar    │
+    ├───────────────────────┼──────────────┤
+    │ protocol_name         │ duckdb-p2p   │
+    │ protocol_version      │ 1.0.0        │
+    │ min_supported_version │ 1.0.0        │
+    │ schema_version        │ 1            │
+    │ extension_version     │ 0.2.1        │
+    │ alpn                  │ duckdb-p2p/1 │
+    └───────────────────────┴──────────────┘
+
+    -- Run SQL through the grid. With no peers configured the query executes on
+    -- the free local path (an in-process, locked-down DuckDB) and streams the
+    -- verified rows back through SQL — so it works out of the box.
+    SELECT * FROM p2p_query('SELECT 42 AS answer');
+    ┌────────┐
+    │ answer │
+    │ int32  │
+    ├────────┤
+    │   42   │
+    └────────┘
+
+    -- The companion p2p_query_meta() surfaces the execution/verification outcome
+    -- (whether it ran locally, whether quorum verified it, the row count, ...).
+    SELECT key, value FROM p2p_query_meta('SELECT * FROM range(3)')
+    WHERE key IN ('executed_locally', 'verified', 'result_rows');
+    ┌──────────────────┬─────────┐
+    │       key        │  value  │
+    │     varchar      │ varchar │
+    ├──────────────────┼─────────┤
+    │ executed_locally │ true    │
+    │ verified         │ true    │
+    │ result_rows      │ 3       │
+    └──────────────────┴─────────┘
+
+  extended_description: |
+    `duckton` turns DuckDB into a node of a peer-to-peer query grid. A query can be
+    dispatched to several independent hosts that execute it redundantly over QUIC;
+    the first result that reaches a configurable **quorum** of byte-identical,
+    order-independent result hashes is accepted, so a single broken or dishonest
+    host cannot return a wrong answer. Everything is reachable from plain SQL via
+    table functions — no external daemon is required.
+
+    The extension is built on the stable DuckDB **C extension API** (loadable
+    extension) and supplies its own query engine that runs dispatched SQL through
+    the host DuckDB. When no peers are configured, `p2p_query` runs on a free,
+    in-process **locked-down** engine (no network egress, no local-filesystem
+    access) so the default path is safe and self-contained.
+
+    ### Key SQL surface
+    - `p2p_info()` — protocol/extension identity (name, versions, schema, ALPN).
+    - `p2p_query(sql, [overrides...])` — run SQL on the grid (local-first; or
+      `prefer => 'remote'` to dispatch to hosts). Overrides include
+      `replicas`, `quorum`, `min_trust`, `min_attestation`, `payment`, `prefer`,
+      `network`, `groups`, `regions`, `require_staked_hosts`.
+    - `p2p_query_meta(sql, ...)` — the verification/execution metadata for a query
+      (executed_locally, verified, agreement, winner, result_rows, ...).
+    - `p2p_peers()` / `p2p_status()` / `p2p_config()` — inspect discovery seeds,
+      node status and effective configuration.
+    - `p2p_join(...)` / `p2p_share(...)` — join a swarm by seed, or donate this
+      node's compute (memory/threads/jobs) to become a host.
+    - Admin/economics setters: `p2p_trust`, `p2p_economics`, `p2p_wallet`,
+      `p2p_block` / `p2p_unblock` / `p2p_blocklist`, etc.
+
+    ### Trust, verification and (optional) economics
+    Hosts accrue a confidence-aware (Wilson-shrunk) reputation from signed,
+    gossiped receipts; selection weighs reputation, attestation tier (L0/L1/L2),
+    vouchers and stake. Public jobs are free and off-chain. Internal/Sensitive
+    jobs can be **paid**, settling through a per-job escrow on **The Open Network
+    (TON)** with on-chain stake/slashing and per-epoch Merkle anchoring. All
+    on-chain features are opt-in and default-off; the free grid never instantiates
+    a chain client.
+
+    ### Notes
+    - Configuration is layered: built-in defaults <- a TOML file (`P2P_CONFIG` /
+      `P2P_CONFIG_DIR`) <- environment <- per-call SQL overrides.
+    - Excluded platforms: WebAssembly (no async sockets), musl, and the
+      MinGW/RTools Windows toolchains — the QUIC/TLS stack (quinn + rustls + ring)
+      and async runtime are not supported there. Native glibc Linux, macOS and
+      MSVC Windows are supported.
