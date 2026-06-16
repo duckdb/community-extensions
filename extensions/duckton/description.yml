@@ -11,7 +11,7 @@ extension:
     - Angelerator
 
 repo:
-  github: Angelerator/duckdb-p2p
+  github: Angelerator/duckton
   ref: 062dc7690cdf44675787186127e0bd2af42816c4
 
 docs:
