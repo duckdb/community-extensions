@@ -6,6 +6,8 @@ on:
         type: string
       duckdb_tag:
         type: string
+      ci_tools_version:
+        type: string
       deploy:
         type: string
       build_extensions:
@@ -52,3 +54,4 @@ jobs:
       duckdb_version: ${{ inputs.duckdb_version }}
       duckdb_tag: ${{ inputs.duckdb_tag }}
       deploy: ${{ inputs.deploy }}
+      ci_tools_version: ${{ inputs.ci_tools_version }}
