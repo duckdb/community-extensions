@@ -12,7 +12,7 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
     with:
       duckdb_version: '08e34c447bae34eaee3723cac61f2878b6bdf787'
-      ci_tools_version: 'v1.5-variegata' # TODO: this should probably be same as duckdb_version?
+      ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
       extra_toolchains: ''
       extension_name: 'waddle'
       override_repository: 'duckdb/extension-template'
@@ -43,7 +43,7 @@ jobs:
     needs: parse_dependency_list
     with:
       duckdb_version: '08e34c447bae34eaee3723cac61f2878b6bdf787'
-      ci_tools_version: 'v1.5-variegata' # TODO: this should probably be same as duckdb_version?
+      ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
       extra_toolchains: ';rust;go;fortran;parser_tools;'
       extension_name: 'capi_quack'
       override_repository: 'duckdb/extension-template-c'
