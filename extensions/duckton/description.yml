@@ -1,7 +1,7 @@
 extension:
   name: duckton
   description: Turn DuckDB into a node of a trustless peer-to-peer query grid — SQL is cross-checked by independent hosts to a verifiable quorum over QUIC, with optional pay-per-query compute settled on TON
-  version: 0.3.0
+  version: 0.4.0
   language: Rust
   build: cmake
   license: Apache-2.0
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/duckton
-  ref: 745c6d98ebd2b379573c76277fe7d88fbf36fc4a
+  ref: 2953828d207604c4827d4801d53101b869ef595f
 
 docs:
   hello_world: |
@@ -26,7 +26,7 @@ docs:
     │ protocol_version      │ 1.0.0        │
     │ min_supported_version │ 1.0.0        │
     │ schema_version        │ 1            │
-    │ extension_version     │ 0.3.0        │
+    │ extension_version     │ 0.4.0        │
     │ alpn                  │ duckdb-p2p/1 │
     └───────────────────────┴──────────────┘
 
