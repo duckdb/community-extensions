@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/duckton
-  ref: c294d6592a73b3db9487b2a8f716d3901bcb40ff
+  ref: 09232a9c412d6ef75b7dcfdc68fb08f052a0468b
 
 docs:
   hello_world: |
