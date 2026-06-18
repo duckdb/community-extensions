@@ -5,9 +5,12 @@ extension:
   language: Rust
   build: cargo
   license: MIT
-  # wasm builds + verified locally (wasm_mvp/eh/threads all produce a loadable
-  # .duckdb_extension.wasm). static-musl is still untested (its own toolchain),
-  # so it stays excluded until verified.
+  # wasm IS built — as a stable-API subset. The unstable C API (VFS path readers)
+  # is version-exact and DuckDB-WASM lags native, so on wasm the Makefile builds
+  # `--no-default-features`: a forward-compatible C_STRUCT extension exposing
+  # read_ags_text (AGS content passed as an argument) + ags_dictionary +
+  # ags_relationships. Path/remote readers (read_ags, ags_groups, …) are
+  # native-only until DuckDB-WASM catches up. linux_amd64_musl: untested.
   excluded_platforms: "linux_amd64_musl"
   requires_toolchains: "rust"
   maintainers:
@@ -17,7 +20,7 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: 7725aaa0277b7d87528f4c2a3e556d07ae612b82
+  ref: a367ecec7bf0cab90ad63fa341a4234e3bd5af19
 
 docs:
   hello_world: |
