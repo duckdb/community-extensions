@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: snouhaud/DuckDB-QVD-Extension
-  ref: 00bbbd38342afbb0dea1318dee79a8bd75179d41
+  ref: a262d49c066c53cc0b430f96193b5b1e04be304b
 
 docs:
   hello_world: |
