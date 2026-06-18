@@ -1,0 +1,65 @@
+extension:
+  name: laterite_ags4
+  description: Read AGS4 geotechnical data files as typed, UUID-keyed tables directly from SQL — born-typed columns, deterministic content-addressed keys that join across groups by construction, embedded AGS dictionary, and opt-in validation. Local, http(s):// and s3:// (with httpfs).
+  version: 0.4.0
+  language: Rust
+  build: cargo
+  license: MIT
+  # wasm + static-musl are untested for this extension's bundled-engine-free
+  # loadable build; native platforms first, wasm is a follow-up.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  requires_toolchains: "rust"
+  maintainers:
+    - niko86
+
+repo:
+  github: niko86/laterite-duckdb
+  # Pin to the release commit SHA once the repo is pushed + tagged (community-
+  # extensions pins a SHA, not a branch). Placeholder until then:
+  ref: 7875a8507029c02677436960962b482080c46301
+
+docs:
+  hello_world: |
+    -- Read a group as a typed table (columns typed from the file's own TYPE row):
+    SELECT loca_id, loca_gl
+    FROM read_ags('site.ags', 'LOCA')
+    WHERE loca_gl > 50.0;
+
+    -- Join across groups on the deterministic keys — no shared state, joins by
+    -- construction (every SAMP row's _parent_id equals its LOCA's _id):
+    SELECT l.loca_id, s.samp_ref, s.samp_top
+    FROM read_ags('site.ags', 'SAMP') s
+    JOIN read_ags('site.ags', 'LOCA') l ON s._parent_id = l._id;
+
+    -- Inspect structure + the embedded AGS dictionary:
+    SELECT "group", n_rows, parent FROM ags_groups('site.ags') ORDER BY n_rows DESC;
+    SELECT child, parent, shared_keys FROM ags_relationships() WHERE parent = 'LOCA';
+
+    -- Opt-in validation (auto-detects the edition from TRAN_AGS):
+    SELECT rule, line, "group", severity, "desc" FROM ags_validate('site.ags');
+
+    -- Remote, lazily (with httpfs):
+    -- LOAD httpfs;
+    -- SELECT loca_id FROM read_ags('s3://bucket/site.ags', 'LOCA');
+  extended_description: |
+    `laterite_ags4` reads [AGS4](https://www.ags.org.uk/) geotechnical & geoenvironmental
+    data files as first-class DuckDB tables — no conversion step, no bundled engine.
+
+    Written in 🦀 Rust on DuckDB's C Extension API (zero C++).
+
+    ### What it gives you
+
+    - **Born-typed columns** — each heading is typed from the file's own `TYPE` row
+      (`2DP` → `DOUBLE`, `ID` → `VARCHAR`, `0DP` → `BIGINT`, `YN` → `BOOLEAN`, …).
+    - **Deterministic content-addressed keys** — every row carries `_id` and
+      `_parent_id` (UUIDv8 of the row's spec key-chain). `child._parent_id == parent._id`
+      **by construction**, so groups join across independent `read_ags(...)` calls with
+      no shared state.
+    - **Self-describing metadata** — `ags_groups`, `ags_headings`, `ags_dictionary`,
+      `ags_relationships` expose the file's structure and the embedded AGS dictionary.
+    - **Opt-in validation** — `ags_validate(path[, edition := '4.2'])` runs a clean-room
+      AGS4 rule check; never a gate on reads.
+    - **Persistence** — `load_ags_script(path)` emits CREATE-TABLE DDL for an indexed,
+      repeat-/remote-query store.
+    - **Local or remote** — reads go through DuckDB's virtual filesystem, so local paths,
+      `http(s)://` and `s3://` (with `LOAD httpfs`) all work on one code path.
