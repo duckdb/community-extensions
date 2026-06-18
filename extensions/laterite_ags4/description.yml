@@ -5,9 +5,10 @@ extension:
   language: Rust
   build: cargo
   license: MIT
-  # wasm + static-musl are untested for this extension's bundled-engine-free
-  # loadable build; native platforms first, wasm is a follow-up.
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  # wasm builds + verified locally (wasm_mvp/eh/threads all produce a loadable
+  # .duckdb_extension.wasm). static-musl is still untested (its own toolchain),
+  # so it stays excluded until verified.
+  excluded_platforms: "linux_amd64_musl"
   requires_toolchains: "rust"
   maintainers:
     - niko86
@@ -16,7 +17,7 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: 7875a8507029c02677436960962b482080c46301
+  ref: 7725aaa0277b7d87528f4c2a3e556d07ae612b82
 
 docs:
   hello_world: |
