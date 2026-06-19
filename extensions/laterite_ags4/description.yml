@@ -1,17 +1,20 @@
 extension:
   name: laterite_ags4
   description: Read AGS4 geotechnical data files as typed, UUID-keyed tables directly from SQL — born-typed columns, deterministic content-addressed keys that join across groups by construction, embedded AGS dictionary, and opt-in validation. Local, http(s):// and s3:// (with httpfs).
-  version: 0.4.0
+  version: 0.4.1
   language: Rust
   build: cargo
   license: MIT
-  # wasm IS built — as a stable-API subset. The unstable C API (VFS path readers)
-  # is version-exact and DuckDB-WASM lags native, so on wasm the Makefile builds
-  # `--no-default-features`: a forward-compatible C_STRUCT extension exposing
-  # read_ags_text (AGS content passed as an argument) + ags_dictionary +
-  # ags_relationships. Path/remote readers (read_ags, ags_groups, …) are
-  # native-only until DuckDB-WASM catches up. linux_amd64_musl: untested.
-  excluded_platforms: "linux_amd64_musl"
+  # wasm is EXCLUDED for now. The value of this extension is the path/remote VFS
+  # readers (read_ags / ags_groups / … over local, http(s):// and s3://), which
+  # need DuckDB's filesystem = the version-exact unstable C API (libduckdb-sys
+  # pinned to the 1.5.3 ABI). DuckDB-WASM is on the 1.5.1 ABI, and cargo can't
+  # unify two 1.x versions in one manifest — so the wasm build can't link (cf.
+  # duckdb/extension-ci-tools#385). Browser SQL-over-AGS is already served by the
+  # dedicated `laterite-ags4-wasm` package (parse/read → Arrow → duckdb-wasm), so
+  # the extension stays native-only. Revisit when DuckDB-WASM reaches 1.5.3.
+  # (linux_amd64_musl: untested.)
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
   requires_toolchains: "rust"
   maintainers:
     - niko86
@@ -20,7 +23,7 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: a367ecec7bf0cab90ad63fa341a4234e3bd5af19
+  ref: 2f72aa6e3b4049b76a46ba2224d813e6164d1579
 
 docs:
   hello_world: |
@@ -40,7 +43,7 @@ docs:
     SELECT child, parent, shared_keys FROM ags_relationships() WHERE parent = 'LOCA';
 
     -- Opt-in validation (auto-detects the edition from TRAN_AGS):
-    SELECT rule, line, "group", severity, "desc" FROM ags_validate('site.ags');
+    SELECT rule, line, "group", severity, "desc" FROM validate_ags('site.ags');
 
     -- Remote, lazily (with httpfs):
     -- LOAD httpfs;
@@ -61,7 +64,7 @@ docs:
       no shared state.
     - **Self-describing metadata** — `ags_groups`, `ags_headings`, `ags_dictionary`,
       `ags_relationships` expose the file's structure and the embedded AGS dictionary.
-    - **Opt-in validation** — `ags_validate(path[, edition := '4.2'])` runs a clean-room
+    - **Opt-in validation** — `validate_ags(path[, edition := '4.2'])` runs a clean-room
       AGS4 rule check; never a gate on reads.
     - **Persistence** — `load_ags_script(path)` emits CREATE-TABLE DDL for an indexed,
       repeat-/remote-query store.
