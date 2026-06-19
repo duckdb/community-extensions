@@ -57,6 +57,7 @@ jobs:
       ci_tools_version: ${{ inputs.ci_tools_version }}
 
   build_andium:
+    if: false
     needs:
       - collect_extensions
     strategy:
