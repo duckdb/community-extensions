@@ -5,6 +5,9 @@ extension:
   language: C++
   build: cmake
   license: MIT
+  # Windows excluded: duckdb's vendored fmt fails on the build runner's MSVC
+  # (stdext checked_array_iterator removed) -- upstream, not scalarfs.
+  excluded_platforms: "windows_amd64;windows_amd64_mingw"
   maintainers:
     - teaguesterling
 repo:
