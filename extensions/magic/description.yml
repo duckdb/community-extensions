@@ -12,7 +12,7 @@ extension:
 repo:
   github: carlopi/duckdb-magic
   andium: 6a214b48b6dc760e398c73131e00ee62f2c5f1bc
-  ref: f11938a3c1362997bdd830be9e7ac110583ab3cd
+  ref: 59ab31c21c26359d7f884322a24470723d056e80
 
 docs:
   hello_world: |
