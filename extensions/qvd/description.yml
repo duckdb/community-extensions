@@ -1,7 +1,7 @@
 extension:
   name: qvd
   description: Read (streaming) and write Qlik QVD files
-  version: 1.0.0
+  version: 1.0.2
   language: Rust
   build: cmake          # community label; the actual build goes through the Rust C-API Makefile
   license: Apache-2.0
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: snouhaud/DuckDB-QVD-Extension
-  ref: 5b003a3a9ce426370e676bcb82672873c613f21c
+  ref: 4f5cc8fd39b9ef336887c72103a451e5468a6af2
 
 docs:
   hello_world: |
@@ -32,8 +32,9 @@ docs:
   extended_description: |
     100% Rust extension to read and write Qlik QVD files.
 
-    - **Streaming** read (bounded memory, ~30-40x less than a naive read) with
-      native typing `BIGINT`/`DOUBLE`/`VARCHAR`/`DATE`/`TIMESTAMP`/`TIME`/
-      `INTERVAL`, projection pushdown and multi-file glob.
+    - **Streaming, projected** read: bounded memory (~30-40x less than a naive
+      read) and only the projected columns are decoded (16-30x faster on narrow
+      queries over large files). Native typing `BIGINT`/`DOUBLE`/`VARCHAR`/`DATE`/
+      `TIMESTAMP`/`TIME`/`INTERVAL`, projection pushdown and multi-file glob.
     - `COPY ... TO (FORMAT qvd)` write with `FIELD_NAMES` option, and
       `COPY tbl FROM 'x.qvd' (FORMAT qvd)` import.
