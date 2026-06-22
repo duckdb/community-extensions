@@ -12,22 +12,27 @@ extension:
 repo:
   github: carlopi/duckdb-magic
   andium: 6a214b48b6dc760e398c73131e00ee62f2c5f1bc
-  ref: 59ab31c21c26359d7f884322a24470723d056e80
+  ref: 00bf2b30a6e3ea1cac2cd86d8be8636bba93cf89
 
 docs:
   hello_world: |
-    --- Discover autodetected types for files in a local folder
+    --- Discover autodetected types for files in a folder
     SELECT magic_mime(file), magic_type(file), file
         FROM glob('path/to/folder/**');
     
-    --- Discover autodetected types for a remote file
-    LOAD httpfs;  --- this needs to currently be explcit once per session
-    SELECT magic_mime(file), magic_type(file), file
-        FROM glob('https://raw.githubusercontent.com/duckdb/duckdb/main/data/parquet-testing/adam_genotypes.parquet');
+    --- Inspect auto-detection capabilities of the `magic` extension
+    FROM magic_capabilities();
     
-    --- Read file without providing detail on type
-    FROM read_any('https://raw.githubusercontent.com/duckdb/duckdb/main/data/parquet-testing/adam_genotypes.parquet');
+    --- A remote GeoPackage — spatial, sniffed by content (runnable as-is):
+    FROM read_any('https://www.geopackage.org/data/gdal_sample_v1.2_no_extensions.gpkg');
+    
+    --- A table inside a Postgres database (bring your own connection string):
+    FROM read_any('postgres://user:pass@host:5432/mydb@public.orders');
+    
+    --- An Iceberg table on AWS S3 Tables (bring your own ARN + CREATE SECRET):
+    FROM read_any('arn:aws:s3tables:us-east-1:123456789012:bucket/lake@analytics.events');
   extended_description: |
-    Very experimental port of libmagic (that powers file UNIX utility), allow to classify files based on the content of the header, accoring to the libmagic library.
+    Port of libmagic (that powers file UNIX utility), allow to classify files based on the content of the header, accoring to the libmagic library.
     Packaged with version 5.45 of the magic library. The magic.mgc database is at the moment statically compiled in the library, so it's the same across platforms but immutable.
-    Currently not available in Windows and Wasm, due to different but likely solvable vc-packaging issue, to be sorted out independently.
+    Implements read-from-any file capabilties, via magic auto-detection or name pattern.
+    Implements also sub-resource dispatcher via `@schema.tbl`, allow also catalogs to be queried as a table.
