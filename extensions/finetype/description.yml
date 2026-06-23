@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: meridian-online/finetype
-  ref: v0.6.36
+  ref: b060785d29dab029aae4a23b514c5d1bc125f4c2
 
 docs:
   hello_world: |
