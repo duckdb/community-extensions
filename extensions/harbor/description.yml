@@ -1,7 +1,7 @@
 extension:
   name: harbor
   description: Client/server DuckDB over one HTTP port — web UI, JSON /sql, and native ATTACH (TYPE harbor)
-  version: 0.3.2
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: shreeve/duckdb-harbor
-  ref: eebb64406bb2a1f77c8262eabc36285ef976e676
+  ref: 70a86f05775908e78b4479944c5beb40aac3e685
 
 docs:
   hello_world: |
@@ -74,7 +74,7 @@ docs:
     - Container-native deployments — `harbor_wait()` blocks until SIGTERM
       so harbor runs cleanly under systemd / Docker / Kubernetes.
 
-    **Status:** v0.3 release, tested across the DuckDB community-extension
+    **Status:** v0.4 release, tested across the DuckDB community-extension
     matrix (linux_amd64/arm64, osx_amd64/arm64, windows_amd64/_mingw,
     wasm_mvp/eh/threads).
 
