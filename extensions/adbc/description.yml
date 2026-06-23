@@ -9,6 +9,8 @@ extension:
     - columnar-tech
   repo:
     github: columnar-tech/duckdb-adbc-client
+    andium: v0.0.1-duckdb1.4.5
+    ref: v0.0.1-duckdb1.5.4
   docs:
   hello_world: |
     -- Install and load the ADBC extension
