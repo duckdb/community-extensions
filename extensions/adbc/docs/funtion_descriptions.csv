@@ -1,0 +1,4 @@
+function,function_type,description,comment,example
+read_adbc,table,"Table function that reads data from a an ADBC database by providing a connection profile URI and a SQL query. Ideal for explicit predicate and projection pushdown to remote engines.",,SELECT * FROM read_adbc('profile://mydb', 'SELECT * FROM games');
+adbc_execute,table,"Execute arbitrary SQL commands and operations on a remote system via ADBC.",Returns a boolean column named Success set to true on successful execution.,"CALL adbc_execute('profile://mydb', 'DROP TABLE public.games');"
+adbc_clear_cache,table,"Clear locally cached schema and table metadata from all attached ADBC databases.",Call this after a remote schema change to ensure DuckDB sees the latest metadata.,CALL adbc_clear_cache();

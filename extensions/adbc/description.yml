@@ -1,0 +1,71 @@
+extension:
+  name: adbc
+  description: Connects DuckDB to Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, and more using Arrow Database Connectivity (ADBC) drivers.
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - columnar-tech
+  repo:
+    github: columnar-tech/duckdb-adbc-client
+  docs:
+  hello_world: |
+    -- Install and load the ADBC extension
+    INSTALL adbc FROM 'https://columnar-tech.github.io/duckdb-adbc-client';
+    LOAD adbc;
+    -- Create a persistent connection via ATTACH
+    D ATTACH 'profile://mydb' AS mydb (TYPE adbc);
+    D USE mydb.public;
+    -- Inspect available tables
+    D SHOW ALL TABLES;
+    ┌──────────┬─────────┬─────────┬──────────────────────┬─────────────────────────────────────────┬───────────┐
+    │ database │ schema  │  name   │     column_names     │               column_types              │ temporary │
+    ├──────────┼─────────┼─────────┼──────────────────────┼─────────────────────────────────────────┼───────────┤
+    │ mydb     │ public  │ games   │ [id, name, invento…  │ [INTEGER, VARCHAR, VARCHAR, SMALLINT,…  │ false     │
+    └──────────┴─────────┴─────────┴──────────────────────┴─────────────────────────────────────────┴───────────┘
+    -- Query the attached database natively
+    D SELECT * FROM games LIMIT 2;
+    ┌───────┬──────────┬─────────────────────┬───────┐
+    │  id   │   name   │      inventor       │ year  │
+    │ int32 │ varchar  │       varchar       │ int16 │
+    ├───────┼──────────┼─────────────────────┼───────┤
+    │     1 │ Monopoly │ Elizabeth Magie     │  1903 │
+    │     2 │ Scrabble │ Alfred Mosher Butts │  1938 │
+    └───────┴──────────┴─────────────────────┴───────┘
+    -- INSERT a new row into the remote database
+    D INSERT INTO games (SELECT 6, 'Battleship', 'Clifford Von Wickler', 1931, 7, 2, 2);
+    -- CREATE TABLE AS SELECT (CTAS) on the remote database
+    D CREATE TABLE game_inventors(id, inventor) AS (SELECT id, inventor FROM games);
+    -- Directly query with read_adbc for explicit predicate pushdown
+    D SELECT * FROM read_adbc('profile://mydb', 'SELECT name FROM games WHERE year = 1903');
+    ┌──────────┐
+    │   name   │
+    │ varchar  │
+    ├──────────┤
+    │ Monopoly │
+    └──────────┘
+    -- Execute arbitrary DDL via adbc_execute
+    D CALL adbc_execute('profile://mydb', 'DROP TABLE public.game_inventors');
+    ┌─────────┐
+    │ Success │
+    │ boolean │
+    ├─────────┤
+    │ true    │
+    └─────────┘
+    -- Clear local metadata cache after remote schema changes
+    D CALL adbc_clear_cache();
+  extended_description: |
+    Use DuckDB (v1.4.5+ or v1.5.4+) to query Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, or any other system with an ADBC driver.
+    ADBC (Arrow Database Connectivity) is a universal data-access API built on Apache Arrow, an efficient, columnar data format that almost every data system supports natively.
+    By building on Arrow, ADBC enables:
+    1. **Lightning-fast (zero-copy) data transfer** between column-oriented analytical databases, bypassing the slow column-to-row and row-to-column conversions typical of legacy row-based APIs like ODBC or JDBC.
+    2. **Seamless interoperability** with a large and growing ecosystem of Arrow-compatible systems.
+    ### Key Capabilities
+    * **Full SQL Interoperability:** Supports catalog lookups, `SELECT`, `INSERT`, `COPY`, and `CREATE TABLE AS` (`CTAS`) statements directly on attached databases.
+    * **Custom Quoting Flavors:** Includes a `DELIMITER` option (e.g., `DELIMITER '[]'`) to cleanly map target engine quote rules like SQL Server.
+    * **Performance Tuning Knobs:** Built-in connection pooling (`adbc_connection_pool_size`) and streaming bulk ingest (`adbc_insert_buffer_size`).
+    ### Known Limitations
+    * Operates exclusively in **Autocommit Mode**.
+    * Predicate and projection pushdowns are not automatically performed for attached tables; use direct `read_adbc()` queries to push projections and predicates to remote ADBC databases.
+    * Concurrent ADBC operations within a single process are not supported. Mixing ADBC reads and writes in the same SQL statement is also restricted by default unless explicitly permitted via `adbc_mix_reads_writes`.
