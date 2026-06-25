@@ -1,13 +1,21 @@
+# Community-extensions submission descriptor for the `pdf` extension.
+#
+# To submit this extension to the DuckDB community-extensions registry:
+#   1. Fork https://github.com/duckdb/community-extensions
+#   2. Copy this file to extensions/pdf/description.yml in your fork
+#   3. Set repo.ref below to the exact git SHA of the release commit in
+#      asubbarao/duckdb-pdf that the registry should build from
+#   4. Open a pull request against duckdb/community-extensions
+
 extension:
   name: pdf
   description: >-
     Read and extract content from PDF files. Provides table functions for
-    page-level text (read_pdf), layout-preserving lines (read_pdf_lines),
-    document metadata (read_pdf_meta), word-level bounding-box extraction
-    (read_pdf_words), and table detection (read_pdf_tables), plus scalar
-    functions for full-document conversion to plain text, HTML, XML, and SVG
-    (pdf_to_text, pdf_to_html, pdf_to_xml, pdf_to_svg). Supports OCR of scanned
-    PDFs via Tesseract.
+    page-level text (read_pdf), document metadata (read_pdf_meta), word-level
+    bounding-box extraction (read_pdf_words), and table detection
+    (read_pdf_tables), plus scalar functions for full-document conversion to
+    plain text, HTML, XML, and SVG (pdf_to_text, pdf_to_html, pdf_to_xml,
+    pdf_to_svg). Supports OCR of scanned PDFs via Tesseract.
   version: 0.1.0
   language: C++
   build: cmake
@@ -24,7 +32,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: c0956afb5e46e1013a6c105aa67b02b3ef3b053c
+  ref: 3ffb8d85c4ea4ce65876657027cd49719e7d8808
 
 docs:
   hello_world: |
@@ -57,7 +65,8 @@ docs:
     All table functions accept a single path, a list of paths, or a glob
     (`'docs/*.pdf'`). Shared named parameters: `first_page`, `last_page`,
     `password`, `layout` ('reading' | 'physical' | 'raw'), and the OCR knobs
-    `ocr`, `auto_ocr`, `ocr_language`, `ocr_dpi`, `ocr_psm`, `ocr_oem`.
+    `ocr`, `auto_ocr`, `ocr_language`, `ocr_dpi`, `ocr_psm`, `ocr_oem`,
+    `tessdata_dir`.
 
     **Table functions**
 
@@ -84,13 +93,17 @@ docs:
 
     Pages with no extractable text layer are OCR'd automatically (`auto_ocr`,
     on by default); pass `ocr := true` to force OCR on every page. OCR requires a
-    Tesseract language model at runtime, located via the `TESSDATA_PREFIX`
-    environment variable — package managers do not ship one. Install a model
-    (`brew install tesseract-lang` on macOS; `apt-get install tesseract-ocr-eng`
-    on Debian/Ubuntu; or download `eng.traineddata` from the tessdata_fast repo)
-    and point `TESSDATA_PREFIX` at its directory. Select the language with
-    `ocr_language` (e.g. `ocr_language := 'deu'`). If no model is found, OCR
-    raises a clear error with these instructions rather than returning empty text.
+    Tesseract language model at runtime — package managers do not ship one — but
+    once you install one the usual way it works with **no configuration**: the
+    extension auto-detects the standard model directories used by Homebrew
+    (`brew install tesseract tesseract-lang`), apt
+    (`apt-get install tesseract-ocr tesseract-ocr-eng`), and the Windows
+    installer. To use a non-standard location, pass
+    `tessdata_dir := '/path/to/tessdata'` per query, or set the `TESSDATA_PREFIX`
+    environment variable (resolution order: `tessdata_dir` → `TESSDATA_PREFIX` →
+    auto-detected paths). Select the language with `ocr_language`
+    (e.g. `ocr_language := 'deu'`). If no model is found anywhere, OCR raises a
+    clear, actionable error rather than returning empty text.
 
     **Table extraction: scope**
 
