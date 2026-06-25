@@ -1,0 +1,117 @@
+extension:
+  name: pdf
+  description: >-
+    Read and extract content from PDF files. Provides table functions for
+    page-level text (read_pdf), layout-preserving lines (read_pdf_lines),
+    document metadata (read_pdf_meta), word-level bounding-box extraction
+    (read_pdf_words), and table detection (read_pdf_tables), plus scalar
+    functions for full-document conversion to plain text, HTML, XML, and SVG
+    (pdf_to_text, pdf_to_html, pdf_to_xml, pdf_to_svg). Supports OCR of scanned
+    PDFs via Tesseract.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: GPL-2.0-or-later
+  maintainers:
+    - asubbarao
+  # windows_amd64 (MSVC/vcpkg) builds and is supported. mingw/rtools use a
+  # different toolchain than the MSVC static linkage this extension relies on;
+  # windows_arm64 is untested; wasm cannot link Poppler/Tesseract.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;windows_arm64
+  requires_toolchains: vcpkg
+  vcpkg_url: https://github.com/microsoft/vcpkg.git
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+
+repo:
+  github: asubbarao/duckdb-pdf
+  ref: c0956afb5e46e1013a6c105aa67b02b3ef3b053c
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD pdf;
+
+    -- One row per page (filename, page, page_count, text, width, height).
+    -- Accepts a single file, a list, or a glob.
+    SELECT page, text
+    FROM read_pdf('report.pdf');
+
+    -- Search across many PDFs at once
+    SELECT filename, page
+    FROM read_pdf('reports/*.pdf')
+    WHERE text ILIKE '%revenue%';
+
+    -- Document metadata, one row per file
+    SELECT title, author, pages FROM read_pdf_meta('report.pdf');
+
+    -- Extract tabular regions from digital PDFs
+    SELECT * FROM read_pdf_tables('financial_report.pdf');
+
+    -- Whole document as plain text (scalar)
+    SELECT pdf_to_text('report.pdf') AS full_text;
+
+  extended_description: |
+    The `pdf` extension brings native PDF reading to DuckDB using the Poppler
+    library for rendering and Tesseract for OCR of scanned pages.
+
+    All table functions accept a single path, a list of paths, or a glob
+    (`'docs/*.pdf'`). Shared named parameters: `first_page`, `last_page`,
+    `password`, `layout` ('reading' | 'physical' | 'raw'), and the OCR knobs
+    `ocr`, `auto_ocr`, `ocr_language`, `ocr_dpi`, `ocr_psm`, `ocr_oem`.
+
+    **Table functions**
+
+    - `read_pdf(path, ...)` — one row per page; columns: filename, page,
+      page_count, text, width, height (page size in PDF points).
+    - `read_pdf_lines(path, ...)` — one row per layout-preserving line of text;
+      columns: filename, page, line, text. A PDF-aware analog to `read_lines`.
+    - `read_pdf_meta(path)` — one row per file; columns: filename, title, author,
+      subject, keywords, creator, producer, pages, pdf_version, encrypted.
+    - `read_pdf_words(path, ...)` — one row per word; columns: filename, page,
+      word, x0, y0, x1, y1 (bounding box in PDF user-space points, origin
+      bottom-left), font_name, font_size.
+    - `read_pdf_tables(path, ...)` — extracts tabular regions from digital PDFs;
+      columns: filename, page, table_index, row_index, cells (VARCHAR[]).
+
+    **Scalar functions**
+
+    - `pdf_to_text(path[, layout])` — entire document as a plain-text VARCHAR.
+    - `pdf_to_html(path)` — document rendered to HTML.
+    - `pdf_to_xml(path)` — document rendered to XML (Poppler pdftoxml format).
+    - `pdf_to_svg(path, page)` — a single page rendered to SVG.
+
+    **OCR (scanned / image-only PDFs)**
+
+    Pages with no extractable text layer are OCR'd automatically (`auto_ocr`,
+    on by default); pass `ocr := true` to force OCR on every page. OCR requires a
+    Tesseract language model at runtime, located via the `TESSDATA_PREFIX`
+    environment variable — package managers do not ship one. Install a model
+    (`brew install tesseract-lang` on macOS; `apt-get install tesseract-ocr-eng`
+    on Debian/Ubuntu; or download `eng.traineddata` from the tessdata_fast repo)
+    and point `TESSDATA_PREFIX` at its directory. Select the language with
+    `ocr_language` (e.g. `ocr_language := 'deu'`). If no model is found, OCR
+    raises a clear error with these instructions rather than returning empty text.
+
+    **Table extraction: scope**
+
+    `read_pdf_tables` uses a precision-first geometric heuristic (word
+    bounding-box column clustering with a regularity gate) on digital PDFs. It
+    reliably handles clean, aligned tables and avoids emitting spurious tables
+    from prose, but it does not do ML-based table-structure recognition — merged
+    cells, borderless/sparse tables, and scanned tables are out of scope. For
+    state-of-the-art document understanding, reach for tools like docling,
+    marker, or a cloud Document AI service; this extension targets the ~80% of
+    everyday text/word/line/metadata/simple-table extraction directly in SQL.
+
+    **Platform support**
+
+    Linux (x86_64, arm64), macOS (x86_64, arm64), and Windows (x64, MSVC) are
+    supported — all dependencies are resolved through vcpkg and statically linked.
+    The mingw/rtools Windows variants and windows_arm64 are excluded (different
+    toolchain / untested), and WebAssembly is excluded because Poppler and
+    Tesseract cannot be linked into the wasm target.
+
+    **License**
+
+    GPL-2.0-or-later. Poppler is GPL-2.0; statically linking it requires the
+    combined work to be distributed under the GPL.
