@@ -26,7 +26,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 6e7dbcc12f77d2670e1bab32462bc684afc44932
+  ref: 03380d1f5ece904b96fc0963d08cd7331ebe0c3f
 
 docs:
   hello_world: |
