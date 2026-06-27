@@ -5,12 +5,11 @@ extension:
   language: C++
   build: cmake
   license: MIT
-  test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
   maintainers:
     - leonardovida
 repo:
   github: leonardovida/duckdb-finance
-  ref: 3a1002385aa62409adaf1e2465885a73aa8c4ae9
+  ref: 15bf42c1ac74ed118b6f3b014e27443869ccbab8
 docs:
   hello_world: |
     INSTALL finance FROM community;
