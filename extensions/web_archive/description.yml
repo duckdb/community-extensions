@@ -1,7 +1,7 @@
 extension:
   name: web_archive
   description: Query Common Crawl and Wayback Machine web archive CDX APIs directly from SQL
-  version: '2026062702'
+  version: '2026062703'
   language: C++
   build: cmake
   license: MIT
@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-web-archive
-  andium: b8436ee3efcb1533896722b45e51d08e3679ce6d
-  ref: 8d644eb2645370cefff98fc683cea1319b14df7c
+  andium: 33968f9147d851ff565b19546650162c73b85f5e
+  ref: fa55e897d42ad8859f9d707d793b58807a8c8e84
 
 docs:
   hello_world: |
