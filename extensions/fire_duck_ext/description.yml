@@ -1,7 +1,7 @@
 extension:
   name: fire_duck_ext
   description: Query Google Cloud Firestore directly from DuckDB using SQL
-  version: 0.1.2
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -11,10 +11,10 @@ extension:
 
 repo:
   github: BorisBesky/fire_duck_ext
-  ref: 2ea20258af9370ea1ef6200f8ec12113aa69127c
+  ref: 62e9d803761436687b1feb84349149bbaed067b2
 
 docs:
-hello_world: |
+  hello_world: |
     LOAD fire_duck_ext;
 
     -- Authenticate with a service account JSON file
@@ -24,54 +24,68 @@ hello_world: |
         SERVICE_ACCOUNT_JSON '/path/to/service-account.json'
     );
 
-    -- Or use an API key (for dev/testing only)
+    -- Or use inline JSON for the service account
+    CREATE SECRET my_firestore (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        SERVICE_ACCOUNT_JSON '{
+            "type": "service_account",
+            "project_id": "my-gcp-project",
+            "private_key_id": "key123abc",
+            "private_key": "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----\n",
+            "client_email": "sa@my-gcp-project.iam.gserviceaccount.com",
+            "client_id": "123456789",
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token"
+        }'
+    );
+
+    -- Or authenticate with an API key (unauthenticated; request.auth is null)
     CREATE SECRET my_firestore (
         TYPE firestore,
         PROJECT_ID 'my-gcp-project',
         API_KEY 'AIzaSyYourApiKeyHere'
     );
 
-    -- To target a named database (non-default), add DATABASE to any secret
-    CREATE SECRET my_named_db (
+    -- Or authenticate as a Firebase Auth user (browser-safe; respects Security Rules)
+    -- Email/password sign-in:
+    CREATE SECRET my_firestore (
         TYPE firestore,
         PROJECT_ID 'my-gcp-project',
-        SERVICE_ACCOUNT_JSON '/path/to/credentials.json',
-        DATABASE 'analytics-db'
+        API_KEY 'AIzaSyYourWebApiKey',
+        EMAIL 'user@example.com',
+        PASSWORD 'hunter2'
     );
 
-    -- Read all documents in a collection
+    -- Anonymous sign-in:
+    CREATE SECRET my_firestore (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        API_KEY 'AIzaSyYourWebApiKey',
+        ANONYMOUS true
+    );
+
+    -- Or pass a pre-obtained Firebase ID token (e.g. minted by your host app)
+    CREATE SECRET my_firestore (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        API_KEY 'AIzaSyYourWebApiKey',  -- optional; enables auto-refresh
+        ID_TOKEN 'eyJhbGciOi...',
+        REFRESH_TOKEN 'AMf-...'         -- optional; auto-refreshed on expiry
+    );
+
+    -- Read documents
     SELECT * FROM firestore_scan('users');
 
-    -- Filter documents (filters are pushed down to Firestore)
+    -- Filter documents
     SELECT __document_id, name, email
     FROM firestore_scan('users')
     WHERE status = 'active';
 
-    -- Query a collection group across all documents
-    SELECT __document_id, amount, currency
-    FROM firestore_scan('~transactions')
-    WHERE amount > 100;
-
-    -- JOIN Firestore data with a local CSV
-    SELECT u.name, u.email, o.__document_id AS order_id, o.total
-    FROM firestore_scan('users') u
-    JOIN read_csv('orders.csv') o ON u.__document_id = o.user_id;
-
-    -- CTE: summarize order totals per user from Firestore
-    WITH order_totals AS (
-        SELECT user_id, SUM(total) AS lifetime_value
-        FROM firestore_scan('orders')
-        GROUP BY user_id
-    )
-    SELECT u.name, u.email, ot.lifetime_value
-    FROM firestore_scan('users') u
-    JOIN order_totals ot ON u.__document_id = ot.user_id
-    ORDER BY ot.lifetime_value DESC;
-
-    -- Update a single document field
+    -- Update documents
     CALL firestore_update('users', 'user123', 'status', 'verified');
 
-    -- Batch update documents matching a filter
+    -- Batch update with DuckDB filtering
     SET VARIABLE ids = (
         SELECT list(__document_id)
         FROM firestore_scan('users')
@@ -79,7 +93,7 @@ hello_world: |
     );
     CALL firestore_update_batch('users', getvariable('ids'), 'status', 'reviewed', 'updated_at', now());
 
-    -- Insert documents from a CSV (auto-generated IDs)
+    -- Insert documents from a subquery (auto-generated IDs)
     CALL firestore_insert('users', (SELECT name, age FROM read_csv('new_users.csv')));
 
     -- Insert with explicit document IDs from a column
@@ -87,55 +101,124 @@ hello_world: |
         (SELECT * FROM read_csv('new_users.csv')),
         document_id := 'user_id');
 
-    -- Delete a single document
-    CALL firestore_delete('users', 'user123');
+    -- Insert with explicit document ID selected from a column
+    CALL firestore_insert('users',
+        (SELECT 'Alice' AS name, 30 AS age, 'alice_user_id' AS user_id),
+        document_id := 'user_id');
 
-    -- Batch delete documents matching a filter
-    SET VARIABLE stale_ids = (
-        SELECT list(__document_id)
-        FROM firestore_scan('users')
-        WHERE last_login < now() - INTERVAL 1 YEAR
+    -- Target a specific named database
+    CREATE SECRET my_named_db (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        SERVICE_ACCOUNT_JSON '/path/to/credentials.json',
+        DATABASE 'my-database'
     );
-    CALL firestore_delete_batch('users', getvariable('stale_ids'));
 
-    -- Modify array fields
-    CALL firestore_array_union('users', 'user123', 'roles', ['editor', 'reviewer']);
-    CALL firestore_array_remove('users', 'user123', 'roles', ['editor']);
+    -- Target multiple databases with a single secret
+    CREATE SECRET my_multi_db (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        SERVICE_ACCOUNT_JSON '/path/to/credentials.json',
+        DATABASES ['(default)', 'analytics-db']
+    );
 
-    -- Switch active database for the session
+    -- Target multiple databases with an API key
+    CREATE SECRET my_multi_db (
+        TYPE firestore,
+        PROJECT_ID 'my-gcp-project',
+        API_KEY 'AIzaSyYourApiKeyHere',
+        DATABASES ['(default)', 'analytics-db']
+    );
+
+    -- Connect to a specific database for the session
     CALL firestore_connect('analytics-db');
 
-extended_description: |
-    fire_duck_ext lets you query and modify Google Cloud Firestore directly from DuckDB using SQL.
-    Whether you need to access Firestore data with SQL or integrate Firebase/Firestore workflows
-    into DuckDB pipelines, this extension provides full read and write support through standard
-    SQL statements.
+    -- Collection group queries
+    SELECT __document_id, name, email
+    FROM firestore_scan('~data_group')
+    WHERE status = 'active';
 
-    Scan collections with firestore_scan(). Perform DML operations with firestore_update(),
-    firestore_insert(), and firestore_delete(). Run batch writes and deletes with
-    firestore_update_batch() and firestore_delete_batch(). Transform array fields with
-    firestore_array_union(), firestore_array_remove(), and firestore_array_append().
-
-    Query collection groups across all documents with firestore_scan('~collection').
-    List subcollections under a document with firestore_scan('collection/doc_id').
-    Push down filters directly to Firestore for efficient querying.
-    Manage authentication credentials using DuckDB secrets.
+  extended_description: |
+    fire_duck_ext lets you work with Google Cloud Firestore directly from DuckDB using SQL. 
+    If you are looking for a way to access Firestore database data with SQL or connect 
+    Firebase/Firestore workflows to DuckDB, this extension provides read and write 
+    support through familiar SQL statements. Scan data with firestore_scan(),
+    perform DML operations with firestore_update(), firestore_insert(),
+    and firestore_delete(). Batch operations with firestore_update_batch() and 
+    firestore_delete_batch().
+    Transform arrays with firestore_array_union(), firestore_array_remove(), and firestore_array_append().
+    Query collection groups with firestore_scan('~collection'). 
+    List collection IDs with firestore_scan('collection/doc_id'). Manage credentials with DuckDB secrets.
+    Push down filters to Firestore with firestore_scan().
 
     ## Authentication
-    Secrets require `PROJECT_ID` and one of `SERVICE_ACCOUNT_JSON` or
-    `API_KEY`.
+    Secrets require `PROJECT_ID` and one of three auth modes:
 
-    `SERVICE_ACCOUNT_JSON` accepts either a file path or the full inline
-    JSON text of a Google Cloud service account key. The JSON must contain
-    at least `type`, `project_id`, `private_key`, and `client_email`.
+    1. **Service account** (`SERVICE_ACCOUNT_JSON`) — admin access that bypasses
+       Security Rules. Accepts either a file path or the full inline JSON text of a
+       Google Cloud service account key (must contain at least `type`, `project_id`,
+       `private_key`, and `client_email`). Requires OpenSSL for RS256 signing, so it
+       is **native-only** (not available in the WebAssembly build).
 
-    `API_KEY` provides unauthenticated access suitable for development,
-    testing, or public databases. API key auth does not support
-    `batchWrite`, so batch operations fall back to individual requests.
+    2. **API key** (`API_KEY`) — unauthenticated access (`request.auth == null`),
+       suitable for development, testing, or public databases. Reads are still
+       subject to Security Rules. API key auth does not support `batchWrite`, so
+       batch operations fall back to individual requests.
+
+    3. **Firebase Auth user** — authenticated access that respects Security Rules and
+       is browser-safe (works in the WebAssembly build). Provide the public Web
+       `API_KEY` plus one of:
+       - `EMAIL` + `PASSWORD` — email/password sign-in,
+       - `ANONYMOUS true` — anonymous sign-in,
+       - `ID_TOKEN` (+ optional `REFRESH_TOKEN`) — a pre-obtained Firebase ID token
+         minted by your host app. `API_KEY` is optional in this mode but enables
+         automatic token refresh.
+
+       The extension sends `Authorization: Bearer <id_token>` and refreshes the token
+       automatically on expiry.
+
+    `ANONYMOUS true` is not the same as a plain `API_KEY`. Both pass the API key, but
+    the API key alone is unauthenticated (`request.auth == null`), while anonymous
+    sign-in obtains an ID token for a real (anonymous) Firebase user, so
+    `request.auth != null` and a `uid` is available in Security Rules. Use a plain
+    API key for public collections whose rules allow unauthenticated reads; use
+    `ANONYMOUS true` when rules require a signed-in user (`request.auth != null`) but
+    no specific identity is needed. Each anonymous sign-in gets a fresh `uid`.
+
+    **Admin-only features.** Firestore's index metadata (composite indexes and
+    single-field index configuration) is served by the Firestore Admin API, which is
+    gated by Google Cloud IAM and readable only with a **service account**. With API
+    key or Firebase user auth the extension cannot query it, skips it, and assumes
+    Firestore's default single-field indexes. Features that depend on this metadata
+    are therefore unavailable to non-admin auth — most notably composite-index
+    detection for multi-field `ORDER BY`, which falls back to a single-field
+    server-side sort (re-sorted in DuckDB) or surfaces Firestore's "query requires an
+    index" error. Single-field filter and order pushdown are unaffected.
 
     If the `GOOGLE_APPLICATION_CREDENTIALS` environment variable is set,
     the extension automatically creates an internal secret on startup that
     matches all databases (`DATABASE '*'`), so no `CREATE SECRET` is needed.
+
+    ## WebAssembly (DuckDB-WASM)
+    The extension builds and runs in DuckDB-WASM (e.g. in the browser). HTTP is
+    routed through DuckDB's HTTPUtil instead of raw sockets, so reads, filtered
+    `:runQuery` scans (including collection groups), and writes all work in the
+    browser. Authentication in WASM uses **API key** or **Firebase Auth user**
+    credentials (email/password, anonymous, or a pre-obtained ID token);
+    **service-account** auth is native-only because it needs OpenSSL.
+
+    Two things to know for rules-governed (API key / Firebase user) access:
+    - `show_missing := true` (the default) lists phantom/missing documents, which is
+      an Admin-only operation; over rules-governed access Firestore returns
+      `403 PERMISSION_DENIED` even when rules allow the read. Pass
+      `show_missing := false`.
+    - The Firestore Admin API (index metadata) is reachable only with a service
+      account; for API-key / Firebase-user auth the extension skips it and assumes
+      default single-field indexes.
+
+    The WASM build of the extension must match the DuckDB version bundled by the
+    `@duckdb/duckdb-wasm` runtime it is loaded into (the C++ extension ABI is not
+    stable across versions).
 
     ## Type Mapping
     - `string` → VARCHAR
@@ -221,9 +304,9 @@ extended_description: |
       DuckDB applying the final offset)
 
     Named parameters still work and take precedence over SQL pushdown:
-    - If `order_by=` is provided, that server-side ordering is used and
+    - If `order_by:=` is provided, that server-side ordering is used and
       DuckDB applies any SQL `ORDER BY` afterward.
-    - If `scan_limit=` is provided, that fetch limit is used and DuckDB
+    - If `scan_limit:=` is provided, that fetch limit is used and DuckDB
       applies any SQL `LIMIT` afterward.
 
     Use `EXPLAIN` to verify when SQL ordering and limits are being pushed.
@@ -243,8 +326,8 @@ extended_description: |
     - Pagination across large numbers of subcollections
     - SQL `ORDER BY __document_id` pushdown
     - SQL `LIMIT` pushdown
-    - Named `order_by='__document_id'` or `order_by='__document_id DESC'`,
-      plus `scan_limit=...`
+    - Named `order_by:='__document_id'` or `order_by:='__document_id DESC'`,
+      plus `scan_limit:=...`
 
     Other ordering expressions still work, but they are evaluated in DuckDB
     after fetching the subcollection IDs.
@@ -256,3 +339,8 @@ extended_description: |
     by `show_missing` (default: `true`). Set `show_missing := false` to
     only return documents with fields. When a collection contains only
     phantom documents, the result includes just the `__document_id` column.
+
+    Listing phantom documents is an Admin-only operation, so with rules-governed
+    access (API key or Firebase user) Firestore returns `403 PERMISSION_DENIED`
+    even when Security Rules allow the read. Use `show_missing := false` with those
+    auth modes, or authenticate with a service account.
