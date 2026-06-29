@@ -9,7 +9,7 @@
 
 extension:
   name: pdf
-  description: Read text, metadata, words, lines, and tables from PDF files, with optional Tesseract OCR for scanned pages.
+  description: Read text, metadata, words, lines, and tables from PDF files (with optional Tesseract OCR), and convert documents (docx, odt, rtf, html, ...) to PDF.
   version: 0.1.0
   language: C++
   build: cmake
@@ -26,7 +26,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 03380d1f5ece904b96fc0963d08cd7331ebe0c3f
+  ref: df35aa9979c07688bb9530c15428380418ddc41f
 
 docs:
   hello_world: |
@@ -51,6 +51,11 @@ docs:
 
     -- Whole document as plain text (scalar)
     SELECT pdf_to_text('report.pdf') AS full_text;
+
+    -- Convert a document (docx, odt, rtf, html, ...) to PDF, then read it back
+    -- (requires LibreOffice installed at runtime)
+    SELECT to_pdf('resume.docx');                    -- writes resume.pdf, returns the path
+    SELECT * FROM read_pdf((SELECT to_pdf('resume.docx')));
 
   extended_description: |
     The `pdf` extension brings native PDF reading to DuckDB using the Poppler
@@ -82,6 +87,28 @@ docs:
     - `pdf_to_html(path)` — document rendered to HTML.
     - `pdf_to_xml(path)` — document rendered to XML (Poppler pdftoxml format).
     - `pdf_to_svg(path, page)` — a single page rendered to SVG.
+    - `to_pdf(path[, output_path])` — convert a document (docx, doc, odt, rtf,
+      html, odp, pptx, xlsx, ...) to PDF; writes alongside the input (extension
+      swapped to `.pdf`) or to `output_path`, and returns the written path. See
+      "Saving documents to PDF" below.
+
+    **Saving documents to PDF**
+
+    `to_pdf` converts office and markup documents to PDF by invoking LibreOffice
+    at runtime (the conversion engine is not bundled — only a runtime process is
+    spawned, so nothing is added to the build). LibreOffice is auto-detected on
+    `$PATH` (`soffice`/`libreoffice`), in the macOS app bundle, or via the
+    `LIBREOFFICE_PATH` environment variable; if none is found it raises a clear,
+    actionable error (install with `brew install --cask libreoffice`,
+    `apt-get install libreoffice`, or the Windows installer). A pure-SQL
+    alternative needs no new function at all — compose the `shellfs` extension
+    with LibreOffice's headless converter:
+
+        LOAD shellfs;
+        SELECT * FROM read_text(
+          'soffice --headless --convert-to pdf --outdir /tmp "resume.docx" && echo ok |'
+        );
+        SELECT * FROM read_pdf('/tmp/resume.pdf');
 
     **OCR (scanned / image-only PDFs)**
 
