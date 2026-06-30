@@ -10,8 +10,8 @@ extension:
   excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
 repo:
   github: columnar-tech/duckdb-adbc-client
-  andium: ea161b9c778f1b8eaae447cd0bbc945844edde0a
-  ref: 9534213d0eb9be90d741ceadc890e954086514b4
+  andium: 2d1ed5ee8aa34d3ceaae18bcd464a7700feb4cc6
+  ref: 2d19eea3af6f293e2059e4cf9370d8bcbdcaa84a
 docs:
   hello_world: |
     -- Install and load the ADBC extension
