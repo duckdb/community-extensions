@@ -104,9 +104,10 @@ docs:
     1. **Lightning-fast (zero-copy) data transfer** between column-oriented analytical databases, bypassing the slow column-to-row and row-to-column conversions typical of legacy row-based APIs like ODBC or JDBC.
     2. **Seamless interoperability** with a large and growing ecosystem of Arrow-compatible systems.
     ### Key Capabilities
-    * **Full SQL Interoperability:** Supports catalog lookups, `SELECT`, `INSERT`, `COPY`, and `CREATE TABLE AS` (`CTAS`) statements directly on attached databases.
-    * **Custom Quoting Flavors:** Includes a `DELIMITER` option (e.g., `DELIMITER '[]'`) to cleanly map target engine quote rules like SQL Server.
-    * **Performance Tuning Knobs:** Built-in connection pooling (`adbc_connection_pool_size`) and streaming bulk ingest (`adbc_insert_buffer_size`).
+    * Supports catalog lookups, `SELECT`, `INSERT`, `COPY`, and `CREATE TABLE AS` (`CTAS`) statements directly on attached databases.
+    * Supports custom delimiters with `ATTACH` with a `DELIMITER` option (e.g., `DELIMITER '[]'`) to enable queries on attached databases with different table/schema delimiters.
+    * Supports built-in connection pooling for each attached database (tunable with `adbc_connection_pool_size`)
+    * Support streaming bulk ingest for `INSERT`, `COPY`, and CTAS statements, keeping memory usage low even for data sets that exceed main memory (tunable with `adbc_insert_buffer_size`).
     ### Known Limitations
     * Operates exclusively in **Autocommit Mode**.
     * Predicate and projection pushdowns are not automatically performed for attached tables; use direct `read_adbc()` queries to push projections and predicates to remote ADBC databases.
