@@ -1,6 +1,6 @@
 extension:
   name: adbc
-  description: Connects DuckDB to Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, and more using Arrow Database Connectivity (ADBC) drivers. For more information see the [documentation](https://github.com/columnar-tech/duckdb-adbc-client).
+  description: Connects DuckDB to Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, and more using Arrow Database Connectivity (ADBC) drivers. 
   version: '0.0.1'
   language: C++
   build: cmake
@@ -112,3 +112,5 @@ docs:
     * Operates exclusively in **Autocommit Mode**.
     * Predicate and projection pushdowns are not automatically performed for attached tables; use direct `read_adbc()` queries to push projections and predicates to remote ADBC databases.
     * Concurrent ADBC operations within a single process are not supported. Mixing ADBC reads and writes in the same SQL statement is also restricted by default unless explicitly permitted via `adbc_mix_reads_writes`.
+    For more information see the [documentation](https://github.com/columnar-tech/duckdb-adbc-client).
+
