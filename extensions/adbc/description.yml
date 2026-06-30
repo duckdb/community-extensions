@@ -1,23 +1,25 @@
 extension:
   name: adbc
   description: Connects DuckDB to Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, and more using Arrow Database Connectivity (ADBC) drivers.
-  version: 0.0.1
+  version: '0.0.1'
   language: C++
   build: cmake
   license: Apache-2.0
   maintainers:
     - columnar-tech
-  repo:
-    github: columnar-tech/duckdb-adbc-client
-    andium: v0.0.1-duckdb1.4.5
-    ref: v0.0.1-duckdb1.5.4
-  docs:
+repo:
+  github: columnar-tech/duckdb-adbc-client
+  andium: ea161b9c778f1b8eaae447cd0bbc945844edde0a
+  ref: 9534213d0eb9be90d741ceadc890e954086514b4
+docs:
   hello_world: |
     -- Install and load the ADBC extension
     INSTALL adbc FROM 'https://columnar-tech.github.io/duckdb-adbc-client';
     LOAD adbc;
     -- Create a persistent connection via ATTACH
     D ATTACH 'profile://mydb' AS mydb (TYPE adbc);
+    -- Alternatively, ATTACH with a custom delimiter (i.e., SELECT * FROM [schema].[table] for SQL Server)
+    D ATTACH 'profile://mydb' AS otherdb (TYPE adbc, DELIMITER '[]');
     D USE mydb.public;
     -- Inspect available tables
     D SHOW ALL TABLES;
