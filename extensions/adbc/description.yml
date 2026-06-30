@@ -1,6 +1,6 @@
 extension:
   name: adbc
-  description: Connects DuckDB to Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, and more using Arrow Database Connectivity (ADBC) drivers. 
+  description: Connects DuckDB to any database that has an Arrow Database Connectivity (ADBC) driver.
   version: '0.0.1'
   language: C++
   build: cmake
