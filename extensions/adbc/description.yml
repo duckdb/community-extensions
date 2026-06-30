@@ -1,12 +1,13 @@
 extension:
   name: adbc
-  description: Connects DuckDB to Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, and more using Arrow Database Connectivity (ADBC) drivers.
+  description: Connects DuckDB to Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, and more using Arrow Database Connectivity (ADBC) drivers. For more information see the [documentation](https://github.com/columnar-tech/duckdb-adbc-client).
   version: '0.0.1'
   language: C++
   build: cmake
   license: Apache-2.0
   maintainers:
     - columnar-tech
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
 repo:
   github: columnar-tech/duckdb-adbc-client
   andium: ea161b9c778f1b8eaae447cd0bbc945844edde0a
@@ -14,43 +15,80 @@ repo:
 docs:
   hello_world: |
     -- Install and load the ADBC extension
-    INSTALL adbc FROM 'https://columnar-tech.github.io/duckdb-adbc-client';
+    INSTALL adbc FROM community;
     LOAD adbc;
+    -- Read from an attached ADBC database (SQLite) given a connection profile using read_adbc
+    D SELECT * FROM read_adbc('profile://mydb', 'SELECT * FROM games');
+    ┌───────┬────────────┬─────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
+    │  id   │    name    │      inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
+    │ int64 │  varchar   │       varchar       │ varchar │  int64  │    int64    │    int64    │  varchar   │
+    ├───────┼────────────┼─────────────────────┼─────────┼─────────┼─────────────┼─────────────┼────────────┤
+    │     1 │ Monopoly   │ Elizabeth Magie     │ 1903    │       8 │           2 │           6 │ 19.99      │
+    │     2 │ Scrabble   │ Alfred Mosher Butts │ 1938    │       8 │           2 │           4 │ 17.99      │
+    │     3 │ Clue       │ Anthony E. Pratt    │ 1944    │       8 │           2 │           6 │ 9.99       │
+    │     4 │ Candy Land │ Eleanor Abbott      │ 1948    │       3 │           2 │           4 │ 7.99       │
+    │     5 │ Risk       │ Albert Lamorisse    │ 1957    │      10 │           2 │           5 │ 29.99      │
+    └───────┴────────────┴─────────────────────┴─────────┴─────────┴─────────────┴─────────────┴────────────┘
     -- Create a persistent connection via ATTACH
     D ATTACH 'profile://mydb' AS mydb (TYPE adbc);
     -- Alternatively, ATTACH with a custom delimiter (i.e., SELECT * FROM [schema].[table] for SQL Server)
     D ATTACH 'profile://mydb' AS otherdb (TYPE adbc, DELIMITER '[]');
-    D USE mydb.public;
-    -- Inspect available tables
+    -- Set the default schema
+    D USE mydb.main;
+    -- Display all tables in the attached ADBC database
     D SHOW ALL TABLES;
-    ┌──────────┬─────────┬─────────┬──────────────────────┬─────────────────────────────────────────┬───────────┐
-    │ database │ schema  │  name   │     column_names     │               column_types              │ temporary │
-    ├──────────┼─────────┼─────────┼──────────────────────┼─────────────────────────────────────────┼───────────┤
-    │ mydb     │ public  │ games   │ [id, name, invento…  │ [INTEGER, VARCHAR, VARCHAR, SMALLINT,…  │ false     │
-    └──────────┴─────────┴─────────┴──────────────────────┴─────────────────────────────────────────┴───────────┘
-    -- Query the attached database natively
-    D SELECT * FROM games LIMIT 2;
-    ┌───────┬──────────┬─────────────────────┬───────┐
-    │  id   │   name   │      inventor       │ year  │
-    │ int32 │ varchar  │       varchar       │ int16 │
-    ├───────┼──────────┼─────────────────────┼───────┤
-    │     1 │ Monopoly │ Elizabeth Magie     │  1903 │
-    │     2 │ Scrabble │ Alfred Mosher Butts │  1938 │
-    └───────┴──────────┴─────────────────────┴───────┘
-    -- INSERT a new row into the remote database
-    D INSERT INTO games (SELECT 6, 'Battleship', 'Clifford Von Wickler', 1931, 7, 2, 2);
-    -- CREATE TABLE AS SELECT (CTAS) on the remote database
-    D CREATE TABLE game_inventors(id, inventor) AS (SELECT id, inventor FROM games);
-    -- Directly query with read_adbc for explicit predicate pushdown
-    D SELECT * FROM read_adbc('profile://mydb', 'SELECT name FROM games WHERE year = 1903');
-    ┌──────────┐
-    │   name   │
-    │ varchar  │
-    ├──────────┤
-    │ Monopoly │
-    └──────────┘
+    ┌──────────┬─────────┬─────────┬───────────────────────────────┬────────────────────────────────┬───────────┐
+    │ database │ schema  │  name   │         column_names          │          column_types          │ temporary │
+    │ varchar  │ varchar │ varchar │           varchar[]           │           varchar[]            │  boolean  │
+    ├──────────┼─────────┼─────────┼───────────────────────────────┼────────────────────────────────┼───────────┤
+    │ mydb     │ main    │ games   │ [id, name, inventor, year,    │ [BIGINT, VARCHAR, VARCHAR,     │ false     │
+    │          │         │         │  min_age, min_players,        │  VARCHAR, BIGINT, BIGINT,      │           │
+    │          │         │         │  max_players, list_price]     │  BIGINT, VARCHAR]              │           │
+    └──────────┴─────────┴─────────┴───────────────────────────────┴────────────────────────────────┴───────────┘
+    -- Read directly from the attached ADBC table
+    D SELECT * FROM games;
+    ┌───────┬────────────┬─────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
+    │  id   │    name    │      inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
+    │ int64 │  varchar   │       varchar       │ varchar │  int64  │    int64    │    int64    │  varchar   │
+    ├───────┼────────────┼─────────────────────┼─────────┼─────────┼─────────────┼─────────────┼────────────┤
+    │     1 │ Monopoly   │ Elizabeth Magie     │ 1903    │       8 │           2 │           6 │ 19.99      │
+    │     2 │ Scrabble   │ Alfred Mosher Butts │ 1938    │       8 │           2 │           4 │ 17.99      │
+    │     3 │ Clue       │ Anthony E. Pratt    │ 1944    │       8 │           2 │           6 │ 9.99       │
+    │     4 │ Candy Land │ Eleanor Abbott      │ 1948    │       3 │           2 │           4 │ 7.99       │
+    │     5 │ Risk       │ Albert Lamorisse    │ 1957    │      10 │           2 │           5 │ 29.99      │
+    └───────┴────────────┴─────────────────────┴─────────┴─────────┴─────────────┴─────────────┴────────────┘
+    -- Insert into the ADBC database
+    D INSERT INTO games (SELECT 6, 'Battleship', 'Clifford Von Wickler', 1931, 7, 2, 2, 12.99);
+    D SELECT * FROM games;
+    ┌───────┬────────────┬──────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
+    │  id   │    name    │       inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
+    │ int64 │  varchar   │       varchar        │ varchar │  int64  │    int64    │    int64    │  varchar   │
+    ├───────┼────────────┼──────────────────────┼─────────┼─────────┼─────────────┼─────────────┼────────────┤
+    │     1 │ Monopoly   │ Elizabeth Magie      │ 1903    │       8 │           2 │           6 │ 19.99      │
+    │     2 │ Scrabble   │ Alfred Mosher Butts  │ 1938    │       8 │           2 │           4 │ 17.99      │
+    │     3 │ Clue       │ Anthony E. Pratt     │ 1944    │       8 │           2 │           6 │ 9.99       │
+    │     4 │ Candy Land │ Eleanor Abbott       │ 1948    │       3 │           2 │           4 │ 7.99       │
+    │     5 │ Risk       │ Albert Lamorisse     │ 1957    │      10 │           2 │           5 │ 29.99      │
+    │     6 │ Battleship │ Clifford Von Wickler │ 1931    │       7 │           2 │           2 │ 12.99      │
+    └───────┴────────────┴──────────────────────┴─────────┴─────────┴─────────────┴─────────────┴────────────┘
+    -- Create a local table in DuckDB of the inventors of each game
+    D CREATE TABLE memory.inventors AS (SELECT id, inventor FROM games);
+    -- Create a new table in the attached ADBC database (SQLite) of the inventors
+    D CREATE TABLE game_inventors(id, inventor) AS (SELECT * FROM memory.inventors);
+    D SELECT * FROM game_inventors;
+    ┌───────┬──────────────────────┐
+    │  id   │       inventor       │
+    │ int64 │       varchar        │
+    ├───────┼──────────────────────┤
+    │     1 │ Elizabeth Magie      │
+    │     2 │ Alfred Mosher Butts  │
+    │     3 │ Anthony E. Pratt     │
+    │     4 │ Eleanor Abbott       │
+    │     5 │ Albert Lamorisse     │
+    │     6 │ Clifford Von Wickler │
+    └───────┴──────────────────────┘
     -- Execute arbitrary DDL via adbc_execute
-    D CALL adbc_execute('profile://mydb', 'DROP TABLE public.game_inventors');
+    D CALL adbc_execute('profile://mydb', 'DROP TABLE games');
     ┌─────────┐
     │ Success │
     │ boolean │
