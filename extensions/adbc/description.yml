@@ -105,7 +105,7 @@ docs:
     2. **Seamless interoperability** with a large and growing ecosystem of Arrow-compatible systems.
     ### Key Capabilities
     * Supports catalog lookups, `SELECT`, `INSERT`, `COPY`, and `CREATE TABLE AS` (`CTAS`) statements directly on attached databases.
-    * Supports custom delimiters with `ATTACH` with a `DELIMITER` option (e.g., `DELIMITER '[]'`) to enable queries on attached databases with different table/schema delimiters.
+    * Supports custom delimiters with `ATTACH` (e.g., `DELIMITER '[]'`) to support systems with different table/schema delimiters.
     * Supports built-in connection pooling for each attached database (tunable with `adbc_connection_pool_size`)
     * Support streaming bulk ingest for `INSERT`, `COPY`, and CTAS statements, keeping memory usage low even for data sets that exceed main memory (tunable with `adbc_insert_buffer_size`).
     ### Known Limitations
