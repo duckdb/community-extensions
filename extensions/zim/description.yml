@@ -1,7 +1,7 @@
 extension:
   name: zim
   description: Read .zim (Kiwix / openZIM) archives directly in DuckDB via libzim, from local files or remote S3/HTTP — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more, with a zim:// filesystem and full-text search.
-  version: 0.4.1
+  version: 0.5.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -12,7 +12,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_zim
-  ref: 3736b4c1ee0055c89a32b03626e2aa9403a4beb5
+  ref: 87d627e8b0b8f923bad1bfbb9e55dd85412632a5
 docs:
   hello_world: |
     -- Load the extension
@@ -48,9 +48,16 @@ docs:
     SELECT * FROM read_blob('zim://wikipedia.zim/I/logo.png');
     SELECT * FROM read_text('zim://wikipedia.zim/A/B*');   -- glob over content paths
 
-    -- Full-text search over the archive's Xapian index (native builds).
+    -- Full-text search over the archive's Xapian index.
     SELECT path, title, score, snippet
     FROM zim_search('wikipedia.zim', 'photosynthesis', max_results := 20);
+
+    -- Search a REMOTE archive without downloading it: the Xapian index is read in
+    -- place via byte-range requests (a cold query fetches a fraction of a %, not the
+    -- whole multi-GB file). with_snippet := false skips fetching result bodies.
+    SELECT path, title FROM zim_search(
+      'https://download.kiwix.org/zim/.../wikipedia_en_medicine.zim',
+      'insulin', max_results := 10, with_snippet := false);
 
     -- Title autocomplete (works on every build, incl. WebAssembly).
     SELECT path, title FROM zim_suggest('wikipedia.zim', 'Photosyn');
