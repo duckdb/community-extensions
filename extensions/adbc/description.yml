@@ -1,0 +1,116 @@
+extension:
+  name: adbc
+  description: Connects DuckDB to any database that has an Arrow Database Connectivity (ADBC) driver.
+  version: '0.0.1'
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - columnar-tech
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
+repo:
+  github: columnar-tech/duckdb-adbc-client
+  andium: 2d1ed5ee8aa34d3ceaae18bcd464a7700feb4cc6
+  ref: 2d19eea3af6f293e2059e4cf9370d8bcbdcaa84a
+docs:
+  hello_world: |
+    -- Install and load the ADBC extension
+    INSTALL adbc FROM community;
+    LOAD adbc;
+    -- Read from an attached ADBC database (SQLite) given a connection profile using read_adbc
+    D SELECT * FROM read_adbc('profile://mydb', 'SELECT * FROM games');
+    ┌───────┬────────────┬─────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
+    │  id   │    name    │      inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
+    │ int64 │  varchar   │       varchar       │ varchar │  int64  │    int64    │    int64    │  varchar   │
+    ├───────┼────────────┼─────────────────────┼─────────┼─────────┼─────────────┼─────────────┼────────────┤
+    │     1 │ Monopoly   │ Elizabeth Magie     │ 1903    │       8 │           2 │           6 │ 19.99      │
+    │     2 │ Scrabble   │ Alfred Mosher Butts │ 1938    │       8 │           2 │           4 │ 17.99      │
+    │     3 │ Clue       │ Anthony E. Pratt    │ 1944    │       8 │           2 │           6 │ 9.99       │
+    │     4 │ Candy Land │ Eleanor Abbott      │ 1948    │       3 │           2 │           4 │ 7.99       │
+    │     5 │ Risk       │ Albert Lamorisse    │ 1957    │      10 │           2 │           5 │ 29.99      │
+    └───────┴────────────┴─────────────────────┴─────────┴─────────┴─────────────┴─────────────┴────────────┘
+    -- Create a persistent connection via ATTACH
+    D ATTACH 'profile://mydb' AS mydb (TYPE adbc);
+    -- Alternatively, ATTACH with a custom delimiter (i.e., SELECT * FROM [schema].[table] for SQL Server)
+    D ATTACH 'profile://mydb' AS otherdb (TYPE adbc, DELIMITER '[]');
+    -- Set the default schema
+    D USE mydb.main;
+    -- Display all tables in the attached ADBC database
+    D SHOW ALL TABLES;
+    ┌──────────┬─────────┬─────────┬───────────────────────────────┬────────────────────────────────┬───────────┐
+    │ database │ schema  │  name   │         column_names          │          column_types          │ temporary │
+    │ varchar  │ varchar │ varchar │           varchar[]           │           varchar[]            │  boolean  │
+    ├──────────┼─────────┼─────────┼───────────────────────────────┼────────────────────────────────┼───────────┤
+    │ mydb     │ main    │ games   │ [id, name, inventor, year,    │ [BIGINT, VARCHAR, VARCHAR,     │ false     │
+    │          │         │         │  min_age, min_players,        │  VARCHAR, BIGINT, BIGINT,      │           │
+    │          │         │         │  max_players, list_price]     │  BIGINT, VARCHAR]              │           │
+    └──────────┴─────────┴─────────┴───────────────────────────────┴────────────────────────────────┴───────────┘
+    -- Read directly from the attached ADBC table
+    D SELECT * FROM games;
+    ┌───────┬────────────┬─────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
+    │  id   │    name    │      inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
+    │ int64 │  varchar   │       varchar       │ varchar │  int64  │    int64    │    int64    │  varchar   │
+    ├───────┼────────────┼─────────────────────┼─────────┼─────────┼─────────────┼─────────────┼────────────┤
+    │     1 │ Monopoly   │ Elizabeth Magie     │ 1903    │       8 │           2 │           6 │ 19.99      │
+    │     2 │ Scrabble   │ Alfred Mosher Butts │ 1938    │       8 │           2 │           4 │ 17.99      │
+    │     3 │ Clue       │ Anthony E. Pratt    │ 1944    │       8 │           2 │           6 │ 9.99       │
+    │     4 │ Candy Land │ Eleanor Abbott      │ 1948    │       3 │           2 │           4 │ 7.99       │
+    │     5 │ Risk       │ Albert Lamorisse    │ 1957    │      10 │           2 │           5 │ 29.99      │
+    └───────┴────────────┴─────────────────────┴─────────┴─────────┴─────────────┴─────────────┴────────────┘
+    -- Insert into the ADBC database
+    D INSERT INTO games (SELECT 6, 'Battleship', 'Clifford Von Wickler', 1931, 7, 2, 2, 12.99);
+    D SELECT * FROM games;
+    ┌───────┬────────────┬──────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
+    │  id   │    name    │       inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
+    │ int64 │  varchar   │       varchar        │ varchar │  int64  │    int64    │    int64    │  varchar   │
+    ├───────┼────────────┼──────────────────────┼─────────┼─────────┼─────────────┼─────────────┼────────────┤
+    │     1 │ Monopoly   │ Elizabeth Magie      │ 1903    │       8 │           2 │           6 │ 19.99      │
+    │     2 │ Scrabble   │ Alfred Mosher Butts  │ 1938    │       8 │           2 │           4 │ 17.99      │
+    │     3 │ Clue       │ Anthony E. Pratt     │ 1944    │       8 │           2 │           6 │ 9.99       │
+    │     4 │ Candy Land │ Eleanor Abbott       │ 1948    │       3 │           2 │           4 │ 7.99       │
+    │     5 │ Risk       │ Albert Lamorisse     │ 1957    │      10 │           2 │           5 │ 29.99      │
+    │     6 │ Battleship │ Clifford Von Wickler │ 1931    │       7 │           2 │           2 │ 12.99      │
+    └───────┴────────────┴──────────────────────┴─────────┴─────────┴─────────────┴─────────────┴────────────┘
+    -- Create a local table in DuckDB of the inventors of each game
+    D CREATE TABLE memory.inventors AS (SELECT id, inventor FROM games);
+    -- Create a new table in the attached ADBC database (SQLite) of the inventors
+    D CREATE TABLE game_inventors(id, inventor) AS (SELECT * FROM memory.inventors);
+    D SELECT * FROM game_inventors;
+    ┌───────┬──────────────────────┐
+    │  id   │       inventor       │
+    │ int64 │       varchar        │
+    ├───────┼──────────────────────┤
+    │     1 │ Elizabeth Magie      │
+    │     2 │ Alfred Mosher Butts  │
+    │     3 │ Anthony E. Pratt     │
+    │     4 │ Eleanor Abbott       │
+    │     5 │ Albert Lamorisse     │
+    │     6 │ Clifford Von Wickler │
+    └───────┴──────────────────────┘
+    -- Execute arbitrary DDL via adbc_execute
+    D CALL adbc_execute('profile://mydb', 'DROP TABLE games');
+    ┌─────────┐
+    │ Success │
+    │ boolean │
+    ├─────────┤
+    │ true    │
+    └─────────┘
+    -- Clear local metadata cache after remote schema changes
+    D CALL adbc_clear_cache();
+  extended_description: |
+    Use DuckDB (v1.4.5+ or v1.5.4+) to query Snowflake, Databricks, BigQuery, PostgreSQL, MySQL, or any other system with an ADBC driver.
+    ADBC (Arrow Database Connectivity) is a universal data-access API built on Apache Arrow, an efficient, columnar data format that almost every data system supports natively.
+    By building on Arrow, ADBC enables:
+    1. **Lightning-fast (zero-copy) data transfer** between column-oriented analytical databases, bypassing the slow column-to-row and row-to-column conversions typical of legacy row-based APIs like ODBC or JDBC.
+    2. **Seamless interoperability** with a large and growing ecosystem of Arrow-compatible systems.
+    ### Key Capabilities
+    * Supports catalog lookups, `SELECT`, `INSERT`, `COPY`, and `CREATE TABLE AS` (`CTAS`) statements directly on attached databases.
+    * Supports custom delimiters with `ATTACH` (e.g., `DELIMITER '[]'`) to support systems with different table/schema delimiters.
+    * Supports built-in connection pooling for each attached database (tunable with `adbc_connection_pool_size`)
+    * Support streaming bulk ingest for `INSERT`, `COPY`, and CTAS statements, keeping memory usage low even for data sets that exceed main memory (tunable with `adbc_insert_buffer_size`).
+    ### Known Limitations
+    * Operates exclusively in **Autocommit Mode**.
+    * Predicate and projection pushdowns are not automatically performed for attached tables; use direct `read_adbc()` queries to push projections and predicates to remote ADBC databases.
+    * Concurrent ADBC operations within a single process are not supported. Mixing ADBC reads and writes in the same SQL statement is also restricted by default unless explicitly permitted via `adbc_mix_reads_writes`.
+    For more information see the [documentation](https://github.com/columnar-tech/duckdb-adbc-client).
+
