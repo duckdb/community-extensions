@@ -1,0 +1,28 @@
+extension:
+  name: lttb
+  description: Largest-Triangle-Three-Buckets and related time-series downsampling aggregate functions.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - reformovo
+
+repo:
+  github: reformovo/duckdb-lttb
+  ref: abe26b4f84cc081ed038e1cda3ee60772d1b7b64
+
+docs:
+  hello_world: |
+    SELECT lttb(x, y, 4)
+    FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);
+  extended_description: |
+    The lttb extension provides aggregate functions for time-series downsampling directly in SQL.
+
+    It includes exact Largest-Triangle-Three-Buckets sampling with `lttb`, a ClickHouse-compatible
+    alias `largestTriangleThreeBuckets`, a sorted-input fast path with `lttb_sorted`, selected
+    index output with `lttb_indices`, approximate MinMax preselection with `minmax_lttb` and
+    `minmax_lttb_sorted`, and per-bucket summaries with `bucket_stats`.
+
+    Inputs may use numeric, decimal, date, and timestamp types. The sampled output preserves
+    the input `x` and `y` types as `STRUCT(x, y)[]`.
