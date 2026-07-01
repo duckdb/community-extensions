@@ -7,7 +7,6 @@ extension:
   license: Apache-2.0
   maintainers:
     - columnar-tech
-  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
 repo:
   github: columnar-tech/duckdb-adbc-client
   andium: 2d1ed5ee8aa34d3ceaae18bcd464a7700feb4cc6
