@@ -2,8 +2,8 @@
 # https://github.com/duckdb/community-extensions as extensions/ducklink/description.yml
 extension:
   name: ducklink
-  description: Run WebAssembly component extensions inside DuckDB
-  version: 0.5.2
+  description: Load portable WebAssembly extension modules into DuckDB from SQL
+  version: 4.0.0
   language: Rust
   build: cargo
   license: MIT
@@ -19,30 +19,49 @@ extension:
 
 repo:
   github: tegmentum/ducklink-extension
-  ref: v0.5.2
+  ref: v4.0.0
 
 docs:
   hello_world: |
-    -- The extension ships one built-in, so loading works with no component:
     LOAD ducklink;
-    SELECT ducklink_version();   -- e.g. 'ducklink 0.5.0'
+    SELECT ducklink_version();
 
-    -- To expose a component's functions, point ducklink at one or more
-    -- `duckdb:extension` WebAssembly components via the DUCKLINK_COMPONENTS
-    -- environment variable BEFORE starting DuckDB, e.g.
-    --   DUCKLINK_COMPONENTS=isin=/path/to/isin.wasm
-    -- then every function the component registers becomes callable:
-    --   LOAD ducklink;
-    --   SELECT isin_is_valid('US0378331005');
+    -- ducklink hosts portable WebAssembly extension modules. Browse the
+    -- catalog of modules it can load (offline-safe via a bundled snapshot):
+    SELECT name, description FROM ducklink.modules LIMIT 5;
+
+    -- Load one by name — ducklink fetches, sha256-verifies, and caches the
+    -- component, then registers its functions for use in later statements:
+    --   FROM ducklink_load('aba');
+    --   SELECT aba_validate('021000021');   -- true
   extended_description: |
-    ducklink lets a single, portable WebAssembly component — built once against
-    the `duckdb:extension` WIT world — load into DuckDB on any supported platform
-    without per-platform native builds. The extension embeds wasmtime, loads each
-    component named in the `DUCKLINK_COMPONENTS` environment variable (a
-    `:`-separated list of `name=path` entries, read when `LOAD ducklink` runs),
-    runs its `load()` to capture the scalar/table/aggregate functions it
-    registers, and bridges them into DuckDB's function catalog. A built-in
-    `ducklink_version()` scalar is always available so the extension is usable
-    and testable before any component is configured. The same components run
-    unchanged under the standalone `ducklink` host (DuckDB-compiled-to-wasm), so
-    one artifact targets both directions.
+    ducklink turns DuckDB into a host for portable WebAssembly extension
+    modules. A module is built once against the `duckdb:extension` WIT world
+    and runs on any supported platform — no per-platform native build.
+
+    The interface is SQL-native and catalog-backed. `ducklink_load('<name>')`
+    resolves a name against a curated online catalog, downloads the component
+    (sha256-verified) into a local cache, and registers the scalar / table /
+    aggregate functions it declares for use in subsequent statements:
+
+        FROM ducklink_load('aba');
+        SELECT aba_validate('021000021');   -- true
+
+    A set of system views makes everything introspectable:
+
+      * ducklink.modules      — the full catalog, with a `loaded` flag
+      * ducklink.functions    — every function with its full SQL signature
+      * ducklink.capabilities — what this host build supports
+      * ducklink.cache        — the local component cache
+      * ducklink.versions     — module generations and compatibility
+
+    On Linux and macOS an advanced tier also enables a `LOAD WASM '<name>'`
+    statement — an explicit, sandbox-aware alternative to `ducklink_load` that
+    signals you are entering the WebAssembly module boundary.
+
+    A built-in `ducklink_version()` scalar is always available, so the
+    extension is usable and testable before any module is loaded. For
+    deployments, the `DUCKLINK_COMPONENTS` environment variable can preload a
+    fixed set of modules at load time. The same components run unchanged under
+    the standalone `ducklink` host (DuckDB-compiled-to-wasm), so one artifact
+    targets both directions.
