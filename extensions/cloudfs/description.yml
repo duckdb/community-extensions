@@ -1,0 +1,60 @@
+extension:
+  name: cloudfs
+  description: >
+    Query SharePoint, OneDrive, Google Drive, Dropbox, SFTP, and any VPS
+    (via cloudfs-agent) using spfs://, odfs://, gdfs://, dbxfs://,
+    sftp://, and vfs:// — with the same capabilities as s3://.
+    Supports Parquet, CSV, JSON, Delta Lake, Iceberg, glob patterns,
+    and COPY TO across all providers.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - trouchet
+  requires_toolchains:
+    - cmake
+    - curl
+    - openssl
+    - libssh2
+
+repo:
+  github: trouchet/cloudfs
+  ref: dc364b16ed35f89f2526e839afa517b906466ef9
+
+docs:
+  hello_world: |
+    -- Auth on SharePoint (Interactive Device Code Flow)
+    CREATE PERSISTENT SECRET sp (
+        TYPE sharepoint, PROVIDER oauth,
+        TENANT_ID 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+    );
+    -- Read Parquet directly on SharePoint (as s3://)
+    SELECT year, sum(revenue)
+    FROM read_parquet('spfs://empresa.sharepoint.com/sites/Data/Docs/**/*.parquet',
+                      hive_partitioning := true)
+    GROUP BY year;
+
+    -- VPS withcloudfs-agent (any Linux/Mac)
+    CREATE SECRET servidor (TYPE vfs, PROVIDER token, TOKEN 'seu-token');
+    SELECT * FROM ls('vfs://10.0.0.5:8765/data/', recursive := true);
+    COPY (SELECT ...) TO 'vfs://10.0.0.5:8765/exports/resultado.parquet';
+
+  extended_description: |
+    cloudfs registers six URL schemes with DuckDB's virtual filesystem:
+
+    | Scheme   | Provider       | Auth                         |
+    |----------|----------------|------------------------------|
+    | spfs://  | SharePoint     | OAuth2 Device Code / token   |
+    | odfs://  | OneDrive       | OAuth2 Device Code / token   |
+    | gdfs://  | Google Drive   | OAuth2 PKCE / Service Acct   |
+    | dbxfs:// | Dropbox        | OAuth2 PKCE / token          |
+    | sftp://  | Any VPS/server | SSH key / agent / password   |
+    | vfs://   | cloudfs-agent  | Bearer token                 |
+
+    All formats that work with s3:// work here too: Parquet, CSV, JSON,
+    Delta Lake, Apache Iceberg, Hive partitioning, COPY TO, glob patterns.
+
+    cloudfs-agent is an ~8 MB static Go binary that turns any Linux server
+    into a vfs:// endpoint with HTTP range reads and bearer-token auth.
+    Deploy with: ./cloudfs-agent --token $(openssl rand -hex 32) --root /data
