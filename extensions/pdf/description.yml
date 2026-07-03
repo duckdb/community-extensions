@@ -9,8 +9,8 @@
 
 extension:
   name: pdf
-  description: Read text, metadata, words, lines, and tables from PDF files (with optional Tesseract OCR), and convert documents (docx, odt, rtf, html, ...) to PDF.
-  version: 0.1.0
+  description: Read text, metadata, words, lines, and tables from PDF files (with optional Tesseract OCR); write PDFs natively via libharu (`write_pdf` / `COPY … TO FORMAT pdf`); and convert office documents to PDF.
+  version: 0.2.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -26,7 +26,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: df35aa9979c07688bb9530c15428380418ddc41f
+  ref: 88ec728efb936fb60d5faefd11ea2d126f3222be
 
 docs:
   hello_world: |
@@ -51,6 +51,10 @@ docs:
 
     -- Whole document as plain text (scalar)
     SELECT pdf_to_text('report.pdf') AS full_text;
+
+    -- Write a PDF natively (no external tools needed) — libharu under the hood
+    SELECT write_pdf('Hello from DuckDB!', '/tmp/hello.pdf');   -- returns the path
+    COPY (SELECT 'Hello' AS col) TO '/tmp/out.pdf' (FORMAT pdf);
 
     -- Convert a document (docx, odt, rtf, html, ...) to PDF, then read it back
     -- (requires LibreOffice installed at runtime)
@@ -87,6 +91,10 @@ docs:
     - `pdf_to_html(path)` — document rendered to HTML.
     - `pdf_to_xml(path)` — document rendered to XML (Poppler pdftoxml format).
     - `pdf_to_svg(path, page)` — a single page rendered to SVG.
+    - `write_pdf(content[, path])` — write a PDF natively via libharu (no
+      external tools); `content` is a plain-text VARCHAR rendered as paragraphs.
+      Returns the written path. Also available as `COPY (SELECT …) TO 'out.pdf'
+      (FORMAT pdf)` for table output.
     - `to_pdf(path[, output_path])` — convert a document (docx, doc, odt, rtf,
       html, odp, pptx, xlsx, ...) to PDF; writes alongside the input (extension
       swapped to `.pdf`) or to `output_path`, and returns the written path. See
