@@ -16,7 +16,7 @@ docs:
     -- Install and load the ADBC extension
     INSTALL adbc FROM community;
     LOAD adbc;
-    -- Read from an attached ADBC database (SQLite) given a connection profile using read_adbc
+    -- Read from an ADBC database (SQLite) with read_adbc given an ADBC connection profile URI and a SQL query
     D SELECT * FROM read_adbc('profile://mydb', 'SELECT * FROM games');
     ┌───────┬────────────┬─────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
     │  id   │    name    │      inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
@@ -28,7 +28,9 @@ docs:
     │     4 │ Candy Land │ Eleanor Abbott      │ 1948    │       3 │           2 │           4 │ 7.99       │
     │     5 │ Risk       │ Albert Lamorisse    │ 1957    │      10 │           2 │           5 │ 29.99      │
     └───────┴────────────┴─────────────────────┴─────────┴─────────┴─────────────┴─────────────┴────────────┘
-    -- Create a persistent connection via ATTACH
+    -- Create a table function macro to avoid retyping the connection profile URI each time
+    D CREATE MACRO read_mydb(query) AS TABLE SELECT * FROM read_adbc('profile://mydb', query);
+    -- Create a persistent connection to the ADBC database via ATTACH
     D ATTACH 'profile://mydb' AS mydb (TYPE adbc);
     -- Alternatively, ATTACH with a custom delimiter (i.e., SELECT * FROM [schema].[table] for SQL Server)
     D ATTACH 'profile://mydb' AS otherdb (TYPE adbc, DELIMITER '[]');
@@ -44,7 +46,7 @@ docs:
     │          │         │         │  min_age, min_players,        │  VARCHAR, BIGINT, BIGINT,      │           │
     │          │         │         │  max_players, list_price]     │  BIGINT, VARCHAR]              │           │
     └──────────┴─────────┴─────────┴───────────────────────────────┴────────────────────────────────┴───────────┘
-    -- Read directly from the attached ADBC table
+    -- Read directly from the attached ADBC table (no projection or predicate pushdown, use read_adbc for that)
     D SELECT * FROM games;
     ┌───────┬────────────┬─────────────────────┬─────────┬─────────┬─────────────┬─────────────┬────────────┐
     │  id   │    name    │      inventor       │  year   │ min_age │ min_players │ max_players │ list_price │
