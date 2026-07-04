@@ -1,7 +1,7 @@
 extension:
   name: laterite_ags4
   description: Read AGS4 geotechnical data files as typed, UUID-keyed tables directly from SQL — born-typed columns, deterministic content-addressed keys that join across groups by construction, embedded AGS dictionary, and opt-in validation. Local, http(s):// and s3:// (with httpfs).
-  version: 0.5.0
+  version: 0.6.0
   language: Rust
   build: cargo
   license: MIT
@@ -23,7 +23,7 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: 35275386640d76c0f726c8df60b48d65057a3bef
+  ref: 5713898470a46f58dfcedfa3a38c60a0a3bf8289
 
 docs:
   hello_world: |
