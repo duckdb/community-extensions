@@ -1,16 +1,7 @@
-# Community-extensions submission descriptor for the `pdf` extension.
-#
-# To submit this extension to the DuckDB community-extensions registry:
-#   1. Fork https://github.com/duckdb/community-extensions
-#   2. Copy this file to extensions/pdf/description.yml in your fork
-#   3. Set repo.ref below to the exact git SHA of the release commit in
-#      asubbarao/duckdb-pdf that the registry should build from
-#   4. Open a pull request against duckdb/community-extensions
-
 extension:
   name: pdf
-  description: Read text, metadata, words, lines, and tables from PDF files (with optional Tesseract OCR); write PDFs natively via libharu (`write_pdf` / `COPY … TO FORMAT pdf`); and convert office documents to PDF.
-  version: 0.2.0
+  description: Read text, metadata, words, lines, tables, and markdown from PDF files (works on scanned PDFs via Tesseract OCR word boxes); render pages; write PDFs natively via libharu (`write_pdf` / `COPY … TO FORMAT pdf`); and convert office documents to PDF.
+  version: 0.3.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -26,7 +17,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 88ec728efb936fb60d5faefd11ea2d126f3222be
+  ref: 1d60d7580f0702208ed228cbd548589af9dfe766
 
 docs:
   hello_world: |
@@ -41,7 +32,7 @@ docs:
     -- Search across many PDFs at once
     SELECT filename, page
     FROM read_pdf('reports/*.pdf')
-    WHERE text ILIKE '%revenue%';
+    WHERE contains(lower(text), 'revenue');
 
     -- Document metadata, one row per file
     SELECT title, author, pages FROM read_pdf_meta('report.pdf');
@@ -49,8 +40,14 @@ docs:
     -- Extract tabular regions from digital PDFs
     SELECT * FROM read_pdf_tables('financial_report.pdf');
 
-    -- Whole document as plain text (scalar)
+    -- Whole document as plain text (scalar) — also accepts a BLOB
     SELECT pdf_to_text('report.pdf') AS full_text;
+
+    -- Layout-aware GitHub markdown (headings, bold, bullets, pipe tables)
+    SELECT pdf_to_markdown('report.pdf') AS md;
+
+    -- Render a page to a PNG BLOB (thumbnails, vision-model input, ...)
+    SELECT pdf_to_png('report.pdf', 1, 150) AS page_image;
 
     -- Write a PDF natively (no external tools needed) — libharu under the hood
     SELECT write_pdf('Hello from DuckDB!', '/tmp/hello.pdf');   -- returns the path
@@ -81,20 +78,38 @@ docs:
       subject, keywords, creator, producer, pages, pdf_version, encrypted.
     - `read_pdf_words(path, ...)` — one row per word; columns: filename, page,
       word, x0, y0, x1, y1 (bounding box in PDF user-space points, origin
-      bottom-left), font_name, font_size.
-    - `read_pdf_tables(path, ...)` — extracts tabular regions from digital PDFs;
+      bottom-left), font_name, font_size, source ('text' | 'ocr'), confidence
+      (OCR word confidence, NULL for native text). On scanned pages, words come
+      from Tesseract with real bounding boxes — so word-level SQL works on
+      scans too.
+    - `read_pdf_tables(path, ...)` — extracts tabular regions from digital AND
+      scanned PDFs (scanned pages are reconstructed from OCR word boxes);
       columns: filename, page, table_index, row_index, cells (VARCHAR[]).
 
     **Scalar functions**
 
-    - `pdf_to_text(path[, layout])` — entire document as a plain-text VARCHAR.
-    - `pdf_to_html(path)` — document rendered to HTML.
-    - `pdf_to_xml(path)` — document rendered to XML (Poppler pdftoxml format).
-    - `pdf_to_svg(path, page)` — a single page rendered to SVG.
+    - `pdf_to_text(path_or_blob[, layout])` — entire document as a plain-text
+      VARCHAR. All render scalars also accept PDF bytes as a BLOB, so they
+      compose with `read_blob`, httpfs, and any source of in-memory PDFs.
+    - `pdf_to_markdown(path)` — layout-aware GitHub markdown: headings inferred
+      from font-size structure, bold spans, bullet lists, and pipe tables.
+    - `pdf_to_html(path_or_blob)` — document rendered to HTML.
+    - `pdf_to_xml(path_or_blob)` — document rendered to XML (pdftoxml format).
+    - `pdf_to_svg(path_or_blob, page[, dpi])` — a single page rendered to SVG.
+    - `pdf_to_png(path_or_blob, page[, dpi])` — a single page rasterized to PNG,
+      returned as a BLOB — feed PDF pages straight to vision models, thumbnail
+      pipelines, or any consumer of image bytes.
     - `write_pdf(content[, path])` — write a PDF natively via libharu (no
       external tools); `content` is a plain-text VARCHAR rendered as paragraphs.
       Returns the written path. Also available as `COPY (SELECT …) TO 'out.pdf'
-      (FORMAT pdf)` for table output.
+      (FORMAT pdf)` for table output, with options `TITLE`, `AUTHOR`,
+      `FONT_SIZE` (4–72), `PAGE_SIZE` ('letter' | 'a4' | 'legal'), `MARGIN`
+      (points), and per-page `HEADER` / `FOOTER` (footer supports a `{page}`
+      page-number placeholder):
+
+          COPY (SELECT * FROM report_lines)
+          TO 'report.pdf' (FORMAT pdf, TITLE 'Q3 Report', PAGE_SIZE 'a4',
+                           HEADER 'ACME Internal', FOOTER 'page {page}');
     - `to_pdf(path[, output_path])` — convert a document (docx, doc, odt, rtf,
       html, odp, pptx, xlsx, ...) to PDF; writes alongside the input (extension
       swapped to `.pdf`) or to `output_path`, and returns the written path. See
