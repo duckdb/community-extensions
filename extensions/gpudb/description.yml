@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: singhpratech/duckdbgpumetaldbram
-  ref: ae4bd9cd80e9f7f8ee85e755527a34a7915ed3df
+  ref: 018d8a306ac2903f64c3391d42c59038b4fc2c28
 
 docs:
   hello_world: |
