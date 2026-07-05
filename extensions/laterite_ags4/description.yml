@@ -23,7 +23,7 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: 67049839f5bdb728897f1024a362e692519c9b87
+  ref: 6bb4057eacefe931623df0a09a50c8650ebab92f
 
 docs:
   hello_world: |
