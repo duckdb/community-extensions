@@ -1,7 +1,7 @@
 extension:
   name: loki
   description: Query Grafana Loki from DuckDB in plain SQL, with label/time/line-filter pushdown into LogQL
-  version: 1.0.0
+  version: 1.0.1
   language: C++
   build: cmake
   license: MIT
@@ -16,7 +16,7 @@ extension:
 
 repo:
   github: prochac/duckdb-loki
-  ref: v1.0.0
+  ref: v1.0.1
 
 docs:
   hello_world: |
