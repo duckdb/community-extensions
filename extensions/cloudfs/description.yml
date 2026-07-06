@@ -20,7 +20,7 @@ extension:
 
 repo:
   github: trouchet/cloudfs
-  ref: dc364b16ed35f89f2526e839afa517b906466ef9
+  ref: 4ca1432dfa01dffae0b167ba96b44720f0e39d83
 
 docs:
   hello_world: |
