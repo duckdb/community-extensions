@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: CogitatorTech/onager
-  ref: 6165e7cd3cd50e3f40ac20b2ee60c2d41ec747e8
+  ref: 04acee12076246a9bce8b60d061222dc5dc56ed9
 
 docs:
   hello_world: |
