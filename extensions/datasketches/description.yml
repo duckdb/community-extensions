@@ -14,4 +14,4 @@ extension:
 repo:
   andium: d758a5a4e8dc40119ced5e74660ee841960f1788
   github: query-farm/datasketches
-  ref: 968c46c1c2b93d5a5345728dd9cb9bfe8fa3d73c
+  ref: 55f05bf3c07649f7e45e09a3eb8ef9b1a5627782
