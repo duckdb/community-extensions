@@ -1,0 +1,64 @@
+extension:
+  name: anofox_tabfm
+  description: Zero-shot tabular machine learning inside DuckDB — classification and regression via Google's TabFM foundation model on ONNX Runtime, no training loop
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - sipemu
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+
+repo:
+  github: DataZooDE/anofox-tabfm
+  ref: ee2c97599510f03c1221483899fa804b4d57d633
+
+docs:
+  hello_world: |
+    -- Enable Google's license gate and download the weight-free model once.
+    -- The extension ships only the computation graph; you fetch the weights
+    -- yourself from Hugging Face under Google's non-commercial license.
+    INSTALL httpfs; LOAD httpfs;                    -- weights are fetched over HTTPS
+    SET anofox_tabfm_accept_hf_license = true;      -- non-commercial, no redistribution
+    CALL tabfm_download('classification');          -- ~6.6 GB, cached under ~/.cache/anofox-tabfm
+
+    -- Zero-shot classification: the model reads labelled rows as in-context
+    -- examples and predicts the unlabelled ones — no training step.
+    CREATE TABLE history  AS SELECT * FROM VALUES
+      (25, 40000, true), (52, 90000, false), (31, 55000, true), (44, 62000, false)
+      AS t(age, income, churned);
+    CREATE TABLE prospects AS SELECT * FROM VALUES
+      (29, 48000), (60, 120000) AS t(age, income);
+
+    SELECT * FROM tabfm_classify('history', 'churned', test := 'prospects');
+
+  extended_description: |
+    **anofox_tabfm** embeds Google's [TabFM](https://github.com/google-research/tabfm)
+    tabular foundation model — a TabPFN-style in-context learner — into DuckDB, so
+    tabular classification and regression become a single SQL statement. There is no
+    training loop, no Python, and no MLOps: the model reads your labelled rows as
+    context and predicts the rest.
+
+    Inference runs on [ONNX Runtime](https://onnxruntime.ai/), statically linked into
+    the extension (CPU execution provider). CUDA and ROCm/MIGraphX flavors exist in
+    the source tree for self-builds; this community build ships the portable CPU
+    flavor.
+
+    ### License / weights
+    No Google model weights are distributed with this extension — it bundles only a
+    **weight-free** computation graph. You download the weights yourself from Hugging
+    Face after accepting Google's license
+    (`SET anofox_tabfm_accept_hf_license = true; CALL tabfm_download(...)`). The
+    weights (~6.6 GB for classification) are cached locally under
+    `~/.cache/anofox-tabfm` and reused across sessions.
+
+    ### Surface
+    - `tabfm_classify` / `tabfm_regress` — zero-shot predict over a test set
+    - `tabfm_predict`, `tabfm_predict_by`, `tabfm_predict_agg`, `tabfm_predict_win`
+    - `tabfm_download` / `tabfm_models` / `tabfm_load` / `tabfm_unload` / `tabfm_remove`
+    - `tabfm_devices` — discover CPU/GPU execution providers
+    - `SET anofox_tabfm_*` settings (license gate, cache dir, threads, device, tracing)
+
+    Full function names are `anofox_tabfm_*` with short `tabfm_*` aliases. See the
+    [project repository](https://github.com/DataZooDE/anofox-tabfm) for the full
+    SQL API and examples.
