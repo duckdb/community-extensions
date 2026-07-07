@@ -1,7 +1,7 @@
 extension:
   name: ai
   description: AI functions for SQL — completions, classification, extraction, embeddings, and read-only SQL generation across local and hosted model providers
-  version: 0.3.1
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: leonardovida/duckdb-ai
-  ref: 44b34ec71e03e243ddd53e370ce454476c7ce76b
+  ref: 42139d114b5513b18a6e674a9bc689b2e2762c04
 
 docs:
   hello_world: |
@@ -25,7 +25,7 @@ docs:
     CREATE SECRET openai_ai (TYPE duckdb_ai, AI_PROVIDER 'openai', API_KEY '...', MODEL 'gpt-4o-mini');
     SELECT ai_classify('invoice overdue', 'billing, support', secret := 'openai_ai');
   extended_description: |
-    duckdb_ai adds model-backed analytical functions to SQL: completions
+    The ai extension adds model-backed analytical functions to SQL: completions
     (`ai_complete`), text tasks (`ai_summarize`, `ai_classify`, `ai_extract`,
     `ai_translate`, `ai_redact`, `ai_filter`), structured output validated
     against a JSON Schema (`ai_complete_json`, `ai_complete_record`,
@@ -34,7 +34,7 @@ docs:
     and a SQL assistant that only returns parser-validated read-only `SELECT`
     statements (`ai_sql`, `ai_query_data`).
 
-    It supports local Ollama and OpenAI-compatible servers as well as OpenAI,
+    It supports local Ollama, llama.cpp, and OpenAI-compatible servers as well as OpenAI,
     Azure OpenAI, Anthropic, Gemini, Mistral, DeepSeek, OpenRouter, Databricks,
     Snowflake Cortex, and Z.ai. Credentials come from environment variables or
     DuckDB `TYPE duckdb_ai` secrets — never SQL arguments. The runtime includes
