@@ -1,0 +1,85 @@
+extension:
+  name: zarr
+  description: Query Zarr array stores (v2 and v3) with SQL - read xarray-convention datasets as tables
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
+  license: MIT
+  maintainers:
+    - alxmrs
+    - d33bs
+
+repo:
+  github: xqlsystems/duckdb-zarr
+  ref: v0.1.0
+
+docs:
+  hello_world: |
+    INSTALL zarr FROM community;
+    LOAD zarr;
+
+    -- Read a local Zarr store as a table.
+    SELECT time, lat, lon, temperature
+    FROM read_zarr('path/to/store.zarr')
+    LIMIT 10;
+
+    -- Inspect and query a multiscale OME-Zarr bioimage.
+    SELECT name, dims, shape
+    FROM read_zarr_metadata('image.ome.zarr');
+
+    SELECT c, AVG("0") AS mean_intensity
+    FROM read_zarr('image.ome.zarr', array_path = '0')
+    GROUP BY c;
+  extended_description: |
+    The Zarr extension exposes [Zarr](https://zarr.dev/) array stores as SQL tables,
+    following the [xarray](https://xarray.dev/) dimension convention used by climate science,
+    geospatial, and bioimaging datasets.
+
+    **Functions**
+
+    - `read_zarr(path)` scans all rows from a single-group Zarr store.
+    - `read_zarr(path, dims=['time','lat','lon'])` selects one dim group from a multi-group store.
+    - `read_zarr_metadata(path)` inspects array names, dtypes, shapes, and roles.
+    - `read_zarr_groups(path)` enumerates distinct dimension groups in a store.
+
+    **Automatic path interception**
+
+    Any path ending in `.zarr` is automatically routed to `read_zarr`:
+
+    ```sql
+    SELECT * FROM 'era5.zarr' LIMIT 5;
+    SELECT * FROM 'https://example.org/data.zarr' LIMIT 5;
+    ```
+
+    **Supported formats**
+
+    - Zarr v2 and v3
+    - Codecs: gzip, zstd, blosc, crc32c, sharding, transpose, bytes (big/little endian)
+    - CF conventions: `scale_factor`/`add_offset` packed integers, `_FillValue`/`missing_value` null masking
+    - Local filesystem, HTTP/HTTPS, S3, GCS, and Azure Blob Storage
+      (consolidated metadata required for remote array listing; S3/GCS/Azure credentials
+      are read from DuckDB's secrets manager - `CREATE SECRET ... TYPE S3` etc.)
+
+    **Bioimage and OME-Zarr**
+
+    OME-Zarr images commonly contain multiple resolution levels and nested label
+    arrays. Use `read_zarr_metadata` to discover store-relative array paths, then
+    pass `array_path` to select a level or label image:
+
+    ```sql
+    SELECT name, dims, shape, dtype
+    FROM read_zarr_metadata('image.ome.zarr');
+
+    SELECT c, AVG("0") AS mean_intensity
+    FROM read_zarr('image.ome.zarr', array_path = '0')
+    WHERE y BETWEEN 100 AND 199
+      AND x BETWEEN 200 AND 299
+    GROUP BY c;
+
+    SELECT "labels/nuclei/0" AS label, COUNT(*) AS pixels
+    FROM read_zarr('image.ome.zarr', array_path = 'labels/nuclei/0')
+    WHERE "labels/nuclei/0" > 0
+    GROUP BY label;
+    ```
