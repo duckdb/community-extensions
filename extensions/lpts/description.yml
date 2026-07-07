@@ -1,7 +1,7 @@
 extension:
   name: lpts
   description: Optimized-plan inspection and cross-system SQL transpilation
-  version: 1.0.0
+  version: 1.1.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cwida/lpts
-  ref: 1b8e8501ffe6a6f730ce7519577ec448e9869dcf
+  ref: 6845654b3ce21922f83f226937abd3aa9a790a70
 
 docs:
   hello_world: |
@@ -32,13 +32,33 @@ docs:
     SELECT  t0_name AS "name"
     FROM    t0_scan;
 
-    -- Check that the generated SQL returns the same bag of rows as the input query.
-    D PRAGMA lpts_check('SELECT name FROM users WHERE age > 25');
+    -- The same output, exposed as a first-class EXPLAIN statement.
+    D EXPLAIN (FORMAT SQL) SELECT name FROM users WHERE age > 25;
+    ┌─────────────────────────────┐
+    │┌───────────────────────────┐│
+    ││  Optimized Logical Plan   ││
+    │└───────────────────────────┘│
+    └─────────────────────────────┘
+    WITH
+    t0_scan (t0_name) AS (
+        SELECT  "name"
+        FROM    memory.main.users
+        WHERE   (age>25)
+    )
+    SELECT  t0_name AS "name"
+    FROM    t0_scan;
+
+    -- Turn on transparent round-trip checking. Every top-level SELECT is now
+    -- rewritten by LPTS and its result compared against the original; a wrong
+    -- rewrite raises an error. The query otherwise returns its normal rows.
+    D SET lpts_check = true;
+    D SELECT name FROM users WHERE age > 25;
     ┌─────────┐
-    │  match  │
-    │ boolean │
+    │  name   │
+    │ varchar │
     ├─────────┤
-    │ true    │
+    │ Alice   │
+    │ Carol   │
     └─────────┘
 
   extended_description: |
@@ -56,11 +76,10 @@ docs:
 
     LPTS also extends DuckDB's `EXPLAIN` with a `SQL` format. `EXPLAIN (FORMAT SQL)
     <query>` returns the optimized logical plan rendered as equivalent CTE SQL — the
-    same output as `PRAGMA lpts`, but exposed as a first-class `EXPLAIN` statement
-    (similar to the plan-as-SQL output in Umbra). The CLI prints the SQL as plain
-    multi-line text, while JDBC, Python, and other clients receive the standard
-    two-column (`explain_key`, `explain_value`) EXPLAIN result. It honors
-    `lpts_dialect` just like `PRAGMA lpts`.
+    same output as `PRAGMA lpts`, but exposed as a first-class `EXPLAIN` statement.
+    The CLI prints the SQL as plain multi-line text, while JDBC, Python, and other
+    clients receive the standard two-column (`explain_key`, `explain_value`) EXPLAIN
+    result. It honors `lpts_dialect` just like `PRAGMA lpts`.
 
     ```sql
     EXPLAIN (FORMAT SQL) SELECT name FROM users WHERE age > 25;
@@ -165,11 +184,11 @@ docs:
     -- Switch back to DuckDB rendering.
     D SET lpts_dialect = 'duckdb';
 
-    -- Execute the generated SQL and return the query result.
-    D PRAGMA lpts_exec('SELECT name FROM events WHERE id > 10 ORDER BY name');
-
-    -- Compare original and generated SQL using bag equality.
-    D PRAGMA lpts_check('SELECT name FROM events WHERE id > 10 ORDER BY name');
+    -- Turn on transparent round-trip checking, then run the query directly.
+    -- LPTS rewrites every top-level SELECT and compares its result bag against
+    -- the original, raising on a mismatch; the query returns its normal rows.
+    D SET lpts_check = true;
+    D SELECT name FROM events WHERE id > 10 ORDER BY name;
     ```
 
     ```text
@@ -178,13 +197,6 @@ docs:
     │ varchar │
     ├─────────┤
     │ beta    │
-    └─────────┘
-
-    ┌─────────┐
-    │  match  │
-    │ boolean │
-    ├─────────┤
-    │ true    │
     └─────────┘
     ```
 
