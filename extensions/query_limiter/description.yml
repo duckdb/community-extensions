@@ -1,0 +1,22 @@
+extension:
+  name: query_limiter
+  description: Reject queries before physical execution when estimated table scans exceed a configured row budget
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-query-limiter
+  ref: dc4bc69d22eb5ac53e755909015af942c27eb145
+
+docs:
+  hello_world: |
+    SET max_rows_to_scan = 1000000;
+    CREATE TABLE limiter_demo AS SELECT i FROM range(100) tbl(i);
+    SELECT sum(i) FROM limiter_demo;
+  extended_description: |
+    Query Limiter is a DuckDB extension that rejects queries before physical execution when DuckDB estimates that table scans would exceed a configured row budget.
