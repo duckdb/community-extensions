@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-query-limiter
-  ref: dc4bc69d22eb5ac53e755909015af942c27eb145
+  ref: 410e2418cf7f9d9dccbf2dccb6bb8b22d5df5e14
 
 docs:
   hello_world: |
