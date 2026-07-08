@@ -1,7 +1,7 @@
 extension:
   name: ai
   description: AI functions for SQL — completions, classification, extraction, embeddings, and read-only SQL generation across local and hosted model providers
-  version: 0.4.0
+  version: 0.4.5
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: leonardovida/duckdb-ai
-  ref: 42139d114b5513b18a6e674a9bc689b2e2762c04
+  ref: 43879994c628cb1fe2f1564662d9e075c16a4b12
 
 docs:
   hello_world: |
