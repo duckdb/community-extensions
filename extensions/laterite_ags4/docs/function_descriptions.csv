@@ -1,0 +1,8 @@
+function,description,comment,example
+read_ags,"Read one AGS4 group as a typed table — born-typed columns plus content-addressed _id/_parent_id keys","Local / http(s):// / s3:// (with LOAD httpfs); consumes a sibling .ags.idx for a fast single-group slice","SELECT loca_id, loca_gl FROM read_ags('site.ags', 'LOCA');"
+read_ags_text,"Read one AGS4 group as a typed table from an inline AGS4 string","No filesystem — the input is a VARCHAR (already UTF-8)","SELECT * FROM read_ags_text(ags_string, 'LOCA');"
+ags_groups,"List the groups in an AGS4 file with row and heading counts","Returns (group, n_rows, n_headings, parent)","SELECT * FROM ags_groups('site.ags');"
+ags_headings,"The per-heading schema of an AGS4 file, enriched with dictionary KEY status","Returns (group, heading, unit, ags_type, sql_type, status, is_key, ordinal)","SELECT * FROM ags_headings('site.ags') LIMIT 5;"
+ags_dictionary,"The embedded standard AGS dictionary as a table","Returns (group, heading, status, ags_type, unit, description)","SELECT * FROM ags_dictionary() LIMIT 5;"
+ags_relationships,"The AGS group parent-child (KEY) graph that _parent_id follows","Returns (child, parent, shared_keys)","SELECT * FROM ags_relationships();"
+load_ags,"Emit CREATE-TABLE DDL to materialise every AGS4 group into an indexed, queryable store","Returns (seq, stmt) — run the statements to get keyed tables","SELECT stmt FROM load_ags('site.ags') ORDER BY seq;"
