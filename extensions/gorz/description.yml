@@ -1,6 +1,6 @@
 extension:
   name: gorz
-  description: Read and write GORpipe .gorz files and .gord dictionaries as native DuckDB tables
+  description: Read GORpipe .gorz and .gord files and write .gorz as native DuckDB tables
   version: 0.1.0
   language: C++
   build: cmake
