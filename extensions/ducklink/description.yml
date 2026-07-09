@@ -3,7 +3,7 @@
 extension:
   name: ducklink
   description: Load portable WebAssembly extension modules into DuckDB from SQL
-  version: 4.0.0
+  version: 4.3.0
   language: Rust
   build: cargo
   license: MIT
@@ -19,7 +19,7 @@ extension:
 
 repo:
   github: tegmentum/ducklink-extension
-  ref: v4.0.0
+  ref: v4.3.0
 
 docs:
   hello_world: |
@@ -49,15 +49,39 @@ docs:
 
     A set of system views makes everything introspectable:
 
-      * ducklink.modules      — the full catalog, with a `loaded` flag
-      * ducklink.functions    — every function with its full SQL signature
-      * ducklink.capabilities — what this host build supports
-      * ducklink.cache        — the local component cache
-      * ducklink.versions     — module generations and compatibility
+      * ducklink.modules               — the full catalog, with a `loaded` flag
+      * ducklink.functions             — every function with its full SQL signature
+      * ducklink.docs                  — searchable per-function documentation
+      * ducklink.host_capabilities     — capability kinds this host build satisfies
+      * ducklink.host                  — this host's WIT contract version + DuckDB build info
+      * ducklink.cache                 — the local component cache
+      * ducklink.module_compatibility  — per module × generation: runnable, selected, lifecycle
 
-    On Linux and macOS an advanced tier also enables a `LOAD WASM '<name>'`
-    statement — an explicit, sandbox-aware alternative to `ducklink_load` that
-    signals you are entering the WebAssembly module boundary.
+    Two companion helpers make the doc surface interactive:
+    `ducklink_search('query')` returns ranked function matches across name,
+    tags, summary, and description; `ducklink_help('name')` renders the
+    markdown block for a single function or every function in a module —
+    so the catalog is discoverable from SQL without leaving the session.
+
+    Components can also ship their own docs bundled in the `.wasm` binary
+    via a `duckdb.docs` custom section (JSON per function). Ducklink reads
+    the section at load and merges it with the catalog docs — component
+    summary/description/example override the catalog, tags union — so
+    third-party modules can keep their own docs authoritative.
+
+    On Linux and macOS an advanced tier also enables a `DUCKLINK LOAD '<name>'`
+    SQL statement — an explicit alternative to `ducklink_load()` that reads
+    naturally in DDL:
+
+        DUCKLINK LOAD 'aba';                    -- WASM (default)
+        DUCKLINK LOAD 'aba' NATIVE;             -- force the native build
+
+    Modules also come in a `NATIVE` build (curated set, per-platform
+    `.duckdb_extension` files) that skips the WebAssembly sandbox for ~20x
+    the throughput on tight-loop workloads. Native loads require DuckDB
+    started with `-unsigned`; a matching entry appears in
+    `ducklink.modules.native_available` when a native build exists for
+    the running host.
 
     A built-in `ducklink_version()` scalar is always available, so the
     extension is usable and testable before any module is loaded. For
