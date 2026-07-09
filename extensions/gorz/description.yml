@@ -1,0 +1,49 @@
+extension:
+  name: gorz
+  description: Read and write GORpipe .gorz files and .gord dictionaries as native DuckDB tables
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - gorfather
+
+repo:
+  github: gorfather/duckdb-gorz
+  ref: 13299b24c532cacaddb278db40810e4784d4ace5
+
+docs:
+  hello_world: |
+    -- Write a query result out as a GORZ file (rows must be in GOR order),
+    -- then read it back — with an optional GOR -p style range filter.
+    COPY (SELECT * FROM (VALUES ('chr1', 1000, 'A', 'G'), ('chr1', 2000, 'C', 'T'))
+            t(chrom, pos, ref, alt) ORDER BY chrom, pos)
+      TO 'variants.gorz' (FORMAT gorz);
+
+    SELECT * FROM read_gor('variants.gorz', range := 'chr1:1500-2500');
+  extended_description: |
+    The `gorz` extension reads and writes [GORpipe](https://github.com/gorpipe/gor)
+    genomic files — block-compressed `.gorz` and `.gord` dictionaries — as native
+    DuckDB tables. Files it writes are read and seeked natively by `gorpipe`, and
+    vice-versa.
+
+    ### Reading
+
+    - `read_gor(path)` — auto-detects `.gorz` vs `.gord` by extension.
+    - `read_gorz(path)` / `read_gord(path)` — force the kind.
+    - A **replacement scan**, so a bare literal works: `SELECT count(*) FROM 'variants.gord';`
+    - **Projection & parallel scan** — only selected columns are read; large files scan across threads.
+    - **`WHERE chrom/pos` → block seek** — range predicates seek into the right block instead of scanning the whole file.
+    - **`range := 'chrN:start-end'`** — GOR's `-p` semantics as a hard positional filter (also `'chrN'`, `'chrN:start-'`, `'chrN:pos'`).
+    - **Partition filters** — `read_gor(dict, f := [...], ff := [...])`, the `-f` / `-ff` GOR semantics, prune a `.gord`'s file list.
+    - **Object stores** — paths resolve through DuckDB's FileSystem, so `s3://…` works when `httpfs` is loaded.
+
+    ### Writing
+
+    ```sql
+    COPY (SELECT chrom, pos, ref, alt FROM my_variants ORDER BY chrom, pos)
+      TO 'out.gorz' (FORMAT gorz);   -- or (FORMAT gor) for plain sorted TSV
+    ```
+
+    Single-threaded, standard block-zip; validates GOR order (chromosomes ascend
+    lexicographically, positions non-decreasing) and errors out otherwise.
