@@ -7,7 +7,6 @@ extension:
   license: Apache-2.0
   maintainers:
     - caerbannogwhite
-  excluded_platforms: "windows_amd64;"
 
 repo:
   github: KoliStat/the-stats-duck
