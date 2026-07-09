@@ -1,0 +1,65 @@
+extension:
+  name: splunk
+  description: Read logs from a Splunk search REST API into OTLP-shaped tables
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: "cmake, openssl"
+  maintainers:
+    - smithclay
+
+repo:
+  github: smithclay/duckdb-splunk
+  ref: 636b92030562f5c1e4a4b9d1aacd66f69ced0b6d
+
+docs:
+  hello_world: |
+    -- Store your Splunk credentials once (kept out of query text; redacted in duckdb_secrets()).
+    CREATE SECRET (
+        TYPE splunk,
+        URL 'https://splunk.example.com:8089',
+        USERNAME '<username>',
+        PASSWORD '<password>'
+    );
+
+    -- Or authenticate with a token instead of a username/password.
+    CREATE SECRET (
+        TYPE splunk,
+        URL 'https://splunk.example.com:8089',
+        TOKEN '<token>',
+        TOKEN_TYPE 'bearer'   -- 'bearer' for JWT auth tokens, 'splunk' for session keys
+    );
+
+    -- Run SPL and get back OTLP log rows.
+    SELECT time_unix_nano, service_name, severity_text, body
+    FROM read_splunk_logs(
+        query    => 'index=main error',
+        earliest => '-1h',
+        latest   => 'now'
+    );
+  extended_description: |
+    This extension reads logs from a [Splunk search REST API](https://docs.splunk.com/Documentation/Splunk/latest/RESTREF/RESTsearch)
+    endpoint directly into DuckDB. Rows conform to the OTLP logs schema (matching
+    [duckdb-otlp](https://github.com/smithclay/otlp2records) `read_otlp_logs`), so Splunk events drop
+    straight into an OTLP-shaped lakehouse alongside data from other sources. Resource attribute keys
+    align with the OpenTelemetry Collector's Splunk receivers (`host.name`, `com.splunk.*`) for interop.
+
+    Features:
+    - **Credentials via DuckDB secrets** (`CREATE SECRET (TYPE splunk, ...)`), supporting basic auth
+      or token auth; `PASSWORD`/`TOKEN` are redacted in `duckdb_secrets()`. Set `INSECURE_TLS true`
+      for instances with self-signed certificates.
+    - **HEC/JSON event awareness**: Splunk does not extract JSON event fields at search time, so the
+      extension parses `_raw` and resolves fields such as `level`, `trace_id`, and `service` from it
+    - **Automatic retries** for rate limits (HTTP 429), HTTP 5xx, and transient network errors;
+      retry waits honor query cancellation
+    - **Projection pushdown**: only selected columns are decoded, so aggregations skip the per-row
+      `_raw` parse and attribute JSON serialization
+    - **Loud failures on bad SPL**: server-side search errors are raised rather than looking like zero matches
+    - Splunk fields not mapped to the OTLP schema are exposed as JSON in `log_attributes` for use with
+      DuckDB's JSON functions
+
+    `read_splunk_logs` accepts `query` (SPL, default `*`), `earliest` (default `-15m`), `latest`
+    (default `now`), `max_rows` (`0` = unlimited), `timeout`, `retries`, and `secret` (to select a
+    named secret). Logs are supported today. For full documentation, visit the
+    [extension repository](https://github.com/smithclay/duckdb-splunk).
