@@ -5,12 +5,16 @@ extension:
   language: C++
   build: cmake
   license: MIT
+  # linux_arm64 excluded: DuckDB v1.5.4 fails to build its own plan_serializer
+  # tool on the arm64 gcc-toolset-14 image (an upstream toolchain bug, not this
+  # extension). Re-enable once the arm64 build image / DuckDB is fixed.
+  excluded_platforms: "linux_arm64"
   maintainers:
     - gorfather
 
 repo:
   github: gorfather/duckdb-gorz
-  ref: 29a6229f43ea8371fa17385cd0f040f860a3f754
+  ref: d1b6b61199af36739b5d2d78cd8c444508db609a
 
 docs:
   hello_world: |
