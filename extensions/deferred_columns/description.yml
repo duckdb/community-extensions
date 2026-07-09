@@ -1,0 +1,42 @@
+extension:
+  name: deferred_columns
+  description: Native Machine Learning Imputation for DuckDB using Virtual Partitioning, MVCC-M, and AQP.
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - iwinalbert
+
+repo:
+  github: iwinalbert/deferred-columns
+  ref: main
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD deferred_columns;
+
+    -- Create a table with mock numerical data
+    CREATE TABLE mock_data AS 
+    SELECT 
+        (random() * 100)::FLOAT AS val, 
+        0.5::FLOAT AS rmse 
+    FROM range(10000);
+
+    -- 1. Scan from a mock ML model natively on the fly
+    SELECT * FROM deferred_scan('mock_model') LIMIT 5;
+
+    -- 2. Aggregate data with native Approximate Query Processing (AQP) bounds
+    -- Calculates a 95% Confidence Interval inside the C++ execution engine
+    SELECT sum_ci(val, rmse) FROM mock_data;
+
+  extended_description: |
+    **Deferred Columns** is a native DuckDB extension designed for high-performance, in-database Machine Learning operations.
+
+    When a database schema evolves and adds a new column, historical rows have no value for it. Instead of performing expensive, full-table backfills, this extension computes missing values **on demand** using lightweight ML models (hooked natively into DuckDB's `TableFunction` and `OptimizerExtension`).
+
+    **Key Features:**
+    - **Lazy ML Materialization:** Uses DuckDB's TableFunctions to simulate virtual partitions where data is inferred on-the-fly rather than read from disk.
+    - **MVCC-M:** Multi-Version Concurrency Control for ML Models. A thread-safe Model Registry pins specific model versions to query execution states to guarantee deterministic reads during rolling ML retrains.
+    - **Native AQP (Approximate Query Processing):** A custom `sum_ci` C++ aggregate function calculates 95% Confidence Intervals natively using vector operations, executing 10 million rows in ~24 milliseconds.
