@@ -1,8 +1,8 @@
 
 extension:
   name: pdf
-  description: Read, inspect, transform, and write PDFs in SQL — text at every grain (page/line/word/element/chunk), OCR for scanned files, metadata, tables, signatures, and document surgery (merge/split/encrypt/...).
-  version: 0.4.0
+  description: Read, inspect, transform, and write PDFs in SQL — text at every grain (page/line/word/element/chunk), OCR for scanned files, metadata, tables, images, and document surgery (merge/split/sign/redact/watermark/encrypt/...).
+  version: 0.5.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 9006e9388fa5d7c8e5e1816ac4e9a7a6e5b6e8e0
+  ref: bad23132dc15beb7f3bf4058cf0ce64ff050d8b6
 
 docs:
   hello_world: |
@@ -62,16 +62,22 @@ docs:
     (bookmarks), `pdf_attachments` (embedded files as BLOBs),
     `pdf_form_fields`, `pdf_annotations` (incl. hyperlink extraction),
     `pdf_revisions` (incremental-update forensics: what changed after the
-    document was first written), and `pdf_signatures` (digital signatures,
-    cryptographically verified with OpenSSL CMS over the signed byte ranges).
+    document was first written), `pdf_signatures` (digital signatures,
+    cryptographically verified with OpenSSL CMS over the signed byte ranges),
+    `pdf_images` (the stored raster XObjects — the JPEG a scanner wrote — as
+    BLOBs), and PDF/A identification columns on `pdf_info`.
 
     **Convert** — `pdf_to_text` / `pdf_to_markdown` (layout-aware GitHub
     markdown) / `pdf_to_html` / `pdf_to_xml` / `pdf_to_svg` / `pdf_to_png`.
     The render scalars also accept PDF bytes as a BLOB, so they compose with
     `read_blob` and httpfs.
 
-    **Transform & write** — `pdf_merge`, `pdf_split`, `pdf_rotate`,
+    **Transform & write** — `pdf_merge`, `pdf_split`, `pdf_split_blank`
+    (split scanned batches at blank separator pages), `pdf_rotate`,
     `pdf_pages`, `pdf_compress`, `pdf_encrypt` / `pdf_decrypt`;
+    `pdf_watermark` / `pdf_bates` (searchable text stamps), `pdf_sign`
+    (CMS digital signatures — verifies back through `pdf_signatures`),
+    `pdf_redact` (true raster redaction: boxed text destroyed, not covered);
     `write_pdf` and `COPY ... TO 'out.pdf' (FORMAT pdf)` typeset text or query
     results natively (libharu — no external tools); `to_pdf` converts office
     documents (docx, odt, pptx, ...) via a LibreOffice runtime shell-out.
@@ -81,7 +87,8 @@ docs:
     tesseract-lang`, `apt-get install tesseract-ocr-eng`, or the Windows
     installer) and it is auto-detected — no configuration. Override with
     `tessdata_dir := ...` or `TESSDATA_PREFIX`; pick languages with
-    `ocr_language := 'deu'`.
+    `ocr_language := 'deu'`. A Leptonica preprocessing pipeline (deskew,
+    binarize, despeckle) and a confidence-based DPI retry run by default.
 
     **Scope** — deterministic extraction, not ML document understanding:
     merged cells and borderless/sparse tables are out of scope (use docling /
