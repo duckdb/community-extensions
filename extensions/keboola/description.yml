@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: keboola/duckdb-extension
-  ref: 7c2afb8859df41f8dd53421ceff54d9c9df5a6bf
+  ref: 7c2afb8ea0136b52be3128fbb25bc9519f39f4a3
 
 docs:
   hello_world: |
