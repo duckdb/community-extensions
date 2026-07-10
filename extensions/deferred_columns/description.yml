@@ -1,0 +1,13 @@
+extension:
+  name: deferred_columns
+  description: Lazy Machine Learning Imputation Architecture in DuckDB.
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - iwinalbert
+
+repo:
+  github: iwinalbert/deferred-columns
+  ref: 669e5c40375d45902d9146e34202d34783c7e9ab
