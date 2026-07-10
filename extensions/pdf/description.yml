@@ -1,7 +1,7 @@
 extension:
   name: pdf
-  description: Read text, metadata, words, lines, tables, and markdown from PDF files (works on scanned PDFs via Tesseract OCR word boxes); render pages; write PDFs natively via libharu (`write_pdf` / `COPY … TO FORMAT pdf`); and convert office documents to PDF.
-  version: 0.3.0
+  description: Read text, metadata, words, lines, tables, layout elements, and markdown from PDF files (works on scanned PDFs via Tesseract OCR word boxes); chunk for retrieval; render pages; inspect outlines, attachments, form fields, annotations, revisions, and signatures; extract embedded images; merge, split, rotate, compress, encrypt, decrypt, watermark, and Bates-stamp documents via qpdf; write PDFs natively via libharu (`write_pdf` / `COPY … TO FORMAT pdf`); and convert office documents to PDF.
+  version: 0.5.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -17,7 +17,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 1d60d7580f0702208ed228cbd548589af9dfe766
+  ref: 9006e9388fa5d7c8e5e1816ac4e9a7a6e5b6e8e0
 
 docs:
   hello_world: |
@@ -40,6 +40,14 @@ docs:
     -- Extract tabular regions from digital PDFs
     SELECT * FROM read_pdf_tables('financial_report.pdf');
 
+    -- Retrieval-ready chunks (heading-aware, page spans) — RAG straight from SQL
+    CREATE TABLE chunks AS FROM pdf_chunks('docs/*.pdf');
+
+    -- Merge a folder into one document; check who signed what
+    SELECT pdf_merge(list(DISTINCT filename ORDER BY filename), 'combined.pdf')
+    FROM read_pdf('docs/*.pdf');
+    SELECT file, signer_name, verified FROM pdf_signatures('contracts/*.pdf');
+
     -- Whole document as plain text (scalar) — also accepts a BLOB
     SELECT pdf_to_text('report.pdf') AS full_text;
 
@@ -59,14 +67,16 @@ docs:
     SELECT * FROM read_pdf((SELECT to_pdf('resume.docx')));
 
   extended_description: |
-    The `pdf` extension brings native PDF reading to DuckDB using the Poppler
-    library for rendering and Tesseract for OCR of scanned pages.
+    The `pdf` extension brings native PDF reading, inspection, and document
+    manipulation to DuckDB — Poppler for rendering, Tesseract for OCR of scanned
+    pages, qpdf for structural operations, libharu for native writing.
 
     All table functions accept a single path, a list of paths, or a glob
     (`'docs/*.pdf'`). Shared named parameters: `first_page`, `last_page`,
-    `password`, `layout` ('reading' | 'physical' | 'raw'), and the OCR knobs
+    `password`, `layout` ('reading' | 'physical' | 'raw'), the OCR knobs
     `ocr`, `auto_ocr`, `ocr_language`, `ocr_dpi`, `ocr_psm`, `ocr_oem`,
-    `tessdata_dir`.
+    `tessdata_dir`, and — on `read_pdf` / `read_pdf_meta` — `ignore_errors`
+    (skip unopenable files in a multi-file scan instead of aborting it).
 
     **Table functions**
 
@@ -85,6 +95,44 @@ docs:
     - `read_pdf_tables(path, ...)` — extracts tabular regions from digital AND
       scanned PDFs (scanned pages are reconstructed from OCR word boxes);
       columns: filename, page, table_index, row_index, cells (VARCHAR[]).
+    - `read_pdf_elements(path, ...)` — layout elements (headings, paragraphs,
+      list items) in reading order, with bounding boxes and dominant font size,
+      classified by deterministic geometry over the positioned word list.
+    - `pdf_chunks(files, chunk_size := 1200, overlap := 150)` — retrieval-ready
+      chunking of the element grain: one row per chunk with its page span and
+      the nearest preceding heading as section context; elements are never split
+      mid-chunk and headings glue forward to their section.
+
+    **Inspect**
+
+    - `pdf_info(path)` — one row per file: identity metadata (title, author,
+      creation/mod dates as TIMESTAMPs, producer, ...), page_count, encryption
+      and linearization flags, pdf_version, first-page dimensions, file size.
+    - `pdf_outline(path)` — bookmarks / table of contents, one row per entry.
+    - `pdf_attachments(path)` — embedded files, one row per attachment.
+    - `pdf_form_fields(path)` — AcroForm fields, one row per field.
+    - `pdf_annotations(path)` — annotations and hyperlinks.
+    - `pdf_revisions(path)` — incremental-update forensics: one row per saved
+      revision (PDFs are append-only; every earlier revision stays recoverable).
+    - `pdf_signatures(path)` — digital signatures: one row per signed field,
+      with a real cryptographic integrity check (`verified`) over the signed
+      byte ranges and a `covers_whole_file` flag exposing signed-then-modified
+      documents.
+    - `pdf_images(path, ...)` — embedded raster images as BLOBs (the actual
+      stored rasters: JPEG/JPEG-2000 passed through, decodable filters
+      re-wrapped as PNG).
+
+    **Transform & write (qpdf)**
+
+    - `pdf_merge(paths, out)` / `pdf_split(path, out_dir)` /
+      `pdf_rotate(path, out, degrees[, pages])` / `pdf_pages(path, out, ranges)`
+      — structural document surgery.
+    - `pdf_split_blank(path, out_dir)` — mailroom-style batch splitting on
+      blank-page separators.
+    - `pdf_compress(path, out)` / `pdf_encrypt(path, out, password)` /
+      `pdf_decrypt(path, out, password)` — including AES-256 (R6) encryption.
+    - `pdf_watermark(path, out, text)` / `pdf_bates(path, out, prefix, start)`
+      — stamping and legal Bates numbering.
 
     **Scalar functions**
 
