@@ -37,3 +37,4 @@ docs:
     Onager is a graph analytics toolbox for DuckDB.
     For more information, visit the [GitHub repository](https://github.com/CogitatorTech/onager)
     or the [Onager documentation](https://cogitatortech.github.io/onager/).
+    You can also try Onager in your browser [here](https://cogitatortech.github.io/onager/playground/).
