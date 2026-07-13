@@ -1,7 +1,7 @@
 extension:
   name: system_stats
   description: Provides table functions to access system-level statistics for monitoring purpose
-  version: 0.8.0
+  version: 0.9.0
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 repo:
   github: dentiny/system_stats
   andium: d1933b1a67b89a48317102bc9cb008e152526afb
-  ref: 42823c75982f1c75a59db468759b83510e0b72b0
+  ref: 7e457515e62c59bda48c25caf700ac3482296dd4
 
 docs:
   hello_world: |

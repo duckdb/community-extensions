@@ -6,6 +6,8 @@ on:
         type: string
       duckdb_tag:
         type: string
+      ci_tools_version:
+        type: string
       deploy:
         type: string
       build_extensions:
@@ -42,7 +44,7 @@ jobs:
     needs:
       - collect_extensions
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         extension_name: ${{ fromJson(needs.collect_extensions.outputs.COMMUNITY_EXTENSION_LIST) }}
     uses: ./.github/workflows/build.yml 
@@ -52,3 +54,21 @@ jobs:
       duckdb_version: ${{ inputs.duckdb_version }}
       duckdb_tag: ${{ inputs.duckdb_tag }}
       deploy: ${{ inputs.deploy }}
+      ci_tools_version: ${{ inputs.ci_tools_version }}
+
+  build_andium:
+    if: false
+    needs:
+      - collect_extensions
+    strategy:
+      fail-fast: true
+      matrix:
+        extension_name: ${{ fromJson(needs.collect_extensions.outputs.COMMUNITY_EXTENSION_LIST) }}
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      extension_name: ${{ matrix.extension_name }}
+      duckdb_version: 'f31be57c1845a8895169fd58142040be26d433cf'
+      duckdb_tag: 'v1.4.5'
+      ci_tools_version: 'v1.4-andium'
+      deploy: 'true'

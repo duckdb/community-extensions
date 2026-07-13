@@ -1,0 +1,94 @@
+extension:
+  name: laterite_ags4
+  description: Read AGS4 geotechnical data files as typed, UUID-keyed tables directly from SQL — born-typed columns, deterministic content-addressed keys that join across groups by construction, and an embedded AGS dictionary. A read-only SQL surface. Local, http(s):// and s3:// (with httpfs).
+  version: 0.7.0
+  language: Rust
+  build: cargo
+  license: MIT
+  # wasm is BUILT for all three variants (wasm_mvp / wasm_eh / wasm_threads). The
+  # C-API extension (official duckdb-rs crate) compiles to a
+  # wasm32-unknown-emscripten staticlib example (src/wasm_lib.rs) that
+  # extension-ci-tools emcc-links as an emscripten SIDE_MODULE. Building on the
+  # duckdb crate (MSRV 1.85) lets the community wasm image's rustc 1.86 be used,
+  # which does NOT emit the `--enable-bulk-memory-opt` flag that the image's older
+  # binaryen wasm-opt rejects — the flag quack-rs's rustc-1.87 floor forced, which
+  # had blocked wasm entirely. read_ags_text + the metadata functions need no
+  # filesystem; browser SQL-over-AGS is also served by the dedicated
+  # `laterite-ags4-wasm` package.
+  #
+  # wasm_threads is enabled now the bulk-memory-opt blocker is gone on every
+  # variant (mvp + eh landed in the initial 0.7.0 cut; threads links clean on the
+  # same duckdb-crate path). linux_amd64_musl stays excluded (untested).
+  excluded_platforms: "linux_amd64_musl"
+  requires_toolchains: "rust"
+  maintainers:
+    - niko86
+
+repo:
+  github: niko86/laterite-duckdb
+  # Pin to the release commit SHA once the repo is pushed + tagged (community-
+  # extensions pins a SHA, not a branch). Placeholder until then:
+  ref: 1629610de77beab11ead79be36fac4324138e7e7
+
+docs:
+  hello_world: |
+    -- Read a group as a typed table (columns typed from the file's own TYPE row):
+    SELECT loca_id, loca_gl
+    FROM read_ags('site.ags', 'LOCA')
+    WHERE loca_gl > 50.0;
+
+    -- Join across groups on the deterministic keys — no shared state, joins by
+    -- construction (every SAMP row's _parent_id equals its LOCA's _id):
+    SELECT l.loca_id, s.samp_ref, s.samp_top
+    FROM read_ags('site.ags', 'SAMP') s
+    JOIN read_ags('site.ags', 'LOCA') l ON s._parent_id = l._id;
+
+    -- Inspect structure + the embedded AGS dictionary:
+    SELECT "group", n_rows, parent FROM ags_groups('site.ags') ORDER BY n_rows DESC;
+    SELECT child, parent, shared_keys FROM ags_relationships() WHERE parent = 'LOCA';
+
+    -- Remote, lazily (with httpfs):
+    -- LOAD httpfs;
+    -- SELECT loca_id FROM read_ags('s3://bucket/site.ags', 'LOCA');
+  extended_description: |
+    `laterite_ags4` reads [AGS4](https://www.ags.org.uk/) geotechnical & geoenvironmental
+    data files as first-class DuckDB tables — no conversion step, no bundled engine.
+
+    Written in 🦀 Rust on DuckDB's C Extension API (zero C++).
+
+    ### What it gives you
+
+    - **Born-typed columns** — each heading is typed from the file's own `TYPE` row
+      (`2DP` → `DOUBLE`, `ID` → `VARCHAR`, `0DP` → `BIGINT`, `YN` → `BOOLEAN`, …).
+    - **Deterministic content-addressed keys** — every row carries `_id` and
+      `_parent_id` (UUIDv8 of the row's spec key-chain). `child._parent_id == parent._id`
+      **by construction**, so groups join across independent `read_ags(...)` calls with
+      no shared state.
+    - **Self-describing metadata** — `ags_groups`, `ags_headings`, `ags_dictionary`,
+      `ags_relationships` expose the file's structure and the embedded AGS dictionary.
+    - **Persistence** — `load_ags(path)` emits CREATE-TABLE DDL for an indexed,
+      repeat-/remote-query store.
+    - **Local or remote** — reads go through DuckDB's virtual filesystem, so local paths,
+      `http(s)://` and `s3://` (with `LOAD httpfs`) all work on one code path.
+    - **Native + wasm** — built for every community-extensions platform, DuckDB-WASM
+      included: the same reader for native and browser DuckDB.
+
+    ### Functions
+
+    | function | returns |
+    |---|---|
+    | `read_ags(path, group)` | one group as a typed table — `_id`, `_parent_id`, then one column per heading (typed from the file's `TYPE` row). Reads local / `http(s)://` / `s3://`. |
+    | `read_ags_text(content, group)` | the same typed table, from an **inline AGS4 string** (no filesystem). |
+    | `ags_groups(path)` | `(group, n_rows, n_headings, parent)` — the file's group list. |
+    | `ags_headings(path)` | `(group, heading, unit, ags_type, sql_type, status, is_key, ordinal)` — the per-heading schema, enriched with the dictionary's KEY status. |
+    | `ags_dictionary()` | the embedded standard AGS dictionary as a table (`group`, `heading`, `status`, `ags_type`, `unit`, `description`, …). |
+    | `ags_relationships()` | `(child, parent, shared_keys)` — the spec parent→child graph that `_parent_id` follows. |
+    | `load_ags(path)` | `(seq, stmt)` — CREATE-TABLE DDL to materialise every group into an indexed, repeat-/remote-queryable store. |
+
+    Readers stream lazily (≈2048-row vector chunks); a non-conforming numeric cell becomes
+    `NULL`, never an error (the born-typed behaviour). Optional arguments are **named**
+    (`edition := '4.2'`, `encoding := 'windows-1252'`), the rest positional. The path verbs
+    take an `encoding` named param (e.g. `encoding := 'windows-1252'`) for non-UTF-8
+    sources; the `_text` variant is UTF-8 (its input is already a `VARCHAR`). This is a
+    **read-only SQL surface** — validation, certification and repair stay in the `lat`
+    CLI / the `laterite` library.

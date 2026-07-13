@@ -1,0 +1,32 @@
+extension:
+  name: dryrun
+  description: Estimate Parquet scan bytes for SELECT queries without executing them
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - aleda145
+
+repo:
+  github: aleda145/duckdb-dryrun
+  ref: dd1861b2f258644e2d15f880ed1e8b263f004dcc
+
+docs:
+  hello_world: |
+    SELECT *
+    FROM dryrun(
+      'SELECT * FROM ''https://dryrun-data.dahl.dev/gaia-5m.parquet'''
+    );
+  extended_description: |
+    Dryrun adds a table function for estimating Parquet scan
+    bytes before running a query.
+
+    It parses a read-only SELECT statement, finds explicit Parquet scan
+    sources, determines required columns, uses Parquet metadata for
+    compressed column-chunk sizes, and applies simple
+    row-group pruning from min/max statistics when possible.
+
+    The result reports estimated data bytes, estimated Parquet metadata
+    bytes, files, row groups used versus total row groups, confidence, and
+    notes (if any).

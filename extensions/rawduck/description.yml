@@ -1,0 +1,41 @@
+extension:
+  build: cmake
+  description: Schema-less JSON and OTEL ingestion + analytics for DuckDB
+  excluded_platforms: windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools
+  language: C++
+  license: MIT
+  maintainers:
+  - lmangani
+  name: rawduck
+  requires_toolchains: parser_tools
+  version: '0.0.2'
+  
+repo:
+  github: quackscience/rawduck
+  ref: c7d1ede408ad518a5bab51cfdfaff445854f2002
+  canonical_name: rawduck
+
+docs:
+  hello_world: |
+    -- Attach a rawduck db/catalog to your session
+    ATTACH 'rawduck:store.db' AS raw;
+
+    -- no table 'events' exists yet
+    INSERT INTO raw.ingest.events VALUES
+        ('{"id": 1, "action": "click", "ts": "2024-01-15T10:30:00", "user": {"name": "alice"}}'),
+        ('{"id": 2, "action": "view",  "ts": "2024-01-15T10:31:00", "user": {"name": "bob", "plan": "pro"}}');
+    
+    DESCRIBE raw.events;
+    -- id BIGINT, action VARCHAR, ts TIMESTAMP, user.name VARCHAR, user.plan VARCHAR
+    
+    SELECT "user.name", count(*) FROM raw.events GROUP BY 1;
+
+
+  extended_description: |
+    RawDuck brings the RawMergeTree "ingest first, schema later" model to DuckDB: point raw JSON, 
+    NDJSON files, or OTLP telemetry at tables that don't exist yet — RawDuck creates them, types them, 
+    flattens nested objects into real columns, transforms and evolves the schema as the data changes.
+
+    RawDuck ships with a full-featured API to ingest/query data including OpenTelemetry (OTLP) formats.
+
+    Consult the [RawDuck README](https://github.com/quackscience/rawduck) for more examples and details.
