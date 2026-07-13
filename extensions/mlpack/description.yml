@@ -13,7 +13,7 @@ extension:
 repo:
   github: eddelbuettel/duckdb-mlpack
   andium: 8437d78423e3cfc65f9226606908b301c2314710
-  ref: 013bee3310127e1523763b4a4419a18027f205d6
+  ref: eb1c65298476621b2cf088a24e6633e453df66f9
 
 docs:
   hello_world: |
