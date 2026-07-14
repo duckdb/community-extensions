@@ -83,6 +83,25 @@ Firstly, whenever an extension descriptor is updated, the extension is rebuilt a
 Secondly, whenever a new version of DuckDB is released, all community extensions are rebuilt as part of the release process. This will ensure the extensions are available
 right from the moment the new DuckDB release is out. We will take a closer look at how this works in the next section.
 
+### Versioned community extension installs
+
+Community extension descriptors point to a single active source ref through `repo.ref`. Updating this ref and merging the
+descriptor change makes that ref the source used for subsequent community extension builds.
+
+The community extension repository does not currently provide a way for users to install an older community extension
+source version by extension version, git tag, or previous descriptor ref. Rebuilding an extension publishes the resulting
+artifact for each DuckDB version and platform at the active community extension repository path. If the same extension is
+rebuilt for the same DuckDB version and platform, the newly built artifact replaces the artifact DuckDB will install from
+that path.
+
+The `deploy_versioned` workflow input controls whether deployment also uploads an artifact under a versioned artifact
+path, but it does not make historical community extension versions selectable through the standard DuckDB community
+extension install flow.
+
+Maintainers who need users to pin or install historical extension builds should publish those builds outside the standard
+community extension descriptor path, for example through separate custom extension repositories, separate channels, or
+direct artifact URLs.
+
 ## Upgrading an extension to a new DuckDB version
 When a new DuckDB version is (about to be) released, there are two states your extension can be in, which we will illustrate using the example extension described before:
 
