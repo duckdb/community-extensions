@@ -102,8 +102,8 @@ do
       echo "excerpt: |" >> $EXTENSION_README
       echo "  DuckDB Community Extensions" >> $EXTENSION_README
       if [ -s "extensions/$extension/description.yml" ]; then
-         echo -n "  " >> $EXTENSION_README
-         cat extensions/$extension/description.yml | yq -r ".extension.description" >> $EXTENSION_README
+         # Indent every line of the description by 2 spaces to create valid YAML frontmatter
+         cat extensions/$extension/description.yml | yq -r ".extension.description" | sed 's/^/  /' >> $EXTENSION_README
 
          REPOSITORY=$(cat extensions/$extension/description.yml | yq -r ".repo.github")
          if [[ "${REPOSITORY}" == "duckdb/duckdb-extension-alias" ]]; then
