@@ -5,6 +5,7 @@ extension:
   language: C++
   build: cmake
   license: MIT
+  test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
   maintainers:
     - leonardovida
 repo:
