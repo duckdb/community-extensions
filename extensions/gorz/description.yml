@@ -1,7 +1,7 @@
 extension:
   name: gorz
   description: Read GORpipe .gorz and .gord files and write .gorz as native DuckDB tables
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: gorfather/duckdb-gorz
-  ref: 6fd16aac0a69a5c85715704ea6ef7bb586cc1a35
+  ref: 582880d0f5ab23423f6680fcd82babb4fce1c4e1
 
 docs:
   hello_world: |
@@ -35,7 +35,7 @@ docs:
     - **Projection & parallel scan** — only selected columns are read; large files scan across threads.
     - **`WHERE chrom/pos` → block seek** — range predicates seek into the right block instead of scanning the whole file.
     - **`range := 'chrN:start-end'`** — GOR's `-p` semantics as a hard positional filter (also `'chrN'`, `'chrN:start-'`, `'chrN:pos'`).
-    - **Partition filters** — `read_gor(dict, f := [...], ff := [...])`, the `-f` / `-ff` GOR semantics, prune a `.gord`'s file list.
+    - **Partition filters** — GOR's `-f` / `-ff` semantics prune a `.gord`'s file list and expose a `Source` column: `f := ['A','B']` is an inline tag list, `ff := 'tags.txt'` is a *tag file* (one tag per line / first tab-delimited column, `#` lines skipped). `source := 'PN'` renames the exposed column.
     - **Object stores** — paths resolve through DuckDB's FileSystem, so `s3://…` works when `httpfs` is loaded.
 
     ### Writing
