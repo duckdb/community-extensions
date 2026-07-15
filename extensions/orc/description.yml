@@ -1,7 +1,7 @@
 extension:
   name: orc
   description: A DuckDB extension for reading Apache ORC files, written in pure Rust. Supports all ORC primitives, struct, list, map types and all compression codecs (Zlib, Snappy, LZO, LZ4, ZSTD).
-  version: 0.1.2
+  version: 0.1.3
   language: Rust
   build: cargo
   license: MIT
@@ -50,7 +50,8 @@ docs:
 
     ### Known Limitations
 
-    - **Read-only**: no ORC write support yet
+    - **Write support**: `orc-rust` 0.8+ has `ArrowWriter` but compression is not yet implemented (uncompressed only). Write support will be added to `duckdb_orc` once `orc-rust` supports compressed writes.
+    - **Single-threaded scan**: currently single-threaded sequential scan. ~5x slower than DuckDB's native Parquet reader on large single files. Multi-file globs also read sequentially. Stripe-level parallelism is planned.
     - **No filter pushdown**: blocked by missing DuckDB C API
       (`duckdb_table_function_supports_filter_pushdown` not exposed)
     - **No union type**: not supported by `orc-rust` upstream
