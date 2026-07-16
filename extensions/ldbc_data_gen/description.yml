@@ -1,7 +1,7 @@
 extension:
   name: ldbc_data_gen
   description: Generate LDBC SNB BI datasets directly from DuckDB
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: Dtenwolde/ldbc-data-gen
-  ref: v1.5-variegata
+  ref: a232c3829d81ec718d69d74f55147510ed876764 
 
 docs:
   hello_world: |
