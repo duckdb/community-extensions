@@ -16,7 +16,7 @@ extension:
 
 repo:
   github: chitralverma/duckdb-opendal
-  ref: f3d9ef2a2ab14d7a5b39ad34b07fb8d35677d226
+  ref: 7d1b9dd3130208023902bf24d18324826055d733
 
 docs:
   hello_world: |
