@@ -1,0 +1,66 @@
+extension:
+  name: anofox_scenario
+  description: Git-like branching for analytical databases. Attach isolated what-if scenarios as catalogs, edit them with ordinary SQL on copy-on-write delta storage, branch, diff, and merge them back.
+  language: C++
+  build: cmake
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;"
+  license: BSL 1.1
+  requires_toolchains: "cmake, openssl"
+  maintainers:
+    - jrosskopf
+
+repo:
+  github: DataZooDE/anofox-scenario
+  ref: 11a89f5eb3ceacac8e8aaa652ab83b4d15452c8e
+
+docs:
+  hello_world: |
+    -- History as recorded
+    CREATE TABLE sales_plan (region VARCHAR PRIMARY KEY, units INTEGER);
+    INSERT INTO sales_plan VALUES ('EMEA', 1000), ('AMER', 2000), ('APAC', 500);
+
+    -- Branch a what-if world: two statements, then it's just SQL
+    CALL scenario_create('aggressive_q4', 'push APAC hard');
+    ATTACH 'aggressive_q4' AS q4 (TYPE scenario);
+
+    UPDATE q4.sales_plan SET units = 1500 WHERE region = 'APAC';
+    DELETE FROM q4.sales_plan WHERE region = 'EMEA';
+
+    -- Both worlds coexist; the base is never written
+    SELECT 'base' AS world, * FROM sales_plan
+    UNION ALL
+    SELECT 'scenario', * FROM q4.sales_plan ORDER BY world, region;
+
+    -- Audit the changes, then promote them
+    SELECT * FROM scenario_diff('aggressive_q4', 'sales_plan');
+    SELECT * FROM scenario_merge('aggressive_q4');
+  extended_description: |
+    anofox_scenario brings git-like branching to DuckDB databases. A scenario is
+    an attached catalog (`ATTACH 'name' AS s (TYPE scenario)`) over your existing
+    tables: reads merge the base with the scenario's copy-on-write delta on the
+    fly, and INSERT / UPDATE / DELETE / `MERGE INTO` / `ON CONFLICT` (all with
+    RETURNING) land in the delta — the base tables are never modified.
+
+    Three isolation tiers: a live overlay (default), `mode := 'materialized'`
+    point-in-time copies, and DuckLake bases pinned to creation time via
+    `AT (TIMESTAMP)` for zero-copy snapshot isolation. Scenarios branch from each
+    other (`from_scenario :=`), inheriting changes, declared row identities, and
+    snapshot pins.
+
+    A streaming diff engine (`scenario_diff`, `scenario_diff_summary`) audits any
+    world against its origin or another world, and
+    `scenario_merge(name, on_conflict := 'abort'|'ours'|'theirs')` promotes a
+    scenario into its base atomically — with true 3-way drift conflicts when a
+    creation snapshot exists. Views rebind inside scenarios, all base schemas
+    are mirrored, and tables without a primary key work either via
+    `key_columns :=` declared identity or bag semantics with multiplicity
+    tracking.
+
+    Scenario worlds compose with table-name-driven extensions: for example
+    `ts_forecast_by('s.demand', ...)` (anofox_forecast) forecasts a what-if
+    world directly, no copies needed.
+
+    The extension collects anonymous usage telemetry (an envelope-only
+    `extension_loaded` event; never table names, keys, or SQL). Disable with
+    `SET anofox_scenario_telemetry_enabled = false` or
+    `DATAZOO_DISABLE_TELEMETRY=1`; see TELEMETRY.md in the repository.
