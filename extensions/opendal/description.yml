@@ -9,13 +9,14 @@ extension:
     - chitralverma
   requires_toolchains:
     - rust
-  # extension-ci-tools pins rust-toolchain@1.86 which is below opendal's MSRV (1.91).
-  # See https://github.com/duckdb/extension-ci-tools/issues/385
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  # Exclusions:
+  # - WASM: extension-ci-tools pins rust-toolchain@1.86 which is below opendal's MSRV (1.91). See https://github.com/duckdb/extension-ci-tools/issues/385
+  # - MinGW: Rtools MinGW is missing libgcc_eh.a which is required by rustc for the gnu target. Rely on standard MSVC instead.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
 
 repo:
   github: chitralverma/duckdb-opendal
-  ref: 79294f58df6df14872cbf96899eeb1968b6d955f
+  ref: 92b3362ffde1bebae411bb667efb919331e839ee
 
 docs:
   hello_world: |
