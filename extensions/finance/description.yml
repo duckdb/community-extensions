@@ -1,15 +1,16 @@
 extension:
   name: finance
   description: SQL-native quant finance functions for DuckDB
-  version: 0.2.1
+  version: 0.2.9
   language: C++
   build: cmake
   license: MIT
+  test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
   maintainers:
     - leonardovida
 repo:
   github: leonardovida/duckdb-finance
-  ref: 15bf42c1ac74ed118b6f3b014e27443869ccbab8
+  ref: 7815095ddebd02dc41206c2c704efd40ebee274c
 docs:
   hello_world: |
     INSTALL finance FROM community;
