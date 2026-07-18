@@ -1,0 +1,12 @@
+extension:
+  name: duckdb_api
+  description: Exposes a typed example relation through DuckDB's duckdb_api_scan table function.
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - ngalluzzo
+repo:
+  github: ngalluzzo/duckdb-fdw
+  ref: 47dc6169ae820f70beb0c2722b8a8f5288cd1469
