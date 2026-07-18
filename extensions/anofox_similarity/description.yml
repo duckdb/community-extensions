@@ -1,0 +1,67 @@
+extension:
+  name: anofox_similarity
+  description: Multi-modal product similarity search for manufacturing supply chain planning. Find similar materials by BOM component overlap (Jaccard), graph-structural similarity (Weisfeiler-Lehman kernel), text embeddings, and transactional patterns, with predecessor detection and cold-start analog matching for demand forecasting.
+  language: C++
+  build: cmake
+  license: BSL 1.1
+  requires_toolchains: "cmake, openssl"
+  maintainers:
+    - jrosskopf
+
+repo:
+  github: DataZooDE/anofox-similarity
+  ref: 52e9a7b9b3fb4045b77d23b8aaf31a1e007346a1
+
+docs:
+  hello_world: |
+    -- Components (BOM) for each product
+    CREATE TABLE bom_items (parent_id VARCHAR, child_id VARCHAR);
+    INSERT INTO bom_items VALUES
+      ('PUMP-A', 'SEAL-001'), ('PUMP-A', 'BEARING-X'), ('PUMP-A', 'MOTOR-M1'),
+      ('PUMP-B', 'SEAL-001'), ('PUMP-B', 'BEARING-X'), ('PUMP-B', 'MOTOR-M1'), ('PUMP-B', 'GASKET-Y'),
+      ('PUMP-C', 'FILTER-F1'), ('PUMP-C', 'VALVE-V2');
+
+    -- Find the 3 materials most similar to PUMP-A by shared components
+    SELECT material_id, similarity, shared_components, total_components
+    FROM find_similar_materials_jaccard('PUMP-A', 3, bom_table := 'bom_items')
+    ORDER BY similarity DESC;
+    -- PUMP-B   0.75  3  4   (high overlap)
+    -- PUMP-C   0.0   0  5   (disjoint)
+
+    -- Structural similarity that also weighs BOM topology, not just component sets
+    SELECT wl_kernel_similarity('PUMP-A', 'PUMP-B', iterations := 3, bom_table := 'bom_items');
+  extended_description: |
+    anofox_similarity helps manufacturers answer "which existing product is this
+    new one most like?" directly against ERP master data (SAP, Microsoft
+    Dynamics 365, or a plain `bom_items` table), which is the key input for
+    cold-start demand forecasting, predecessor detection, and analog-based
+    planning for products with no sales history yet.
+
+    Similarity signals compose across several table functions:
+    - `find_similar_materials_jaccard` ranks materials by BOM component overlap.
+    - `wl_kernel_similarity` / `find_similar_materials_wl_kernel` use a
+      Weisfeiler-Lehman graph kernel to capture BOM topology, not just which
+      components are shared but how they're structurally arranged.
+    - `infer_predecessors` detects predecessor/successor relationships from
+      structural similarity plus temporal anti-correlation in goods-movement
+      history (an old part's usage declining as a new part's usage rises).
+    - `cold_start_analogs` finds established products to seed a forecast for a
+      brand-new material with no history at all.
+    - `compute_fused_embeddings` combines structural, transactional, and text
+      embedding signals into one fusable vector, indexable with DuckDB's `vss`
+      extension via the bundled HNSW index helpers.
+
+    SAP (MARA/MAKT/MAST/STKO/STPO) and Dynamics 365 transformation macros
+    (`sap_to_bom_items`, `sap_to_materials_with_desc`, ...) normalize common
+    ERP exports into the BOM/material schema the rest of the extension expects,
+    so integration is mostly `SELECT * FROM sap_to_bom_items(...)`.
+
+    All table functions accept a fully qualified read-only DuckDB database and
+    degrade gracefully when optional companion extensions (`anofox_forecast`
+    for time-series features, `duckpgq` for property-graph BOM queries) are
+    not loaded.
+
+    The extension collects anonymous usage telemetry (an envelope-only
+    `extension_loaded` event; never table names, keys, or SQL). Disable with
+    `SET anofox_telemetry_enabled = false` or `DATAZOO_DISABLE_TELEMETRY=1`;
+    see TELEMETRY.md in the repository.
