@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-opendal-filesystem
-  ref: 7ba50e366505a6dfc34859b08dab3ca3f50827d7
+  ref: 4bb9f495ee1bc090b5d32cf7b4873d8a3f23a7f9
 
 docs:
   hello_world: |
