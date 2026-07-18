@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-scenario
-  ref: 11a89f5eb3ceacac8e8aaa652ab83b4d15452c8e
+  ref: 484a9ce530cd61d7f9fd562543b46055bfc48d83
 
 docs:
   hello_world: |
