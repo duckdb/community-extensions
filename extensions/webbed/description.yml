@@ -1,20 +1,21 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.4.0
+  version: 2.5.0
   language: C++
   build: cmake
   license: MIT
   requires_toolchains: vcpkg
-  # Windows re-included for v2.4.0: DuckDB v1.5.4's vendored fmt no longer uses the removed
-  # MSVC STL API (the old compile blocker), and the extension builds on Windows in CI.
+  # Windows included since v2.4.0: DuckDB v1.5.4's vendored fmt no longer uses the removed
+  # MSVC STL API (the old compile blocker), and the extension builds and passes tests on the
+  # windows_amd64 MSVC runner in CI.
   maintainers:
     - teaguesterling
   vcpkg_commit: 68a1c387f660632f2f65cdb7e8cd093a08840e5d
 repo:
   github: teaguesterling/duckdb_webbed
   andium: ddda30f11352138b2451657419640370d1612137
-  ref: ad2a912d1758a9380a3f9759b78987dd374565ed
+  ref: ffafd3d8380657fce911159d207b988bf29c020e
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
@@ -87,4 +88,4 @@ docs:
 
     See https://duckdb-webbed.readthedocs.io for comprehensive documentation and examples.
 
-    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 68 test suites with 2511 assertions, including DOM/SAX equivalence testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
+    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 89 test suites with 2925 assertions, including DOM/SAX equivalence and adversarial/security testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
