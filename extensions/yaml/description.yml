@@ -1,7 +1,7 @@
 extension:
   name: yaml
   description: Read YAML files into DuckDB with native YAML type support, comprehensive extraction functions, and seamless JSON interoperability
-  version: 1.6.6
+  version: 1.7.0
   # Windows excluded: DuckDB's vendored fmt fails to compile against the community
   # runner's current MSVC STL (stdext::checked_array_iterator removed); not fixable
   # from the extension.
@@ -17,8 +17,8 @@ extension:
   
 repo:
   github: teaguesterling/duckdb_yaml
-  andium: 8a1d8444af06682a3cb2933068a6a35af0fec3b2
-  ref: 8a1d8444af06682a3cb2933068a6a35af0fec3b2
+  andium: 9449d983fafdaff0be9aa8d0082cd526b5e95be4
+  ref: 9449d983fafdaff0be9aa8d0082cd526b5e95be4
 
 docs:
   hello_world: |
