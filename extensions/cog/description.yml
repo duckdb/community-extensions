@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: st-layer/duckdb-cog
-  ref: aa7fc75e4a1bd0e99bf1d84c2227c23278a8d4a3
+  ref: 631d256698dc84f6ccd1ac645e85f9e1156a2fc7
 
 docs:
   hello_world: |
