@@ -2,17 +2,17 @@ extension:
   name: yaml
   description: Read YAML files into DuckDB with native YAML type support, comprehensive extraction functions, and seamless JSON interoperability
   version: 1.7.0
-  # Windows excluded: DuckDB's vendored fmt fails to compile against the community
-  # runner's current MSVC STL (stdext::checked_array_iterator removed); not fixable
-  # from the extension.
-  excluded_platforms: windows_amd64;windows_amd64_mingw
+  # Windows is built (no excluded_platforms): the earlier exclusion (DuckDB-vendored
+  # fmt vs the community MSVC STL) no longer reproduces on the v1.5.4 toolchain -- the
+  # extension compiles and passes the full test suite on windows_amd64 via the
+  # v1.5-variegata CI (a ~24-min real build+test run, no COPY-TO hang).
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - teaguesterling
 
-  # yaml package issues for windows in previous vcpkg
+  # Pinned vcpkg for Windows yaml-cpp compatibility (older vcpkg had Windows build issues).
   vcpkg_commit: "656be05781442d5c4cb14978f6c7bf47b6e12b32"
   
 repo:
