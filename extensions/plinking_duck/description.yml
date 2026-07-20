@@ -1,7 +1,7 @@
 extension:
   name: plinking_duck
   description: Read PLINK 2 genomics file formats and run common genetic analyses directly in SQL
-  version: 0.7.0
+  version: 0.7.1
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: teaguesterling/plinking_duck
-  ref: 9e08a545513bf15a3903d2dc40abc2b71464497c
+  ref: b2d6b8b23388c422bdf539b97a2997f8643d7a1b
 
 docs:
   hello_world: |
