@@ -11,7 +11,7 @@ extension:
 repo:
   github: teaguesterling/duckdb_markdown
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
-  ref: refs/tags/v1.5.0
+  ref: 4ac331521f3567ae745187fa16f27e56296b432b
 docs:
   hello_world: |
     -- Load the extension
