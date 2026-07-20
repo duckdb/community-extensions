@@ -1,0 +1,34 @@
+extension:
+  name: duckdb_opendalfs
+  description: Remote storage filesystem for DuckDB via Apache OpenDAL — S3, GCS, Azure, Hugging Face, WebDAV, SFTP, and more, with DuckDB secret-based auth.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;windows_arm64_mingw"
+  requires_toolchains: rust
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-opendal-filesystem
+  ref: 4bb9f495ee1bc090b5d32cf7b4873d8a3f23a7f9
+
+docs:
+  hello_world: |
+    FORCE INSTALL duckdb_opendalfs FROM community;
+    LOAD duckdb_opendalfs;
+
+    CREATE SECRET production_s3 (
+        TYPE opendal_s3,
+        SCOPE 's3://analytics',
+        ACCESS_KEY_ID 'access-key',
+        SECRET_ACCESS_KEY 'secret-key',
+        REGION 'us-east-1'
+    );
+
+    SELECT * FROM read_parquet('s3://analytics/events.parquet');
+
+  extended_description: |
+    `duckdb_opendalfs` is an extension which supports many backends (S3, GCS, Azure Blob, Hugging Face, etc)
+    and secret management via `opendal_<backend>` secret types.
