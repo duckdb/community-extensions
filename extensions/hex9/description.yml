@@ -1,0 +1,29 @@
+extension:
+  name: hex9
+  description: Hex9 hierarchical hexagonal DGGS — point encoding, layer binning, cell geometry as WKB, labels, k-rings, Hamiltonian-curve ordering, and grid enumeration
+  version: 2.0.0
+  language: C++
+  build: cmake
+  license: GPL-2.0-or-later
+  maintainers:
+    - MrBenGriffin
+
+repo:
+  github: MrBenGriffin/duckdb-hex9
+  ref: 12fd29a8de207a5a6d9339b1c8f4e0cd967b2729
+
+docs:
+  hello_world: |
+    SELECT h9_encode(-3.19, 55.95) AS cell;
+    SELECT h9_label(h9_encode(-3.19, 55.95), 8) AS label;
+    SELECT h9_cell(h9_encode(-3.19, 55.95), 8) AS wkb;  -- pair with spatial's ST_GeomFromWKB
+    SELECT h9_curve_index(h9_curve(h9_encode(-3.19, 55.95))) AS locality;
+  extended_description: |
+    Hex9 is an equal-area hierarchical hexagonal DGGS (discrete global grid
+    system), backed by [libhex9](https://github.com/MrBenGriffin/libhex9) —
+    the same core as its PostGIS extension. Cells are 16-byte UUIDs; every
+    full address is reversible, and layer-scoped bins derived from it serve
+    as join keys. Vectorized scalar functions (encode/decode/bin, lineage,
+    k-rings, labels, Hamiltonian-curve locality ordering with HUGEINT
+    indexes) plus table functions (h9_grid, h9_curve_cells, h9_owned_cells).
+    Geometry is emitted as WKB, consumed directly by the spatial extension.
