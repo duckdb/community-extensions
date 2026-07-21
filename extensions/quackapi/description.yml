@@ -1,3 +1,14 @@
+# Community-extensions submission descriptor for the `quackapi` extension.
+# Keep in sync with /description.yml at the repository root.
+#
+# Submit:
+#   1. Fork https://github.com/duckdb/community-extensions
+#   2. Copy this file to extensions/quackapi/description.yml
+#   3. Set repo.ref to the exact git SHA of the release commit (no merge markers)
+#   4. Open a pull request against duckdb/community-extensions
+#
+# Schema: https://duckdb.org/community_extensions/documentation.html
+
 extension:
   name: quackapi
   description: >-
@@ -20,7 +31,7 @@ extension:
 repo:
   github: asubbarao/quackapi
   # Pin to the packaging commit SHA (set by release engineer; never a branch).
-  ref: 5181f270b1882067373ab161be2049b67c0af596
+  ref: bbb6699dd9e0767a25340a59b7a71a961b4b4afb
 
 docs:
   hello_world: |
