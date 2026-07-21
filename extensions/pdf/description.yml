@@ -1,7 +1,7 @@
 extension:
   name: pdf
   description: Read text, metadata, words, lines, tables, layout elements, and markdown from PDF files (works on scanned PDFs via Tesseract OCR word boxes); chunk for retrieval; render pages; inspect outlines, attachments, form fields, annotations, revisions, and signatures; extract embedded images; merge, split, rotate, compress, encrypt, decrypt, watermark, and Bates-stamp documents via qpdf; write PDFs natively via libharu (`write_pdf` / `COPY … TO FORMAT pdf`); and convert office documents to PDF.
-  version: 0.5.1
+  version: 0.7.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -17,7 +17,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 177b634edbcf7e3fdbd7068f4a72455073fba67c
+  ref: c5209712bc63047dd2bee07c30b54bc177841812
 
 docs:
   hello_world: |
