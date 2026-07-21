@@ -10,4 +10,4 @@ extension:
     - jrosskopf
 repo:
   github: DataZooDE/erpl-idoc
-  ref: ff10f42ef48cc14688b6fd408b527eeeefdc7eba
+  ref: f96c92a39be25b4df77928cc029e76a25c21718b
