@@ -10,4 +10,4 @@ extension:
     - sipemu
 repo:
   github: DataZooDE/anofox-forecast
-  ref: b64d99eadd17b688ccd80b42269d3a7e8dddd0ec
+  ref: f44228b6a88e0b25915aae08fadf1b192ebe7fe2
