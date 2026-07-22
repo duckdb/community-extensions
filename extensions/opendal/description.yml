@@ -1,0 +1,92 @@
+extension:
+  name: opendal
+  description: Access S3, local filesystem, and other storage services through Apache OpenDAL
+  version: "0.1.0"
+  language: C++ & Rust
+  build: cmake
+  license: MIT
+  maintainers:
+    - chitralverma
+  requires_toolchains: rust
+  # Exclusions:
+  # - WASM: extension-ci-tools pins rust-toolchain@1.86 which is below opendal's MSRV (1.91). See https://github.com/duckdb/extension-ci-tools/issues/385
+  # - MinGW: Rtools MinGW is missing libgcc_eh.a which is required by rustc for the gnu target. Rely on standard MSVC instead.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
+
+repo:
+  github: chitralverma/duckdb-opendal
+  ref: 6e998efad81618458518fbc061f1797354f13c56
+
+docs:
+  hello_world: |
+    -- Install and load the extension
+    INSTALL opendal FROM community;
+    LOAD opendal;
+
+    -- Create a secret for local filesystem access
+    CREATE SECRET my_fs (TYPE fs, SCOPE 'fs://', config MAP{'root': '.'});
+
+    -- Write a Parquet file through OpenDAL
+    COPY (SELECT range AS id, range * 2 AS doubled FROM range(100))
+    TO 'fs:///output/data.parquet' (FORMAT parquet);
+
+    -- Read it back
+    SELECT count(*), sum(doubled) FROM read_parquet('fs:///output/data.parquet');
+
+    -- List files
+    SELECT * FROM opendal_ls('fs:///output/');
+
+    -- Stat a file
+    SELECT name, metadata.content_length FROM opendal_stat('fs:///output/data.parquet');
+  extended_description: |
+    The `opendal` extension integrates [Apache OpenDAL](https://opendal.apache.org/)
+    into DuckDB as a virtual filesystem, enabling transparent read and write access
+    to multiple storage services through a unified SQL interface.
+
+    ### Supported Storage Services
+
+    - **`fs://`** / **`file://`** — Local filesystem
+    - **`s3://`** — Amazon S3 and S3-compatible stores (MinIO, R2, etc.)
+    - **`memory://`** — In-memory storage (useful for testing)
+    - more services coming soon
+
+    ### Key Features
+
+    - **Read & write** Parquet, CSV, and JSON files through any supported service
+    - **Glob patterns** work transparently (`read_parquet('s3://bucket/**/*.parquet')`)
+    - **Table functions** for storage operations:
+      - `opendal_stat()` — file metadata
+      - `opendal_ls()` — directory listing with optional recursion
+      - `opendal_glob()` — pattern-based file discovery
+      - `opendal_du()` — disk usage summaries
+      - `opendal_copy()` — cross-service and same-service file copy
+    - **Scoped secrets** with per-service configuration via DuckDB's secret manager
+    - **Configurable layers** — retry, timeout, I/O concurrency, and caching
+      (in-memory via foyer, optional on-disk tier)
+    - **Global settings** for default I/O, retry, timeout, and cache configuration
+    - **Coexistence** with DuckDB's native `httpfs` extension via
+      `opendal_override_native_filesystems` setting
+    - **DuckDB FileSystem logging** integration for structured I/O tracing
+
+    ### Configuration Example
+
+    ```sql
+    CREATE SECRET warehouse (
+        TYPE s3,
+        SCOPE 's3://warehouse',
+        config MAP{
+            'access_key_id': '...',
+            'secret_access_key': '...',
+            'region': 'us-east-1',
+            'endpoint': 'http://localhost:9000'
+        },
+        io_config MAP{'read.concurrent': '4', 'write.chunk_size': '8 MiB'},
+        retry_config MAP{'max_times': '5', 'jitter': 'true'},
+        cache_config MAP{'memory_size': '256 MiB'}
+    );
+
+    SELECT * FROM read_parquet('s3://warehouse/data/*.parquet');
+    ```
+
+    For full documentation, see the
+    [project repository](https://github.com/chitralverma/duckdb-opendal).
