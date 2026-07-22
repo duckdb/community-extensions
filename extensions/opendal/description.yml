@@ -7,8 +7,7 @@ extension:
   license: MIT
   maintainers:
     - chitralverma
-  requires_toolchains:
-    - rust
+  requires_toolchains: rust
   # Exclusions:
   # - WASM: extension-ci-tools pins rust-toolchain@1.86 which is below opendal's MSRV (1.91). See https://github.com/duckdb/extension-ci-tools/issues/385
   # - MinGW: Rtools MinGW is missing libgcc_eh.a which is required by rustc for the gnu target. Rely on standard MSVC instead.
