@@ -1,7 +1,7 @@
 extension:
   name: altertable
   description: Query Altertable's lakehouse directly from your local DuckDB.
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
