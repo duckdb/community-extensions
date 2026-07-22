@@ -1,0 +1,49 @@
+extension:
+  name: datadog
+  description: Read logs from the Datadog Logs Search API into OTLP-shaped tables
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: "cmake, openssl"
+  maintainers:
+    - smithclay
+
+repo:
+  github: smithclay/duckdb-datadog
+  ref: 81c7c2fb0a93a7bc46d925e543e53c640d072767
+
+docs:
+  hello_world: |
+    -- Store your Datadog credentials once (kept out of query text; redacted in duckdb_secrets()).
+    CREATE SECRET (
+        TYPE datadog,
+        API_KEY '<dd-api-key>',
+        APP_KEY '<dd-application-key>',
+        SITE 'datadoghq.com'          -- optional; e.g. datadoghq.eu, us5.datadoghq.com
+    );
+
+    -- Read a window of logs; the extension follows Datadog's cursor pagination for you.
+    SELECT time_unix_nano, service_name, severity_text, body
+    FROM read_datadog_logs(
+        query  => 'service:web-store status:error',
+        "from" => 'now-1h',
+        "to"   => 'now'
+    );
+  extended_description: |
+    This extension reads logs from the [Datadog Logs Search API v2](https://docs.datadoghq.com/api/latest/logs/)
+    directly into DuckDB. Rows conform to the OTLP logs schema (matching
+    [duckdb-otlp](https://github.com/smithclay/otlp2records) `read_otlp_logs`), so Datadog logs drop
+    straight into an OTLP-shaped lakehouse alongside data from other sources.
+
+    Features:
+    - **Credentials via DuckDB secrets** (`CREATE SECRET (TYPE datadog, ...)`), redacted in `duckdb_secrets()`
+    - **Cursor pagination** over the whole time window, streaming page-by-page
+    - **Automatic retries** for rate limits (HTTP 429, honoring the server-advised reset), HTTP 5xx,
+      and transient network errors; retry waits honor query cancellation
+    - **Projection pushdown**: only selected columns are decoded, so aggregations skip the per-row
+      attribute JSON serialization
+    - Datadog custom attributes are exposed as JSON in `log_attributes` for use with DuckDB's JSON functions
+
+    Logs are supported today; traces/spans and metrics are planned. For full documentation, visit the
+    [extension repository](https://github.com/smithclay/duckdb-datadog).

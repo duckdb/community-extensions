@@ -128,6 +128,7 @@ SELECT provider_id, organization, description FROM EUROSTAT_Endpoints();
 │ provider_id │ organization │                     description                      │
 │   varchar   │   varchar    │                       varchar                        │
 ├─────────────┼──────────────┼──────────────────────────────────────────────────────┤
+│ COMEXT      │ EUROSTAT     │ Comext reference database                            │
 │ ECFIN       │ DG ECFIN     │ Economic and Financial Affairs                       │
 │ EMPL        │ DG EMPL      │ Employment, Social Affairs and Inclusion             │
 │ ESTAT       │ EUROSTAT     │ EUROSTAT database                                    │

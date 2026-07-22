@@ -1,18 +1,18 @@
 extension:
   name: infera
   description: A DuckDB extension for in-database inference
-  version: 0.3.0
+  version: 0.4.0
   language: Rust & C++
   build: cmake
   license: MIT OR Apache-2.0
   maintainers:
     - habedi
-  excluded_platforms: "windows_amd64_mingw;osx_amd64;wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "windows_amd64_mingw;osx_amd64;wasm_threads"
   requires_toolchains: rust
 
 repo:
   github: CogitatorTech/infera
-  ref: da3e4873fb0fdb616c51dbd4d061867d962eec42
+  ref: 3581ebd7926dfe49a1a8b717bfe3a0dd0bd306e1
 
 docs:
   hello_world: |

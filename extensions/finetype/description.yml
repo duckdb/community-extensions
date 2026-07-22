@@ -1,117 +1,180 @@
 extension:
   name: finetype
-  description: Semantic type classification — detects 250 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.2.0
+  description: Semantic type classification — detects 244 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
+  version: 0.6.36
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
-  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw"
+  requires_toolchains: "rust"
   maintainers:
     - hughcameron
 
 repo:
-  github: meridian-online/duckdb-finetype
-  ref: 2b4574495b8deef84a00bce8a40570b9c248f55b
+  github: meridian-online/finetype
+  ref: b060785d29dab029aae4a23b514c5d1bc125f4c2
 
 docs:
   hello_world: |
-    -- Classify a value into one of 250 semantic types
-    D SELECT finetype('user@example.com') AS detected_type;
-    ┌───────────────────────┐
-    │     detected_type     │
-    │        varchar        │
-    ├───────────────────────┤
-    │ identity.person.email │
-    └───────────────────────┘
+    -- Profile every column of a table: one row per column, with the detected
+    -- semantic type, model confidence, and recommended DuckDB storage type.
+    D CREATE TABLE people AS SELECT * FROM (VALUES
+        ('jane.doe@company.co.uk', '+44 20 7946 0958', {'city': 'London'}),
+        ('john.smith@example.org', '0117 496 0123',    {'city': 'Bristol'}),
+        ('not-an-email',           'not-a-phone',       {'city': 'Leeds'})
+      ) AS t(email, phone, addr);
 
-    -- Get detailed classification with confidence and recommended DuckDB type
-    D SELECT finetype_detail('192.168.1.1') AS detail;
-    ┌───────────────────────────────────────────────────────────────────────────────┐
-    │                                    detail                                     │
-    │                                    varchar                                    │
-    ├───────────────────────────────────────────────────────────────────────────────┤
-    │ {"type":"technology.internet.ip_v4","confidence":0.9998,"duckdb_type":"INET"} │
-    └───────────────────────────────────────────────────────────────────────────────┘
+    D SELECT * FROM ft_profile('people');
+    ┌─────────────┬──────────────────────────────────────────────────────────────────────────────────┬────────────────────┬─────────────┐
+    │ column_name │                                       type                                       │     confidence     │ duckdb_type │
+    │   varchar   │                                     varchar                                      │       double       │   varchar   │
+    ├─────────────┼──────────────────────────────────────────────────────────────────────────────────┼────────────────────┼─────────────┤
+    │ addr        │ nested STRUCT(city VARCHAR) column — unnest / to_json / extract before profiling │               NULL │ NULL        │
+    │ email       │ identity.person.email                                                            │ 0.5812865495681763 │ VARCHAR     │
+    │ phone       │ identity.person.phone_number                                                     │                0.5 │ VARCHAR     │
+    └─────────────┴──────────────────────────────────────────────────────────────────────────────────┴────────────────────┴─────────────┘
+    -- (addr is a nested STRUCT column: instead of silently mis-classifying it,
+    --  ft_profile emits a flatten hint in the type column and leaves
+    --  confidence / duckdb_type NULL. See the nested-column note below.)
 
-    -- Normalize values for safe TRY_CAST to detected types
-    D SELECT finetype_cast('2024-01-15') AS normalized;
-    ┌────────────┐
-    │ normalized │
-    │  varchar   │
-    ├────────────┤
-    │ 2024-01-15 │
-    └────────────┘
+    -- Validate a table against a JSON Schema (note the top-level "properties"
+    -- key): one row per column, counting how many values the schema rejects.
+    D SELECT * FROM ft_validate('people',
+        '{"properties":{"email":{"type":"string","pattern":"^[^@]+@[^@]+\.[^@]+$"},
+                        "phone":{"type":"string","pattern":"^\+?[0-9().+ -]{7,}$"}}}');
+    ┌─────────────┬───────┬─────────┬───────────────────────────────────────────────────────────────────────────────────┐
+    │ column_name │ total │ rejects │                                  sample_message                                   │
+    │   varchar   │ int64 │  int64  │                                      varchar                                      │
+    ├─────────────┼───────┼─────────┼───────────────────────────────────────────────────────────────────────────────────┤
+    │ addr        │  NULL │    NULL │ nested STRUCT(city VARCHAR) column — unnest / to_json / extract before validating │
+    │ email       │     3 │       1 │ "not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"                              │
+    │ phone       │     3 │       1 │ "not-a-phone" does not match "^\+?[0-9().+ -]{7,}$"                               │
+    └─────────────┴───────┴─────────┴───────────────────────────────────────────────────────────────────────────────────┘
 
-    -- Classify all scalar values in a JSON document
-    D SELECT finetype_unpack('{"email":"user@example.com","active":true}') AS annotated;
+    -- Classify a single value (per-value, no column context)
+    D SELECT ft_infer('https://example.com') AS detected_type;
+    ┌──────────────────────────┐
+    │      detected_type       │
+    │         varchar          │
+    ├──────────────────────────┤
+    │ technology.internet.url  │
+    └──────────────────────────┘
 
   extended_description: |
-    FineType is a tiered CharCNN semantic type classifier that detects 250 data types from raw string values.
-    It uses a hierarchical architecture of 34 character-level convolutional neural networks to classify values
-    into a three-level taxonomy: `domain.category.type`.
+    FineType is a semantic type classifier that detects 244 data types from raw string values. A
+    multi-branch neural network labels each value, mapping it into a three-level taxonomy:
+    `domain.category.type`.
 
-    ## Functions
+    FineType is **column-oriented**: its accuracy comes from seeing a whole column at once, so the
+    primary surface is the `ft_profile` / `ft_validate` **table verbs** below. Per-value scalar
+    functions are also provided for ad-hoc classification, but a lone value that normally leans on its
+    column neighbours to disambiguate (a bare UUID, a phone number) is classified less confidently
+    than the same value seen in column context.
 
-    ### `finetype(value VARCHAR) → VARCHAR`
+    ## Table verbs
+
+    These take a table (or a `LIST` of column values) and return **one row per column** — the natural
+    grain for profiling and validation.
+
+    ### `ft_profile(table_name VARCHAR)`
+    Profile every column of a table. Returns `(column_name, type, confidence, duckdb_type)`,
+    one row per column. The table is named as a string literal; FineType reaches into the catalog to
+    read its columns.
+
+    ```sql
+    SELECT * FROM ft_profile('my_table');
+    ```
+
+    Nested `STRUCT` / `LIST` columns are **guarded, not silently rejected**: rather than forcing them
+    through per-value classification that would misreport them, `ft_profile` returns a flatten hint in
+    the `type` column (with `confidence` and `duckdb_type` left `NULL`). Flatten the column first if you
+    need it typed.
+
+    ### `ft_validate(table_name VARCHAR, schema_json VARCHAR)`
+    Validate a table's columns against a JSON Schema. Returns one row per validated column with the
+    total values checked, the reject count, and a sample rejection message. The schema can be supplied
+    inline, via `getvariable`, or read from a file with DuckDB's `read_text`:
+
+    The JSON Schema is keyed by column under a top-level `properties` object.
+
+    ```sql
+    -- inline
+    SELECT * FROM ft_validate('my_table', '{"properties":{"email":{"type":"string","format":"email"}}}');
+
+    -- from a file (a bare path is read for you; an inline string starting with "{" is used as-is)
+    SELECT * FROM ft_validate('my_table', 'schema.json');
+    ```
+
+    ### `ft_profile(values LIST)`
+    Profile a single column passed as a list — useful when the values are already in hand rather than
+    in a named table.
+
+    ```sql
+    SELECT * FROM ft_profile((SELECT list(email) FROM people));
+    ```
+
+    ## Scalar functions
+
+    Per-value classification, one value at a time. Strongest on values unambiguous in isolation (URLs,
+    ISO dates, well-formed emails, IP addresses).
+
+    ### `ft_infer(value VARCHAR) → VARCHAR`
     Classify a single value. Returns the full semantic type label.
 
     ```sql
-    SELECT finetype('https://example.com');  -- technology.internet.url
-    SELECT finetype('2024-01-15');           -- datetime.date.iso
-    SELECT finetype('true');                 -- representation.boolean.terms
+    SELECT ft_infer('https://example.com');  -- technology.internet.url
+    SELECT ft_infer('2024-01-15');           -- datetime.date.iso
+    SELECT ft_infer('true');                 -- representation.boolean.terms
     ```
 
-    ### `finetype_detail(value VARCHAR) → VARCHAR`
-    Classify with full detail — returns JSON with type, confidence (0.0–1.0), and recommended DuckDB type.
+    ### `ft_detail(value VARCHAR) → VARCHAR`
+    Classify with full detail. Returns JSON with the type, confidence (0.0–1.0), the recommended
+    DuckDB type, the number of samples seen, the disambiguation path, and the per-label vote map.
 
     ```sql
-    SELECT finetype_detail('user@example.com');
-    -- {"type":"identity.person.email","confidence":0.9992,"duckdb_type":"VARCHAR"}
+    SELECT ft_detail('192.168.1.1');
+    -- {"type": "technology.internet.ip_v4", "confidence": 0.901, "duckdb_type": "INET", ...}
     ```
 
-    ### `finetype_cast(value VARCHAR) → VARCHAR`
-    Normalize a value for safe `TRY_CAST()` to its detected DuckDB type.
-    Handles date format conversion (US/EU → ISO), boolean normalization, UUID lowercasing, numeric cleanup.
+    ### `ft_cast(value VARCHAR) → VARCHAR`
+    Normalize a value for safe `TRY_CAST()` to its detected DuckDB type. Handles date format
+    conversion (US/EU → ISO), boolean normalization, UUID lowercasing, numeric cleanup.
 
     ```sql
-    SELECT finetype_cast('01/15/2024');  -- 2024-01-15 (US date → ISO)
-    SELECT finetype_cast('true');        -- true (boolean normalization)
+    SELECT ft_cast('01/15/2024');  -- 2024-01-15 (US date → ISO)
     ```
 
-    ### `finetype_unpack(json VARCHAR) → VARCHAR`
-    Recursively classify all scalar values in a JSON document. Returns annotated JSON with type/confidence/duckdb_type for each field.
+    ### `ft_validate_text(value VARCHAR, schema_json VARCHAR) → STRUCT(valid BOOLEAN, "constraint" VARCHAR, message VARCHAR)`
+    Validate a single value against a JSON Schema fragment. Returns a struct: `valid` is `true` when
+    the value conforms (with `constraint` and `message` `NULL`); on failure `valid` is `false` and
+    `constraint` / `message` name the failing keyword and the reason. This is the per-cell engine the
+    `ft_validate` table verb runs over every column.
 
-    ### `finetype_version() → VARCHAR`
+    ```sql
+    SELECT ft_validate_text('not-an-email', '{"type":"string","pattern":"^[^@]+@[^@]+\.[^@]+$"}');
+    -- {'valid': false, 'constraint': pattern, 'message': '"not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"'}
+    ```
+
+    ### `ft_unpack(json VARCHAR) → VARCHAR`
+    Recursively classify every scalar value in a JSON document. Returns annotated JSON carrying the
+    type, confidence, recommended DuckDB type, and original value for each field.
+
+    ### `ft_version() → VARCHAR`
     Returns the extension version string.
+
+    > **Aliases.** The earlier un-prefixed scalar names (`finetype`, `finetype_detail`,
+    > `finetype_cast`, `finetype_unpack`, `finetype_validate`, `finetype_version`) remain registered as
+    > aliases of the `ft_` scalars, so existing code keeps working. New code should use the `ft_` names.
 
     ## Type Taxonomy
 
-    250 types organized into 7 domains:
-    - **container**: JSON, XML, CSV, arrays, key-value (12 types)
-    - **datetime**: dates, times, timestamps, epochs, durations, offsets (84 types)
-    - **finance**: currencies, accounting, market identifiers, transactions (31 types)
+    244 types organized into 7 domains:
+    - **container**: JSON, XML, CSV, arrays, key-value (11 types)
+    - **datetime**: dates, times, timestamps, epochs, durations, offsets (86 types)
+    - **finance**: currencies, accounting, market identifiers, transactions (28 types)
     - **geography**: coordinates, locations, addresses, transportation (25 types)
-    - **identity**: names, emails, phones, payments, medical (34 types)
-    - **representation**: booleans, numbers, text, files, scientific (36 types)
-    - **technology**: URLs, IPs, UUIDs, booleans, versions, codes (28 types)
-
-    ## Use Cases
-
-    **Data profiling** — Detect column types in messy CSV/Parquet data:
-    ```sql
-    SELECT column_name, finetype(value) AS detected_type, count(*) AS cnt
-    FROM my_table UNPIVOT (value FOR column_name IN (*))
-    GROUP BY column_name, detected_type
-    ORDER BY column_name, cnt DESC;
-    ```
-
-    **Schema inference** — Get DuckDB-native type recommendations:
-    ```sql
-    SELECT column_name,
-           finetype_detail(value)::JSON->>'duckdb_type' AS recommended_type
-    FROM my_table UNPIVOT (value FOR column_name IN (*))
-    GROUP BY ALL;
-    ```
+    - **identity**: names, emails, phones, payments, medical (33 types)
+    - **representation**: booleans, numbers, text, files, scientific (32 types)
+    - **technology**: URLs, IPs, UUIDs, versions, codes (29 types)
 
     For more information, see the [FineType documentation](https://github.com/meridian-online/finetype).

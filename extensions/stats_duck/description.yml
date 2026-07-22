@@ -1,0 +1,68 @@
+extension:
+  name: stats_duck
+  description: A statistical computing toolkit for DuckDB — descriptive statistics, hypothesis tests, R-style distribution functions (d/p/q/r), OLS regression with HC and cluster-robust standard errors, grammar-of-graphics charts (VISUALIZE → Vega-Lite), and first-class readers/writers for SAS, SPSS, and Stata files, all directly in SQL.
+  version: 0.7.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - caerbannogwhite
+
+repo:
+  github: KoliStat/the-stats-duck
+  ref: 6572642cfb6ee9331998ee375a841601414efe28
+
+docs:
+  hello_world: |
+    -- R-style distribution functions (d/p/q/r for 15+ families):
+    D SELECT pnorm(1.96) AS p, qt(0.975, 30) AS t_crit, dpois(3, 2.5) AS pmf;
+    ┌────────────────────┬────────────────────┬─────────────────────┐
+    │         p          │       t_crit       │         pmf         │
+    │       double       │       double       │       double        │
+    ├────────────────────┼────────────────────┼─────────────────────┤
+    │ 0.9750021048517796 │ 2.0422724563012373 │ 0.21376301724973648 │
+    └────────────────────┴────────────────────┴─────────────────────┘
+
+    -- OLS regression as an aggregate (one model per GROUP BY), with robust SEs.
+    -- vcov: 'const' | 'HC0'..'HC3' | 'CR0'/'CR1' (cluster-robust, + a cluster key).
+    D SELECT (c).term, (c).estimate, (c).std_error
+      FROM (
+        SELECT unnest((lm_fit(y, [x1, x2], 'HC1')).coefficients) AS c
+        FROM my_data
+      );
+
+    -- A clinical "Table 1" over mixed variable types, with between-group tests:
+    D SELECT * FROM table_one('patients', variables := ['age', 'sex', 'bmi'], by := ['arm']);
+
+    -- Grammar-of-graphics: turn a query into a Vega-Lite spec (+ the SQL to feed it):
+    D VISUALIZE wt AS x, mpg AS y FROM cars DRAW point;
+
+  extended_description: |
+    ## The Stats Duck
+
+    A statistical computing toolkit that brings common statistical workflows
+    into DuckDB SQL. Everything runs as streaming aggregates and scalar
+    functions, so it scales to large datasets — and also runs in DuckDB-WASM in
+    the browser.
+
+    **What's included**
+
+    - **Descriptive statistics** — `summary_stats`, `table_one` (the clinical
+      "Table 1"), `corr_matrix`, `meta`.
+    - **Hypothesis tests** — one/two-sample and paired t-tests, one-way ANOVA,
+      chi-square, Mann–Whitney, Wilcoxon signed-rank, Kolmogorov–Smirnov,
+      Shapiro–Wilk, Anderson–Darling, Jarque–Bera, and correlation tests
+      (Pearson / Spearman / Kendall).
+    - **Distribution functions** — R-style `d`/`p`/`q`/`r` quartets for 15+
+      families (normal, t, chi-square, F, gamma, beta, exponential, Weibull,
+      log-normal, Poisson, negative binomial, hypergeometric, …).
+    - **Regression** — `lm` / `lm_summary` table functions and the `lm_fit`
+      aggregate (one model per `GROUP BY`) with classical, HC0–HC3
+      heteroskedasticity-consistent, and CR0/CR1 cluster-robust standard errors.
+    - **Grammar of graphics** — `VISUALIZE … DRAW <mark>` returns a Vega-Lite v5
+      spec plus the SQL needed to feed it.
+    - **Statistical file formats** — first-class readers and writers for SAS
+      (`.sas7bdat`, `.xpt`), SPSS (`.sav`, `.por`), and Stata files, via ReadStat.
+    - **Resampling & correction** — `bootstrap`, `adjust_p` (multiple-testing).
+
+    Full function reference: <https://github.com/KoliStat/the-stats-duck>.

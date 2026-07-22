@@ -1,7 +1,7 @@
 extension:
   name: lua
   description: Evaluate Lua scripts within queries
-  version: 1.5.0
+  version: 1.5.4
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: isaacbrodsky/duckdb-lua
-  ref: 186eb2fbdcf6e978dff6e9b959a4b3e827611938
+  ref: ad20052dd3db3b3d0acb2401aae0b09a4636d239
 
 docs:
   hello_world: |

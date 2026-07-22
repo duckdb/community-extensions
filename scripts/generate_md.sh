@@ -109,9 +109,15 @@ do
          if [[ "${REPOSITORY}" == "duckdb/duckdb-extension-alias" ]]; then
             extension=$(cat extensions/$extension/description.yml | yq -r ".repo.canonical_name")
          fi
-         cat extensions/$extension/description.yml | yq ".extension.name, .repo.github, .repo.ref" | xargs printf '%s,%s,%s,"' >> $EXTENSIONS_CSV
-
-         cat extensions/$extension/description.yml | yq -r '.extension.description' | sed 's/$/"/'  >> $EXTENSIONS_CSV
+         # Build the CSV row in one shot. The description is flattened to a single
+         # line and embedded double quotes are escaped ("" per RFC 4180), otherwise
+         # multi-line or quote-containing descriptions emit malformed rows that make
+         # DuckDB's CSV sniffer detect a single column and break the final query below.
+         CSV_NAME=$(yq -r '.extension.name' extensions/$extension/description.yml)
+         CSV_REPO=$(yq -r '.repo.github' extensions/$extension/description.yml)
+         CSV_REF=$(yq -r '.repo.ref' extensions/$extension/description.yml)
+         CSV_DESC=$(yq -r '.extension.description' extensions/$extension/description.yml | tr '\n' ' ' | sed 's/  */ /g; s/ *$//; s/"/""/g')
+         printf '%s,%s,%s,"%s"\n' "$CSV_NAME" "$CSV_REPO" "$CSV_REF" "$CSV_DESC" >> $EXTENSIONS_CSV
          echo "" >> $EXTENSION_README
          cat extensions/$extension/description.yml >> $EXTENSION_README
          echo "" >> $EXTENSION_README
@@ -181,5 +187,10 @@ do
 done
 
 rm -f x.db
+# Build the extensions index by positional column (#1 name, #2 repo, #4 description).
+# This relies on community_extensions.csv being well-formed: a row per extension with
+# exactly 4 columns. If a description leaks newlines/quotes into the CSV (see the row
+# construction above), DuckDB's CSV sniffer collapses it to a single column and this
+# query fails with "Positional reference 2 out of range (total 1 columns)".
 $DUCKDB_BINARY $DOCS/x.db -markdown -c "SELECT '['||#1||']({% link community_extensions/extensions/'||#1||'.md %})' as Name, '[<span class=github>GitHub</span>](https://github.com/'||#2||')' as GitHub , #4 as Description FROM read_csv('build/docs/community_extensions.csv');" > $DOCS/extensions_list.md.tmp
 rm -f x.db

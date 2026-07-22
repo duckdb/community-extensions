@@ -1,20 +1,26 @@
 extension:
   name: yaml
   description: Read YAML files into DuckDB with native YAML type support, comprehensive extraction functions, and seamless JSON interoperability
-  version: 1.6.3
+  version: 1.7.0
+  # windows_amd64 (MSVC) is built: the earlier "fmt fails to compile vs the community
+  # MSVC STL" exclusion no longer reproduces on the v1.5.4 toolchain -- the extension
+  # compiles and passes the full suite on windows_amd64 via v1.5-variegata CI (a ~24-min
+  # real build+test run, no COPY-TO hang). windows_amd64_mingw stays excluded: the mingw
+  # (libstdc++) toolchain + yaml-cpp is not yet validated here.
+  excluded_platforms: windows_amd64_mingw
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - teaguesterling
 
-  # yaml package issues for windows in previous vcpkg
+  # Pinned vcpkg for Windows yaml-cpp compatibility (older vcpkg had Windows build issues).
   vcpkg_commit: "656be05781442d5c4cb14978f6c7bf47b6e12b32"
   
 repo:
   github: teaguesterling/duckdb_yaml
-  andium: de60de55fb238c44661cef27373e82ab21920f43
-  ref: de60de55fb238c44661cef27373e82ab21920f43
+  andium: 4523b13794d366d727d598dd137f957c0e96caa4
+  ref: 4523b13794d366d727d598dd137f957c0e96caa4
 
 docs:
   hello_world: |

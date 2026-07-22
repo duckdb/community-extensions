@@ -1,0 +1,47 @@
+extension:
+  name: ai
+  description: AI functions for SQL — completions, classification, extraction, embeddings, and read-only SQL generation across local and hosted model providers
+  version: 0.4.14
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - leonardovida
+
+repo:
+  github: leonardovida/duckdb-ai
+  ref: 9b7b16a5d5bfa97180b8be48d69bd9a4a4106419
+
+docs:
+  hello_world: |
+    -- Use a free local model via Ollama (https://ollama.com)
+    SET duckdb_ai_provider = 'ollama';
+    SET duckdb_ai_model = 'gemma4:e4b';
+
+    SELECT ai_summarize('DuckDB is an analytical database built for fast local queries.');
+
+    -- Or a hosted provider, with the key kept in a DuckDB secret
+    CREATE SECRET openai_ai (TYPE duckdb_ai, AI_PROVIDER 'openai', API_KEY '...', MODEL 'gpt-4o-mini');
+    SELECT ai_classify('invoice overdue', 'billing, support', secret := 'openai_ai');
+  extended_description: |
+    The ai extension adds model-backed analytical functions to SQL: completions
+    (`ai_complete`), text tasks (`ai_summarize`, `ai_classify`, `ai_extract`,
+    `ai_translate`, `ai_redact`, `ai_filter`), structured output validated
+    against a JSON Schema (`ai_complete_json`, `ai_complete_record`,
+    `ai_extract_record`), embeddings and similarity (`ai_embed`,
+    `ai_similarity`, `ai_rerank`), aggregates (`ai_agg`, `ai_summarize_agg`),
+    and a SQL assistant that only returns parser-validated read-only `SELECT`
+    statements (`ai_sql`, `ai_query_data`).
+
+    It supports local Ollama, llama.cpp, and OpenAI-compatible servers as well as OpenAI,
+    Azure OpenAI, Anthropic, Gemini, Mistral, DeepSeek, OpenRouter, Databricks,
+    Snowflake Cortex, and Z.ai. Credentials come from environment variables or
+    DuckDB `TYPE duckdb_ai` secrets — never SQL arguments. The runtime includes
+    concurrency/rate controls, retries with backoff, opt-in response and
+    provider-side prompt caching, batched embedding requests, a network egress
+    allowlist, and local usage/cost tracking via `ai_usage()`.
+
+    The extension performs no network calls at load time; providers are only
+    contacted when an `ai_*` function that needs one is executed. Full docs:
+    https://github.com/leonardovida/duckdb-ai

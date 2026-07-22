@@ -1,18 +1,18 @@
 extension:
   name: yardstick
   description: Measure-aware SQL implementing Julian Hyde's 'Measures in SQL' paper
-  version: 0.6.0
+  version: 0.7.0
   language: C++
   build: cmake
   license: MIT
   requires_toolchains: "rust"
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_gcc4;windows_amd64_rtools;windows_amd64_mingw"
   maintainers:
     - sidequery
 
 repo:
   github: sidequery/yardstick
-  ref: 8722d056d517ee46075082bbaa3fd45cc61433cf
+  ref: f19d73fa93f2601cfa81ca3ebad841dffcc5f609
 
 docs:
   hello_world: |
@@ -26,7 +26,7 @@ docs:
     FROM sales;
 
     -- Query with AGGREGATE() and AT modifiers
-    SEMANTIC SELECT
+    SELECT
         year,
         region,
         AGGREGATE(revenue) AS revenue,
@@ -41,13 +41,13 @@ docs:
 
     **Percent of total** calculations without CTEs or window functions:
     ```sql
-    SEMANTIC SELECT region, AGGREGATE(revenue) / AGGREGATE(revenue) AT (ALL) AS pct
+    SELECT region, AGGREGATE(revenue) / AGGREGATE(revenue) AT (ALL) AS pct
     FROM sales_v;
     ```
 
     **Year-over-year comparisons** with simple syntax:
     ```sql
-    SEMANTIC SELECT year, AGGREGATE(revenue) AT (SET year = year - 1) AS prior_year
+    SELECT year, AGGREGATE(revenue) AT (SET year = year - 1) AS prior_year
     FROM sales_v;
     ```
 

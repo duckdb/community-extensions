@@ -1,0 +1,66 @@
+extension:
+  name: three_d
+  description: 3D solid processing for city models — enclosed volume, validation, distance, and measurement of polyhedral solids.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_mingw"
+  maintainers:
+    - HideBa
+
+repo:
+  github: cityjson/duckdb-3d-extension
+  ref: a08f2406d96f8364b7957fa296825d6e4256dc0e
+
+docs:
+  hello_world: |
+    -- Build a 3D solid from WKB (e.g. produced by the cityjson extension) and measure it.
+    -- ST_3DFromWKB accepts optional CityJSON geometry_properties to recover shell structure.
+    SELECT
+        ST_3DVolume(solid)                  AS volume_m3,
+        ST_3DSurfaceArea(solid)             AS surface_m2,
+        ST_Area(solid)                      AS footprint_m2,
+        ST_ZMax(solid) - ST_ZMin(solid)     AS height_m,
+        ST_3DIsClosed(solid)                AS closed
+    FROM (SELECT ST_3DFromWKB(geometry, geometry_properties) AS solid FROM buildings);
+
+    -- Validate a solid before measuring it (ST_3DVolume requires a valid solid).
+    SELECT ST_3DValidationReport(solid) AS report FROM buildings;
+
+    -- 3D distance between two geometries (GEOM_3D, built from WKB with ST_Geom3DFromWKB).
+    SELECT ST_3DDistance(ST_Geom3DFromWKB(a.wkb), ST_Geom3DFromWKB(b.wkb)) AS gap_m
+    FROM a, b;
+
+  extended_description: |
+    `three_d` (repository `duckdb-3d`) makes the polyhedral solids in 3D city models —
+    buildings from CityJSON / 3DBAG, CityParquet, and similar sources — first-class,
+    queryable values in DuckDB. DuckDB's built-in geometry surface is 2D / simple-features
+    centric; this extension adds the solid-aware types and functions that 3D workflows need,
+    on a self-contained C++ kernel (no CGAL/SFCGAL dependency).
+
+    Two BLOB-backed logical types:
+    - `SOLID_3D` — closed polyhedral solids, backed by a versioned binary payload that
+      preserves shell/face topology.
+    - `GEOM_3D` — general 3D geometry (points, lines, polygons, multis, polyhedral surfaces)
+      for the class-generic accessor, distance, and serialization functions.
+
+    Function families (PostGIS-style `ST_*` / `ST_3D*` names, a curated 3D subset):
+    - Import / export: `ST_3DFromWKB`, `ST_3DTryFromWKB`, `ST_3DAsWKB`, `ST_Geom3DFromWKB`,
+      `ST_AsText`, `ST_AsGeoJSON`, `ST_AsBinary`
+    - Introspection: `ST_3DBounds`, `ST_3DNumSolids`, `ST_3DNumShells`, `ST_3DNumFaces`,
+      `ST_GeometryType`, `ST_NDims`, `ST_HasZ`, `ST_X`, `ST_Y`, `ST_Z`, `ST_ZMin`, `ST_ZMax`,
+      `ST_CoordDim`, `ST_Dimension`, `ST_NumGeometries`
+    - Validation: `ST_3DIsClosed`, `ST_3DIsManifold`, `ST_3DIsOriented`,
+      `ST_3DValidationReport`, `ST_IsPlanar`
+    - Measurement: `ST_3DVolume`, `ST_3DSurfaceArea` / `ST_3DArea`, `ST_Area` (footprint),
+      `ST_3DPerimeter`, `ST_3DLength`
+    - Distance: `ST_3DDistance`, `ST_3DDWithin`, `ST_3DMaxDistance`, `ST_3DDFullyWithin`,
+      `ST_3DIntersects`, `ST_3DClosestPoint`, `ST_3DShortestLine`
+    - Transform / construct: `ST_Translate`, `ST_Scale`, `ST_RotateX/Y/Z`, `ST_Force3D`,
+      `ST_ConvexHull`, `ST_3DCentroid`, `ST_3DExtrude`, `ST_MakeSolid`
+
+    It composes with the `cityjson` extension: read CityJSON / CityJSONSeq with
+    `read_cityjson(..., lod => '...')` to get `geometry` (WKB) plus `geometry_properties`
+    (JSON), then pipe both into `ST_3DFromWKB`. The extension is experimental and under active
+    development; APIs and payload formats may change.

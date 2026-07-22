@@ -10,4 +10,4 @@ extension:
     - jrosskopf
 repo:
   github: DataZooDE/erpl-web
-  ref: 65ef2a2dd6f49c4b353e305df21dc354b5519a64
+  ref: a86f4ceefe3718b6bc2a21f47f9468b3180f5e5c

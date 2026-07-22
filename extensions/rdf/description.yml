@@ -1,7 +1,7 @@
 extension:
   name: rdf
   description: A DuckDB extension to read and write RDF
-  version: 2.7.0
+  version: 2.8.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nonodename/duck_rdf
-  ref: 1e79fecbdfbd390bda11172ff87488b1c5c6526b
+  ref: 8d20bad15a216d08d932de1660a690d6e10a3d52
 
 docs:
   hello_world: |
@@ -58,7 +58,9 @@ docs:
 
     `read_rdf()` returns six columns: `subject`, `predicate`, `object` (always populated),
     and `graph`, `language_tag`, `datatype` (nullable). It accepts a file path or glob pattern;
-    multiple matched files are scanned in parallel.
+    multiple matched files are scanned in parallel. `.gz` and `.zst` compressed files are
+    supported (note that you need to load the parquet extension for the libzstd library to be 
+    loaded). The RDF format is auto-detected by file extension but can be overridden with the `file_type` parameter.
 
     ```sql
     SELECT subject, predicate FROM read_rdf('data.ttl');

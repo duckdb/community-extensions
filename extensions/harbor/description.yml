@@ -1,7 +1,7 @@
 extension:
   name: harbor
-  description: Multi-protocol HTTP service (Quack RPC, JSON SQL, DuckDB UI, admin) for DuckDB on a single port
-  version: 0.1.2
+  description: Client/server DuckDB over one HTTP port — web UI, JSON /sql, and native ATTACH (TYPE harbor)
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -10,15 +10,16 @@ extension:
 
 repo:
   github: shreeve/duckdb-harbor
-  ref: adc4410e3b4122a18ff8b91af76c6b3be17e47ad
+  ref: 70a86f05775908e78b4479944c5beb40aac3e685
 
 docs:
   hello_world: |
     -- Load the extension and start the server in the background.
-    -- harbor_serve returns immediately; harbor_wait keeps the process
-    -- alive in daemon mode (containers, systemd).
+    -- harbor_serve returns once the server is accepting connections;
+    -- harbor_wait keeps the process alive in daemon mode (containers,
+    -- systemd).
     LOAD harbor;
-    CALL harbor_serve('harbor:127.0.0.1:9494');
+    CALL harbor_serve(bind := '127.0.0.1', port := 9494);
     --                                                  ┌─────────────────────────────────┐
     --                                                  │             token               │
     --                                                  ├─────────────────────────────────┤
@@ -39,42 +40,45 @@ docs:
     -- page asks for the token once, sets a HttpOnly SameSite=Strict
     -- cookie, then proxies the official DuckDB UI through.
 
-    -- A second DuckDB process can attach via the Quack RPC protocol:
-    --   ATTACH 'quack:127.0.0.1:9494' AS h (SECRET <bearer-secret>);
-    --   SELECT * FROM h.main.t;
+    -- A second DuckDB attaches the server's catalog natively — catalog
+    -- discovery and table scans both ride /sql, so multi-table JOINs,
+    -- projection pushdown, and CLI autocomplete all work:
+    --   LOAD harbor;
+    --   ATTACH 'harbor:127.0.0.1:9494' AS h (TYPE harbor, TOKEN '<token>');
+    --   SELECT * FROM h.main.orders o JOIN h.main.customers c USING (customer_id);
 
     -- Stop the server:
     CALL harbor_stop();
 
   extended_description: |
     `harbor` is a single DuckDB extension. When loaded, your DuckDB
-    instance turns into a multi-protocol HTTP service on one port:
+    instance turns into a client/server database on one HTTP port:
 
-    | Surface     | Endpoints                              | What it gives you                                                         |
-    |-------------|----------------------------------------|---------------------------------------------------------------------------|
-    | Quack RPC   | `POST /quack`                          | Wire-compat with stock `duckdb-quack` clients (`ATTACH 'quack:host'`)     |
-    | JSON SQL    | `POST /sql`, `/sql/sessions/*`         | NDJSON streaming + one-shot JSON, prepared params (incl. `LIST`/`STRUCT`/`MAP`), principal-owned sessions, `harbor_query_timeout_s` enforcement |
-    | DuckDB UI   | `GET /`, `/ddb/*`, `/localEvents`      | Cookie-gated proxy to the official DuckDB UI; CSP+nonce on the login page |
-    | Admin       | `/health`, `/whoami`, `/tables`, `/schema/:db/:t`, `/checkpoint`, `/sessions`, `/interrupt` | Centralized `__HARBOR_ADMIN__:resource:action` default-deny + `harbor_allow_admin_without_authz` operator opt-in |
-    | Auth        | `/auth/login`, `/auth/logout`          | Bearer / X-Harbor-Token / HMAC-signed `harbor_session` cookie             |
+    | Surface       | Endpoints                              | What it gives you                                                         |
+    |---------------|----------------------------------------|---------------------------------------------------------------------------|
+    | JSON SQL      | `POST /sql`, `/sql/sessions/*`         | NDJSON streaming + one-shot JSON, prepared params (incl. `LIST`/`STRUCT`/`MAP`), principal-owned sessions, `harbor_query_timeout_s` enforcement |
+    | Native attach | client-side `ATTACH 'harbor:host' (TYPE harbor)` | Browse and query the server's catalog from any DuckDB — multi-table JOINs, projection pushdown, and CLI autocomplete; catalog + scans both ride `/sql` (read-only) |
+    | DuckDB UI     | `GET /`, `/ddb/*`, `/localEvents`      | Cookie-gated proxy to the official DuckDB UI; CSP+nonce on the login page |
+    | Admin         | `/health`, `/whoami`, `/tables`, `/schema/:db/:t`, `/checkpoint`, `/sessions`, `/interrupt` | Centralized `__HARBOR_ADMIN__:resource:action` default-deny + `harbor_allow_admin_without_authz` operator opt-in |
+    | Auth          | `/auth/login`, `/auth/logout`          | Bearer / X-Harbor-Token / HMAC-signed `harbor_session` cookie             |
 
     All on the same port, against the same in-process DuckDB, with the
     same session pool and auth model.
 
     **Use cases:**
-    - Operate one DuckDB process and let users hit it via whatever interface
-      fits their tool: notebook (UI), REPL (Quack), backend code (`/sql`).
+    - Operate one DuckDB process and let users hit it via whatever
+      interface fits their tool: browser (UI), DuckDB CLI/clients
+      (`ATTACH ... TYPE harbor`), backend code (`/sql`).
     - Bridge between SQL clients and apps without standing up a separate
       database server.
     - Container-native deployments — `harbor_wait()` blocks until SIGTERM
       so harbor runs cleanly under systemd / Docker / Kubernetes.
 
-    **Status:** v0.1 release, tested across all 9 DuckDB CI platforms
-    (linux_amd64/arm64, osx_amd64/arm64, windows_amd64/_mingw,
-    wasm_mvp/eh/threads). 198 test assertions across 6 suites.
+    **Status:** v0.4 release, tested across the DuckDB community-extension
+    matrix (linux_amd64/arm64, osx_amd64/arm64, windows_amd64/_mingw,
+    wasm_mvp/eh/threads).
 
     Source, design spec, contributor guide, full release notes:
     [github.com/shreeve/duckdb-harbor](https://github.com/shreeve/duckdb-harbor).
 
-    Tracks upstream `duckdb-quack` `v1.5-variegata` and `duckdb-ui`;
-    targets DuckDB v1.5.2.
+    Vendors the official `duckdb-ui`; targets DuckDB v1.5.3.
