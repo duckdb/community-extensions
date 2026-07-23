@@ -14,7 +14,7 @@ extension:
 repo:
   github: duckdb/extension-template-rs
   andium: 2381c7e1c5026f21c92b7ffe3ae7a6b1d8d177c0
-  ref: 0a839a1b445cc96d5321c67db9274d0ae6e9f869
+  ref: abb7b2f3f954a47f90fc37a99cda3ce0618e6094
 
 docs:
   hello_world: |
