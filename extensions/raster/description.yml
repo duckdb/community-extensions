@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-raster
-  ref: 707dd030afd8c9d7b68a2e5f134c4c28918e5df1
+  ref: 550ce27af765bbc7958b7c5d965a7818e8896444
 
 docs:
   hello_world: |
