@@ -2,12 +2,12 @@ extension:
   name: yaml
   description: Read YAML files into DuckDB with native YAML type support, comprehensive extraction functions, and seamless JSON interoperability
   version: 1.7.0
-  # windows_amd64 (MSVC) is built: the earlier "fmt fails to compile vs the community
-  # MSVC STL" exclusion no longer reproduces on the v1.5.4 toolchain -- the extension
-  # compiles and passes the full suite on windows_amd64 via v1.5-variegata CI (a ~24-min
-  # real build+test run, no COPY-TO hang). windows_amd64_mingw stays excluded: the mingw
-  # (libstdc++) toolchain + yaml-cpp is not yet validated here.
-  excluded_platforms: windows_amd64_mingw
+  # Windows fully built (no excluded_platforms). windows_amd64 (MSVC) shipped in the
+  # original v1.7.0 build; windows_amd64_mingw is now validated too — it compiles and
+  # passes the full suite on the v1.5.4 / v1.5-variegata toolchain (a real ~31-min
+  # build+test run). The earlier "fmt fails to compile vs the community MSVC STL"
+  # exclusion and the COPY-TO deadlock both proved stale/non-reproducing. Source is
+  # unchanged (same ref); this backfills the mingw platform for v1.7.0.
   language: C++
   build: cmake
   license: MIT
