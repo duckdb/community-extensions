@@ -12,12 +12,12 @@ extension:
 
 repo:
   github: yutannihilation/duckdb-ext-st-read-multi
-  ref: eb01047043beb286f7649f3c670190d680feb0b1
+  ref: 27060866a7f71433d70d7598033ccefab9fc510c
 
 docs:
   hello_world: |
     LOAD spatial;
 
-    SELECT * REPLACE (ST_GeomFromWkb(geometry) as geometry) FROM ST_Read_Multi('path/to/*.geojson');
+    FROM ST_Read_Multi('path/to/*.geojson');
   extended_description: |
     Read multiple geospatial files. Currently, only GeoJSON, GeoPackage, and Shapefile are supported.
