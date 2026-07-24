@@ -1,0 +1,97 @@
+extension:
+  name: gpudb
+  description: GPU-accelerated analytical operators for DuckDB on NVIDIA CUDA and Apple Silicon Metal. First SQL execution engine that targets Apple Silicon GPUs.
+  version: 0.1.3
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  requires_toolchains: "python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_rtools;windows_amd64_mingw"
+  maintainers:
+    - singhpratech
+
+repo:
+  github: singhpratech/duckdbgpumetaldbram
+  ref: 018d8a306ac2903f64c3391d42c59038b4fc2c28
+
+docs:
+  hello_world: |
+    LOAD gpudb;
+    -- GPU-accelerated SUM (CUDA on NVIDIA, Metal on Apple Silicon, CPU fallback otherwise)
+    SELECT gpu_sum(value::BIGINT) FROM range(1000000) AS t(value);
+
+    -- Verify against native sum
+    SELECT
+      gpu_sum(value::BIGINT) AS gpu,
+      sum(value::BIGINT) AS native
+    FROM range(1000000) AS t(value);
+  extended_description: |
+    `gpudb` adds GPU-accelerated aggregate operators that DuckDB transparently
+    dispatches to:
+
+      * `gpu_sum(BIGINT)` — GPU SUM
+      * `gpu_min(BIGINT)` — GPU MIN
+      * `gpu_max(BIGINT)` — GPU MAX
+
+    On NVIDIA hardware (CUDA backend, sm_70+) these run on the device with
+    PCIe-amortized transfer. On Apple Silicon (Metal backend, M1+) they use
+    the unified memory architecture so transfer cost is zero.
+
+    **v0.1.3** ships a hybrid Metal GROUP BY that auto-dispatches between two
+    paths per query: a 32K-partition slot-lock hash aggregate (sweet spot at
+    1024 ≤ unique ≤ 16M) and an optimized multi-pass radix sort (very low or
+    very high cardinality). This flipped TPC-H SF10 GROUP BY l_orderkey from
+    CPU 1.78× faster (v0.1.2) to Metal 1.30× faster.
+
+    A hybrid CPU/GPU planner picks the backend that wins for each cardinality
+    regime — this addresses the open problem from Rosenfeld/Breß CSUR 2022
+    and Cao SIGMOD 2024.
+
+    Apple Silicon (M4 Max) vs DuckDB CPU 16-thread (the actual CLI default,
+    not single-thread). All cells trace to BENCHMARK.md rows:
+      * TPC-H SF10 multi-agg fusion l_quantity: Metal 25.5×
+      * TPC-H SF10 multi-agg fusion l_extendedprice: Metal 22.0×
+      * TPC-H SF10 multi-agg fusion l_orderkey: Metal 9.7×
+      * 1B int64 SUM HOT (resident column): Metal 2.6×
+      * 500M × 1M GROUP BY synthetic: Metal 3.4×
+      * 1B × 1M GROUP BY synthetic: Metal 3.2×
+      * TPC-H SF10 GROUP BY l_extendedprice (1.35M unique): Metal 3.9×
+      * TPC-H SF10 GROUP BY l_orderkey (15M unique): Metal 1.30×
+      * TPC-H SF1 GROUP BY l_orderkey (1.5M unique): Metal 1.40×
+      * Honest loss documented: TPC-H SF10 GROUP BY l_quantity (50 unique):
+        CPU 14× faster (structural — L1-resident hash table on CPU)
+
+    NVIDIA RTX 4090 (CUDA, vs single-thread CPU baseline):
+      * Peak SUM ratio: ~22.8× (size-dependent, resident column)
+      * GROUP BY 50M rows × 10M unique groups: 21.8×
+      * TPC-H SF1 GROUP BY (6M × 1.5M unique): 3.56× (re-bench post-launch)
+
+    The extension auto-selects the best backend at load time. If no GPU is
+    available it falls back cleanly to the CPU implementation — same SQL
+    surface either way. Community-extension binaries are built without the
+    CUDA toolchain for now (CPU fallback on Linux; full Metal on Apple
+    Silicon); build from source for the CUDA backend. Honest benchmark
+    notes (where GPU loses to CPU) are documented in the project's
+    BENCHMARK.md (append-only log).
+
+    Source: https://github.com/singhpratech/duckdbgpumetaldbram
+
+  hardware_requirements: |
+    NVIDIA CUDA: any GPU with sm_70 or later. Driver 525+ recommended.
+    Apple Metal: any Apple Silicon Mac (M1 or later). macOS 13+ for
+    int64 atomics; macOS 15+ for MSL 3.2.
+    Falls back to CPU otherwise.
+
+  known_limitations: |
+    * Float64 SUM on Apple Silicon falls back to host loop (Apple GPUs
+      do not implement IEEE-754 doubles in MSL); same correctness, no
+      GPU speedup for that one type.
+    * GROUP BY currently supports BIGINT keys + BIGINT SUM; broader
+      type coverage planned in v0.2.
+    * Window functions: SUM OVER (), SUM OVER (ORDER BY), and
+      SUM OVER (PARTITION BY ... ORDER BY ...) all supported and
+      verified against native sum() in the SQL test suite.
+    * GROUP BY at very low cardinality (≤ 1K unique): CPU dominates
+      structurally (L1-resident hash). Auto-dispatch routes these to the
+      radix-opt path; for the bottom of the curve CPU still wins (e.g.,
+      TPC-H SF10 l_quantity at 50 unique groups: CPU 14× faster).
