@@ -1,0 +1,77 @@
+extension:
+  name: trino_parity
+  description: Native Trino-compatible scalar functions (trino_*) for the cases where DuckDB's built-ins diverge from Trino on Unicode and byte-level inputs — ICU full case folding, code-point reverse, Java-whitespace trim, NFC normalize, and raw-bytes xxhash64/sha512/hmac_sha256
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - apatrida
+
+repo:
+  github: brikk/duckdb-trino-parity-extension
+  ref: 8527a7fc00e2a3baf117cbf641b973d7cd9d931e
+
+docs:
+  hello_world: |
+    INSTALL trino_parity FROM community;
+    LOAD trino_parity;
+
+    -- Full Unicode case folding, matching Trino (Java) rather than DuckDB's
+    -- built-in lower(). Turkish dotted-I folds to 'i' + U+0307:
+    SELECT trino_lower('İSTANBUL');   -- 'i̇stanbul'
+
+    -- German sharp-S upper-cases to 'SS', not U+1E9E:
+    SELECT trino_upper('straße');     -- 'STRASSE'
+
+    -- Code-point reverse (DuckDB's built-in reverse is grapheme-aware):
+    SELECT trino_reverse('a😀b');     -- 'b😀a'
+
+    -- The catalog of functions this extension provides:
+    SELECT trino_name, arg_count, category FROM trino_meta();  -- 10 rows
+  extended_description: |
+    `trino_parity` provides native `trino_<name>(...)` scalar functions for the
+    specific cases where DuckDB's built-ins diverge from Trino's documented
+    behaviour on Unicode and byte-level inputs.
+
+    It is designed to be loaded server-side by anything that pushes Trino-shaped
+    predicates down to DuckDB. If a Trino connector naively pushes
+    `WHERE lower(name) = 'apple'` down to DuckDB, the filter runs with different
+    Unicode semantics in each engine, and rows visible to Trino can silently
+    disappear from the result. This extension supplies **only the functions
+    where that actually happens** — where DuckDB's built-in genuinely diverges
+    and a native C++ reimplementation is required to match Trino. For the large
+    majority of Trino functions DuckDB's built-in is already equivalent (or a
+    trivial rename / operator / one-line rewrite), so a caller emits those
+    directly against DuckDB — no extension needed.
+
+    ### Concrete divergences fixed
+
+    | Function | DuckDB built-in | Trino spec | `trino_*` result |
+    |---|---|---|---|
+    | `lower('İ')` (U+0130) | `'i'` (simple case folding) | `'i'` + U+0307 (full folding) | matches Trino |
+    | `upper('ß')` (U+00DF) | `'ẞ'` (U+1E9E) | `'SS'` | matches Trino |
+    | `reverse('cafe'+U+0301)` | grapheme-aware | code-point-only | matches Trino |
+    | `trim` (tab/LF/CR/FF/VT) | not stripped | Java `Character.isWhitespace` strips them | matches Trino |
+    | `xxhash64(varbinary)` | no direct built-in | XXH64, big-endian bytes | matches Trino |
+
+    ### Function inventory
+
+    `trino_meta()` catalogs the ten native functions the extension provides:
+
+    - **String (ICU):** `trino_lower/1`, `trino_upper/1`, `trino_reverse/1`,
+      `trino_trim/1`, `trino_ltrim/1`, `trino_rtrim/1`, `trino_normalize/1` —
+      root-locale full case folding, code-point reverse, and
+      `Character.isWhitespace` trim, via statically-linked ICU vendored into the
+      binary (so Unicode behaviour is independent of the host DuckDB build).
+    - **Hash (vendored):** `trino_xxhash64/1`, `trino_sha512/1`,
+      `trino_hmac_sha256/2` — over raw `VARBINARY`, self-contained (no
+      dependency on the `crypto` / `hashfuncs` community extensions).
+
+    Aligned Trino functions (e.g. `length`, `abs`, `year`, `substring`,
+    `regexp_extract`) are intentionally NOT shipped — a caller emits them as
+    bare DuckDB SQL. The full per-function Trino↔DuckDB mapping and the
+    empirical audits that justify each decision are in the repository's `docs/`.
+
+    Source and full divergence catalog:
+    https://github.com/brikk/duckdb-trino-parity-extension
