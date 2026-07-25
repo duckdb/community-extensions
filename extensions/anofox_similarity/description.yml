@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-similarity
-  ref: 52e9a7b9b3fb4045b77d23b8aaf31a1e007346a1
+  ref: 17ece448ca4a2d3a7d73c30dd8e53055478249bc
 
 docs:
   hello_world: |
