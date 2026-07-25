@@ -14,4 +14,4 @@ extension:
 repo:
   andium: 888a4bc287db39ae1680269f963952696a28ccf1
   github: query-farm/inflector
-  ref: 5392e4acd374a28edc0016971dbbc576127c26fb
+  ref: ec2c7f4f075a43dd0e9877338bf58e637a79d9c8
