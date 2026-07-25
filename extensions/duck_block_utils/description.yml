@@ -143,6 +143,32 @@ docs:
     | `pandoc_inlines_to_db_inlines(json)` | Parse Pandoc inline AST |
     | `db_inlines_to_pandoc(blocks)` | Convert to Pandoc inline AST |
 
+    ## Terminal Rendering
+
+    Render documents — or any query result — as styled ANSI terminal output
+    (`PRAGMA duck_block_render`), and compose pages that embed live query
+    results:
+
+    ```sql
+    PRAGMA duck_block_render;
+
+    -- Any query as a pretty ANSI table
+    SELECT rendered FROM db_render_query('SELECT * FROM my_table LIMIT 10');
+
+    -- A page that embeds live query results as rendered tables
+    SELECT db_render_blocks(db_page('Sales Report', [
+        db_paragraph('Top rows:'),
+        db_query_table('SELECT * FROM t ORDER BY id')
+    ]));
+    ```
+
+    | Function | Description |
+    |----------|-------------|
+    | `db_blocks_render_ansi(blocks[, width])` | Width-aware ANSI document renderer |
+    | `db_render_query(sql)` | Render a query's results as an ANSI table |
+    | `db_page(title, blocks)` | Assemble a titled page from block-lists |
+    | `db_query_table(sql)` / `db_table(json)` | Query/JSON results as an embeddable table block |
+
     ## Ecosystem Integration
 
     Duck Block Utils works seamlessly with other DuckDB document extensions:
