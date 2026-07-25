@@ -4,7 +4,7 @@
 extension:
   name: behavioral
   description: Behavioral analytics functions inspired by ClickHouse (sessionize, retention, window_funnel, window_funnel_events, sequence_match, sequence_count, sequence_match_events, sequence_next_node)
-  version: 0.9.0
+  version: 0.9.1
   language: Rust
   build: cargo
   license: MIT
@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: tomtom215/duckdb-behavioral
-  ref: b29f9dbd1a22e791d6fa3474f544b9053bf78719
+  ref: 649dbac043925ff478d52d1be342734793dcca36
 
 docs:
   hello_world: |
