@@ -31,7 +31,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 8d0812a54303b0fcdbc3b2159a11aced39dadef6
+  ref: 1bacb91927adbdd43046b3234bbd5f9e5afb3059
 
 docs:
   hello_world: |
