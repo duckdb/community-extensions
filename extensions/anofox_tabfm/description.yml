@@ -1,7 +1,7 @@
 extension:
   name: anofox_tabfm
-  description: Zero-shot tabular machine learning inside DuckDB — classification and regression with real tabular foundation models (Mitra, TabPFN v2, TabICL, TabFM) on ONNX Runtime, no training loop
-  version: 0.2.0
+  description: Zero-shot tabular machine learning inside DuckDB — classification and regression with real tabular foundation models (Mitra, TabPFN v2, TabPFN 2.5, TabICL, Orion-BiX, TabFM) on ONNX Runtime, no training loop
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-tabfm
-  ref: 599cfc107b29845012e951566724ca5e17722b7e
+  ref: 0c7f83ee8d94c0b4d9c520bd3b49edebb8c859bb
 
 docs:
   hello_world: |
@@ -44,19 +44,32 @@ docs:
     MLOps: the model reads your labelled rows as context and predicts the rest.
 
     ### Built-in models
-    Four models ship in the extension and are selected with `model :=` (or a
+    Six models ship in the extension and are selected with `model :=` (or a
     `SET anofox_tabfm_default_model` once per session):
 
     - **mitra** — AWS AutoGluon (Apache-2.0), no license gate, ~300 MB. A great default.
     - **tabpfn-v2** — Prior Labs (Apache-2.0, attribution).
     - **tabicl-v2** — Inria (BSD-3-Clause).
+    - **orion-bix** — Lexsi Labs (MIT), no license gate. Classification only.
+    - **tabpfn-v2-5** — Prior Labs TabPFN 2.5. **Non-commercial**: the weights
+      and their outputs may not be used for commercial or production purposes.
     - **tabfm-v1** — Google TabFM (non-commercial, gated; ~6.6 GB).
+
+    `SELECT model, license, commercial FROM tabfm_list_models()` reports each
+    model's license and whether it is commercially usable — worth checking
+    before shipping anything built on one.
 
     Only weight-free computation graphs are bundled — **no model weights are
     distributed with the extension**. You download the weights yourself from
-    Hugging Face into a local cache (`~/.cache/anofox-tabfm`), and for the gated
-    Google model you first accept its license
-    (`SET anofox_tabfm_accept_hf_license = true`).
+    Hugging Face into a local cache (`~/.cache/anofox-tabfm`), and for a gated
+    model you first accept its license
+    (`SET anofox_tabfm_accept_hf_license = true`). Repositories that Hugging Face
+    itself gates additionally need a token, supplied with a standard DuckDB
+    secret:
+
+    ```sql
+    CREATE SECRET hf (TYPE http, BEARER_TOKEN 'hf_xxx', SCOPE 'https://huggingface.co');
+    ```
 
     ### Bring your own model
     Register any compatible model entirely from SQL — no external JSON manifest.
