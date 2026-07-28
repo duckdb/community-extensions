@@ -13,6 +13,9 @@ extension:
     - "wasm_mvp"
     - "wasm_eh"
     - "wasm_threads"
+  # vcpkg tag 2026.06.24 == the builtin-baseline in the extension's vcpkg.json
+  # (default CI vcpkg predates it and cannot resolve the baseline)
+  vcpkg_commit: "52c9e08cdf8580d2d9762f547d22b96fd81e82f2"
   test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
 
 repo:
