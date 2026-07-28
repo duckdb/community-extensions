@@ -40,12 +40,70 @@ docs:
     RETURN person.name, friend.name;
 
   extended_description: |
-    DuckGQL adds ISO GQL-style graph lifecycle commands, graph-header CSV and
-    Parquet import, graph pattern matching, mutations, property indexes, and
-    optional CSR-backed graph algorithms to DuckDB. Graph queries are lowered
-    to native DuckDB relational plans, while CSR snapshots are built explicitly
-    when graph algorithms need them.
+    DuckGQL is an experimental C++17 extension that adds a growing subset of
+    ISO/IEC 39075:2024 GQL to DuckDB. It combines graph pattern queries and
+    mutations with DuckDB's native relational storage and execution engine,
+    plus an explicit CSR layer for graph algorithms.
 
-    DuckGQL v0.1.0 implements a practical subset of ISO/IEC 39075:2024 GQL.
-    See the [documentation](https://duckgql.com/docs/) and try the
-    [browser playground](https://duckgql.com/).
+    **What works in v0.1.0**
+
+    * Managed property graphs backed by typed DuckDB vertex and edge tables.
+    * Graph-header CSV, compressed CSV, and Parquet bulk import with optional
+      endpoint and identity validation.
+    * Directed `MATCH`, `OPTIONAL MATCH`, filtering, projection, aggregation,
+      ordering, paging, fixed multi-hop patterns, and a bounded
+      variable-length path subset.
+    * Standalone node and directed-path `INSERT`, fixed directed
+      `MATCH`-and-`INSERT`, property and label mutation, and edge/node deletion.
+    * Native DuckDB ART indexes for selective vertex-property equality lookups.
+    * Explicit CSR-backed BFS, DFS, unweighted SSSP, PageRank, weak and strong
+      components, degree, closeness, local clustering coefficient, and triangle
+      counting.
+
+    **Storage and execution model**
+
+    Vertices and edges remain authoritative ordinary DuckDB tables rather than
+    entity-attribute-value rows. Nodes retain their complete label set and each
+    edge has exactly one immutable type. DuckGQL lowers graph queries to native
+    DuckDB relational plans, allowing DuckDB to execute scans, joins,
+    aggregation, ordering, and recursive CTEs. The graph optimizer can choose
+    table scans, native property indexes, node-label postings, and selective
+    fixed-hop CSR expansion. CSR snapshots are derived explicitly and are not a
+    second authoritative graph store.
+
+    **Project status**
+
+    DuckGQL v0.1.0 is not yet a complete or conforming ISO GQL implementation.
+    Grammar recognition does not imply semantic or transactional conformance.
+    The machine-readable conformance manifest currently classifies 23 feature
+    families as partial and 13 as planned. Important restrictions include
+    autocommit-only graph lifecycle and CSR operations, connection-local CSR
+    snapshots, a single vertex and edge input per bulk load, and incomplete
+    general path searches, query composition, procedures, and the complete GQL
+    value/type system.
+
+    See the [documentation](https://duckgql.com/docs/), inspect the
+    [conformance manifest](https://github.com/rahul-iyer/duckdb-gql/blob/v0.1.0/test/conformance/iso-gql-2024.tsv),
+    or try the [browser playground](https://duckgql.com/).
+
+  known_limitations: |
+    * DuckGQL implements a practical subset of ISO/IEC 39075:2024 GQL; it is
+      experimental and not yet a conforming implementation.
+    * `CREATE GRAPH`, `DROP GRAPH`, and full-load `COPY GRAPH` are
+      autocommit-only. `COPY GRAPH` requires an empty graph.
+    * Bulk import currently accepts one vertex file, one edge file, at most one
+      scalar vertex-label column, and one edge-type column. Every edge row must
+      contain exactly one non-empty type.
+    * CSR construction and CSR algorithms are autocommit-only. Snapshots are
+      connection-local, version checked, and must be rebuilt after graph
+      mutations or direct SQL writes to the graph tables.
+    * Weighted SSSP is not implemented. The current SSSP implementation is
+      unweighted.
+    * Multiple-path and undirected insertion, general runtime property maps,
+      and open-graph schema evolution remain incomplete.
+    * General path modes and searches, shortest-path groups, complete
+      variable-length path composition, procedure semantics, query composition,
+      graph types, and the complete GQL value/type system remain incomplete.
+    * Existing DuckDB and DuckLake tables cannot yet be registered directly as
+      zero-copy graphs; they must first be imported through graph-header CSV or
+      Parquet files.
