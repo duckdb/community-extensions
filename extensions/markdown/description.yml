@@ -1,7 +1,7 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.5.0
+  version: 1.5.1
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,10 @@ extension:
   vcpkg_commit: bffcbb75f71553824aa948a7e7b4f798662a6fa7
 repo:
   github: teaguesterling/duckdb_markdown
+  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; the
+  # v1.5.1 structured-inline change ships on the v1.5.x track via ref.
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
-  ref: 4ac331521f3567ae745187fa16f27e56296b432b
+  ref: refs/tags/v1.5.1
 docs:
   hello_world: |
     -- Load the extension
