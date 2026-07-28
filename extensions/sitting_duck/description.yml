@@ -4,7 +4,7 @@ extension:
   version: 1.9.0
   language: C++
   build: cmake
-  license: MIT
+  license: Apache-2.0
   maintainers:
     - teaguesterling
 repo:
