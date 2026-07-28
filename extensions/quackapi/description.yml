@@ -22,16 +22,14 @@ extension:
   maintainers:
     - asubbarao
   # HTTP server uses DuckDB's bundled httplib — no server sockets on wasm.
-  # All Windows legs excluded: no successful windows_amd64/MSVC or mingw
-  # CI proof in this repo yet (httplib is portable; re-opt-in after a green
-  # community CI windows_amd64 build). Target signed arches: linux_amd64,
-  # linux_arm64, osx_amd64, osx_arm64.
-  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64
+  # windows_amd64 enabled (MSVC / extension-ci-tools). MinGW/rtools/arm64
+  # still excluded. Target signed arches: linux_*, osx_*, windows_amd64.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;windows_arm64
 
 repo:
   github: asubbarao/quackapi
   # Pin to the packaging commit SHA (set by release engineer; never a branch).
-  ref: 09680f7ac665f3eeb11cf8997e562f5533eb1fac
+  ref: 32600ee3598dd69aecba6c308c476e44e5bcfce6
 
 docs:
   hello_world: |
@@ -131,9 +129,8 @@ docs:
     ## Platforms & build
 
     Targets **DuckDB v1.5.4**. C++17; depends only on DuckDB-bundled **httplib**
-    and **mbedtls** (no vcpkg, no libcurl). CI excludes wasm and all Windows
-    legs until a green windows_amd64 community build exists. Signed community
-    binaries land after this descriptor is accepted.
+    and **mbedtls** (no vcpkg, no libcurl). CI excludes wasm and Windows MinGW/rtools/arm64. Signed community
+    binaries for linux/osx are live; windows_amd64 re-opt-in via this descriptor.
 
     ## Limits (honest)
 
