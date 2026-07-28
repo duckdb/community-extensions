@@ -1,0 +1,21 @@
+extension:
+  name: petgraph_ext
+  description: "Graph algorithms for DuckDB — PageRank, shortest path, SCC, MST, and more via petgraph"
+  version: 0.5.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust"
+  maintainers:
+    - alitrack
+repo:
+  github: alitrack/duckdb_petgraph
+  ref: 1f74c220f43fbee437604944c1def299764f0e44
+docs:
+  hello_world: |
+    LOAD petgraph_ext;
+    SELECT * FROM petgraph_shortest_path('[(0,1,1.0),(1,2,1.0)]', 0, 2);
+  extended_description: |
+    17 algorithms: PageRank, betweenness/closeness/eigenvector centrality,
+    SCC, MST, shortest path, connected components, Louvain, toposort.
