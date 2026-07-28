@@ -8,7 +8,7 @@ extension:
   requires_toolchains: "rust;python3"
   maintainers:
     - alitrack
-  excluded_platforms: "wasm_eh;wasm_mvp;wasm_threads;windows_amd64"
+  excluded_platforms: "linux_arm64;wasm_eh;wasm_mvp;wasm_threads;windows_amd64"
 repo:
   github: alitrack/duckdb-python
   ref: 83c9dbb96101c37a860de013ed9619cb15d02116
