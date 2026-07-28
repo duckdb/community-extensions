@@ -1,0 +1,23 @@
+extension:
+  name: python_udf
+  description: "Embedded CPython UDFs — py_eval, py_agg, py_scan, py_register, py_call, py_map, py_list"
+  version: 0.2.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+  excluded_platforms: "wasm_eh;wasm_mvp;wasm_threads;windows_amd64"
+repo:
+  github: alitrack/duckdb-python
+  ref: 83c9dbb96101c37a860de013ed9619cb15d02116
+docs:
+  hello_world: |
+    LOAD python_udf;
+    SELECT py_eval('x.upper()', 'hello');
+    SELECT py_register('double_it', 'str(int(x)*2)', 1);
+    SELECT py_call('double_it', '21');
+  extended_description: |
+    CPython UDFs via PyO3: py_eval, py_agg, py_scan, py_register, py_call,
+    py_map, py_list. Python 3.11/3.12/3.13. Linux x64/arm64, macOS.
