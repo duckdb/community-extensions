@@ -1,0 +1,67 @@
+extension:
+  name: petgraph_ext
+  description: Graph algorithms for DuckDB — PageRank, shortest path, SCC, MST, and more via petgraph
+  version: 0.5.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_rtools;windows_amd64_mingw"
+  requires_toolchains: "rust"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb_petgraph
+  ref: refs/tags/v0.5.1
+
+docs:
+  hello_world: |
+    INSTALL petgraph_ext FROM community;
+    LOAD petgraph_ext;
+    SELECT * FROM petgraph_shortest_path('[(0,1,2.5),(1,2,1.0),(0,2,5.0)]', 0, 2);
+    -- → [0,1,2]  3.5
+
+  extended_description: |
+    ## duckdb_petgraph
+
+    A DuckDB extension that brings graph algorithms into SQL, powered by the
+    [petgraph](https://github.com/petgraph/petgraph) Rust crate. Run PageRank,
+    betweenness centrality, closeness centrality, eigenvector centrality, SCC,
+    Louvain community detection, topological sort, cycle detection, shortest path,
+    connected components, and MST — no external graph database required.
+
+    ### Features
+
+    - **17 table functions**: build_graph, list_graphs, drop_graph, edges, neighbors,
+      shortest_path, connected_components, pagerank, betweenness_centrality,
+      closeness_centrality, eigenvector_centrality, scc, mst, louvain, toposort, is_cyclic
+    - **Named graph cache**: build once with `petgraph_build_graph('name', ...)` and
+      reference with `@name` for zero-reparse repeated queries
+    - **Multi-batch streaming**: all multi-row functions stream results across scan
+      calls — no artificial 2048-row ceiling
+    - **Edge format**: `[(src,dst,weight),...]` string syntax, usable inline or
+      built from DuckDB tables via `string_agg`
+
+    ### Algorithms
+
+    | Function | Description |
+    |---|---|
+    | `petgraph_shortest_path` | A\* shortest path with path reconstruction |
+    | `petgraph_connected_components` | DFS component labeling (undirected) |
+    | `petgraph_pagerank` | PageRank with configurable alpha/iterations |
+    | `petgraph_betweenness_centrality` | Brandes' algorithm (undirected) |
+    | `petgraph_closeness_centrality` | BFS-based closeness (directed) |
+    | `petgraph_eigenvector_centrality` | Power-iteration eigenvector |
+    | `petgraph_scc` | Tarjan's strongly connected components |
+    | `petgraph_louvain` | Louvain community detection |
+    | `petgraph_toposort` | Kahn's topological sort |
+    | `petgraph_is_cyclic` | Directed cycle detection |
+    | `petgraph_mst` | Kruskal's minimum spanning tree |
+
+    ### Limitations
+
+    - Graphs must fit in memory (no disk-backed storage)
+    - Louvain is a simplified greedy pass with 20 iterations — useful for quick
+      community detection but not a full implementation
+    - Edge weights are f64 only
+    - Node IDs are i32
