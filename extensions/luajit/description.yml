@@ -7,7 +7,7 @@ extension:
   license: MIT
   maintainers:
     - alitrack
-  excluded_platforms: "windows_amd64;wasm_eh;wasm_mvp"
+  excluded_platforms: "linux_amd64;linux_arm64;windows_amd64;wasm_eh;wasm_mvp"
 repo:
   github: alitrack/luajit
   ref: 88799854791177274b174bebb66d15b4773d9770
