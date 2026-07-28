@@ -1,7 +1,7 @@
 extension:
   name: agent_data
   description: A DuckDB extension written in Rust for querying, analysing and inspecting AI coding agents history. Read conversations, plans, todos, history, and usage stats directly from your local agent data directories.
-  version: 0.2.0
+  version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
