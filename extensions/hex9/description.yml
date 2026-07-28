@@ -1,16 +1,16 @@
 extension:
   name: hex9
   description: Hex9 hierarchical hexagonal DGGS — point encoding, layer binning, cell geometry as WKB, labels, k-rings, Hamiltonian-curve ordering, and grid enumeration
-  version: 2.0.0
+  version: 2.1.0
   language: C++
   build: cmake
-  license: GPL-2.0-or-later
+  license: Apache-2.0
   maintainers:
     - MrBenGriffin
 
 repo:
   github: MrBenGriffin/duckdb-hex9
-  ref: 12fd29a8de207a5a6d9339b1c8f4e0cd967b2729
+  ref: bf3b954b4d91bc6e2ff834dad494e409e0570ab3
 
 docs:
   hello_world: |
@@ -27,3 +27,6 @@ docs:
     k-rings, labels, Hamiltonian-curve locality ordering with HUGEINT
     indexes) plus table functions (h9_grid, h9_curve_cells, h9_owned_cells).
     Geometry is emitted as WKB, consumed directly by the spatial extension.
+    Since libhex9 2.1.0 the encode chain is deterministic: the same lon/lat
+    yields the bit-identical uuid on every platform, enforced by in-repo
+    universality pin tests.
