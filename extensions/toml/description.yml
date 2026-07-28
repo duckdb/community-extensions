@@ -1,0 +1,34 @@
+extension:
+  name: toml
+  description: Parse TOML documents into JSON
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+  - vergenzt
+
+repo:
+  github: vergenzt/duckdb-toml
+  ref: 263bc5adc93675237bab5cd2de3991886c7aa45c
+
+docs:
+  hello_world: |
+    SELECT parse_toml('
+      [server]
+      host = "localhost"
+      port = 5432
+    ') AS cfg;
+
+    -- the result is DuckDB's JSON type, so the JSON toolchain works directly
+    WITH t AS (SELECT parse_toml(content) AS cfg FROM read_text('config.toml'))
+    SELECT cfg->'server'->>'host', (cfg->'server'->'port')::INT FROM t;
+
+  extended_description: |
+    This extension provides a single scalar function, `parse_toml(VARCHAR) -> JSON`,
+    which parses a TOML document string into DuckDB's `JSON` logical type. TOML
+    datetimes become RFC 3339 strings that cast cleanly to DuckDB temporal types,
+    and the TOML int/float distinction is preserved. Read TOML from local files,
+    https, or S3 by composing with `read_text`. See the
+    [repository](https://github.com/vergenzt/duckdb-toml) for details.
+
