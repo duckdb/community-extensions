@@ -1,0 +1,24 @@
+extension:
+  name: turbovec
+  description: "Compressed vector search — Google TurboQuant quantization, IVF indexing, cosine/L2/dot"
+  version: 0.3.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_amd64;linux_arm64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw"
+repo:
+  github: alitrack/duckdb_turbovec
+  ref: 1003998fafdd2fc5df95785b3b91134a8ec4dd6b
+docs:
+  hello_world: |
+    LOAD turbovec;
+    SELECT * FROM turboquant_build_list(
+      [0.0::FLOAT,1.0,2.0,3.0,4.0,5.0,6.0,7.0], 3, 't1'
+    );
+    SELECT * FROM turboquant_search('t1', 'l2', 3);
+  extended_description: |
+    9 functions: turboquant_build_list, build, add, remove, search, score,
+    build_concat, build_ivf, search_ivf. Google TurboQuant PQ + IVF indexing.
