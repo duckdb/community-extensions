@@ -11,11 +11,11 @@ extension:
     - alitrack
 repo:
   github: alitrack/duckdb_petgraph
-  ref: 1f74c220f43fbee437604944c1def299764f0e44
+  ref: 880a5a4f38353bd9932c80eaefe8b454957d64cb
 docs:
   hello_world: |
     LOAD petgraph_ext;
     SELECT * FROM petgraph_shortest_path('[(0,1,1.0),(1,2,1.0)]', 0, 2);
   extended_description: |
-    17 algorithms: PageRank, betweenness/closeness/eigenvector centrality,
-    SCC, MST, shortest path, connected components, Louvain, toposort.
+    17 algorithms: PageRank, centrality, SCC, MST, shortest path, Louvain.
+
