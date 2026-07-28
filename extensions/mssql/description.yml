@@ -1,7 +1,7 @@
 extension:
   name: mssql
   description: "Connect DuckDB to Microsoft SQL Server via native TDS (including TLS)."
-  version: "0.2.1"
+  version: "0.2.2"
   language: "C++"
   build: "cmake"
   licence: "MIT"
@@ -13,11 +13,14 @@ extension:
     - "wasm_mvp"
     - "wasm_eh"
     - "wasm_threads"
+  # vcpkg tag 2026.06.24 == the builtin-baseline in the extension's vcpkg.json
+  # (default CI vcpkg predates it and cannot resolve the baseline)
+  vcpkg_commit: "52c9e08cdf8580d2d9762f547d22b96fd81e82f2"
   test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
 
 repo:
   github: "hugr-lab/mssql-extension"
-  ref: "v0.2.1"
+  ref: "v0.2.2"
 
 docs:
   hello_world: |
