@@ -11,7 +11,7 @@ extension:
   excluded_platforms: "linux_arm64;wasm_eh;wasm_mvp;wasm_threads;windows_amd64"
 repo:
   github: alitrack/duckdb-python
-  ref: 83c9dbb96101c37a860de013ed9619cb15d02116
+  ref: e51470893752257417ed395e5dfe227f9ee93233
 docs:
   hello_world: |
     LOAD python_udf;
