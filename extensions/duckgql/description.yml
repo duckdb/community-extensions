@@ -1,0 +1,51 @@
+extension:
+  name: duckgql
+  description: Adds ISO GQL graph querying and graph algorithms to DuckDB
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - rahul-iyer
+
+repo:
+  github: rahul-iyer/duckdb-gql
+  ref: 17095d2b2b2b717b3db910327b3c67eff8f28ea7
+
+docs:
+  hello_world: |
+    COPY (
+      SELECT * FROM (VALUES
+        ('p1', 'Ada', 'Person'),
+        ('p2', 'Grace', 'Person')
+      ) nodes(":ID(People)", "name:string", ":LABEL")
+    ) TO 'duckgql_nodes.csv' (FORMAT CSV, HEADER);
+
+    COPY (
+      SELECT * FROM (VALUES
+        ('p1', 'p2', 'KNOWS')
+      ) edges(":START_ID(People)", ":END_ID(People)", ":TYPE")
+    ) TO 'duckgql_edges.csv' (FORMAT CSV, HEADER);
+
+    CREATE GRAPH social ANY;
+
+    COPY GRAPH social FROM (
+      VERTICES 'duckgql_nodes.csv',
+      EDGES 'duckgql_edges.csv'
+    ) FORMAT GRAPH;
+
+    SESSION SET GRAPH social;
+
+    MATCH (person:Person)-[:KNOWS]->(friend:Person)
+    RETURN person.name, friend.name;
+
+  extended_description: |
+    DuckGQL adds ISO GQL-style graph lifecycle commands, graph-header CSV and
+    Parquet import, graph pattern matching, mutations, property indexes, and
+    optional CSR-backed graph algorithms to DuckDB. Graph queries are lowered
+    to native DuckDB relational plans, while CSR snapshots are built explicitly
+    when graph algorithms need them.
+
+    DuckGQL v0.1.0 implements a practical subset of ISO/IEC 39075:2024 GQL.
+    See the [documentation](https://duckgql.com/docs/) and try the
+    [browser playground](https://duckgql.com/).
