@@ -1,0 +1,21 @@
+extension:
+  name: luajit
+  description: "In-process LuaJIT UDFs — 12 functions, JIT-compiled, GROUP BY, batch mode"
+  version: 1.0.0
+  language: C
+  build: cmake
+  license: MIT
+  maintainers:
+    - alitrack
+  excluded_platforms: "windows_amd64;wasm_eh;wasm_mvp"
+repo:
+  github: alitrack/luajit
+  ref: 88799854791177274b174bebb66d15b4773d9770
+docs:
+  hello_world: |
+    LOAD luajit;
+    SELECT ok FROM luajit_module(mode := 'quick_compile', source := 'return function(x) return x*2 end', sql_name := 'dbl');
+    SELECT dbl(5);
+  extended_description: |
+    12 LuaJIT UDFs: 10 scalar (incl. batch), 1 aggregate, 1 table.
+    JIT-compiled, GROUP BY support, file persistence, Lua-DuckDB callback.
