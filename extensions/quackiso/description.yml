@@ -1,62 +1,86 @@
 extension:
   name: quackiso
-  description: Query ISO 20022 (camt, pacs) financial messages as SQL
-  version: 0.2.0
+  description: Query ISO 20022 (camt, pacs, pain) financial messages as SQL
+  version: 1.0.0
   language: Rust
   build: cmake
   license: MIT
-  requires_toolchains: "rust;python3"
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - tempoloss
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
 
 repo:
   github: tempoloss/quackiso
-  ref: 01fc2d670998fb8e598130004c25aece679ad63d
+  ref: 1f703cd7eea570c447e4bfdf27f6dafb5d8c2316
 
 docs:
   hello_world: |
-    INSTALL quackiso FROM community;
-    LOAD quackiso;
+    -- Bank statements as rows: camt.053, camt.054 and camt.052.
+    SELECT booking_date, amount, currency, credit_debit, counterparty_name
+    FROM read_iso20022('statements/*.xml')
+    ORDER BY booking_date;
 
-    -- camt.053 bank statements: one row per booked entry
-    SELECT entry_ref, credit_debit, amount, currency, counterparty_name
-    FROM read_iso20022('testdata/camt053_sample.xml')
-    ORDER BY entry_ref;
-
-    ┌───────────┬──────────────┬──────────┬──────────┬──────────────────────┐
-    │ entry_ref │ credit_debit │  amount  │ currency │  counterparty_name   │
-    ├───────────┼──────────────┼──────────┼──────────┼──────────────────────┤
-    │ NTRY-0001 │ DBIT         │ 250000.0 │ KZT      │ Steppe Logistics JSC │
-    │ NTRY-0002 │ CRDT         │ 75000.5  │ KZT      │ Aral Trading Ltd     │
-    └───────────┴──────────────┴──────────┴──────────┴──────────────────────┘
-
-    -- pacs.008 credit transfers: one row per transaction
+    -- Interbank credit transfers (pacs.008, the ISO 20022 MT103).
     SELECT uetr, amount, currency, debtor_name, creditor_agent_bic
-    FROM read_pacs008('payments/*.xml');
+    FROM read_pacs008('pacs008.xml');
+
+    -- Credit transfer initiation (pain.001). The payer lives on the <PmtInf>
+    -- group and is carried down to every transaction in it.
+    SELECT payment_info_id, debtor_name, creditor_name, amount,
+           requested_execution_date
+    FROM read_pain001('pain001.xml');
+
+    -- Amounts are DECIMAL(38,5), so totals are exact.
+    SELECT currency, SUM(amount) AS total
+    FROM read_iso20022('statements/*.xml')
+    WHERE credit_debit = 'DBIT'
+    GROUP BY currency;
   extended_description: |
-    quackiso reads ISO 20022 financial messages directly in DuckDB — no Python
-    preprocessing, no per-schema glue. Both readers stream one entry at a time,
-    so a multi-GB file costs the same memory as a small one.
+    quackiso reads ISO 20022 financial messages directly into DuckDB tables. No
+    Python preprocessing step, no per-schema glue code: point a table function at
+    bank XML and get transactions as rows.
 
-    **`read_iso20022(path)`** — cash management. Handles camt.053 statements,
-    camt.054 notifications and camt.052 reports (all three carry the same `Ntry`
-    children). One row per booked entry: amount, currency, credit/debit, status,
-    booking and value dates, counterparty name and account, end-to-end id, and
-    remittance info (free-text or structured).
+    Three functions, three grains:
 
-    **`read_pacs008(path)`** — FI-to-FI customer credit transfers, the ISO 20022
-    replacement for SWIFT MT103. One row per transaction: UETR and the other
-    payment ids, settlement amount and date, charge bearer, debtor and creditor
-    with their accounts, and both agent BICs.
+    * `read_iso20022(path)` - cash management. camt.053 statements, camt.054
+      notifications and camt.052 reports share the same `<Ntry>` shape, differing
+      only in their container, so one reader covers the family. One row per
+      booked entry.
+    * `read_pacs008(path)` - FI-to-FI customer credit transfer, the ISO 20022
+      replacement for SWIFT MT103. One row per `CdtTrfTxInf`, with both agent
+      BICs and the UETR.
+    * `read_pain001(path)` - customer credit transfer initiation. One row per
+      transaction; the debtor, payment method and execution date are carried down
+      from the enclosing `<PmtInf>` group.
 
-    Validated against real messages rather than only hand-written samples:
-    Goldman Sachs (US/UK/EU), actualbudget and the genkgo/camt suite for camt
-    (versions .02/.03/.04/.08), and Nivaes, Prowide, OpenBankProject, AWS, Mbanq
-    and centiglobe for pacs.008 (versions .01 through .09). That shook out
-    version differences in party nesting, non-IBAN accounts, one-sided entries,
-    ultimate-only parties, structured remittance, and prefixed namespaces — all
-    now regression-tested.
+    Amounts are `DECIMAL(38,5)`, never `DOUBLE`. Values are converted from the
+    wire string straight to a scaled integer and never touch a float, so `SUM` is
+    exact. The width follows the spec: ISO 20022 permits 18 significant digits
+    with up to 5 fraction digits, which a 64-bit `DECIMAL(18,5)` cannot hold, and
+    real messages do use five decimal places. An amount that cannot be
+    represented exactly raises an error rather than becoming a NULL that would
+    silently drop out of a total.
 
-    Roadmap: pain.001, native DATE and exact DECIMAL typing, and reads over
-    DuckDB filesystems (http/s3).
+    Dates are typed rather than left as text. Booking and value dates are
+    `TIMESTAMP`, because real statements mix date-only and date-time values and
+    both must fit; settlement and requested-execution dates are `DATE`. Offsets
+    are normalised to UTC, and both the `<Dt>` and `<DtTm>` wrappings are read.
+
+    Parsing is a streaming pass over XML events, one entry at a time, so memory
+    is a function of the vector size rather than the file: a 1.7 GB statement
+    reads in roughly 2 MB resident.
+
+    Tested against 45 real messages from nine sources - Goldman Sachs US/UK/EU
+    and wire, actualbudget, genkgo, Nivaes, Prowide, OpenBankProject, AWS, Mbanq,
+    centiglobe, prog-nov, salesking and Dolibarr - spanning camt.053 .02/.03/.04
+    /.08, camt.054 .02/.04/.08, pacs.008 .01/.02/.07/.08/.09 and pain.001
+    .03/.09/.11/.13 plus the SEPA pain.001.002.03 and .003.03 variants. Every
+    behaviour in the reader that looks like a special case came from one of those
+    files: namespace-prefixed messages, entries that name only one side of the
+    flow, `.08` party nesting, non-IBAN accounts, group-level settlement dates,
+    and structured remittance.
+
+    Paths are local files or globs; every row records its `source_file`. Remote
+    URIs and XSD validation are deliberately absent, with the reasoning recorded
+    in `docs/adr/`.
