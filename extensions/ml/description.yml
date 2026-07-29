@@ -1,0 +1,41 @@
+extension:
+  name: ml
+  description: "Lightweight, columnar-native ML for DuckDB — train + inference, 18 algorithms, zero Python deps"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_eh;wasm_mvp;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+
+repo:
+  github: alitrack/duckdb-ml
+  ref: refs/tags/v0.1.1
+
+docs:
+  hello_world: |
+    -- Train linear regression
+    SELECT * FROM ml_train('my_model', 'linear_regression',
+      '[[1.0],[2.0],[3.0]]', '[[10.0],[20.0],[30.0]]', '{}');
+
+    -- Predict
+    SELECT ml_predict('my_model', 2.5);
+
+  extended_description: |
+    ## ML — Machine Learning for DuckDB
+
+    Pure Rust ML extension. 18 algorithms, zero Python dependencies.
+
+    **Algorithms:**
+    - Linear: linear_regression, ridge_regression, lasso_regression
+    - Tree: decision_tree, random_forest
+    - Gradient Boosting: xgboost_regression, xgboost_binary
+    - Neural: mlp_regressor
+    - Distance: knn_regressor, knn_classifier
+    - Bayesian: naive_bayes
+    - Clustering: kmeans
+    - Dim Reduction: pca
+
+    **Install:** `INSTALL ml FROM community;`
