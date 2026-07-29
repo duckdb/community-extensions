@@ -1,0 +1,41 @@
+extension:
+  name: s2raster
+  description: "S2 geography + GeoTIFF raster for DuckDB — cell covering, pixel read, stats, histogram"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_eh;wasm_mvp;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+
+repo:
+  github: alitrack/duckdb-s2raster
+  ref: refs/tags/v0.1.1
+
+docs:
+  hello_world: |
+    -- S2 cell covering from WKT
+    SELECT * FROM s2_covering('POLYGON((...))', 10, 15);
+
+    -- Read raster pixel value
+    SELECT rs_value('dem.tif', 1, 100, 200);
+
+  extended_description: |
+    ## Raster — S2 Geometry + GeoTIFF for DuckDB
+
+    Pure Rust, zero system dependencies.
+
+    **37 Functions:**
+
+    | Category | Count | Examples |
+    |----------|-------|----------|
+    | S2 Scalar | 11 | s2_cell_id, s2_contains, s2_distance_meters, s2_area_m2 |
+    | S2 Table | 4 | s2_covering, s2_children, s2_cell_neighbors |
+    | CellUnion | 4 | s2_cell_union_pack, s2_cell_union_contains |
+    | Raster Scalar | 15 | rs_value, rs_metadata, rs_stats, rs_histogram |
+    | Raster Table | 3 | rs_pixel_to_world, rs_world_to_pixel |
+
+    **Platforms:** Linux x64, macOS arm64/x64, Windows x64 (MSVC).
+    **Install:** `INSTALL raster FROM community;`
