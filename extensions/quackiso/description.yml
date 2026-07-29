@@ -1,0 +1,48 @@
+extension:
+  name: quackiso
+  description: Query ISO 20022 (camt/pacs/pain) financial messages as SQL
+  version: 0.0.1
+  language: Rust
+  build: cmake
+  license: MIT
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - tempoloss
+
+repo:
+  github: tempoloss/quackiso
+  ref: 02814eca297fc9440c01c62d11542e91d90c819f
+
+docs:
+  hello_world: |
+    -- Point DuckDB at camt.053 bank statements and get one row per booked entry.
+    INSTALL quackiso FROM community;
+    LOAD quackiso;
+
+    SELECT entry_ref, credit_debit, amount, currency, counterparty_name, remittance_info
+    FROM read_iso20022('statements/*.xml')
+    ORDER BY entry_ref;
+
+    ┌───────────┬──────────────┬──────────┬──────────┬──────────────────────┬──────────────────────────────────┐
+    │ entry_ref │ credit_debit │  amount  │ currency │  counterparty_name   │         remittance_info          │
+    ├───────────┼──────────────┼──────────┼──────────┼──────────────────────┼──────────────────────────────────┤
+    │ NTRY-0001 │ DBIT         │ 250000.0 │ KZT      │ Steppe Logistics JSC │ Invoice 90210 transport services │
+    │ NTRY-0002 │ CRDT         │ 75000.5  │ KZT      │ Aral Trading Ltd     │ Refund for order 44771           │
+    └───────────┴──────────────┴──────────┴──────────┴──────────────────────┴──────────────────────────────────┘
+  extended_description: |
+    quackiso reads ISO 20022 financial messages directly in DuckDB — no Python
+    preprocessing, no per-schema glue.
+
+    v1 ships `read_iso20022(path)` for camt.053 bank statements, flattening each
+    booked entry into a row: amount, currency, credit/debit, status, booking and
+    value dates, counterparty name and IBAN, end-to-end id, and remittance info.
+    `path` is a file or a glob. The reader streams one entry subtree at a time,
+    so a multi-GB statement is parsed in constant memory.
+
+    Counterparty is resolved to the other side of the flow (a debit shows who you
+    paid, a credit shows who paid you), and status is read whether written as
+    plain text or as a `<Cd>` code.
+
+    Roadmap: pacs.008 credit transfers, camt.054 notifications, native DATE and
+    exact DECIMAL typing, and reads over DuckDB filesystems (http/s3).
