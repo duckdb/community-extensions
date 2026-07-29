@@ -1,7 +1,7 @@
 extension:
   name: quackiso
-  description: Query ISO 20022 (camt/pacs/pain) financial messages as SQL
-  version: 0.0.2
+  description: Query ISO 20022 (camt, pacs) financial messages as SQL
+  version: 0.2.0
   language: Rust
   build: cmake
   license: MIT
@@ -12,37 +12,51 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: 507bc95b3356f8821430db0f359033e15cc7e6f6
+  ref: 01fc2d670998fb8e598130004c25aece679ad63d
 
 docs:
   hello_world: |
-    -- Point DuckDB at camt.053 bank statements and get one row per booked entry.
     INSTALL quackiso FROM community;
     LOAD quackiso;
 
-    SELECT entry_ref, credit_debit, amount, currency, counterparty_name, remittance_info
-    FROM read_iso20022('statements/*.xml')
+    -- camt.053 bank statements: one row per booked entry
+    SELECT entry_ref, credit_debit, amount, currency, counterparty_name
+    FROM read_iso20022('testdata/camt053_sample.xml')
     ORDER BY entry_ref;
 
-    ┌───────────┬──────────────┬──────────┬──────────┬──────────────────────┬──────────────────────────────────┐
-    │ entry_ref │ credit_debit │  amount  │ currency │  counterparty_name   │         remittance_info          │
-    ├───────────┼──────────────┼──────────┼──────────┼──────────────────────┼──────────────────────────────────┤
-    │ NTRY-0001 │ DBIT         │ 250000.0 │ KZT      │ Steppe Logistics JSC │ Invoice 90210 transport services │
-    │ NTRY-0002 │ CRDT         │ 75000.5  │ KZT      │ Aral Trading Ltd     │ Refund for order 44771           │
-    └───────────┴──────────────┴──────────┴──────────┴──────────────────────┴──────────────────────────────────┘
+    ┌───────────┬──────────────┬──────────┬──────────┬──────────────────────┐
+    │ entry_ref │ credit_debit │  amount  │ currency │  counterparty_name   │
+    ├───────────┼──────────────┼──────────┼──────────┼──────────────────────┤
+    │ NTRY-0001 │ DBIT         │ 250000.0 │ KZT      │ Steppe Logistics JSC │
+    │ NTRY-0002 │ CRDT         │ 75000.5  │ KZT      │ Aral Trading Ltd     │
+    └───────────┴──────────────┴──────────┴──────────┴──────────────────────┘
+
+    -- pacs.008 credit transfers: one row per transaction
+    SELECT uetr, amount, currency, debtor_name, creditor_agent_bic
+    FROM read_pacs008('payments/*.xml');
   extended_description: |
     quackiso reads ISO 20022 financial messages directly in DuckDB — no Python
-    preprocessing, no per-schema glue.
+    preprocessing, no per-schema glue. Both readers stream one entry at a time,
+    so a multi-GB file costs the same memory as a small one.
 
-    v1 ships `read_iso20022(path)` for camt.053 bank statements, flattening each
-    booked entry into a row: amount, currency, credit/debit, status, booking and
-    value dates, counterparty name and IBAN, end-to-end id, and remittance info.
-    `path` is a file or a glob. The reader streams one entry subtree at a time,
-    so a multi-GB statement is parsed in constant memory.
+    **`read_iso20022(path)`** — cash management. Handles camt.053 statements,
+    camt.054 notifications and camt.052 reports (all three carry the same `Ntry`
+    children). One row per booked entry: amount, currency, credit/debit, status,
+    booking and value dates, counterparty name and account, end-to-end id, and
+    remittance info (free-text or structured).
 
-    Counterparty is resolved to the other side of the flow (a debit shows who you
-    paid, a credit shows who paid you), and status is read whether written as
-    plain text or as a `<Cd>` code.
+    **`read_pacs008(path)`** — FI-to-FI customer credit transfers, the ISO 20022
+    replacement for SWIFT MT103. One row per transaction: UETR and the other
+    payment ids, settlement amount and date, charge bearer, debtor and creditor
+    with their accounts, and both agent BICs.
 
-    Roadmap: pacs.008 credit transfers, camt.054 notifications, native DATE and
-    exact DECIMAL typing, and reads over DuckDB filesystems (http/s3).
+    Validated against real messages rather than only hand-written samples:
+    Goldman Sachs (US/UK/EU), actualbudget and the genkgo/camt suite for camt
+    (versions .02/.03/.04/.08), and Nivaes, Prowide, OpenBankProject, AWS, Mbanq
+    and centiglobe for pacs.008 (versions .01 through .09). That shook out
+    version differences in party nesting, non-IBAN accounts, one-sided entries,
+    ultimate-only parties, structured remittance, and prefixed namespaces — all
+    now regression-tested.
+
+    Roadmap: pain.001, native DATE and exact DECIMAL typing, and reads over
+    DuckDB filesystems (http/s3).
