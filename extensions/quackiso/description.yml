@@ -1,7 +1,7 @@
 extension:
   name: quackiso
   description: Query ISO 20022 (camt, pacs, pain) financial messages as SQL
-  version: 1.0.0
+  version: 1.1.0
   language: Rust
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: 1f703cd7eea570c447e4bfdf27f6dafb5d8c2316
+  ref: ff0b2cc466c1866b8a9437d3d0afd95f3a4dabc4
 
 docs:
   hello_world: |
@@ -31,6 +31,18 @@ docs:
            requested_execution_date
     FROM read_pain001('pain001.xml');
 
+    -- Payment returns (pacs.004): what came back, beside what was settled.
+    -- A return with charges deducted is amount < original_amount.
+    SELECT return_id, amount, original_amount, return_reason_code,
+           original_debtor_name, original_creditor_name
+    FROM read_pacs004('pacs004.xml');
+
+    -- Payment status reports (pain.002). A status is stated per batch, per
+    -- payment group and per transaction, and status_level says which a row is.
+    SELECT status_level, status, reason_code, original_end_to_end_id, amount
+    FROM read_pain002('pain002.xml')
+    WHERE status_level = 'TRANSACTION';
+
     -- Amounts are DECIMAL(38,5), so totals are exact.
     SELECT currency, SUM(amount) AS total
     FROM read_iso20022('statements/*.xml')
@@ -41,7 +53,7 @@ docs:
     Python preprocessing step, no per-schema glue code: point a table function at
     bank XML and get transactions as rows.
 
-    Three functions, three grains:
+    Five functions, five grains:
 
     * `read_iso20022(path)` - cash management. camt.053 statements, camt.054
       notifications and camt.052 reports share the same `<Ntry>` shape, differing
@@ -50,9 +62,13 @@ docs:
     * `read_pacs008(path)` - FI-to-FI customer credit transfer, the ISO 20022
       replacement for SWIFT MT103. One row per `CdtTrfTxInf`, with both agent
       BICs and the UETR.
+    * `read_pacs004(path)` - payment return: settled money coming back. One row
+      per `TxInf`, with the returned amount beside the original settled amount.
     * `read_pain001(path)` - customer credit transfer initiation. One row per
       transaction; the debtor, payment method and execution date are carried down
       from the enclosing `<PmtInf>` group.
+    * `read_pain002(path)` - customer payment status report. One row per status
+      statement, at whichever of the three levels the bank stated it.
 
     Amounts are `DECIMAL(38,5)`, never `DOUBLE`. Values are converted from the
     wire string straight to a scaled integer and never touch a float, so `SUM` is
@@ -71,15 +87,33 @@ docs:
     is a function of the vector size rather than the file: a 1.7 GB statement
     reads in roughly 2 MB resident.
 
-    Tested against 45 real messages from nine sources - Goldman Sachs US/UK/EU
-    and wire, actualbudget, genkgo, Nivaes, Prowide, OpenBankProject, AWS, Mbanq,
-    centiglobe, prog-nov, salesking and Dolibarr - spanning camt.053 .02/.03/.04
-    /.08, camt.054 .02/.04/.08, pacs.008 .01/.02/.07/.08/.09 and pain.001
-    .03/.09/.11/.13 plus the SEPA pain.001.002.03 and .003.03 variants. Every
+    Two message families needed a decision rather than a column. A payment return
+    describes the message it undoes, and its parties are often stated only in
+    `<RtrChain>` - the chain of the return, whose debtor is the party giving the
+    money back, so the original sides are read crossed and `original_debtor_*` is
+    always the party the payment was originally taken from. A status report states
+    its status at three nested levels and only the group level is mandatory, so a
+    bank can reject a whole batch without detailing one transaction; the grain is
+    therefore the status statement, `status_level` says which level a row is, and
+    only transaction rows carry an amount, so totals are not double counted.
+
+    A file of the wrong message type fails loudly instead of returning an empty
+    table, because no rows and no error is indistinguishable from a bank
+    reporting nothing. A camt statement with balances and no entries still
+    returns zero rows, since that is a real and valid message.
+
+    Tested against roughly 140 real messages from more than a dozen sources -
+    Goldman Sachs US/UK/EU and wire, actualbudget, genkgo, Nivaes, Prowide,
+    OpenBankProject, Mbanq, SIX interbank, CBPR+, prog-nov, salesking, Dolibarr,
+    Handelsbanken and issettled among them - spanning camt.053
+    .02/.03/.04/.08/.09/.11, camt.052 and camt.054, pacs.008 .01/.02/.07/.08/.09,
+    pacs.004 .01/.02/.03/.09/.10/.11, pain.001 .03/.09/.11 and pain.002
+    .02/.03/.04/.05/.09/.10/.11/.12/.13/.14/.15, plus SEPA variants. Every
     behaviour in the reader that looks like a special case came from one of those
     files: namespace-prefixed messages, entries that name only one side of the
     flow, `.08` party nesting, non-IBAN accounts, group-level settlement dates,
-    and structured remittance.
+    structured remittance, reason blocks renamed between versions, and party
+    sides that reverse in a return.
 
     Paths are local files or globs; every row records its `source_file`. Remote
     URIs and XSD validation are deliberately absent, with the reasoning recorded
