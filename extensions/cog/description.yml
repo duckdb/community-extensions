@@ -1,7 +1,7 @@
 extension:
   name: cog
   description: GDAL-free Cloud-Optimized GeoTIFF (COG) reader — query remote rasters in place over HTTP range reads, with STAC catalog integration
-  version: 0.2.0
+  version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: st-layer/duckdb-cog
-  ref: fc5bae773e1a00251d3ed081ee45320023bd1586
+  ref: 5057905a3a74b0f3343de05fe2fabcf0fc0d902b
 
 docs:
   hello_world: |
