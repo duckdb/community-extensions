@@ -1,7 +1,7 @@
 extension:
   name: laterite_ags4
   description: Read AGS4 geotechnical data files as typed, UUID-keyed tables directly from SQL — born-typed columns, deterministic content-addressed keys that join across groups by construction, and an embedded AGS dictionary. A read-only SQL surface. Local, http(s):// and s3:// (with httpfs).
-  version: 0.7.0
+  version: 0.9.0
   language: Rust
   build: cargo
   license: MIT
@@ -28,7 +28,7 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: 1629610de77beab11ead79be36fac4324138e7e7
+  ref: 01ea351ba30e2ec1dfb75f834be2a07d287d40e8
 
 docs:
   hello_world: |
@@ -83,6 +83,7 @@ docs:
     | `ags_headings(path)` | `(group, heading, unit, ags_type, sql_type, status, is_key, ordinal)` — the per-heading schema, enriched with the dictionary's KEY status. |
     | `ags_dictionary()` | the embedded standard AGS dictionary as a table (`group`, `heading`, `status`, `ags_type`, `unit`, `description`, …). |
     | `ags_relationships()` | `(child, parent, shared_keys)` — the spec parent→child graph that `_parent_id` follows. |
+    | `ags_rules()` | the AGS4 numbered-rule catalogue (`rule`, `title`, `severity`, `fixable`) — the extension *lists* the rules; the CLI/library *run* them. |
     | `load_ags(path)` | `(seq, stmt)` — CREATE-TABLE DDL to materialise every group into an indexed, repeat-/remote-queryable store. |
 
     Readers stream lazily (≈2048-row vector chunks); a non-conforming numeric cell becomes
