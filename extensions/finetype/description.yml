@@ -40,8 +40,8 @@ docs:
     -- Validate a table against a JSON Schema (note the top-level "properties"
     -- key): one row per column, counting how many values the schema rejects.
     D SELECT * FROM ft_validate('people',
-        '{"properties":{"email":{"type":"string","pattern":"^[^@]+@[^@]+\.[^@]+$"},
-                        "phone":{"type":"string","pattern":"^\+?[0-9().+ -]{7,}$"}}}');
+        '{"properties":{"email":{"type":"string","pattern":"^[^@]+@[^@]+\\.[^@]+$"},
+                        "phone":{"type":"string","pattern":"^\\+?[0-9().+ -]{7,}$"}}}');
     ┌─────────────┬───────┬─────────┬───────────────────────────────────────────────────────────────────────────────────┐
     │ column_name │ total │ rejects │                                  sample_message                                   │
     │   varchar   │ int64 │  int64  │                                      varchar                                      │
@@ -105,18 +105,20 @@ docs:
     SELECT * FROM ft_validate('my_table', 'schema.json');
     ```
 
-    ### `ft_profile(values LIST)`
-    Profile a single column passed as a list — useful when the values are already in hand rather than
-    in a named table.
-
-    ```sql
-    SELECT * FROM ft_profile((SELECT list(email) FROM people));
-    ```
-
     ## Scalar functions
 
     Per-value classification, one value at a time. Strongest on values unambiguous in isolation (URLs,
     ISO dates, well-formed emails, IP addresses).
+
+    ### `ft_profile(values LIST[, header VARCHAR]) → STRUCT(type VARCHAR, confidence DOUBLE, duckdb_type VARCHAR)`
+    Profile a single column passed as a list — useful when the values are already in hand rather than
+    in a named table. This is the scalar the `ft_profile(table)` macro calls internally, so it goes in
+    a `SELECT`, **not** a `FROM`, and returns one `STRUCT` rather than a row per column.
+
+    ```sql
+    SELECT ft_profile(list(email)) FROM people;
+    -- {'type': identity.person.email, 'confidence': 0.581, 'duckdb_type': VARCHAR}
+    ```
 
     ### `ft_infer(value VARCHAR) → VARCHAR`
     Classify a single value. Returns the full semantic type label.
