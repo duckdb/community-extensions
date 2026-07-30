@@ -1,7 +1,7 @@
 extension:
   name: quackiso
   description: Query ISO 20022 (camt, pacs, pain) financial messages as SQL
-  version: 1.1.0
+  version: 1.2.0
   language: Rust
   build: cmake
   license: MIT
@@ -12,13 +12,14 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: ff0b2cc466c1866b8a9437d3d0afd95f3a4dabc4
+  ref: 13db4e434cb205378f29fafb0e701ebc7d5780e1
 
 docs:
   hello_world: |
-    -- Bank statements as rows: camt.053, camt.054 and camt.052.
+    -- Bank statements as rows: camt.053, camt.054 and camt.052. A glob is
+    -- parsed in parallel, one worker per file.
     SELECT booking_date, amount, currency, credit_debit, counterparty_name
-    FROM read_iso20022('statements/*.xml')
+    FROM read_iso20022('statements/*.xml', threads := 8)
     ORDER BY booking_date;
 
     -- Interbank credit transfers (pacs.008, the ISO 20022 MT103).
@@ -30,6 +31,10 @@ docs:
     SELECT payment_info_id, debtor_name, creditor_name, amount,
            requested_execution_date
     FROM read_pain001('pain001.xml');
+
+    -- Direct debits (pain.008): the creditor pulls, the mandate makes it legal.
+    SELECT mandate_id, sequence_type, debtor_name, amount
+    FROM read_pain008('pain008.xml');
 
     -- Payment returns (pacs.004): what came back, beside what was settled.
     -- A return with charges deducted is amount < original_amount.
@@ -53,67 +58,66 @@ docs:
     Python preprocessing step, no per-schema glue code: point a table function at
     bank XML and get transactions as rows.
 
-    Five functions, five grains:
+    Thirteen functions covering the payment lifecycle end to end, in both
+    directions:
 
-    * `read_iso20022(path)` - cash management. camt.053 statements, camt.054
-      notifications and camt.052 reports share the same `<Ntry>` shape, differing
-      only in their container, so one reader covers the family. One row per
-      booked entry.
-    * `read_pacs008(path)` - FI-to-FI customer credit transfer, the ISO 20022
-      replacement for SWIFT MT103. One row per `CdtTrfTxInf`, with both agent
-      BICs and the UETR.
-    * `read_pacs004(path)` - payment return: settled money coming back. One row
-      per `TxInf`, with the returned amount beside the original settled amount.
-    * `read_pain001(path)` - customer credit transfer initiation. One row per
-      transaction; the debtor, payment method and execution date are carried down
-      from the enclosing `<PmtInf>` group.
-    * `read_pain002(path)` - customer payment status report. One row per status
-      statement, at whichever of the three levels the bank stated it.
+    * `read_iso20022(path)` - camt.053 statements, camt.054 notifications and
+      camt.052 reports; one row per booked entry.
+    * `read_pacs008(path)` / `read_pacs009(path)` - customer and
+      financial-institution credit transfers (the ISO 20022 MT103 and
+      MT202/MT202COV); in the COV form the `underlying_*` columns carry the
+      customer transfer the cover settles.
+    * `read_pain001(path)` / `read_pain008(path)` - credit transfer and direct
+      debit initiation; the paying or collecting side lives on the `<PmtInf>`
+      group and is carried down, and direct debits carry the mandate.
+    * `read_pacs003(path)` - the interbank leg of a direct debit collection.
+    * `read_pain002(path)` / `read_pacs002(path)` - payment status reports,
+      customer- and interbank-side; one row per status statement, at whichever
+      level the bank stated it, because a batch can be accepted or rejected
+      without a single transaction being detailed.
+    * `read_pacs004(path)` / `read_pacs007(path)` - returns and reversals:
+      settled money coming back, from the receiver or taken back by the sender;
+      the returned amount sits beside the original, so partial returns are
+      visible.
+    * `read_camt056(path)` / `read_camt055(path)` / `read_camt029(path)` -
+      cancellation requests (interbank and customer-side) and the resolution
+      that answers them; a whole-batch cancellation with no transactions is
+      still a row.
+
+    All exception and status readers expose the original references (UETR,
+    end-to-end id, original message id), so one payment joins across its whole
+    lifecycle: initiation, settlement, status, cancellation, resolution, return.
 
     Amounts are `DECIMAL(38,5)`, never `DOUBLE`. Values are converted from the
     wire string straight to a scaled integer and never touch a float, so `SUM` is
-    exact. The width follows the spec: ISO 20022 permits 18 significant digits
-    with up to 5 fraction digits, which a 64-bit `DECIMAL(18,5)` cannot hold, and
-    real messages do use five decimal places. An amount that cannot be
+    exact; ISO 20022 permits 18 significant digits with up to 5 fraction digits,
+    which a 64-bit `DECIMAL(18,5)` cannot hold. An amount that cannot be
     represented exactly raises an error rather than becoming a NULL that would
     silently drop out of a total.
 
-    Dates are typed rather than left as text. Booking and value dates are
-    `TIMESTAMP`, because real statements mix date-only and date-time values and
-    both must fit; settlement and requested-execution dates are `DATE`. Offsets
-    are normalised to UTC, and both the `<Dt>` and `<DtTm>` wrappings are read.
+    Dates are typed rather than left as text; offsets are normalised to UTC, and
+    both the `<Dt>` and `<DtTm>` wrappings are read.
 
-    Parsing is a streaming pass over XML events, one entry at a time, so memory
-    is a function of the vector size rather than the file: a 1.7 GB statement
-    reads in roughly 2 MB resident.
-
-    Two message families needed a decision rather than a column. A payment return
-    describes the message it undoes, and its parties are often stated only in
-    `<RtrChain>` - the chain of the return, whose debtor is the party giving the
-    money back, so the original sides are read crossed and `original_debtor_*` is
-    always the party the payment was originally taken from. A status report states
-    its status at three nested levels and only the group level is mandatory, so a
-    bank can reject a whole batch without detailing one transaction; the grain is
-    therefore the status statement, `status_level` says which level a row is, and
-    only transaction rows carry an amount, so totals are not double counted.
+    Parsing is a streaming pass over XML events, so memory follows the vector
+    size rather than the file: a 1.7 GB statement reads in roughly 2 MB
+    resident. A glob is parsed in parallel, one worker per file - XML has no
+    safe split points, so a single document is never divided - with
+    `threads := n` to pin the pool; measured 6.9x on 8 files of 35 MB.
 
     A file of the wrong message type fails loudly instead of returning an empty
-    table, because no rows and no error is indistinguishable from a bank
-    reporting nothing. A camt statement with balances and no entries still
-    returns zero rows, since that is a real and valid message.
+    table. The transaction element names collide across families (camt.056 and
+    pacs.004 both say `TxInf`, pacs.008 and pain.001 both say `CdtTrfTxInf`),
+    so identity is the message's own container and rows are only produced
+    inside it.
 
-    Tested against roughly 140 real messages from more than a dozen sources -
-    Goldman Sachs US/UK/EU and wire, actualbudget, genkgo, Nivaes, Prowide,
-    OpenBankProject, Mbanq, SIX interbank, CBPR+, prog-nov, salesking, Dolibarr,
-    Handelsbanken and issettled among them - spanning camt.053
-    .02/.03/.04/.08/.09/.11, camt.052 and camt.054, pacs.008 .01/.02/.07/.08/.09,
-    pacs.004 .01/.02/.03/.09/.10/.11, pain.001 .03/.09/.11 and pain.002
-    .02/.03/.04/.05/.09/.10/.11/.12/.13/.14/.15, plus SEPA variants. Every
-    behaviour in the reader that looks like a special case came from one of those
-    files: namespace-prefixed messages, entries that name only one side of the
-    flow, `.08` party nesting, non-IBAN accounts, group-level settlement dates,
-    structured remittance, reason blocks renamed between versions, and party
-    sides that reverse in a return.
+    Tested against roughly 260 real messages from more than a dozen sources -
+    Goldman Sachs US/UK/EU and wire, SIX interbank, CBPR+, ProgressSoft,
+    Nivaes, Prowide, OpenBankProject, Mbanq, Handelsbanken, issettled, prog-nov,
+    salesking and Dolibarr among them - spanning thirteen message families and
+    every era of their vocabulary: renamed reason blocks, renamed containers,
+    namespace-prefixed subtrees, group-level fields carried down, and party
+    sides that reverse in a return. Every behaviour that looks like a special
+    case came from one of those files.
 
     Paths are local files or globs; every row records its `source_file`. Remote
     URIs and XSD validation are deliberately absent, with the reasoning recorded
