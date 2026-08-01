@@ -1,7 +1,6 @@
 extension:
   name: gdrive
   description: Query files in Google Drive directly with a gdrive:// filesystem
-  version: 0.1.0
   language: C++
   build: cmake
   license: MIT
@@ -17,7 +16,7 @@ extension:
 
 repo:
   github: DataZooDE/duckdb-gdrive
-  ref: 181b851d5297c5db743b9eaa8f978ae183580ff2
+  ref: c22f108fe83f849c0eb0bc5a271f54f14e1483b7
 
 docs:
   hello_world: |
