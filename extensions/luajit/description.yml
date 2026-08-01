@@ -1,7 +1,7 @@
 extension:
   name: luajit
-  description: "In-process LuaJIT UDFs for DuckDB — 12 functions, JIT-compiled, GROUP BY, batch mode @1.0x native speed"
-  version: 1.0.0
+  description: "In-process LuaJIT UDFs for DuckDB — 12 functions, JIT-compiled, GROUP BY, batch mode ~3.6x native (single-thread)"
+  version: 0.17
   language: C
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: alitrack/duckdb-luajit
-  ref: refs/tags/v1.0.0
+  ref: refs/tags/v0.17
 
 docs:
   hello_world: |
@@ -30,11 +30,12 @@ docs:
     ## luajit — JIT-compiled Lua UDFs for DuckDB
 
     Write and run Lua functions directly in SQL. LuaJIT compiles them to native machine code
-    with trace-based JIT, achieving **near-native performance** (1.0× native SQL in batch mode).
+    with trace-based JIT, **near-native performance** (batch mode ~3.6× native SQL single-threaded,
+    ~2500× faster than Python UDF).
 
     **12 Functions:**
     - `luajit_i` / `luajit_f` / `luajit_b` — typed scalar UDFs (BIGINT, DOUBLE, BOOLEAN)
-    - `luajit_v` — **chunk-batched scalar** (1 Lua call per chunk, 1.0× native speed)
+    - `luajit_v` — **chunk-batched scalar** (1 Lua call per chunk, ~3.6× native single-thread)
     - `luajit_m` — mixed-type auto-cast
     - `luajit_l` / `luajit_s` / `luajit_map` — LIST/STRUCT/MAP type bridges
     - `luajit_agg` — aggregate UDFs with GROUP BY support
@@ -49,10 +50,11 @@ docs:
     - Lua→DuckDB callback (`_duckdb_call`) for SQL execution from Lua
     - LIST, STRUCT, MAP type bridges between DuckDB and Lua
 
-    **Performance (50K rows):**
-    - `luajit_v` (batch): 3.8ms (1.0× native SQL)
-    - `luajit_f` (row-by-row): 6.2ms (1.7× native)
-    - Python UDF: ~9400ms (~2500× native)
+    **Performance (500K rows, single-threaded):**
+    - `luajit_v` (batch): 4.9ms (~3.6× native SQL)
+    - `luajit_i` (row-by-row): 24.3ms (~18× native)
+    - Python UDF: >160s (~200,000× native)
+    - Note: shared Lua state serializes under parallel execution; single-thread only
 
     **Design:**
     - LuaJIT 2.1 self-contained (~700KB binary)
@@ -60,5 +62,5 @@ docs:
     - MIT licensed
     - ~1050 lines of C
 
-    **Platforms:** Linux x64/arm64, macOS x64/arm64. Windows and WASM excluded 
+    **Platforms:** Linux x64/arm64, macOS x64/arm64, Windows (MSVC). WASM excluded
     (LuaJIT requires GNU Make + GCC).
