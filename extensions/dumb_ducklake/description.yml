@@ -1,0 +1,44 @@
+extension:
+  name: dumb_ducklake
+  description: Plan DuckLake queries into self-contained parquet queries that run on DuckLake-unaware DuckDB executors
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - kiwialec
+
+repo:
+  github: kiwialec/dumb-ducklake
+  ref: 3a2212118456663723229254560233607ef1277d
+
+docs:
+  hello_world: |
+    -- planner instance (DuckLake attached):
+    LOAD ducklake;
+    LOAD dumb_ducklake;
+    ATTACH 'ducklake:metadata.ducklake' AS lake;
+    SELECT dumb_ducklake_plan('SELECT count(*) FROM lake.sales WHERE brand_id = 8');
+    -- returns a rewritten SQL string over exactly the pruned parquet files;
+    -- run it on any stock DuckDB (no DuckLake, no metadata DB access needed).
+  extended_description: |
+    `dumb_ducklake` splits DuckLake querying into a planner and dumb executors.
+
+    `dumb_ducklake_plan(query [, mode] [, params])` plans and optimizes a SELECT with
+    DuckDB's real optimizer on a DuckLake-attached instance, letting DuckLake's zone-map
+    and partition pruning cut the file list, then rewrites every DuckLake table reference
+    into a parquet scan over exactly those files and returns the SQL text. Deleted rows
+    are handled by rewriting into an anti-join against the delete-file parquets. By
+    default the emitted SQL uses stock `read_parquet`, so executors need no extension at
+    all; with mode `'hinted'` it emits `read_parquet_hinted` with per-file
+    file_size/footer_size/encryption-key hints (fewer object-store round trips, required
+    for encrypted lakes). Prepared-statement placeholders are supported: values passed at
+    plan time drive pruning while the placeholders remain in the emitted SQL. CTEs,
+    local views over lake tables, dynamic PIVOT (pivot values are evaluated at plan
+    time) and `COPY (SELECT ...) TO` are handled; queries the optimizer answers from
+    metadata alone (e.g. bare `count(*)`) are materialized as constant SQL.
+
+    `read_parquet_hinted([{path, file_size, footer_size, encryption_key, ...}])` is a
+    drop-in `read_parquet` that accepts per-file metadata hints, skipping the size probe
+    and fetching parquet footers with a single exact-range read, with never-revalidate
+    caching for immutable lake files.
