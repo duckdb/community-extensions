@@ -64,3 +64,4 @@ docs:
 
     **Platforms:** Linux x64, Windows (MSVC), macOS x64/arm64. WASM and mingw/rtools
     excluded (LuaJIT requires specific toolchains); linux_arm64 not yet verified.
+# v0.27: generator fix (shared state for coroutine.wrap)
