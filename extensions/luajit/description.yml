@@ -1,0 +1,66 @@
+extension:
+  name: luajit
+  description: "In-process LuaJIT UDFs for DuckDB — 12 functions, JIT-compiled, GROUP BY, batch mode ~3.6x native (single-thread)"
+  version: 0.17
+  language: C
+  build: cmake
+  license: MIT
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_eh;wasm_mvp;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+
+repo:
+  github: alitrack/duckdb-luajit
+  ref: refs/tags/v0.17
+
+docs:
+  hello_world: |
+    -- Load and compile a UDF in one shot
+    LOAD luajit;
+    SELECT message FROM luajit_module(
+        mode := 'quick_compile',
+        source := 'return function(x) return x * 2 + 1 end',
+        sql_name := 'x2p1'
+    );
+    -- Use it immediately (auto-macro generated)
+    SELECT x2p1(5);
+    -- → 11
+
+  extended_description: |
+    ## luajit — JIT-compiled Lua UDFs for DuckDB
+
+    Write and run Lua functions directly in SQL. LuaJIT compiles them to native machine code
+    with trace-based JIT, **near-native performance** (batch mode ~3.6× native SQL single-threaded,
+    ~2500× faster than Python UDF).
+
+    **12 Functions:**
+    - `luajit_i` / `luajit_f` / `luajit_b` — typed scalar UDFs (BIGINT, DOUBLE, BOOLEAN)
+    - `luajit_v` — **chunk-batched scalar** (1 Lua call per chunk, ~3.6× native single-thread)
+    - `luajit_m` — mixed-type auto-cast
+    - `luajit_l` / `luajit_s` / `luajit_map` — LIST/STRUCT/MAP type bridges
+    - `luajit_agg` — aggregate UDFs with GROUP BY support
+    - `luajit_table` — table-generating UDFs
+    - `luajit_module` — module management (10 modes)
+
+    **Features:**
+    - Compile + auto-type + auto-macro in one call (`quick_compile`)
+    - Aggregate UDFs receive FULL value table, enabling median, stddev, percentile, etc.
+    - GROUP BY support with per-group Lua invocation
+    - File-based persistence (`save`/`load`) with auto-restore on `LOAD`
+    - Lua→DuckDB callback (`_duckdb_call`) for SQL execution from Lua
+    - LIST, STRUCT, MAP type bridges between DuckDB and Lua
+
+    **Performance (500K rows, single-threaded):**
+    - `luajit_v` (batch): 4.9ms (~3.6× native SQL)
+    - `luajit_i` (row-by-row): 24.3ms (~18× native)
+    - Python UDF: >160s (~200,000× native)
+    - Note: shared Lua state serializes under parallel execution; single-thread only
+
+    **Design:**
+    - LuaJIT 2.1 self-contained (~700KB binary)
+    - Zero external dependencies at runtime
+    - MIT licensed
+    - ~1050 lines of C
+
+    **Platforms:** Linux x64/arm64, macOS x64/arm64, Windows (MSVC). WASM excluded
+    (LuaJIT requires GNU Make + GCC).
