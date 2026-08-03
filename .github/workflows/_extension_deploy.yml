@@ -137,14 +137,14 @@ jobs:
             git config --global --add safe.directory '*'
             cd duckdb
             git fetch --tags
-            export DUCKDB_VERSION=`git tag --points-at HEAD`
-            export DUCKDB_VERSION=${DUCKDB_VERSION:=`git log -1 --format=%h`}
+            export DUCKDB_VERSION="$(git tag --points-at HEAD --sort=-v:refname | head -n 1)"
+            export DUCKDB_VERSION="${DUCKDB_VERSION:-$(git log -1 --format=%h)}"
             cd ..
           fi
           git fetch --tags --no-recurse-submodules
-          export EXT_VERSION=`git tag --points-at HEAD`
-          export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
-          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $EXT_VERSION $DUCKDB_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
+          export EXT_VERSION="$(git tag --points-at HEAD --sort=-v:refname | head -n 1)"
+          export EXT_VERSION="${EXT_VERSION:-$(git log -1 --format=%h)}"
+          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} "$EXT_VERSION" "$DUCKDB_VERSION" ${{ matrix.duckdb_arch }} "$BUCKET_NAME" ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
 
   clean_cache:
     needs:
