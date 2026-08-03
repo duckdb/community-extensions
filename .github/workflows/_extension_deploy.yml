@@ -131,6 +131,13 @@ jobs:
         run: |
           pwd
           python3 -m pip install awscli
+          # A release and its pre-releases can sit on one commit, and version sort
+          # ranks the pre-release higher by default, so v1.2.3-rc1 would be picked
+          # over v1.2.3. Naming the suffixes puts the release first. One --add per
+          # suffix is deliberate: listing only -rc still lets -beta win.
+          git config --global --add versionsort.suffix -rc
+          git config --global --add versionsort.suffix -beta
+          git config --global --add versionsort.suffix -alpha
           if [ -n "${{ inputs.duckdb_tag }}" ]; then
             export DUCKDB_VERSION="${{ inputs.duckdb_tag }}"
           else
