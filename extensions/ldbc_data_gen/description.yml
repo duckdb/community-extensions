@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: Dtenwolde/ldbc-data-gen
-  ref: a232c3829d81ec718d69d74f55147510ed876764 
+  ref: e7d26eac0e0feb70ec37a90112607adac807e901 
 
 docs:
   hello_world: |
