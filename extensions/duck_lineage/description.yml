@@ -1,11 +1,6 @@
 extension:
   name: duck_lineage
-  description: |
-    DuckLineage automatically captures data lineage from every DuckDB query and emits OpenLineage
-    events to any OpenLineage-compatible backend such as Marquez, DataHub,or Atlan.
-    Includes column-level lineage, schema facets, DuckLake catalog support, asynchronous
-    HTTP delivery, and parent-run linking for orchestrators like Airflow and Dagster.
-    Built and maintained by Ilum Labs.
+  description: DuckLineage automatically captures data lineage from every DuckDB query and emits OpenLineage events.
   version: 0.2.1
   language: C++
   build: cmake
