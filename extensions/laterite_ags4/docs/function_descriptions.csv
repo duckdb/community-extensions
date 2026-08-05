@@ -5,4 +5,6 @@ ags_groups,"List the groups in an AGS4 file with row and heading counts","Return
 ags_headings,"The per-heading schema of an AGS4 file, enriched with dictionary KEY status","Returns (group, heading, unit, ags_type, sql_type, status, is_key, ordinal)","SELECT * FROM ags_headings('site.ags') LIMIT 5;"
 ags_dictionary,"The embedded standard AGS dictionary as a table","Returns (group, heading, status, ags_type, unit, description)","SELECT * FROM ags_dictionary() LIMIT 5;"
 ags_relationships,"The AGS group parent-child (KEY) graph that _parent_id follows","Returns (child, parent, shared_keys)","SELECT * FROM ags_relationships();"
+ags_rules,"The AGS4 numbered-rule catalogue","Returns (rule, title, severity, fixable) — the extension *lists* the rules; the CLI and libraries *run* them","SELECT * FROM ags_rules() WHERE fixable;"
 load_ags,"Emit CREATE-TABLE DDL to materialise every AGS4 group into an indexed, queryable store","Returns (seq, stmt) — run the statements to get keyed tables","SELECT stmt FROM load_ags('site.ags') ORDER BY seq;"
+to_duckdb,"Emit ATTACH/CREATE-TABLE/DETACH DDL to persist every AGS4 group as a standalone .duckdb file","Returns (seq, stmt); the file matches the libraries' to_duckdb() output — keyed by _id/_parent_id","SELECT stmt FROM to_duckdb('site.ags', 'site.duckdb') ORDER BY seq;"
