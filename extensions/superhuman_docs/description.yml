@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: its-felix/duckdb-superhuman-docs
-  ref: 2f90c92377abf4cb53a03ab57c66265b2d1d2886
+  ref: 1d85c9eaecc407655a6d49720a56f46346258069
 
 docs:
   hello_world: |
