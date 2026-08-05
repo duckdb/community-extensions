@@ -675,7 +675,7 @@ Function accepts the following parameters:
 | `value` | VARCHAR | The value to set for the configuration option. Pass NULL when no value is needed. |
 
 This is useful, for example, to allow unauthenticated access to public S3 buckets
-when using GDAL-native VSI paths.
+when using GDAL-native VSI paths, or to set the `GDAL_DISABLE_READDIR_ON_OPEN` option to `EMPTY_DIR` to prevent GDAL from trying to read sibling files when loading raster files from remote sources (e.g., For S3, you can get the error `Not implemented Error: HTTPFileSystem: ListFiles is not implemented!` without this setting).
 
 #### Signature
 
