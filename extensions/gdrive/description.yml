@@ -16,7 +16,7 @@ extension:
 
 repo:
   github: DataZooDE/duckdb-gdrive
-  ref: c22f108fe83f849c0eb0bc5a271f54f14e1483b7
+  ref: 3dc834f02c8934dc2a3dbafb664d2f4a62157a6e
 
 docs:
   hello_world: |
