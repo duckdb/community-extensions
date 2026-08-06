@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: ColinLeeo/tsfile-duckdb
-  ref: 7888e1ba1bab0758aa417ed9fa16e93de70bcf4f
+  ref: 34e6865cbb251cf318cc443d8bb3a26c018e60a9
 
 docs:
   hello_world: |
