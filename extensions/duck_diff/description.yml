@@ -1,7 +1,7 @@
 extension:
   name: duck_diff
   description: Diff two relations (tables, queries) off a primary key, reporting per-key status (identical/different/left_only/right_only), a JSON summary of changed columns, and per-column left/right values.
-  version: 0.3.0
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: avaitla/duck_diff
-  ref: 8697ac758c56b718e7be501cc1d554301a0a1419
+  ref: 9afb9a05ab3ab1b1cfbc27a8fdf2e81b157ed0b4
 
 docs:
   hello_world: |
@@ -38,13 +38,33 @@ docs:
     SELECT * FROM table_diff_summary('FROM users_v1', 'FROM users_v2', pk := 'id');
 
   extended_description: |
-    `duck_diff` diffs two relations off a primary key. Given a "left" and a "right" relation
-    (written as query strings, e.g. `'FROM orders'` or a full `SELECT ...`), it reports — per
-    key — whether the row is **identical**, **different**, or exists only on one side, and
-    exactly what changed. Each result row carries both a JSON `diff_data` summary of the
-    changed columns *and* per-column expanded columns (`<c>_left` / `<c>_right` /
-    `<c>_diff_status`). Composite primary keys and selecting a subset of columns to diff or
-    ignore are supported.
+    `duck_diff` finds the difference between two tables — which can be on
+    entirely different systems if needed. Typical uses:
+
+    - Checking a copy is faithful: CDC pipelines, read replicas, warehouse
+      ELT, migrations. Per-key results show stale rows, missed deletes, and
+      missing inserts that row counts hide.
+    - Verifying a SQL rewrite (refactor, dialect translation, performance
+      work) returns the same rows as the original.
+    - Letting a coding agent such as Claude verify its own changes: the check
+      is deterministic (`n_total = n_identical`), so an agent can rewrite,
+      run the diff, and repeat until it passes — with Claude Code's
+      [`/goal`](https://code.claude.com/docs/en/goal), set the diff returning
+      true as the completion condition and it keeps working across turns
+      until that verifiably holds.
+
+    Each key gets a status (`identical` / `different` / `left_only` /
+    `right_only`), a JSON `diff_data` of the changed columns, and
+    `<c>_left` / `<c>_right` / `<c>_diff_status` columns. Composite keys are
+    supported; `upcast_types`, `numeric_tolerance`, `timestamp_precision`,
+    `null_equals_empty`, and `columns` / `ignore` / `context` control the
+    comparison across engines.
+
+    **Links:**
+    [website & cross-database recipe builder](https://avaitla.github.io/duck_diff/) ·
+    [function reference](https://github.com/avaitla/duck_diff/blob/main/docs/functions.md) ·
+    [runnable demos (MySQL, Postgres, ClickHouse, BigQuery, Snowflake, Iceberg, DuckLake, S3 Tables)](https://github.com/avaitla/duck_diff/tree/main/demo) ·
+    [AI-assisted migration guide](https://github.com/avaitla/duck_diff/blob/main/docs/ai-assisted-migration.md)
 
     **Functions:**
 
@@ -52,24 +72,4 @@ docs:
     |----------|---------|---------|
     | `table_diff(left, right, pk := ...)` | table | one row per key: key column(s), `diff_status`, `diff_data`, expanded columns |
     | `table_diff_summary(left, right, pk := ...)` | one row | counts (and percentages) per status |
-    | `schema_diff(left, right)` | table | per-column name/type comparison |
-
-    `table_diff` options include `numeric_tolerance` (treat numbers within a band as equal),
-    `timestamp_precision` (truncate timestamps before comparing), `null_equals_empty`,
-    `columns` / `ignore` (restrict or exclude compared columns), `context` (surface
-    non-compared columns alongside the diff), and `require_matching_columns` /
-    `upcast_types` for relations whose schemas don't match exactly.
-
-    Because each relation argument is a query string, any table function from another
-    extension works — diff CSV/Parquet files, or relations from attached databases
-    (Postgres, MySQL, BigQuery, ...) against each other.
-
-    **Use cases:**
-    - Refactoring SQL (possibly onto a new database) and verifying the results are identical
-    - Capturing the differences between snapshots or points in time
-    - Replication integrity — spot-check that a replica matches its source
-    - Regression tests in CI — assert a model's output still matches its golden snapshot
-    - Giving coding agents a ground-truth check that a refactor produced identical results
-
-    See the [function reference](https://github.com/avaitla/duck_diff/blob/main/docs/functions.md)
-    for full documentation.
+    | `schema_diff(left, right)` | table | per-column name/type comparison — reads no rows |
