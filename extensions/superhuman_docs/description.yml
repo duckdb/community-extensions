@@ -1,0 +1,32 @@
+extension:
+  name: superhuman_docs
+  description: Attach Superhuman Docs documents as DuckDB databases and query or modify their tables with SQL
+  version: 0.1.0
+  language: Rust & C++
+  build: cmake
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - its-felix
+
+repo:
+  github: its-felix/duckdb-superhuman-docs
+  ref: 1d85c9eaecc407655a6d49720a56f46346258069
+
+docs:
+  hello_world: |
+    CREATE SECRET superhuman_docs_token (
+        TYPE superhuman_docs,
+        TOKEN 'superhuman-docs-api-token'
+    );
+
+    ATTACH 'doc-id' AS superhuman_docs_doc (TYPE superhuman_docs);
+
+    SELECT * FROM superhuman_docs_doc.main."Tasks";
+
+  extended_description: |
+    The Superhuman Docs extension exposes a Superhuman Docs document as an attached DuckDB database. Tables in the document become DuckDB tables that can be queried with `SELECT` and modified with `INSERT`, `UPDATE`, and `DELETE`.
+
+    Authentication can be supplied through a DuckDB secret or directly when attaching. The extension accepts raw document IDs and prefixed Coda or Superhuman Docs browser URLs. It maps supported Superhuman Docs column formats to native DuckDB types, including decimals, dates, timestamps, intervals, lists, and structs.
+
+    For configuration options, type mappings, mutation semantics, and usage examples, see the [extension repository](https://github.com/its-felix/duckdb-superhuman-docs).
