@@ -1,7 +1,7 @@
 extension:
   name: substrait
   description: Allows conversion execution of Substrait query plans
-  version: 1.5.4
+  version: 1.5.5
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,11 +9,12 @@ extension:
     - anshuldata
     - cgkiran
     - EpsilonPrime
+    - andrew-coleman
   excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64"
 
 repo:
   github: substrait-io/duckdb-substrait-extension
-  ref: e61b3bdf6fa92120b52b583914b742b9f3c50130
+  ref: 50ab489888c1992ede75d3756d93fe5a0ac72d9a
 
 docs:
   hello_world: |
