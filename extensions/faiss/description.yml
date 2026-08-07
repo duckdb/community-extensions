@@ -8,14 +8,10 @@ extension:
   maintainers:
     - JAicewizard
     - arjenpdevries
-  # windows_amd64 fails to link against the CLAPACK that vcpkg provides on MSVC
-  # (unresolved d_sign, pow_ri, pow_dd, r_sign - the f2c runtime), and it took the
-  # four platforms that do build down with it, so nothing was published at all.
-  # Temporary: remove once the MSVC LAPACK link is fixed upstream.
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   requires_toolchains: "fortran;omp"
   vcpkg_url: "https://github.com/microsoft/vcpkg.git"
-  vcpkg_commit: "54760c3439fa2fdf2f42ccd730fcf2639c3fe101"
+  vcpkg_commit: "26826180d398b4bb4f0453ae9d38a1c2c4d472dc"
 
 repo:
   github: "duckdb-faiss-ext/duckdb-faiss-ext"
