@@ -1,0 +1,75 @@
+extension:
+  name: jsono
+  description: Analytics-optimized JSON storage — parse one time and read many times, and shred hot paths into typed columns for pushdown and row-group pruning
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - Flamefork
+
+repo:
+  github: Flamefork/duckdb-jsono
+  ref: v0.1.1
+
+docs:
+  hello_world: |
+    INSTALL jsono FROM community;
+    LOAD jsono;
+
+    -- A JSON document becomes a pre-parsed binary value. Queries navigate the
+    -- binary structure and do not parse the text again.
+    SELECT jsono_transform(
+        jsono('{"id": 42, "name": "duck", "active": true}'),
+        {id: 'BIGINT', name: 'VARCHAR', active: 'BOOLEAN'}
+    );
+    -- {'id': 42, 'name': duck, 'active': true}
+
+    -- With a shredding spec, the hot paths go into typed lane columns.
+    -- The conversion is lossless: to_json gives the initial document back.
+    SELECT to_json(jsono('{"kind":"commit","time_us":1700,"extra":"e1"}',
+                         shredding := '{"$.kind": "VARCHAR", "$.time_us": "BIGINT"}'));
+    -- {"extra":"e1","kind":"commit","time_us":1700}
+
+  extended_description: |
+    `jsono` is analytics-optimized storage for JSON in DuckDB.
+
+    `jsono(payload)` converts a JSON document into a pre-parsed binary value.
+    Queries navigate that binary structure and do not parse the text again. The
+    value is a plain nested `STRUCT`, so it goes through Parquet and DuckLake
+    with no custom type.
+
+    With `shredding := spec`, the same constructor also moves the hot paths (the
+    paths that queries read most) into typed lane columns. An extraction or a
+    filter on a shredded path becomes a direct read of a narrow typed column,
+    which the planner pushes down and which prunes Parquet row groups. The
+    conversion is lossless: `->>`, `to_json`, and the casts give the same
+    answers as on a plain value, and a path with no lane stays in the residual.
+
+    **Functions**
+
+    - Build and convert: `jsono(json)` / `try_jsono(json)`, `jsono(struct)`,
+      `to_json(value)`.
+    - Extract and project: `jsono_extract` (`->`), `jsono_extract_string`
+      (`->>`), `jsono_transform` (many fields into a typed `STRUCT`, in one
+      pass), `jsono_entries`, `jsono_array_elements`.
+    - Merge and aggregate: `jsono_merge_patch` (RFC 7396), `jsono_group_merge`,
+      `jsono_group_merge_max` / `jsono_group_merge_min`, `jsono_diff`,
+      `jsono_group_array` / `jsono_group_object`.
+    - Shredded storage: `jsono(value, shredding := spec)`,
+      `jsono_suggest_shredding` (a spec from a plain column),
+      `jsono_shred_stats`.
+    - Introspection of the document (`jsono_type`, `jsono_keys`,
+      `jsono_array_length`), of the row (`jsono_validate`,
+      `jsono_storage_size`, `jsono_shred_manifest`), and of the type
+      (`jsono_layout_diagnose`, `jsono_layout_lanes`, `jsono_storage_type`).
+
+    **Stability.** Stored values stay readable across upgrades: a newer release
+    reads the values that an older release wrote. The SQL API is not frozen —
+    function names and signatures can change while the version is `0.x`.
+
+    **Maintenance** is best-effort, by one maintainer. Give feedback and
+    contributions through GitHub.
+
+    Full documentation, including the storage format and the pruning
+    conditions: https://github.com/Flamefork/duckdb-jsono#readme
