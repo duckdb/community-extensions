@@ -1,16 +1,16 @@
 extension:
   name: duckdb_mcp
   description: Model Context Protocol (MCP) extension for DuckDB that enables seamless integration between SQL databases and MCP servers. Provides both client capabilities for accessing remote MCP resources via SQL and server capabilities for exposing database content as MCP resources.
-  version: 2.1.1
+  version: 2.2.0
   language: C++
   build: cmake
-  license: MIT
+  license: Apache-2.0
   requires_toolchains: ""
   maintainers:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_mcp
-  ref: faf20bdeb07013f46eda5f745bab87df5f2709ff
+  ref: 7db1650a1b4c04914ae724dd43244e690094ffc0
 
 docs:
   hello_world: |
