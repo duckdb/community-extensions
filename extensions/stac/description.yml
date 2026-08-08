@@ -1,7 +1,7 @@
 extension:
   name: stac
   description: DuckDB extension for reading data from SpatioTemporal Asset Catalogs (STAC) using SQL.
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-stac
-  ref: 2759131bfe73569e61b1cdc84d13c63bda753613
+  ref: f21deb204b9afa01fa5a159cb38e6b5ca08c9c0c
 
 docs:
   hello_world: |
