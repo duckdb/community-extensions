@@ -10,8 +10,8 @@ extension:
 repo:
   github: teaguesterling/duckdb_scalarfs
   andium: 68faa6c72054123a6c6521dd41c12f929431da50
-  ref: refs/tags/v1.5.1
-  ref_next: 68faa6c72054123a6c6521dd41c12f929431da50
+  ref: 03a7d8e23178a2c9fcb3a16292dd60a23e059a8d
+  ref_next: 03a7d8e23178a2c9fcb3a16292dd60a23e059a8d
 docs:
   hello_world: |
     LOAD scalarfs;
