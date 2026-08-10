@@ -10,4 +10,4 @@ extension:
     - jrosskopf
 repo:
   github: DataZooDE/quack-oauth
-  ref: 8e6621f53a9c39b8f30844d11a1c5c481528985e
+  ref: 0f30ca99ad34436e766c7aa550ef168e6eb4de8b
