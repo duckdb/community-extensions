@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-tabfm
-  ref: 0c7f83ee8d94c0b4d9c520bd3b49edebb8c859bb
+  ref: bc6d8aff9b8c4c741113f476d09bb337ff85f386
 
 docs:
   hello_world: |
