@@ -11,7 +11,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duck_tails
-  ref: refs/tags/v1.5.0
+  ref: aac04047feb111f087c416e488bb2625955b0d79
 
 docs:
   hello_world: |
