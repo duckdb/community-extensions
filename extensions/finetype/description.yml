@@ -82,7 +82,7 @@ docs:
     read its columns.
 
     ```sql
-    SELECT * FROM ft_profile('my_table');
+    SELECT * FROM ft_profile('people');
     ```
 
     Nested `STRUCT` / `LIST` columns are **guarded, not silently rejected**: rather than forcing them
@@ -93,16 +93,23 @@ docs:
     ### `ft_validate(table_name VARCHAR, schema_json VARCHAR)`
     Validate a table's columns against a JSON Schema. Returns one row per validated column with the
     total values checked, the reject count, and a sample rejection message. The schema can be supplied
-    inline, via `getvariable`, or read from a file with DuckDB's `read_text`:
+    inline, via `getvariable`, or read from a file — a bare path is read for you, while a string
+    starting with `{` is used as-is.
 
     The JSON Schema is keyed by column under a top-level `properties` object.
 
+    The constraints that are **asserted** are `pattern`, `minLength`, `maxLength`, `enum`, `type` and
+    `required`. Per the JSON Schema specification, `format` is an annotation rather than an assertion:
+    `{"format":"email"}` describes the column and rejects nothing. Use `pattern` when you want values
+    counted as rejects.
+
     ```sql
     -- inline
-    SELECT * FROM ft_validate('my_table', '{"properties":{"email":{"type":"string","format":"email"}}}');
+    SELECT * FROM ft_validate('people', '{"properties":{"email":{"type":"string","pattern":"^[^@]+@[^@]+\\.[^@]+$"}}}');
 
-    -- from a file (a bare path is read for you; an inline string starting with "{" is used as-is)
-    SELECT * FROM ft_validate('my_table', 'schema.json');
+    -- via a variable, when the schema is long enough to want a name
+    SET VARIABLE email_schema = '{"properties":{"email":{"type":"string","minLength":6}}}';
+    SELECT * FROM ft_validate('people', getvariable('email_schema'));
     ```
 
     ## Aggregate function
