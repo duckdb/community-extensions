@@ -1,7 +1,7 @@
 extension:
   name: quackiso
   description: Query ISO 20022 (camt, pacs, pain) financial messages as SQL
-  version: 1.4.0
+  version: 1.4.1
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: 5a0288e42d1dc81ff350b1beda3873a834e3835b
+  ref: 303af8767ebb3c299943201dad65739cb6614915
 
 docs:
   hello_world: |
