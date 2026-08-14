@@ -1,12 +1,9 @@
-# Submit this file to duckdb/community-extensions at
-# extensions/quackiso/description.yml
-# `ref` is the tagged release commit in tempoloss/quackiso.
 extension:
   name: quackiso
   description: Query ISO 20022 (camt, pacs, pain) financial messages as SQL
-  version: 1.3.0
+  version: 1.4.0
   language: Rust
-  build: cmake
+  build: cargo
   license: MIT
   maintainers:
     - tempoloss
@@ -15,7 +12,7 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: 62c365d51c016827f37fe2dfbd8512214c886d16
+  ref: 5a0288e42d1dc81ff350b1beda3873a834e3835b
 
 docs:
   hello_world: |
@@ -57,6 +54,14 @@ docs:
     FROM read_pain002('pain002.xml')
     WHERE status_level = 'TRANSACTION';
 
+    -- Payment status requests (pacs.028): asking where a payment already sent
+    -- got to. A request states no status of its own, so every monetary column
+    -- is original_*, and scope says whether the row is one transaction or a
+    -- whole original message.
+    SELECT scope, original_msg_id, original_uetr, original_amount,
+           original_settlement_date
+    FROM read_pacs028('pacs028.xml');
+
     -- Amounts are DECIMAL(38,5), so totals are exact.
     SELECT currency, SUM(amount) AS total
     FROM read_iso20022('statements/*.xml')
@@ -67,7 +72,7 @@ docs:
     Python preprocessing step, no per-schema glue code: point a table function at
     bank XML and get transactions as rows.
 
-    Fourteen functions: thirteen readers covering the payment lifecycle end to
+    Fifteen functions: fourteen readers covering the payment lifecycle end to
     end, in both directions, and a sniffer that routes files to them.
 
     * `read_iso20022(path)` - camt.053 statements, camt.054 notifications and
@@ -84,6 +89,11 @@ docs:
       customer- and interbank-side; one row per status statement, at whichever
       level the bank stated it, because a batch can be accepted or rejected
       without a single transaction being detailed.
+    * `read_pacs028(path)` - payment status requests: the "where is my money?"
+      message, asking another bank for the status of a payment already sent. A
+      request carries no status of its own, so every monetary column is
+      `original_*`, and a request naming a whole original message with no
+      transaction detail is still a row.
     * `read_pacs004(path)` / `read_pacs007(path)` - returns and reversals:
       settled money coming back, from the receiver or taken back by the sender;
       the returned amount sits beside the original, so partial returns are
@@ -93,9 +103,10 @@ docs:
       that answers them; a whole-batch cancellation with no transactions is
       still a row.
     * `sniff_iso20022(path)` - inventory before reading: one row per file with
-      the detected message type, the family, the wire-level record count and the
-      reader that covers it. Identity comes from the namespace, the era-spelled
-      container names or the envelope binding, and content problems land in an
+      the detected message type, the family, the count of record elements a
+      reader would turn into rows, and the reader that covers it. Identity comes
+      from the namespace, the era-spelled container names or the envelope
+      binding, and content problems land in an
       `error` column instead of aborting the scan, so a folder of mixed
       downloads is a table rather than a failure.
 
@@ -119,7 +130,8 @@ docs:
     resident, measured by `cargo test membound`, and adds 7.8 MiB to a running
     DuckDB. A glob is parsed in parallel, one worker per file - XML has no
     safe split points, so a single document is never divided - with
-    `threads := n` to pin the pool; measured 6.9x on 8 files of 35 MB.
+    `threads := n` to pin the pool, itself capped at four times the machine's
+    parallelism; measured 6.9x on 8 files of 35 MB.
 
     A file of the wrong message type fails loudly instead of returning an empty
     table. The transaction element names collide across families (camt.056 and
@@ -130,7 +142,7 @@ docs:
     Tested against roughly 260 real messages from more than a dozen sources -
     Goldman Sachs US/UK/EU and wire, SIX interbank, CBPR+, ProgressSoft,
     Nivaes, Prowide, OpenBankProject, Mbanq, Handelsbanken, issettled, prog-nov,
-    salesking and Dolibarr among them - spanning thirteen message families and
+    salesking and Dolibarr among them - spanning sixteen message families and
     every era of their vocabulary: renamed reason blocks, renamed containers,
     namespace-prefixed subtrees, group-level fields carried down, and party
     sides that reverse in a return. Every behaviour that looks like a special
