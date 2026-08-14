@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: maxdemarzi/duckdb-rocket
-  ref: e325474a7cab58bc11a30ebba61604002cb8fe55
+  ref: c33d6b1a109e0ba9abf1722ad3fa424b79d31d86
 
 docs:
   hello_world: |
