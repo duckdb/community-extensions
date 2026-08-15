@@ -1,89 +1,91 @@
 extension:
   name: gpudb
   description: GPU-accelerated analytical operators for DuckDB on NVIDIA CUDA and Apple Silicon Metal. First SQL execution engine that targets Apple Silicon GPUs.
-  version: 0.3.0
+  version: 0.4.0
   language: C++
   build: cmake
   license: Apache-2.0
-  requires_toolchains: "python3"
+  requires_toolchains: "python3;cuda"
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_rtools;windows_amd64_mingw"
   maintainers:
     - singhpratech
 
 repo:
   github: singhpratech/duckdbgpumetaldbram
-  ref: 2f416b1037a5d22662bd67b7fda26f0b96b82858
+  ref: dc01848708e8178c8cb07f551761f14002ffe931
 
 docs:
   hello_world: |
     LOAD gpudb;
-    -- Drop-in aggregates (BIGINT and DOUBLE overloads)
+    -- Drop-in streaming aggregates (BIGINT and DOUBLE overloads)
     SELECT gpu_sum(value::BIGINT) FROM range(1000000) AS t(value);
 
-    -- Verify against native sum
-    SELECT
-      gpu_sum(value::BIGINT) AS gpu,
-      sum(value::BIGINT) AS native
-    FROM range(1000000) AS t(value);
+    -- v0.4.0: resident columns — upload once, then reductions run on the GPU
+    -- with zero per-query transfer
+    SELECT gpu_upload('v', value::BIGINT) FROM range(1000000) AS t(value);
+    SELECT gpu_sum_resident('v');
+    SELECT gpu_last_stats();   -- which backend ran + kernel time
   extended_description: |
-    `gpudb` adds drop-in aggregate functions:
+    `gpudb` has two SQL surfaces:
 
-      * `gpu_sum(BIGINT | DOUBLE)`
-      * `gpu_min(BIGINT | DOUBLE)`
-      * `gpu_max(BIGINT | DOUBLE)`
+    **Streaming aggregates** — drop-in `gpu_sum` / `gpu_min` / `gpu_max`
+    (`BIGINT` and `DOUBLE` overloads; smaller integers widen implicitly).
+    They work in plain aggregation, `GROUP BY`, and window frames, match
+    native DuckDB semantics (SQL `NULL` for empty/all-NULL input, NaN-aware
+    total order for `DOUBLE` min/max), and run at parity with native — by
+    design, since per-query GPU round-trips lose through this interface.
 
-    Smaller integer types (`INTEGER`, `SMALLINT`, `TINYINT`) widen implicitly
-    to the `BIGINT` overload. All three work in plain aggregation, `GROUP BY`,
-    and window frames (`OVER ()`, `OVER (ORDER BY ...)`,
-    `OVER (PARTITION BY ... ORDER BY ...)`), and match native DuckDB
-    semantics: empty input and all-NULL groups return SQL `NULL` (v0.2.0),
-    and the `DOUBLE` min/max overloads use the same NaN-aware total order as
-    native DuckDB — NaN sorts greatest (v0.3.0).
+    **Resident columns (v0.4.0)** — the path where the GPU wins. Upload a
+    column to device memory once, then reductions run on-GPU with zero
+    per-query transfer:
 
-    **v0.3.0** replaces the buffered v0.1.x aggregate path with streaming
-    accumulator states. End-to-end queries through the SQL aggregates now run
-    at parity with native DuckDB (1.00–1.20× on rewritten TPC-H queries),
-    where v0.1.x could be substantially slower on the same queries. DuckDB
-    feeds aggregates pre-grouped 2048-row chunks, so the SQL aggregate path
-    deliberately streams running accumulators instead of round-tripping
-    chunks through the GPU.
+      * `gpu_upload(name, col)` — one-time upload (BIGINT or DOUBLE)
+      * `gpu_sum_resident` / `gpu_min_resident` / `gpu_max_resident` (BIGINT)
+      * `gpu_sum_resident_f64` (DOUBLE)
+      * `gpu_resident_info`, `gpu_last_stats`, `gpu_build_info`,
+        `gpu_drop_resident`
 
-    The GPU backends (CUDA on NVIDIA sm_70+, Metal on Apple Silicon M1+)
-    power the operator-level engine and benchmark tooling that ship in the
-    source tree, where whole columns are resident on the device. Headline
-    operator-level results, all traceable to rows in the project's
-    append-only BENCHMARK.md with reproduction steps:
+    Measured on TPC-H `lineitem` (DuckDB v1.5.5, 5-run medians, results
+    verified equal to native; full grid with reproduction steps in the
+    project's append-only BENCHMARK.md): SF50 `SUM` 99 ms native vs 4 ms
+    resident on an RTX 4090 Laptop (25×, kernel at 563 GB/s ≈ VRAM
+    bandwidth); SF100 (600M rows) 99 ms vs 10 ms on an Apple M4 Max
+    (9.9×, Metal kernel at 503 GB/s). The speedup grows with data size.
+    Honest trade-offs are documented alongside: whole-column `min`/`max` on
+    stored tables stays a native win (zonemap statistics), one-shot cold
+    queries favor native, and the one-time upload breaks even after roughly
+    100 repeated queries.
 
-      * Apple M4 Max vs DuckDB CPU 16-thread: multi-aggregate fusion over
-        TPC-H SF10 columns 9.7×–25.5×; SF10 GROUP BY at 1.35M unique keys
-        3.9×; honest loss documented at 50 unique keys (CPU 14× faster,
-        structural).
-      * NVIDIA RTX 4090: resident-column SUM ~17.9×; GROUP BY 50M rows ×
-        10M unique groups 13.7× (vs single-thread CPU baseline).
-
-    Community-extension binaries are built without the CUDA toolchain for
-    now (full Metal path on Apple Silicon; clean CPU fallback on Linux);
-    build from source for the CUDA backend. If no GPU is available the
-    extension falls back cleanly — same SQL surface either way.
+    Community binaries ship the full Metal path on Apple Silicon and a clean
+    CPU fallback on Linux (same SQL surface either way — `LOAD` never fails
+    on GPU-less machines). The Linux build is CUDA-ready: it auto-enables the
+    CUDA backend with a statically linked runtime when built with the CUDA
+    toolchain, and `SELECT gpu_build_info();` reports which backends a given
+    binary carries.
 
     Source: https://github.com/singhpratech/duckdbgpumetaldbram
 
   hardware_requirements: |
-    NVIDIA CUDA: any GPU with sm_70 or later. Driver 525+ recommended.
+    NVIDIA CUDA: any GPU with sm_75 or later. Driver 525+ recommended.
     Apple Metal: any Apple Silicon Mac (M1 or later). macOS 13+ for
     int64 atomics; macOS 15+ for MSL 3.2.
     Falls back to CPU otherwise.
 
   known_limitations: |
-    * `gpu_sum(BIGINT)` wraps on int64 overflow where native `sum()`
-      promotes to `HUGEINT`.
+    * `gpu_sum(BIGINT)` and `gpu_sum_resident` wrap on int64 overflow where
+      native `sum()` promotes to `HUGEINT`.
     * `HUGEINT`, `DECIMAL`, and `FLOAT` arguments implicitly cast to the
       `DOUBLE` overload — values beyond 2^53 lose precision where native
       aggregates are exact, and the result type is `DOUBLE`. `VARCHAR`
-      arguments are a binder error (native `min`/`max` compare
-      lexicographically). Use native aggregates where those types matter.
-    * Apple GPUs do not implement IEEE-754 doubles in MSL; operator-level
-      f64 work on Metal runs on host. This does not affect the SQL
-      aggregate path.
-    * `GPUDB_FORCE_BACKEND` no longer affects the SQL aggregate path as of
-      v0.3.0 (operator-level tools still honor backend selection).
+      arguments are a binder error. Use native aggregates where those types
+      matter.
+    * Apple GPUs do not implement IEEE-754 doubles in MSL; resident `DOUBLE`
+      reductions on Metal run on a parallel host path (still faster than a
+      native scan in our measurements).
+    * In a single-statement upload+query, the outer query must reference the
+      upload's result column or DuckDB's optimizer prunes the upload.
+    * `gpu_upload` buffering is capped at 4 GB by default
+      (`GPUDB_UPLOAD_POOL_MAX_MB` to raise); uploading inside a window frame
+      buffers quadratically and is intentionally stopped by this cap.
+    * `GPUDB_FORCE_BACKEND` does not affect the SQL aggregate path
+      (operator-level tools still honor backend selection).
