@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: clawdbotborges/duckdb-data360
-  ref: fda061ad874a868c3f1177842bbe88a173e7136e
+  ref: fda061a1cd060d63d56e0dcd510b7bbc6ccf3bd1
 
 docs:
   hello_world: |
