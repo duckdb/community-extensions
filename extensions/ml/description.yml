@@ -1,7 +1,7 @@
 extension:
   name: ml
-  description: "Lightweight, columnar-native ML for DuckDB — train + inference, 18 algorithms, zero Python deps"
-  version: 0.1.0
+  description: "Lightweight, columnar-native ML for DuckDB — train + inference, 34 algorithms, zero Python deps"
+  version: 0.2.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: alitrack/duckdb-ml
-  ref: refs/tags/v0.1.1
+  ref: refs/tags/v0.2.0
 
 docs:
   hello_world: |
@@ -26,16 +26,20 @@ docs:
   extended_description: |
     ## ML — Machine Learning for DuckDB
 
-    Pure Rust ML extension. 18 algorithms, zero Python dependencies.
+    Pure Rust ML extension. 34 algorithms, zero Python dependencies.
 
-    **Algorithms:**
-    - Linear: linear_regression, ridge_regression, lasso_regression
-    - Tree: decision_tree, random_forest
-    - Gradient Boosting: xgboost_regression, xgboost_binary
+    **Algorithms (34):**
+    - Regression: linear_regression, ridge_regression, lasso_regression, elastic_net, robust (Huber), polynomial_regression
+    - Generalized Linear: logistic_regression, multilogistic, ordinal
+    - Survival: cox, kaplan_meier
+    - Trees: decision_tree, random_forest, rf_classifier, adaboost
+    - Gradient Boosting: xgboost_regression, xgboost_binary (multi-class softmax), xgboost_regressor, xgboost_classifier
     - Neural: mlp_regressor
     - Distance: knn_regressor, knn_classifier
     - Bayesian: naive_bayes
-    - Clustering: kmeans
-    - Dim Reduction: pca
+    - Kernel: svm, svr
+    - Clustering: kmeans, fuzzy_cmeans, dbscan, agglomerative
+    - Dim Reduction: pca, lda, tsne
+    - External: onnx, arima
 
     **Install:** `INSTALL ml FROM community;`
