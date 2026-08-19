@@ -1,7 +1,7 @@
 extension:
   name: read_lines
-  description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection, and context lines around matches.
-  version: 0.2.1
+  description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection with context, and GitHub-style '#L12-24' fragments so a line range can be attached to any path, including URIs served by other extensions.
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -9,8 +9,10 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_read_lines
+  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; ref is a
+  # v1.5.4 tree, so v0.3.0 ships on the v1.5.x track only.
   andium: 8075509bc21b936c228879ada22c8a46657109aa
-  ref: refs/tags/v0.2.1
+  ref: 2426d08add6b0242572af2a75437aa6c67d4c970
 docs:
   hello_world: |
     -- Read all lines from a file
