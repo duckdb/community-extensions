@@ -28,9 +28,11 @@ docs:
     FROM sniff_iso20022('inbox/**/*.xml')
     GROUP BY family, reader;
 
-    -- SWIFT MT is read the same way, by path: one row per :61: statement line,
-    -- with the account and its balances carried onto every one of them.
-    SELECT account, value_date, credit_debit, amount, currency, closing_balance
+    -- SWIFT MT is read the same way, by path: one row per :61: statement line.
+    -- A `:61:` states no currency of its own, so the statement's balance carries
+    -- it, along with the account, onto every entry.
+    SELECT account, value_date, credit_debit, amount,
+           closing_balance_currency, closing_balance
     FROM read_mt940('statements/*.txt')
     ORDER BY value_date;
 
