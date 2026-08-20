@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: prequel-co/DuckDB-Delta-Sharing
-  ref: 46057e2422ad2d9a01c9498fa07866491d4da620
+  ref: a9ab9dd48160fa108861120bc1006b5d3546d0f3
 
 docs:
   hello_world: |
