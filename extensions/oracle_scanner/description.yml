@@ -1,0 +1,15 @@
+extension:
+  name: oracle_scanner
+  description: Read and write Oracle Database with no Oracle client
+  version: '0.1.0'
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - krokozyab
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw
+  requires_toolchains: vcpkg
+
+repo:
+  github: krokozyab/quack-oracle
+  ref: 6f454dbe00c28fddd0132f49439eba261852e08c
