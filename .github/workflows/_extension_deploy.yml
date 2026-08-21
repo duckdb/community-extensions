@@ -131,10 +131,13 @@ jobs:
         run: |
           pwd
           python3 -m pip install awscli
-          # A release and its pre-releases can sit on one commit, and version sort
-          # ranks the pre-release higher by default, so v1.2.3-rc1 would be picked
-          # over v1.2.3. Naming the suffixes puts the release first. One --add per
-          # suffix is deliberate: listing only -rc still lets -beta win.
+          # A release and its variants can sit on one commit, and version sort
+          # ranks anything suffixed above the release it belongs to, so v1.2.3-rc1
+          # would be picked over v1.2.3. A plain release tag is therefore matched
+          # first, because enumerating the suffixes cannot be complete: this
+          # registry carries `v0.2.3` beside `v0.2.3-cpp` today, and -cpp is not a
+          # pre-release anybody would have thought to name. The suffix list still
+          # decides between variants when the commit carries no plain tag at all.
           git config --global --add versionsort.suffix -rc
           git config --global --add versionsort.suffix -beta
           git config --global --add versionsort.suffix -alpha
@@ -144,12 +147,14 @@ jobs:
             git config --global --add safe.directory '*'
             cd duckdb
             git fetch --tags
-            export DUCKDB_VERSION="$(git tag --points-at HEAD --sort=-v:refname | head -n 1)"
+            export DUCKDB_VERSION="$(git tag --points-at HEAD --sort=-v:refname | grep -E '^v?[0-9]+(\.[0-9]+)*$' | head -n 1)"
+            export DUCKDB_VERSION="${DUCKDB_VERSION:-$(git tag --points-at HEAD --sort=-v:refname | head -n 1)}"
             export DUCKDB_VERSION="${DUCKDB_VERSION:-$(git log -1 --format=%h)}"
             cd ..
           fi
           git fetch --tags --no-recurse-submodules
-          export EXT_VERSION="$(git tag --points-at HEAD --sort=-v:refname | head -n 1)"
+          export EXT_VERSION="$(git tag --points-at HEAD --sort=-v:refname | grep -E '^v?[0-9]+(\.[0-9]+)*$' | head -n 1)"
+          export EXT_VERSION="${EXT_VERSION:-$(git tag --points-at HEAD --sort=-v:refname | head -n 1)}"
           export EXT_VERSION="${EXT_VERSION:-$(git log -1 --format=%h)}"
           ${{ inputs.deploy_script }} ${{ inputs.extension_name }} "$EXT_VERSION" "$DUCKDB_VERSION" ${{ matrix.duckdb_arch }} "$BUCKET_NAME" ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
 
