@@ -1,7 +1,7 @@
 extension:
   name: cityjson
   description: Read, write, and query CityJSON, CityJSONSeq, FlatCityBuf, and CityParquet 3D city model files.
-  version: 0.3.1
+  version: 0.3.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cityjson/duckdb-cityjson
-  ref: 8e03b13869b05bde3215e5c4f36e18d7c0d7ee9f
+  ref: 5a6af62fcfd3ef80689c57921a3b71874681bdf1
 
 docs:
   hello_world: |
