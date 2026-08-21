@@ -138,6 +138,10 @@ jobs:
           # registry carries `v0.2.3` beside `v0.2.3-cpp` today, and -cpp is not a
           # pre-release anybody would have thought to name. The suffix list still
           # decides between variants when the commit carries no plain tag at all.
+          # awk and not grep: grep exits 1 when nothing matches, and under this
+          # step's `-e -o pipefail` that status would abort the deploy for every
+          # commit whose tags are not plain releases. It survives today only
+          # because the line begins with `export`, which swallows the status.
           git config --global --add versionsort.suffix -rc
           git config --global --add versionsort.suffix -beta
           git config --global --add versionsort.suffix -alpha
@@ -147,13 +151,13 @@ jobs:
             git config --global --add safe.directory '*'
             cd duckdb
             git fetch --tags
-            export DUCKDB_VERSION="$(git tag --points-at HEAD --sort=-v:refname | grep -E '^v?[0-9]+(\.[0-9]+)*$' | head -n 1)"
+            export DUCKDB_VERSION="$(git tag --points-at HEAD --sort=-v:refname | awk '/^v?[0-9]+([.][0-9]+)*$/' | head -n 1)"
             export DUCKDB_VERSION="${DUCKDB_VERSION:-$(git tag --points-at HEAD --sort=-v:refname | head -n 1)}"
             export DUCKDB_VERSION="${DUCKDB_VERSION:-$(git log -1 --format=%h)}"
             cd ..
           fi
           git fetch --tags --no-recurse-submodules
-          export EXT_VERSION="$(git tag --points-at HEAD --sort=-v:refname | grep -E '^v?[0-9]+(\.[0-9]+)*$' | head -n 1)"
+          export EXT_VERSION="$(git tag --points-at HEAD --sort=-v:refname | awk '/^v?[0-9]+([.][0-9]+)*$/' | head -n 1)"
           export EXT_VERSION="${EXT_VERSION:-$(git tag --points-at HEAD --sort=-v:refname | head -n 1)}"
           export EXT_VERSION="${EXT_VERSION:-$(git log -1 --format=%h)}"
           ${{ inputs.deploy_script }} ${{ inputs.extension_name }} "$EXT_VERSION" "$DUCKDB_VERSION" ${{ matrix.duckdb_arch }} "$BUCKET_NAME" ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
