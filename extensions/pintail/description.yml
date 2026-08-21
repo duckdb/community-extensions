@@ -1,0 +1,27 @@
+extension:
+  name: pintail
+  description: Lightweight geospatial indexing functions for DuckDB, including Geohash encoding, GEOMETRY decoding, bounding boxes, and neighbors.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - tshelianthus
+
+repo:
+  github: tshelianthus/duckdb-pintail
+  ref: ef5644d2450bcdf269482292e5ab78b7b24dccb3
+
+docs:
+  hello_world: |
+    INSTALL pintail FROM community;
+    LOAD pintail;
+
+    SELECT st_geohash(31.2304, 121.4737, 6);
+
+  extended_description: |
+    Pintail is a lightweight geospatial and spatial-indexing extension for DuckDB.
+    The initial release provides dependency-free Geohash encoding, native Core
+    GEOMETRY decoding (POINT/POLYGON, EPSG:4326), bounding-box extraction, and
+    adjacent-cell operations implemented in C++17. Decode functions return
+    GEOMETRY(EPSG:4326) and do not require DuckDB Spatial, GEOS, or PROJ.
