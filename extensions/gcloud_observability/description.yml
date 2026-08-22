@@ -1,0 +1,42 @@
+extension:
+  name: gcloud_observability
+  description: Query Google Cloud logs, metrics, alerts, and service topology from DuckDB
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: "cmake, openssl"
+  maintainers:
+    - smithclay
+
+repo:
+  github: smithclay/duckdb-gcloud-observability
+  ref: da73b2af0632a3938e3aad6afe914171cefea16a
+
+docs:
+  hello_world: |
+    LOAD gcloud_observability;
+
+    -- Uses Google Application Default Credentials.
+    SELECT time_unix_nano, severity_text, service_name, body
+    FROM read_gcloud_logs(
+        project => 'my-project',
+        filter => 'severity >= WARNING',
+        start_time => '-1h'
+    );
+  extended_description: |
+    This extension reads and writes Google Cloud Observability telemetry using Application Default
+    Credentials or DuckDB secrets. Cloud Logging rows use the same flat OTLP log schema as
+    duckdb-otlp, making them directly composable with the Datadog, Splunk, and CloudWatch
+    extensions.
+
+    Features:
+    - Cloud Logging reads with pagination, retries, and safe filter pushdown
+    - Batched writes through send_gcloud_logs
+    - Cloud Monitoring metric queries and alert tables
+    - App Topology service dependency queries
+    - A read-only attached catalog for logs, alerts, and service maps
+    - OAuth2 support for authorized-user, service-account, and pre-minted token credentials
+
+    For setup, IAM requirements, and the complete SQL reference, visit the
+    [extension repository](https://github.com/smithclay/duckdb-gcloud-observability).

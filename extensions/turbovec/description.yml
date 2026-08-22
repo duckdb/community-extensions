@@ -1,0 +1,77 @@
+extension:
+  name: turbovec
+  description: "Compressed vector search for DuckDB — Google TurboQuant quantization, IVF indexing, incremental CRUD, cosine/L2/dot"
+  version: 0.3.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb_turbovec
+  ref: refs/tags/v0.3.3
+
+docs:
+  hello_world: |
+    LOAD turbovec;
+
+    -- Build a compressed vector index (8-dim vectors, 3 sub-vectors)
+    SELECT * FROM turboquant_build_list(
+      [0.0::FLOAT,1.0,2.0,3.0,4.0,5.0,6.0,7.0],
+      3, 'my_index'
+    );
+
+    -- Add a vector
+    SELECT * FROM turboquant_add(
+      [8.0::FLOAT,9.0,10.0,11.0,12.0,13.0,14.0,15.0],
+      'my_index'
+    );
+
+    -- Search nearest neighbors
+    SELECT * FROM turboquant_search('my_index', 'l2', 3);
+
+    -- Build concatenated indexes
+    SELECT * FROM turboquant_build_concat('my_index', 'my_index', 'union');
+
+    -- Build IVF index for faster search
+    SELECT * FROM turboquant_build_ivf('my_index', 10, 'ivf_index', 'l2');
+    SELECT * FROM turboquant_search_ivf('ivf_index', 'l2', [0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5]::FLOAT[], 3);
+
+  extended_description: |
+    ## turbovec — Compressed Vector Search for DuckDB
+
+    High-performance approximate nearest neighbor (ANN) search using
+    Google's TurboQuant for product quantization and IVF indexing.
+
+    **9 Functions:**
+
+    | Function | Description |
+    |----------|-------------|
+    | `turboquant_build_list(FLOAT[], INT, VARCHAR)` | Build index from vector list |
+    | `turboquant_build(FLOAT[], FLOAT[], FLOAT[], INT, VARCHAR)` | Build from separate batches |
+    | `turboquant_add(FLOAT[], VARCHAR)` | Add single vector |
+    | `turboquant_remove(INT, VARCHAR)` | Remove vector |
+    | `turboquant_search(VARCHAR, VARCHAR, INT)` | Search (l2/cosine/dot) |
+    | `turboquant_score(FLOAT[], VARCHAR)` | Score a query vector |
+    | `turboquant_build_concat(VARCHAR, VARCHAR, VARCHAR)` | Merge indexes |
+    | `turboquant_build_ivf(VARCHAR, INT, VARCHAR, VARCHAR)` | Build IVF index |
+    | `turboquant_search_ivf(VARCHAR, VARCHAR, FLOAT[], INT)` | IVF search |
+
+    **Features:**
+    - **Vector compression** via TurboQuant (product quantization)
+    - **IVF index** with configurable nlist
+    - **Multiple metrics:** l2, cosine, dot
+    - **Incremental** add/remove without full rebuild
+    - **Index concatenation** for merging datasets
+
+    **Performance:**
+    - 10-100× compression vs raw vectors
+    - Sub-millisecond search on million-scale datasets
+
+    **Platforms:** Linux x64, macOS arm64/x64.
+    Windows and WASM excluded (OpenBLAS dependency).
+
+    Built on Google's [TurboQuant](https://github.com/google/turbovec) library.

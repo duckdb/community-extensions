@@ -1,0 +1,29 @@
+extension:
+  name: interlis
+  description: Native INTERLIS model introspection and streaming XTF support for DuckDB
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - edigonzales
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+
+repo:
+  github: edigonzales/duckdb-interlis
+  ref: 30923246a778f7db6319ed09052aaa1176c9cc7f
+
+docs:
+  hello_world: |
+    SELECT interlis_version();
+
+  extended_description: |
+    The interlis extension provides native INTERLIS model introspection and
+    streaming XTF support for DuckDB.
+
+    It supports deterministic model, class, property, and geometry introspection,
+    typed XTF scans, primitive path-value reads, and controlled one-value XTF
+    rewrites. The extension is implemented natively in C++ and does not require
+    a JVM at runtime.
+
+    Model sources and XTF inputs are local files in the current release.

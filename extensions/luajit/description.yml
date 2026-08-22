@@ -1,0 +1,66 @@
+extension:
+  name: luajit
+  description: "In-process LuaJIT UDFs for DuckDB — JIT-compiled, parallel (per-thread states), trusted sandbox, GROUP BY aggregates, LIST/STRUCT/MAP bridges, embedded Fennel compiler"
+  version: 0.32.1
+  language: C
+  build: cmake
+  license: MIT
+  maintainers:
+    - alitrack
+  excluded_platforms: "wasm_eh;wasm_mvp;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+
+repo:
+  github: alitrack/duckdb-luajit
+  ref: refs/tags/v0.32.1
+
+docs:
+  hello_world: |
+    -- Load and compile a UDF in one shot
+    LOAD luajit;
+    SELECT message FROM luajit_module(
+        mode := 'quick_compile',
+        source := 'return function(x) return x * 2 + 1 end',
+        sql_name := 'x2p1'
+    );
+    -- Use it immediately (auto-macro generated)
+    SELECT x2p1(5);
+    -- → 11
+
+  extended_description: |
+    ## luajit — JIT-compiled Lua UDFs for DuckDB
+
+    Write and run Lua functions directly in SQL. LuaJIT compiles them to native machine
+    code with trace-based JIT, with **parallel execution**: each DuckDB worker thread
+    owns its own lua_State (no global lock), so thread parallelism maps directly to
+    LuaJIT parallelism.
+
+    **16 Functions:**
+    - `luajit_i` / `luajit_f` / `luajit_b` — typed scalar UDFs (BIGINT, DOUBLE, BOOLEAN)
+    - `luajit_v` / `luajit_vi` / `luajit_vs` — **chunk-batched scalar** (1 Lua call per chunk, ~1.9× row-mode)
+    - `luajit_m` — mixed-type auto-cast
+    - `luajit_l` / `luajit_s` / `luajit_map` — LIST/STRUCT/MAP type bridges (nested types incl. DATE)
+    - `luajit_agg` — aggregate UDFs with GROUP BY support (per-group full value table)
+    - `luajit_table` — streaming table-generating UDFs (O(1) memory, 1M rows)
+    - `luajit_module` — module management (**14 modes**: compile, quick_compile, fennel, trusted, inspect, macro, list, drop, reset, save, load, last_error, info)
+
+    **Features:**
+    - **Auto-detection (v0.23)**: quick_compile probes the UDF (int/date/STRUCT/array)
+      and auto-generates the right scalar or batch macro — no manual style selection
+    - **Per-thread lua_State pool (P4)**: no global lock on Lua execution — DuckDB
+      parallelism → LuaJIT parallelism (~2.6× on 4 threads, CPU-bound UDFs)
+    - **trusted sandbox mode**: removes io/ffi/package/require/load*/debug, reduces os
+      (applies lazily per state, on/off across threads)
+    - **`_duckdb_query` bridge**: run SQL from Lua, get result sets as Lua tables
+    - **Embedded Fennel compiler** (`mode:='fennel'`): Lisp syntax (match patterns,
+      compile-time macros) compiled to Lua — zero runtime cost
+    - DATE/TIMESTAMP/DECIMAL/HUGEINT bridging (incl. int64/int128 decimal storage)
+    - GROUP BY aggregates with full value tables (median, stddev, percentile, …)
+    - GC64 build: no 2GB memory ceiling; ~1MB self-contained binary, zero runtime deps
+    - save/load persistence with multi-line source escaping
+
+    **Performance (1M rows, 2 BIGINT args, `a*b+a`, 4 threads):**
+    - batch `luajit_vi`: 13ms; row `luajit_i`: 13ms (2.6× vs row+serial)
+    - single-thread: batch 18ms (1.9× row-mode 34ms)
+
+    **Platforms:** Linux x64/arm64, Windows (MSVC), macOS x64/arm64. WASM and mingw/rtools
+    excluded (LuaJIT requires specific toolchains); linux_arm64 verified (v0.31, CI + arm64 runtime test).

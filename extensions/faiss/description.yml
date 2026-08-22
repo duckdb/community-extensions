@@ -11,7 +11,7 @@ extension:
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   requires_toolchains: "fortran;omp"
   vcpkg_url: "https://github.com/microsoft/vcpkg.git"
-  vcpkg_commit: "54760c3439fa2fdf2f42ccd730fcf2639c3fe101"
+  vcpkg_commit: "26826180d398b4bb4f0453ae9d38a1c2c4d472dc"
 
 repo:
   github: "duckdb-faiss-ext/duckdb-faiss-ext"

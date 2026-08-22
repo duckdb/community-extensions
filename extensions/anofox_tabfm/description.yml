@@ -1,7 +1,7 @@
 extension:
   name: anofox_tabfm
-  description: Zero-shot tabular machine learning inside DuckDB — classification and regression with real tabular foundation models (Mitra, TabPFN v2, TabPFN 2.5, TabICL, Orion-BiX, TabFM) on ONNX Runtime, no training loop
-  version: 0.3.0
+  description: Zero-shot tabular machine learning inside DuckDB — classification, regression, synthetic-data generation and imputation with real tabular foundation models (Mitra, TabPFN v2/2.5/3, TabICL, Orion-BiX, TabFM) on ONNX Runtime, no training loop
+  version: '2026.08.15'
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-tabfm
-  ref: 0c7f83ee8d94c0b4d9c520bd3b49edebb8c859bb
+  ref: 51f0850f0e635d35b7ba054b1bd732b18a026c35
 
 docs:
   hello_world: |
@@ -44,7 +44,7 @@ docs:
     MLOps: the model reads your labelled rows as context and predicts the rest.
 
     ### Built-in models
-    Six models ship in the extension and are selected with `model :=` (or a
+    Seven models ship in the extension and are selected with `model :=` (or a
     `SET anofox_tabfm_default_model` once per session):
 
     - **mitra** — AWS AutoGluon (Apache-2.0), no license gate, ~300 MB. A great default.
@@ -53,6 +53,8 @@ docs:
     - **orion-bix** — Lexsi Labs (MIT), no license gate. Classification only.
     - **tabpfn-v2-5** — Prior Labs TabPFN 2.5. **Non-commercial**: the weights
       and their outputs may not be used for commercial or production purposes.
+    - **tabpfn-v3** — Prior Labs TabPFN 3. **Non-commercial**: testing,
+      evaluation and internal benchmarking only.
     - **tabfm-v1** — Google TabFM (non-commercial, gated; ~6.6 GB).
 
     `SELECT model, license, commercial FROM tabfm_list_models()` reports each
@@ -83,6 +85,33 @@ docs:
       license := 'apache-2.0');
     ```
 
+    ### Synthetic data and imputation
+    The same in-context engine also runs *backwards*: instead of predicting one
+    column, it models the whole table as a joint distribution and samples from it.
+
+    ```sql
+    SELECT * FROM tabfm_generate('customers', 500);        -- 500 synthetic rows
+    CREATE TABLE clean AS SELECT * FROM tabfm_impute('raw');  -- fill every NULL
+    ```
+
+    Generation works column by column, each column sampled conditioned on the
+    ones already generated (the chain rule), so the **relationships between
+    columns survive** — not just each column's marginal. It needs only
+    classification weights, so it works with every model above, including
+    classification-only ones.
+
+    `tabfm_impute` is the deterministic sibling: it takes the conditional best
+    estimate rather than sampling, so continuous fills keep full precision and
+    non-NULL cells are never modified.
+
+    On the Prior Labs breast-cancer benchmark (30 features), a classifier given
+    **only synthetic** in-context examples scores 97.8% on held-out real rows
+    against 98.3% for the real training data, preserving correlation structure at
+    0.97 across all 435 feature pairs. Correlations are somewhat attenuated by the
+    quantile binning used for continuous columns — see `docs/GENERATE.md` in the
+    repository for what the method does and does not preserve. It is **not** a
+    differential-privacy mechanism.
+
     ### Inference
     Runs on [ONNX Runtime](https://onnxruntime.ai/), statically linked into the
     extension (CPU execution provider). CUDA and ROCm/MIGraphX flavors exist in
@@ -92,6 +121,8 @@ docs:
     ### Surface
     - `tabfm_classify` / `tabfm_regress` — zero-shot predict (a single table with
       NULL targets, or a separate `test :=` set)
+    - `tabfm_generate` / `tabfm_impute` — synthesize rows from a table's joint
+      distribution, or fill its NULL cells
     - `tabfm_predict`, `tabfm_predict_by`, `tabfm_predict_agg`, `tabfm_predict_win`
     - `tabfm_register_model` / `tabfm_unregister_model` — pure-SQL model registration
     - `tabfm_download` / `tabfm_models` / `tabfm_list_models` / `tabfm_load` /

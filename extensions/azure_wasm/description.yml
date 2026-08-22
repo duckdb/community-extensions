@@ -1,0 +1,44 @@
+extension:
+  name: azure_wasm
+  description: Read Azure Blob / ADLS Gen2 (abfss/az/wasbs) over HTTPS+SAS, without the Azure SDK (Wasm-friendly)
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  # Wasm-only: on native platforms the official `azure` extension already exists, so shipping this
+  # there would be redundant and confusing. This extension only makes sense in DuckDB-Wasm, where the
+  # native `azure` extension (Azure C++ SDK) cannot be compiled. Exclude every non-wasm platform.
+  excluded_platforms: "linux_amd64;linux_arm64;osx_amd64;osx_arm64;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - HynekBlaha
+
+repo:
+  github: HynekBlaha/duckdb-azure-wasm
+  ref: 9f605cc01ef01fe120056f8a1c746dda0ad947bf
+
+docs:
+  hello_world: |
+    LOAD azure_wasm;
+    -- Store the SAS credential an Iceberg REST catalog vends for an ADLS warehouse:
+    CREATE SECRET (
+      TYPE azure,
+      PROVIDER config,
+      ACCOUNT_NAME 'myaccount',
+      CONNECTION_STRING 'AccountName=myaccount;SharedAccessSignature=sv=...&sig=...'
+    );
+    -- Now abfss:// URLs are read over HTTPS with the SAS token appended:
+    SELECT * FROM read_parquet('abfss://container@myaccount.dfs.core.windows.net/path/file.parquet');
+  extended_description: |
+    Reads Azure Blob Storage / ADLS Gen2 URLs (`abfss://`, `abfs://`, `az://`, `azure://`,
+    `wasbs://`, `wasb://`) by looking up a matching `azure` secret, extracting the SAS token from its
+    `connection_string`, rewriting the URL to a plain `https://<host>/<container>/<key>?<sas>`, and
+    reading it through the regular HTTPS path.
+
+    Because it authenticates purely via the SAS query string, it needs **no Azure C++ SDK** — so,
+    unlike the native `azure` extension, it compiles to WebAssembly. It was built to read Apache
+    Iceberg tables backed by ADLS from DuckDB-Wasm (e.g. the Lakekeeper Iceberg REST catalog console)
+    using catalog-vended credentials.
+
+    On `LOAD` it registers a minimal `azure` secret type (so `CREATE SECRET ... TYPE azure` works) and
+    a filesystem claiming the Azure URL schemes. Registration is idempotent — if Azure support is
+    already present it no-ops rather than failing. It performs reads only (no listing/globbing).

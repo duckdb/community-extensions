@@ -1,0 +1,94 @@
+extension:
+  name: gdrive
+  description: Query files in Google Drive directly with a gdrive:// filesystem
+  language: C++
+  build: cmake
+  license: MIT
+  # wasm: the extension is HTTPS calls to the Drive API plus a loopback
+  # redirect server for interactive OAuth. Neither works in a browser sandbox,
+  # and a wasm side-module defers symbol resolution to load time -- so it
+  # would build green in CI and then fail to LOAD. A clean "unavailable" is
+  # better than an unloadable artifact.
+  # mingw: vcpkg's OpenSSL port is fragile there; sibling extensions skip it.
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - jrosskopf
+
+repo:
+  github: DataZooDE/duckdb-gdrive
+  ref: e4d78a732f38225a9690e99828cc5c5e72a8a8d1
+
+docs:
+  hello_world: |
+    -- Unattended: a service account. To WRITE you need a Shared Drive --
+    -- service accounts have no personal Drive storage quota and get
+    -- 403 storageQuotaExceeded anywhere else. Reading a shared folder is fine.
+    --
+    -- DRIVE_ID is a SHARED DRIVE id; ROOT_FOLDER_ID is a FOLDER id. They are
+    -- not interchangeable: passing a folder id as DRIVE_ID fails with
+    -- "Shared drive not found". Use whichever matches what was shared.
+    CREATE SECRET gdrive (
+        TYPE gdrive,
+        PROVIDER service_account,
+        KEY_FILE '/etc/creds/sa.json',
+        DRIVE_ID '0ABcDeFgHiJkLmNoPQ',       -- or ROOT_FOLDER_ID '1a2b3c...'
+        DRIVE_SCOPE 'https://www.googleapis.com/auth/drive.readonly'
+    );
+
+    -- Query a file by path. Drive has no path addressing, so each segment
+    -- costs a lookup; results are cached per secret.
+    SELECT count(*) FROM 'gdrive://Finance/2026/actuals.parquet';
+
+    -- Address a file by id instead: zero resolution calls. Prefer this in
+    -- generated or stored queries.
+    SELECT * FROM read_csv('gdrive://id:1a2b3cDeFgHiJkLmNoPQrStUvWxYz');
+
+    -- Glob a folder.
+    SELECT * FROM read_parquet('gdrive://exports/parts/*.parquet');
+
+    -- A native Google Sheet is queryable with no manual export: it has no
+    -- byte stream, so it is served through Drive's CSV export.
+    SELECT * FROM read_csv('gdrive://Finance/Budget');
+
+    -- Write a whole file. Writes are sequential; Drive cannot write at a
+    -- byte offset, so positional writes raise an error rather than corrupt.
+    COPY (SELECT * FROM t) TO 'gdrive://reports/out.parquet' (FORMAT parquet);
+
+    -- Inspect API calls and cache hits for the session.
+    SELECT * FROM gdrive_stats();
+
+  extended_description: |
+    Registers a `gdrive://` filesystem, so any DuckDB path expression can
+    address a file in Google Drive with no download or copy step. Because
+    DuckDB dispatches file access through its virtual filesystem, everything
+    layered on it inherits the scheme: `read_parquet`, `read_csv`, `COPY`,
+    `glob`, and table formats such as DuckLake — attaching a DuckLake whose
+    `DATA_PATH` is on Drive works and is tested live.
+
+    `ATTACH` of a DuckDB **database file** on `gdrive://` is NOT supported.
+    DuckDB opens database files through a different path that does not consult
+    the virtual filesystem, so the attempt fails immediately rather than
+    half-working.
+
+    This is **Google Drive**, not Google Cloud Storage — a different product
+    with a different API and access model. For `gs://` buckets use the `gcs`
+    extension.
+
+    Reads are ranged, so a Parquet scan fetches footers and column chunks
+    rather than whole files. Path resolution is cached per secret and per
+    drive, because Drive has no path addressing and each segment otherwise
+    costs an API call.
+
+    Two behaviours are deliberately strict. Drive permits two files with the
+    same name in one folder, so a path is not a unique identifier: rather than
+    pick one and make results depend on Drive's internal ordering, ambiguity
+    is an error naming both file ids. And Drive cannot write at a byte offset,
+    so positional writes raise an error instead of silently corrupting a file.
+
+    Drive is slower than object storage by a wide margin, and enforces
+    per-user API quotas that object storage does not. A ranged read costs
+    ~1.3 s regardless of how few bytes it requests, against ~1 ms for S3/GCS.
+    Use this when Drive is the system of record for data you want to query and
+    you would rather not maintain a second copy — not as a substitute for
+    object storage under a hot workload. On a workstation, Google Drive for
+    desktop plus ordinary local paths is simpler and faster.

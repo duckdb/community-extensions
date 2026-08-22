@@ -1,20 +1,18 @@
 # Community-extensions submission descriptor for the `pdf` extension.
 #
-# This is the staging copy for the registry page at
-# https://duckdb.org/community_extensions/extensions/pdf — the live file is
-# extensions/pdf/description.yml in https://github.com/duckdb/community-extensions.
-# To publish an update:
+# Staging copy for https://duckdb.org/community_extensions/extensions/pdf
+# Live file: extensions/pdf/description.yml in duckdb/community-extensions.
+# To publish:
 #   1. Fork/branch duckdb/community-extensions
 #   2. Copy this file over extensions/pdf/description.yml
-#   3. Set repo.ref to the exact release commit SHA in asubbarao/duckdb-pdf
+#   3. Set repo.ref to the release commit SHA in asubbarao/duckdb-pdf
 #   4. Open a PR against duckdb/community-extensions
 #
-# The page intentionally stays SHORT: it is a storefront, not the manual.
-# Full per-function docs (columns, params, recipes) live in the repo README.
+# Keep this SHORT — storefront, not the manual. Full docs: repo README + COOKBOOK.
 
 extension:
   name: pdf
-  description: Read, inspect, transform, and write PDFs in SQL — text at every grain (page/line/word/element/chunk), OCR for scanned files, metadata, tables, images, and document surgery (merge/split/sign/redact/watermark/encrypt/...).
+  description: Read, OCR, inspect, transform, and write PDFs in SQL
   version: 0.8.0
   language: C++
   build: cmake
@@ -31,87 +29,47 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: 1bacb91927adbdd43046b3234bbd5f9e5afb3059
+  ref: 6535c8107e4106058df6f2a111407c1b823fb858
 
 docs:
   hello_world: |
     LOAD pdf;
 
-    -- One row per page; takes a file, a list, or a glob (parallel across files)
+    -- One row per page (file, list, or glob; parallel across pages/files)
     SELECT filename, page, text
     FROM read_pdf('reports/*.pdf')
     WHERE contains(lower(text), 'revenue');
 
-    -- One row per file: metadata, page count, size, encryption
+    -- Metadata census
     SELECT file, title, author, page_count FROM pdf_info('reports/*.pdf');
 
-    -- Structured table extraction (digital and scanned PDFs)
-    SELECT * FROM read_pdf_tables('financial_report.pdf');
-
-    -- Retrieval-ready, section-aware chunks for RAG — one statement
+    -- RAG chunks in one statement
     CREATE TABLE chunks AS FROM pdf_chunks('reports/*.pdf');
 
-    -- Render a page to PNG bytes (vision-model input, thumbnails)
+    -- Page raster + native write
     SELECT pdf_to_png('report.pdf', 1, 150) AS page_image;
-
-    -- Write page preview PNGs to disk (no pdftoppm): pages/<stem>/p1.png, …
-    SELECT * FROM pdf_write_page_images('reports/*.pdf', 'pages', dpi := 100);
-
-    -- Query result to a typeset PDF, no external tools
     COPY (SELECT * FROM findings)
     TO 'findings.pdf' (FORMAT pdf, TITLE 'Findings', FOOTER 'page {page}');
 
   extended_description: |
-    **Everything PDF, in SQL** — built on Poppler (parsing/rendering),
-    Tesseract (OCR), qpdf (document surgery), and libharu (native writing),
-    all statically linked into the DuckDB process. Every function accepts a
-    single path or a glob, so the natural unit of work is a folder of PDFs.
+    **Everything PDF, in SQL** — Poppler, Tesseract (OCR), qpdf, and libharu,
+    statically linked. Paths or globs; no external tools at runtime for core
+    ops. Full docs and recipes:
+    [github.com/asubbarao/duckdb-pdf](https://github.com/asubbarao/duckdb-pdf).
 
-    **Read** — `read_pdf` (pages), `read_pdf_lines`, `read_pdf_words`
-    (bounding boxes + OCR confidence), `read_pdf_elements` (layout elements in
-    reading order), `read_pdf_tables` (ruled *and* unruled tables, digital or
-    scanned), `pdf_chunks` (retrieval-ready chunks with section headings).
-    Shared named parameters cover `password`, page ranges, text layout, and
-    OCR knobs; `ignore_errors := true` skips unopenable files in a folder scan.
+    **Read** — `read_pdf`, `read_pdf_lines`, `read_pdf_words` /
+    `read_pdf_layout` (word boxes), `read_pdf_elements`, `read_pdf_tables`,
+    `pdf_chunks`. Auto-OCR on image-only pages; English model bundled.
 
-    **Inspect** — `pdf_info` (full per-file census), `pdf_outline`
-    (bookmarks), `pdf_attachments` (embedded files as BLOBs),
-    `pdf_form_fields`, `pdf_annotations` (incl. hyperlink extraction),
-    `pdf_revisions` (incremental-update forensics: what changed after the
-    document was first written), `pdf_signatures` (digital signatures,
-    cryptographically verified with OpenSSL CMS over the signed byte ranges),
-    `pdf_images` (the stored raster XObjects — the JPEG a scanner wrote — as
-    BLOBs), and PDF/A identification columns on `pdf_info`.
+    **Inspect** — `pdf_info`, outline, attachments, form fields, annotations,
+    revisions, signatures, embedded images.
 
-    **Convert** — `pdf_to_text` / `pdf_to_markdown` (layout-aware GitHub
-    markdown) / `pdf_to_html` / `pdf_to_xml` / `pdf_to_svg` / `pdf_to_png` /
-    `pdf_write_page_images` (write page preview PNGs to `out_dir/<stem>/p{N}.png`
-    without pdftoppm).
-    The render scalars also accept PDF bytes as a BLOB, so they compose with
-    `read_blob` and httpfs.
+    **Convert / render** — text, markdown, HTML, XML, SVG, PNG; low-level
+    `poppler_render_page` + `tesseract_ocr` for blob pipelines.
 
-    **Transform & write** — `pdf_merge`, `pdf_split`, `pdf_split_blank`
-    (split scanned batches at blank separator pages), `pdf_rotate`,
-    `pdf_pages`, `pdf_compress`, `pdf_encrypt` / `pdf_decrypt`;
-    `pdf_watermark` / `pdf_bates` (searchable text stamps), `pdf_sign`
-    (CMS digital signatures — verifies back through `pdf_signatures`),
-    `pdf_redact` (true raster redaction: boxed text destroyed, not covered);
-    `write_pdf` and `COPY ... TO 'out.pdf' (FORMAT pdf)` typeset text or query
-    results natively (libharu — no external tools); `to_pdf` converts office
-    documents (docx, odt, pptx, ...) via a LibreOffice runtime shell-out.
+    **Transform & write** — merge, split, rotate, compress, encrypt/decrypt,
+    watermark, Bates, sign, redact; `write_pdf` / `COPY … (FORMAT pdf)`;
+    `to_pdf` for office docs (LibreOffice at runtime).
 
-    **OCR** — pages with no text layer are OCR'd automatically. **English
-    (eng) is bundled** (tessdata_fast, extracted on first use) so scanned PDFs
-    work with zero host tessdata install. Other languages: install models the
-    normal way (`brew install tesseract-lang`, `apt-get install tesseract-ocr-deu`,
-    …) or pass `tessdata_dir` / `TESSDATA_PREFIX`. Pick languages with
-    `ocr_language := 'deu'`. Leptonica preprocess + confidence DPI retry by
-    default. Page text from `read_pdf` / `pdf_to_text` is **trimmed once** at
-    emit (no trailing form-feeds).
-
-    **Scope** — deterministic extraction, not ML document understanding:
-    merged cells and borderless/sparse tables are out of scope (use docling /
-    marker / a Document AI service for those). Full per-function docs,
-    column lists, and recipes: https://github.com/asubbarao/duckdb-pdf
-
-    **License** — GPL-2.0-or-later (Poppler is GPL-2.0 and statically linked).
+    **Scope** — deterministic extraction, not ML document AI. **License** —
+    GPL-2.0-or-later (Poppler).

@@ -1,0 +1,34 @@
+extension:
+  name: motorsport_telemetry
+  description: Query Cosworth PDS, MoTeC LD, and Racelogic VBOX telemetry directly in DuckDB
+  version: 0.6.1
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw;windows_amd64_rtools"
+  maintainers:
+    - tobi
+
+repo:
+  github: tobi/duckdb_motorsport_telemetry
+  ref: 8cc06a597e33e7558be759cbffa44f2a2e1baa49
+
+docs:
+  hello_world: |
+    SELECT name, unit, frequency_hz, sample_count
+    FROM telemetry_metadata('run.ld')
+    WHERE sample_count > 0;
+
+    SELECT *
+    FROM read_telemetry('run.ld',
+      rate := 100,
+      channels := 'Ground Speed,Throttle Pos,Brake Pedal Pos');
+  extended_description: |
+    `motorsport_telemetry` reads Pi Research/Cosworth PDS, MoTeC i2 LD, and
+    Racelogic VBOX VBO telemetry without an export step. It provides exact
+    channel metadata, native-rate long-form samples, and projected wide readers
+    with time/channel pruning and type-aware interpolation. Integer and event
+    channels always use previous-value semantics; only floating-point channels
+    can interpolate linearly. The parsers memory-map native files and table
+    functions produce vectorized DuckDB output.

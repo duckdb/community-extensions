@@ -15,7 +15,7 @@ extension:
     FastAPI-class HTTP framework inside DuckDB — CREATE ROUTE turns SQL into
     typed, validated endpoints; one process is DB + HTTP (+ PDF/renderer via
     companion extensions).
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -29,7 +29,7 @@ extension:
 repo:
   github: asubbarao/quackapi
   # Pin to the packaging commit SHA (set by release engineer; never a branch).
-  ref: 32600ee3598dd69aecba6c308c476e44e5bcfce6
+  ref: 398d42cd41d3fb494420063d60b5aa367343d271
 
 docs:
   hello_world: |
@@ -128,9 +128,9 @@ docs:
 
     ## Platforms & build
 
-    Targets **DuckDB v1.5.4**. C++17; depends only on DuckDB-bundled **httplib**
-    and **mbedtls** (no vcpkg, no libcurl). CI excludes wasm and Windows MinGW/rtools/arm64. Signed community
-    binaries for linux/osx are live; windows_amd64 re-opt-in via this descriptor.
+    Targets **DuckDB v1.5.5** only. C++17; depends only on DuckDB-bundled **httplib**
+    and **mbedtls** (no vcpkg, no libcurl). CI builds linux/macOS/windows_amd64;
+    excludes wasm and Windows MinGW/rtools/arm64.
 
     ## Limits (honest)
 

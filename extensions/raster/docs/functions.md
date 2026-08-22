@@ -27,14 +27,14 @@
 
 | Function | Summary |
 | --- | --- |
-| [`RT_RasterValue`](docs/#rt_rastervalue) | Returns the value in a specified band of a datacube at the specified pixel coordinates (column, row). |
-| [`RT_RasterValues`](docs/#rt_rastervalues) | Returns the values in a band of a datacube at the specified array of pixel coordinates (column, row). |
-| [`RT_CoordValue`](docs/#rt_coordvalue) | Returns the value in a specified band of a datacube at the specified world coordinates (x, y). |
-| [`RT_CoordValues`](docs/#rt_coordvalues) | Returns the values in a band of a datacube at the specified array of world coordinates (x, y). |
-| [`RT_Envelope`](docs/#rt_envelope) | Computes the bounding box of the valid (non-no-data) cells in the input datacube for a specific band and returns it as a geometry. |
-| [`RT_Polygon`](docs/#rt_polygon) | Creates a polygon geometry for each contiguous region of non-no-data values for a specific band in the datacube. |
-| [`RT_CubeClip`](docs/#rt_cubeclip) | Returns a datacube where cells outside the given geometry are replaced by the specified value. |
-| [`RT_CubeBurn`](docs/#rt_cubeburn) | Returns a datacube where cells inside the given geometry are replaced by the specified value. |
+| [`RT_RasterValue`](#rt_rastervalue) | Returns the value in a specified band of a datacube at the specified pixel coordinates (column, row). |
+| [`RT_RasterValues`](#rt_rastervalues) | Returns the values in a band of a datacube at the specified array of pixel coordinates (column, row). |
+| [`RT_CoordValue`](#rt_coordvalue) | Returns the value in a specified band of a datacube at the specified world coordinates (x, y). |
+| [`RT_CoordValues`](#rt_coordvalues) | Returns the values in a band of a datacube at the specified array of world coordinates (x, y). |
+| [`RT_Envelope`](#rt_envelope) | Computes the bounding box of the valid (non-no-data) cells in the input datacube for a specific band and returns it as a geometry. |
+| [`RT_Polygon`](#rt_polygon) | Creates a polygon geometry for each contiguous region of non-no-data values for a specific band in the datacube. |
+| [`RT_CubeClip`](#rt_cubeclip) | Returns a datacube where cells outside the given geometry are replaced by the specified value. |
+| [`RT_CubeBurn`](#rt_cubeburn) | Returns a datacube where cells inside the given geometry are replaced by the specified value. |
 
 **[Aggregate Functions](#aggregate-functions)**
 
@@ -42,9 +42,9 @@ Aggregate functions operate on groups of rows (e.g. from a `GROUP BY` query) and
 
 | Function | Summary |
 | --- | --- |
-| [`RT_CubeStats_Agg`](docs/#rt_cubestats_agg) | Calculates statistics for a specific band (0-based index) in a set of datacubes. |
-| [`RT_RasterValue_Agg`](docs/#rt_rastervalue_agg) | Returns the value in a set of datacubes at the specified pixel coordinates (column, row). |
-| [`RT_CoordValue_Agg`](docs/#rt_coordvalue_agg) | Returns the value in a set of datacubes at the specified world coordinates (x, y). |
+| [`RT_CubeStats_Agg`](#rt_cubestats_agg) | Calculates statistics for a specific band (0-based index) in a set of datacubes. |
+| [`RT_RasterValue_Agg`](#rt_rastervalue_agg) | Returns the value in a set of datacubes at the specified pixel coordinates (column, row). |
+| [`RT_CoordValue_Agg`](#rt_coordvalue_agg) | Returns the value in a set of datacubes at the specified world coordinates (x, y). |
 
 ----
 
@@ -93,9 +93,10 @@ The `RT_Read` function accepts parameters, most of them optional:
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
 | `path` | VARCHAR | The path to the file to read. The only mandatory parameter. |
-| `open_options` | VARCHAR[] | A list of key-value pairs that are passed to the GDAL driver to control the opening of the file. Refer to the GDAL documentation for available options. Only for single-file version of the function. |
-| `allowed_drivers` | VARCHAR[] | A list of GDAL driver names that are allowed to be used to open the file. If empty, all drivers are allowed. Only for single-file version of the function. |
-| `sibling_files` | VARCHAR[] | A list of sibling files that are required to open the file. Only for single-file version of the function. |
+| `open_options` | VARCHAR[] | An optional list of key-value pairs that are passed to the GDAL driver to control the opening of the file. Refer to the GDAL documentation for available options. Only for single-file version of the function. |
+| `allowed_drivers` | VARCHAR[] | An optional list of GDAL driver names that are allowed to be used to open the file. If empty, all drivers are allowed. Only for single-file version of the function. |
+| `sibling_files` | VARCHAR[] | An optional list of sibling files that are required to open the file. Only for single-file version of the function. |
+| `warp_options` | VARCHAR[] | An optional list of warp options passed to reproject or warp the raster. It accepts the same options as the GDAL `Warp` tool (https://gdal.org/en/stable/programs/gdalwarp.html). |
 | `separate_bands` | BOOLEAN | `true` means that each input goes into a separate band in the VRT dataset. Otherwise, the files are considered as source rasters of a larger mosaic and the VRT file has the same number of bands as the input files. Only for multi-file version of the function. `false` is the default. |
 | `data_format` | VARCHAR | Compression format used when packing the pixel data into the BLOB. See the data format table in the BLOB structure section below. `RAW` (uncompressed) is the default. |
 | `blocksize_x` | INTEGER | The block size of the tile in the x direction. You can use this parameter to override the original block size of the raster. |
@@ -163,6 +164,7 @@ RT_Read (file_path [VARCHAR, VARCHAR[]],
          open_options VARCHAR[] DEFAULT NULL,
          allowed_drivers VARCHAR[] DEFAULT NULL,
          sibling_files VARCHAR[] DEFAULT NULL,
+         warp_options VARCHAR[] DEFAULT NULL,
          separate_bands BOOLEAN DEFAULT false,
          data_format VARCHAR DEFAULT 'RAW',
          blocksize_x INTEGER DEFAULT NULL,
@@ -187,6 +189,21 @@ FROM
         'path/to/mosaic/raster-clip11.tif'
     ])
 ;
+
+SELECT
+    geometry, databand_1
+FROM
+    RT_Read([
+        'path/to/mosaic/raster-clip00.tif',
+        'path/to/mosaic/raster-clip01.tif',
+        'path/to/mosaic/raster-clip10.tif',
+        'path/to/mosaic/raster-clip11.tif'
+    ],
+    warp_options := [
+        '-t_srs', 'EPSG:4326',
+        '-r', 'nearest'
+    ])
+;
 ```
 
 ----
@@ -204,9 +221,10 @@ The `RT_ReadCells` function accepts parameters, most of them optional:
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
 | `path` | VARCHAR | The path to the file to read. The only mandatory parameter. |
-| `open_options` | VARCHAR[] | A list of key-value pairs that are passed to the GDAL driver to control the opening of the file. Refer to the GDAL documentation for available options. Only for single-file version of the function. |
-| `allowed_drivers` | VARCHAR[] | A list of GDAL driver names that are allowed to be used to open the file. If empty, all drivers are allowed. Only for single-file version of the function. |
-| `sibling_files` | VARCHAR[] | A list of sibling files that are required to open the file. Only for single-file version of the function. |
+| `open_options` | VARCHAR[] | An optional list of key-value pairs that are passed to the GDAL driver to control the opening of the file. Refer to the GDAL documentation for available options. Only for single-file version of the function. |
+| `allowed_drivers` | VARCHAR[] | An optional list of GDAL driver names that are allowed to be used to open the file. If empty, all drivers are allowed. Only for single-file version of the function. |
+| `sibling_files` | VARCHAR[] | An optional list of sibling files that are required to open the file. Only for single-file version of the function. |
+| `warp_options` | VARCHAR[] | An optional list of warp options passed to reproject or warp the raster. It accepts the same options as the GDAL `Warp` tool (https://gdal.org/en/stable/programs/gdalwarp.html). |
 | `separate_bands` | BOOLEAN | `true` means that each input goes into a separate band in the VRT dataset. Otherwise, the files are considered as source rasters of a larger mosaic and the VRT file has the same number of bands as the input files. Only for multi-file version of the function. `false` is the default. |
 
 This is the list of columns returned by `RT_ReadCells`:
@@ -230,6 +248,7 @@ RT_ReadCells (file_path [VARCHAR, VARCHAR[]],
               open_options VARCHAR[] DEFAULT NULL,
               allowed_drivers VARCHAR[] DEFAULT NULL,
               sibling_files VARCHAR[] DEFAULT NULL,
+              warp_options VARCHAR[] DEFAULT NULL,
               separate_bands BOOLEAN DEFAULT false)
 ```
 
@@ -240,6 +259,12 @@ SELECT
     id, x, y, geometry, col, row, band_1, band_2, band_3
 FROM
     RT_ReadCells('path/to/raster/file.tif')
+;
+
+SELECT
+    id, x, y, geometry, col, row, band_1, band_2, band_3
+FROM
+    RT_ReadCells('path/to/raster/file.tif', warp_options := ['-t_srs', 'EPSG:4326', '-r', 'nearest'])
 ;
 ```
 
@@ -624,17 +649,32 @@ The returned value is a `STRUCT` with the following fields:
 | `valid_count` | BIGINT | Number of valid (non-nodata) cells. |
 | `nodata_count` | BIGINT | Number of nodata cells. |
 
-Function accepts the following parameters:
+Function accepts two different forms with the following parameters.
+
+Just to compute statistics for a specific band of a datacube:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
 | `databand` | DATACUBE | The datacube column to compute statistics for. |
 | `band` | INTEGER | The 0-based index of the band to compute statistics for. |
 
+To compute statistics for a specific band of a datacube, but only for those valid (non-nodata)
+cells that fall within a geometry (Zonal statistics):
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `databand` | DATACUBE | The datacube column to compute statistics for. |
+| `band` | INTEGER | The 0-based index of the band to compute statistics for. |
+| `tile_x` | INTEGER | The tile x coordinate of the tile. |
+| `tile_y` | INTEGER | The tile y coordinate of the tile. |
+| `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size. |
+| `geometry` | GEOMETRY | The geometry to use for spatial filtering. |
+
 #### Signature
 
 ```sql
 RT_CubeStats (datacube DATACUBE, band INTEGER)
+RT_CubeStats (datacube DATACUBE, band INTEGER, tile_x INTEGER, tile_y INTEGER, metadata JSON, geometry GEOMETRY)
 ```
 
 #### Examples
@@ -675,7 +715,7 @@ Function accepts the following parameters:
 | `value` | VARCHAR | The value to set for the configuration option. Pass NULL when no value is needed. |
 
 This is useful, for example, to allow unauthenticated access to public S3 buckets
-when using GDAL-native VSI paths.
+when using GDAL-native VSI paths, or to set the `GDAL_DISABLE_READDIR_ON_OPEN` option to `EMPTY_DIR` to prevent GDAL from trying to read sibling files when loading raster files from remote sources (e.g., For S3, you can get the error `Not implemented Error: HTTPFileSystem: ListFiles is not implemented!` without this setting).
 
 #### Signature
 
@@ -1042,17 +1082,32 @@ Calculates statistics for a specific band (0-based index) in a set of datacubes.
 
 The returned value is a `STRUCT` with same fields as the [`RT_CubeStats`](#rt_cubestats) function, but computed across all datacubes in the group instead of a single datacube.
 
-The function accepts the following parameters:
+Function accepts two different forms with the following parameters.
+
+Just to compute statistics for a specific band of a datacube:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
 | `databand` | DATACUBE | The datacube column to compute statistics for. |
 | `band` | INTEGER | The 0-based index of the band to compute statistics for. |
 
+To compute statistics for a specific band of a datacube, but only for those valid (non-nodata)
+cells that fall within a geometry (Zonal statistics):
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `databand` | DATACUBE | The datacube column to compute statistics for. |
+| `band` | INTEGER | The 0-based index of the band to compute statistics for. |
+| `tile_x` | INTEGER | The tile x coordinate of the tile. |
+| `tile_y` | INTEGER | The tile y coordinate of the tile. |
+| `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size. |
+| `geometry` | GEOMETRY | The geometry to use for spatial filtering. |
+
 #### Signature
 
 ```sql
 RT_CubeStats_Agg (datacube DATACUBE, band INTEGER)
+RT_CubeStats_Agg (datacube DATACUBE, band INTEGER, tile_x INTEGER, tile_y INTEGER, metadata JSON, geometry GEOMETRY)
 ```
 
 #### Examples
@@ -1077,6 +1132,17 @@ FROM (
     SELECT RT_CubeStats_Agg(databand_1, 0) AS stats
     FROM RT_Read('path/to/raster/file.tif')
 );
+```
+
+To calculate zonal statistics of values falling within a geometry, you can use the following example:
+
+```sql
+LOAD spatial;
+SELECT
+    RT_CubeStats_Agg(databand_1, 0, tile_x, tile_y, metadata, ST_MakeEnvelope(...)) AS stats
+FROM
+    RT_Read('path/to/raster/file.tif')
+;
 ```
 
 ----
