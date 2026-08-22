@@ -80,12 +80,12 @@ docs:
         returning `(probe_idx, build_idx)` for composing with other SQL
 
     Measured against native DuckDB's hash join on TPC-H SF50
-    (300M lineitem ⋈ 75M orders, warm, same engine on both sides): inner
+    (300M lineitem ⋈ 75M orders, warm, same data and hardware on both sides): inner
     join + `SUM(BIGINT)` 998 ms native vs 27–37 ms on an RTX 4090 Laptop
     (27–37×) and 429 ms vs 37 ms on an Apple M4 Max (11.7×); an `EXISTS`
     semi-join + `SUM(DOUBLE)` at SF10 runs 640 ms vs 1.7 ms (CUDA) and
     182 ms vs 8.2 ms (Metal). `BIGINT` results are bit-equal to native on
-    both backends, `DOUBLE` within 1e-11 relative. The row-returning join
+    both backends, `DOUBLE` within the 1e-9 relative tolerance contract (measured ≤4e-11). The row-returning join
     wins only on unified memory (Apple Silicon); on a discrete GPU the
     device→host copy of the index pairs loses to native, which is stated
     in BENCHMARK.md rather than hidden.
