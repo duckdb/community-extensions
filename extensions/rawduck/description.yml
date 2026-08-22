@@ -8,11 +8,11 @@ extension:
   - lmangani
   name: rawduck
   requires_toolchains: parser_tools
-  version: '0.0.3'
+  version: '0.0.5'
   
 repo:
   github: quackscience/rawduck
-  ref: afb7532fe9feddc0856933462026cce5e30f23f1
+  ref: a14e474c1bae1459cdd22ee8d9eaf5a540ed8fa5
   canonical_name: rawduck
 
 docs:
