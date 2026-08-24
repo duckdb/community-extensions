@@ -1,15 +1,20 @@
 extension:
   name: erpl_tunnel
   description: Reach any TCP service from DuckDB through an SSH bastion, Tailscale or NetBird — and publish local ports back onto those networks.
-  version: 2026.08.07
+  version: 2026.08.22
   language: C++
   build: cmake
   license: BSL 1.1
   excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;"
   requires_toolchains: "go"
+  # vcpkg.json pins builtin-baseline 84bab45d to hold openssl at 3.5.0: the newer
+  # 3.6.0 requires Linux kernel headers the arm64 build container does not carry.
+  # Without this the non-v1.5.5 builds would use the older default pin, which
+  # predates that baseline.
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
   maintainers:
     - jrosskopf
 
 repo:
   github: DataZooDE/erpl-tunnel
-  ref: 08750ac79a773fd8712c686c091f8ea89c94ceac
+  ref: 01e6ebecdeab583cd7fdf5800856ff950a9f0fdf
