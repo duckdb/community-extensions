@@ -1,7 +1,7 @@
 extension:
   name: quackiso
   description: Query ISO 20022 (camt, pacs, pain) and SWIFT MT financial messages as SQL
-  version: 1.6.1
+  version: 1.6.2
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: e15dfb5e6b29fe00c7387668824b40127529d756
+  ref: 565d42b1d4f6c4dd0f607b4855c5d614ebc028d5
 
 docs:
   hello_world: |
@@ -192,6 +192,16 @@ docs:
     pacs.004 both say `TxInf`, pacs.008 and pain.001 both say `CdtTrfTxInf`),
     so identity is the message's own container and rows are only produced
     inside it.
+
+    A file that is not XML at all is refused before it is buffered. An XML reader
+    reads at most 64 KiB of the decompressed input first: no markup in that
+    prefix, or a SWIFT MT block header ahead of any markup, is an error naming
+    the reason. Rejecting an 8 MiB file costs what rejecting a 128 KiB one does,
+    0.86 MiB of live heap, because the reader never reaches the parser. Markup
+    inside the prefix still goes to the parser, so a malformed document keeps its
+    own diagnostics; `sniff_iso20022` still reports a non-XML file as a row
+    rather than failing the scan, and the `read_mt*` readers keep their own
+    framing.
 
     Tested against around 283 real messages from more than a dozen sources -
     Goldman Sachs US/UK/EU and wire, SIX interbank, CBPR+, ProgressSoft,
