@@ -1,7 +1,7 @@
 extension:
   name: duck_geoarrow
-  description: DuckDB extension for converting GEOMETRY/WKB to and from GeoArrow native encodings, powered by geoarrow-c. Built against DuckDB v1.5.2
-  version: 0.1.2
+  description: DuckDB extension for converting GEOMETRY/WKB to and from GeoArrow native encodings, powered by geoarrow-c. Built against DuckDB v1.5.5
+  version: 0.1.3
   language: C++
   build: cmake
   license: MIT
@@ -10,62 +10,114 @@ extension:
 
 repo:
   github: am2222/duck_geoarrow
-  ref: 097bb46e9e3da4e17cd5bdefd0bbf035bcbd73ef
+  ref: 954939b3ebcbbcaf07f6a521e519964bbc7770e0
 
 docs:
   hello_world: |
     INSTALL duck_geoarrow FROM community;
     LOAD duck_geoarrow;
 
-    -- Convert a WKB point to GeoArrow struct
-    SELECT st_asgeoarrow('\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\xF0\x3F\x00\x00\x00\x00\x00\x00\x00\x40'::BLOB);
-    -- → {geometry_type: 1, xs: [1.0], ys: [2.0], ring_offsets: [], geom_offsets: []}
+    -- Read a GeoArrow-encoded GeoParquet file. A geometry column written by
+    -- geopandas with encoding="polygon" arrives in DuckDB as STRUCT(x DOUBLE, y DOUBLE)[][]
+    SELECT st_geomfromgeoarrow('polygon', geometry) FROM 'counties.parquet';
 
-    -- With the spatial extension loaded, use GEOMETRY directly
-    LOAD spatial;
-    SELECT st_asgeoarrow(ST_Point(1.0, 2.0)::GEOMETRY);
+    -- GEOMETRY -> GeoArrow native encoding
+    SELECT st_asgeoarrowpolygon('POLYGON((0 0, 4 0, 4 4, 0 4, 0 0))'::GEOMETRY);
+    -- -> [[{'x': 0.0, 'y': 0.0}, {'x': 4.0, 'y': 0.0}, {'x': 4.0, 'y': 4.0}, ...]]
 
-    -- Convert back: GeoArrow struct → GEOMETRY (WKB)
-    SELECT st_geomfromgeoarrow(st_asgeoarrow(ST_Point(30, 10)::GEOMETRY));
+    -- ...and back again
+    SELECT st_geomfromgeoarrowpolygon(st_asgeoarrowpolygon('POLYGON((0 0, 4 0, 4 4, 0 4, 0 0))'::GEOMETRY));
+    -- -> POLYGON ((0 0, 4 0, 4 4, 0 4, 0 0))
 
-    -- Native-typed point extraction (returns STRUCT<x, y>)
-    SELECT st_asgeoarrowpoint(ST_Point(30, 10)::GEOMETRY);
-    -- → {x: 30.0, y: 10.0}
+    -- The generic reader takes the geometry type as a string. It is needed because the
+    -- DuckDB types collide: LineString and MultiPoint are both STRUCT(x, y)[]
+    SELECT st_geomfromgeoarrow('linestring', [{'x': 0.0, 'y': 0.0}, {'x': 1.0, 'y': 1.0}]),
+           st_geomfromgeoarrow('multipoint', [{'x': 0.0, 'y': 0.0}, {'x': 1.0, 'y': 1.0}]);
+    -- -> LINESTRING (0 0, 1 1)  |  MULTIPOINT (0 0, 1 1)
 
-    -- Native-typed linestring (returns List<Struct<x, y>>)
-    SELECT st_asgeoarrowlinestring(ST_GeomFromText('LINESTRING(0 0, 1 1, 2 2)')::GEOMETRY);
+    -- Z / M / ZM. Reading infers the dimensions from the value's own type
+    SELECT st_geomfromgeoarrowpoint({'x': 1.0, 'y': 2.0, 'z': 3.0});
+    -- -> POINT Z (1 2 3)
 
-    -- Native-typed polygon (returns List<List<Struct<x, y>>>)
-    SELECT st_asgeoarrowpolygon(ST_GeomFromText('POLYGON((0 0, 4 0, 4 4, 0 4, 0 0))')::GEOMETRY);
+    -- Writing takes them as an argument, since the return type is fixed before any data is seen
+    SELECT st_asgeoarrowpoint('POINT Z (1 2 3)'::GEOMETRY, 'xyz');
+    -- -> {'x': 1.0, 'y': 2.0, 'z': 3.0}
+
+    -- The flat struct representation covers every geometry type with one DuckDB type
+    SELECT st_asgeoarrow('POINT(1 2)'::GEOMETRY);
+    -- -> {'geometry_type': 1, 'xs': [1.0], 'ys': [2.0], 'ring_offsets': [], 'geom_offsets': []}
+
+    -- Raw WKB BLOBs are accepted anywhere GEOMETRY is
+    SELECT st_asgeoarrow(unhex('01010000000000000000003e400000000000002440'));
 
     -- Version info
     SELECT duck_geoarrow_version();
 
   extended_description: |
-    `duck_geoarrow` converts between DuckDB's WKB-based `GEOMETRY`/`BLOB` type and
-    [GeoArrow](https://geoarrow.org) native struct encodings, powered by
-    [geoarrow-c](https://github.com/geoarrow/geoarrow-c).
+    `duck_geoarrow` converts between DuckDB's `GEOMETRY` (or WKB `BLOB`) and the
+    [GeoArrow](https://geoarrow.org) coordinate encodings, powered by
+    [geoarrow-c](https://github.com/geoarrow/geoarrow-c). Both directions support XY, XYZ,
+    XYM and XYZM.
 
-    **Generic conversion functions** (accept `GEOMETRY` or `BLOB` containing WKB):
+    Two GeoArrow representations are available:
 
-    - `st_asgeoarrow(geom)` — WKB → GeoArrow struct with geometry_type, xs, ys, ring_offsets, geom_offsets
-    - `st_geomfromgeoarrow(struct)` — GeoArrow struct → WKB `GEOMETRY`
+    - **Native encodings** — nested lists of separated coordinates, e.g. `STRUCT(x, y)[][]`
+      for a Polygon. This is what GeoParquet, geoarrow-pyarrow and geopandas produce, so it
+      is the representation to use when reading or writing files.
+    - **A flat struct** — one struct per geometry holding parallel coordinate and offset
+      arrays. A single type covers every geometry type, which is convenient for
+      hand-building geometries in SQL.
 
-    **Native-typed functions** (return Arrow-native nested types for direct columnar use):
+    ### Reading GeoArrow into GEOMETRY
 
-    | Function | Arrow type |
+    | Function | Notes |
     |---|---|
-    | `st_asgeoarrowpoint` | `Struct<x: DOUBLE, y: DOUBLE>` |
-    | `st_asgeoarrowlinestring` | `List<Struct<x, y>>` |
-    | `st_asgeoarrowpolygon` | `List<List<Struct<x, y>>>` |
-    | `st_asgeoarrowmultipoint` | `List<Struct<x, y>>` |
-    | `st_asgeoarrowmultilinestring` | `List<List<Struct<x, y>>>` |
-    | `st_asgeoarrowmultipolygon` | `List<List<List<Struct<x, y>>>>` |
+    | `st_geomfromgeoarrow(type, value)` | Generic: reads any native encoding, geometry type given as a constant string |
+    | `st_geomfromgeoarrow<type>(value)` | One name per geometry type |
+    | `st_geomfromgeoarrow(struct)` | Flat struct form |
 
-    **Utility:**
+    The generic form exists because the DuckDB types collide: LineString and MultiPoint are
+    both `STRUCT(x, y)[]`, and Polygon and MultiLineString are both `STRUCT(x, y)[][]`, so a
+    value on its own cannot say which geometry it is. Type names are case- and
+    separator-insensitive and may carry an explicit `z`, `m` or `zm` suffix. The name
+    resolves the reader at bind time, so an unknown type or a mismatched shape is a binder
+    error rather than a runtime one.
 
-    - `duck_geoarrow_version()` — returns extension and geoarrow-c version info
+    ### Writing GEOMETRY to GeoArrow
 
-    All functions accept both `GEOMETRY` (from the spatial extension) and raw `BLOB`
-    containing valid WKB. The native-typed functions validate that the input geometry
-    matches the expected type and raise an error on mismatch.
+    | Function | Returns |
+    |---|---|
+    | `st_asgeoarrowpoint` | `STRUCT(x, y)` |
+    | `st_asgeoarrowlinestring` | `STRUCT(x, y)[]` |
+    | `st_asgeoarrowpolygon` | `STRUCT(x, y)[][]` |
+    | `st_asgeoarrowmultipoint` | `STRUCT(x, y)[]` |
+    | `st_asgeoarrowmultilinestring` | `STRUCT(x, y)[][]` |
+    | `st_asgeoarrowmultipolygon` | `STRUCT(x, y)[][][]` |
+    | `st_asgeoarrow` | flat `STRUCT(geometry_type, xs, ys, ring_offsets, geom_offsets)` |
+
+    Each accepts `GEOMETRY` or a `BLOB` containing WKB, and raises an error if the input is
+    not the expected geometry type.
+
+    All of them take an optional second argument selecting the dimensions — `xy` (the
+    default), `xyz`, `xym` or `xyzm`. The coordinate struct gains `z` / `m` fields
+    accordingly, and the flat struct gains matching `zs` / `ms` lists. Dimensions are an
+    argument on this side, rather than inferred as they are when reading, because a SQL
+    function's return type has to be fixed before any data is seen. Dropping ordinates is
+    allowed and inventing them is not: a 3D geometry projects down to XY happily, but asking
+    for `xyz` from a 2D geometry raises an error rather than filling in NaNs.
+
+    ### Utility
+
+    - `duck_geoarrow_version()` — the extension and geoarrow-c versions
+
+    ### Notes
+
+    - `NULL` input produces `NULL` output. A `NULL` *inside* a list (a null ring, say) reads
+      as an empty ring rather than an error, since the GeoArrow native encoding only carries
+      validity at the top level.
+    - The GeoArrow to GEOMETRY functions are thin wrappers: the input vector is exported
+      through DuckDB's own Arrow bridge and walked by geoarrow-c's
+      `GeoArrowArrayViewVisitNative`, so all nesting, offset, dimension and geometry-type
+      handling comes from the library.
+    - GeometryCollection, and the `geoarrow.box` and interleaved-coordinate encodings, are
+      not supported.
