@@ -1,7 +1,7 @@
 extension:
   name: quackiso
-  description: Query ISO 20022 (camt, pacs, pain) financial messages as SQL
-  version: 1.5.1
+  description: Query ISO 20022 (camt, pacs, pain) and SWIFT MT financial messages as SQL
+  version: 1.6.2
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: 9970d1cea70d5379cf7d0692eade1ea65dccb824
+  ref: 565d42b1d4f6c4dd0f607b4855c5d614ebc028d5
 
 docs:
   hello_world: |
@@ -27,6 +27,14 @@ docs:
     SELECT family, reader, count(*) AS files, sum(records) AS records
     FROM sniff_iso20022('inbox/**/*.xml')
     GROUP BY family, reader;
+
+    -- SWIFT MT is read the same way, by path: one row per :61: statement line.
+    -- A `:61:` states no currency of its own, so the statement's balance carries
+    -- it, along with the account, onto every entry.
+    SELECT account, value_date, credit_debit, amount,
+           closing_balance_currency, closing_balance
+    FROM read_mt940('statements/*.txt')
+    ORDER BY value_date;
 
     -- Interbank credit transfers (pacs.008, the ISO 20022 MT103).
     SELECT uetr, amount, currency, debtor_name, creditor_agent_bic
@@ -81,15 +89,19 @@ docs:
     WHERE credit_debit = 'DBIT'
     GROUP BY currency;
   extended_description: |
-    quackiso reads ISO 20022 financial messages directly into DuckDB tables. No
-    Python preprocessing step, no per-schema glue code: point a table function at
-    bank XML and get transactions as rows.
+    quackiso reads ISO 20022 and SWIFT MT financial messages directly into DuckDB
+    tables. No Python preprocessing step, no per-schema glue code: point a table
+    function at bank XML or at a folder of MT statements and get transactions as
+    rows.
 
-    Twenty-six functions: twenty-five readers covering the payment lifecycle end
+    Thirty-four functions: thirty-three readers covering the payment lifecycle end
     to end, in both directions, and a sniffer that routes files to them.
 
     * `read_iso20022(path)` - camt.053 statements, camt.054 notifications and
       camt.052 reports; one row per booked entry.
+    * `read_camt057(path)` - notifications to receive: money on its way in and
+      not yet booked; one row per expected item, with the account carried down
+      from its notification.
     * `read_pacs008(path)` / `read_pacs009(path)` - customer and
       financial-institution credit transfers (the ISO 20022 MT103 and
       MT202/MT202COV); in the COV form the `underlying_*` columns carry the
@@ -103,7 +115,14 @@ docs:
       report that accepts or refuses each of the three. One row per mandate
       record, with the amendment naming both the mandate it changes and what it
       becomes.
-    * `read_pacs003(path)` - the interbank leg of a direct debit collection.
+    * `read_pain013(path)` / `read_pain014(path)` - request to pay: the creditor
+      asking the debtor to activate a payment, and the answer. The request's
+      debtor and payment terms live on the `<PmtInf>` group and are carried down;
+      the answer states its status at group, payment-info or transaction level,
+      whichever the debtor's bank used.
+    * `read_pacs003(path)` / `read_pacs010(path)` - the interbank leg of a
+      direct debit collection, and the form where both sides are banks; there
+      the collecting bank sits on the credit instruction and is carried down.
     * `read_pain002(path)` / `read_pacs002(path)` - payment status reports,
       customer- and interbank-side; one row per status statement, at whichever
       level the bank stated it, because a batch can be accepted or rejected
@@ -128,11 +147,20 @@ docs:
       case moved, the refusal, the debit authorisation request and its response,
       and the request to modify a payment rather than cancel it. All seven share
       the same assignment and case columns, so one case joins across them.
+    * `read_mt103(path)` / `read_mt202(path)` / `read_mt940(path)` /
+      `read_mt942(path)` - SWIFT MT, the FIN originals the pacs and camt messages
+      replaced and banks still send: the customer transfer, the interbank
+      transfer with its COV cover, the customer statement and the interim report.
+      MT is flat tag-structured text rather than XML, so these share the scan and
+      column machinery and nothing else; the statement readers carry the account
+      and its balances onto every `:61:` line. MT carries no namespace, so the
+      sniffer identifies it by its block structure instead, and routes it the
+      same way it routes XML.
     * `sniff_iso20022(path)` - inventory before reading: one row per file with
       the detected message type, the family, the count of record elements a
       reader would turn into rows, and the reader that covers it. Identity comes
-      from the namespace, the era-spelled container names or the envelope
-      binding, and content problems land in an
+      from the namespace, the era-spelled container names, the envelope binding,
+      or an MT block header, and content problems land in an
       `error` column instead of aborting the scan, so a folder of mixed
       downloads is a table rather than a failure.
 
@@ -153,11 +181,11 @@ docs:
     Parsing is a streaming pass over XML events, so the peak is one output batch
     plus the largest single XML subtree rather than the file: a 1.7 GB statement
     of three million entries parses in 1.23 MiB of live heap and about 2 MB
-    resident, measured by `cargo test membound`, and adds 7.8 MiB to a running
-    DuckDB. A glob is parsed in parallel, one worker per file - XML has no
-    safe split points, so a single document is never divided - with
-    `threads := n` to pin the pool, itself capped at four times the machine's
-    parallelism; measured 6.9x on 8 files of 35 MB.
+    resident, measured by `cargo test --release membound -- --ignored`, and
+    adds 7.7 MiB to a running DuckDB. A glob is parsed in parallel, one worker
+    per file - XML has no safe split points, so a single document is never
+    divided - with `threads := n` to pin the pool, itself capped at four times
+    the machine's parallelism; measured 6.9x on 8 files of 35 MB.
 
     A file of the wrong message type fails loudly instead of returning an empty
     table. The transaction element names collide across families (camt.056 and
@@ -165,7 +193,17 @@ docs:
     so identity is the message's own container and rows are only produced
     inside it.
 
-    Tested against roughly 280 real messages from more than a dozen sources -
+    A file that is not XML at all is refused before it is buffered. An XML reader
+    reads at most 64 KiB of the decompressed input first: no markup in that
+    prefix, or a SWIFT MT block header ahead of any markup, is an error naming
+    the reason. Rejecting an 8 MiB file costs what rejecting a 128 KiB one does,
+    0.86 MiB of live heap, because the reader never reaches the parser. Markup
+    inside the prefix still goes to the parser, so a malformed document keeps its
+    own diagnostics; `sniff_iso20022` still reports a non-XML file as a row
+    rather than failing the scan, and the `read_mt*` readers keep their own
+    framing.
+
+    Tested against around 283 real messages from more than a dozen sources -
     Goldman Sachs US/UK/EU and wire, SIX interbank, CBPR+, ProgressSoft,
     Nivaes, Prowide, OpenBankProject, Mbanq, Handelsbanken, issettled, prog-nov,
     salesking and Dolibarr among them - spanning twenty-seven message families
