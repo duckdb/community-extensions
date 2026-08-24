@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: alitrack/duckdb-luajit
-  ref: refs/tags/v0.32.2
+  ref: 7dc1ada394605fc1f62401d4a0d60613d0e920d0
 
 docs:
   hello_world: |
