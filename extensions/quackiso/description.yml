@@ -1,7 +1,10 @@
+# Submit this file to duckdb/community-extensions at
+# extensions/quackiso/description.yml
+# `ref` is the tagged release commit in tempoloss/quackiso.
 extension:
   name: quackiso
   description: Query ISO 20022 (camt, pacs, pain) and SWIFT MT financial messages as SQL
-  version: 1.6.2
+  version: 1.7.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +15,7 @@ extension:
 
 repo:
   github: tempoloss/quackiso
-  ref: 565d42b1d4f6c4dd0f607b4855c5d614ebc028d5
+  ref: e8d69f85cad1130032f1b34e50a65e5ce206d64d
 
 docs:
   hello_world: |
@@ -35,6 +38,40 @@ docs:
            closing_balance_currency, closing_balance
     FROM read_mt940('statements/*.txt')
     ORDER BY value_date;
+
+    -- MT101 is the FIN original of pain.001, and the grain follows it: one row
+    -- per transaction, the header carried onto each. The boundary is an exact
+    -- `:21:`, because `:21R:` and `:21F:` are different fields of the same number.
+    SELECT sender_reference, tx_ref, ordering_customer, beneficiary, amount,
+           currency, requested_execution_date
+    FROM read_mt101('requests/*.txt')
+    ORDER BY sender_reference, tx_ref;
+
+    -- MT104 collects instead of paying, so field 50a is the creditor and 59a the
+    -- debtor. A settlement sequence states the batch total after the last
+    -- transaction, and `:19:` is on the wire only when it differs from the sum of
+    -- them, which is what lets a caller check a batch adds up.
+    SELECT sender_reference, sum(amount) AS collected,
+           any_value(sum_of_amounts) AS stated, any_value(settlement_amount) AS settled
+    FROM read_mt104('collections/*.txt')
+    GROUP BY sender_reference
+    ORDER BY sender_reference;
+
+    -- On 14 November 2026 CBPR+ stops accepting a fully unstructured postal
+    -- address. This is the question that comes before the migration, over MT and
+    -- ISO 20022 at once: which parties would be refused, and what is wrong.
+    SELECT family, role, address_format, count(*) AS parties, count(finding) AS refused
+    FROM audit_addresses('inbox/**/*')
+    GROUP BY family, role, address_format
+    ORDER BY refused DESC;
+
+    -- The counts say how far a party is from the rule. `address_text` says what
+    -- there is to work with. A free-text address whose town is already written
+    -- needs labelling, a bare one needs the data, and neither is the other.
+    SELECT address_text, address_lines, finding
+    FROM audit_addresses('inbox/**/*')
+    WHERE finding IS NOT NULL AND address_text IS NOT NULL
+    ORDER BY address_lines DESC;
 
     -- Interbank credit transfers (pacs.008, the ISO 20022 MT103).
     SELECT uetr, amount, currency, debtor_name, creditor_agent_bic
@@ -94,8 +131,9 @@ docs:
     function at bank XML or at a folder of MT statements and get transactions as
     rows.
 
-    Thirty-four functions: thirty-three readers covering the payment lifecycle end
-    to end, in both directions, and a sniffer that routes files to them.
+    Thirty-seven functions: thirty-five readers covering the payment lifecycle end
+    to end, in both directions, a sniffer that routes files to them, and an
+    address audit that reads both wire formats at once.
 
     * `read_iso20022(path)` - camt.053 statements, camt.054 notifications and
       camt.052 reports; one row per booked entry.
@@ -147,15 +185,19 @@ docs:
       case moved, the refusal, the debit authorisation request and its response,
       and the request to modify a payment rather than cancel it. All seven share
       the same assignment and case columns, so one case joins across them.
-    * `read_mt103(path)` / `read_mt202(path)` / `read_mt940(path)` /
-      `read_mt942(path)` - SWIFT MT, the FIN originals the pacs and camt messages
-      replaced and banks still send: the customer transfer, the interbank
+    * `read_mt101(path)` / `read_mt103(path)` / `read_mt104(path)` /
+      `read_mt202(path)` / `read_mt940(path)` / `read_mt942(path)` - SWIFT MT, the
+      FIN originals the pacs and pain messages replaced and banks still send: the
+      request for transfer, the customer transfer, the direct debit, the interbank
       transfer with its COV cover, the customer statement and the interim report.
       MT is flat tag-structured text rather than XML, so these share the scan and
       column machinery and nothing else; the statement readers carry the account
-      and its balances onto every `:61:` line. MT carries no namespace, so the
-      sniffer identifies it by its block structure instead, and routes it the
-      same way it routes XML.
+      and its balances onto every `:61:` line, and MT101 and MT104 carry their
+      header onto every transaction the way pain.001 carries a `<PmtInf>`. An
+      MT104 also states a batch total after its last transaction, reported beside
+      the sum of them because the format writes `:19:` only when the two differ.
+      MT carries no namespace, so the sniffer identifies it by its block structure
+      instead, and routes it the same way it routes XML.
     * `sniff_iso20022(path)` - inventory before reading: one row per file with
       the detected message type, the family, the count of record elements a
       reader would turn into rows, and the reader that covers it. Identity comes
@@ -163,6 +205,18 @@ docs:
       or an MT block header, and content problems land in an
       `error` column instead of aborting the scan, so a folder of mixed
       downloads is a table rather than a failure.
+    * `audit_addresses(path)` - every party of every message beside the shape of
+      its postal address, classified against the CBPR+ rule that takes effect on
+      14 November 2026, when a fully unstructured address stops being accepted.
+      One row per party occurrence rather than per transaction, because the
+      question is asked across families: of the traffic already on disk, which
+      parties would be refused and why. It reads ISO 20022 and SWIFT MT through
+      one classifier, which is the point - an MT `:50K:` is a name and then
+      free-text lines, the shape the rule refuses, and `:50F:` states the town
+      and the country in a subfield where a translator can find them. The facts
+      and the verdict are separate columns: `address_format`, the counts and the
+      leaves are read off the wire, and `finding` is NULL when nothing in the
+      party would be refused.
 
     All exception and status readers expose the original references (UETR,
     end-to-end id, original message id), so one payment joins across its whole
