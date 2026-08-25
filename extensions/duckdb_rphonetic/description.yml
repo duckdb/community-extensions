@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: guizmaii-opensource/duckdb-rphonetic
-  ref: a7cee7a7ab8f7d32fd1474b66b9ba6ac2f6f27d2
+  # v0.1.0
+  ref: b74284d0dfc71c94859468aef6ac4bbd0981dd19
 
 docs:
   hello_world: |
