@@ -5,6 +5,8 @@ extension:
   language: Rust
   build: cmake
   license: Apache-2.0
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "linux_amd64_musl"
   maintainers:
     - guizmaii
 
