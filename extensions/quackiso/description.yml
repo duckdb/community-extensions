@@ -25,6 +25,23 @@ docs:
     FROM read_iso20022('statements/*.xml', threads := 8)
     ORDER BY booking_date;
 
+    -- On 14 November 2026 CBPR+ stops accepting a fully unstructured postal
+    -- address, with no grace period. This is the question that comes before the
+    -- migration, over SWIFT MT and ISO 20022 at once: of the traffic already on
+    -- disk, which parties would be refused, and what is wrong with them.
+    SELECT family, role, address_format, count(*) AS parties, count(finding) AS refused
+    FROM audit_addresses('inbox/**/*')
+    GROUP BY family, role, address_format
+    ORDER BY refused DESC;
+
+    -- The counts say how far a party is from the rule. `address_text` says what
+    -- there is to work with. A free-text address whose town is already written
+    -- needs labelling, a bare one needs the data, and neither is the other.
+    SELECT address_text, address_lines, finding
+    FROM audit_addresses('inbox/**/*')
+    WHERE finding IS NOT NULL AND address_text IS NOT NULL
+    ORDER BY address_lines DESC;
+
     -- What is in the folder, before choosing a reader: one row per file with
     -- the message type, the reader that covers it, and the record count.
     SELECT family, reader, count(*) AS files, sum(records) AS records
@@ -56,22 +73,6 @@ docs:
     FROM read_mt104('collections/*.txt')
     GROUP BY sender_reference
     ORDER BY sender_reference;
-
-    -- On 14 November 2026 CBPR+ stops accepting a fully unstructured postal
-    -- address. This is the question that comes before the migration, over MT and
-    -- ISO 20022 at once: which parties would be refused, and what is wrong.
-    SELECT family, role, address_format, count(*) AS parties, count(finding) AS refused
-    FROM audit_addresses('inbox/**/*')
-    GROUP BY family, role, address_format
-    ORDER BY refused DESC;
-
-    -- The counts say how far a party is from the rule. `address_text` says what
-    -- there is to work with. A free-text address whose town is already written
-    -- needs labelling, a bare one needs the data, and neither is the other.
-    SELECT address_text, address_lines, finding
-    FROM audit_addresses('inbox/**/*')
-    WHERE finding IS NOT NULL AND address_text IS NOT NULL
-    ORDER BY address_lines DESC;
 
     -- Interbank credit transfers (pacs.008, the ISO 20022 MT103).
     SELECT uetr, amount, currency, debtor_name, creditor_agent_bic
@@ -134,6 +135,25 @@ docs:
     Thirty-seven functions: thirty-five readers covering the payment lifecycle end
     to end, in both directions, a sniffer that routes files to them, and an
     address audit that reads both wire formats at once.
+
+    One of them has a date attached. On 14 November 2026 CBPR+ stops accepting a
+    fully unstructured postal address, with no grace period, and
+    `audit_addresses(path)` answers the question that comes before that migration:
+    of the traffic already on disk, which parties would be refused, and why. It
+    reads SWIFT MT as well as ISO 20022, and that is the point rather than a
+    bonus - an MT `:50K:` is a name and then free-text address lines, which is
+    exactly the shape that stops being accepted, so a migration answered on the
+    XML half alone is answered on the easier half. One classifier grades both
+    wires, so an MT party and an ISO 20022 party cannot disagree about what
+    UNSTRUCTURED means.
+
+    It reports the address lines themselves beside the counts, because a refusal
+    names what is missing while the lines are what there is to work with, and
+    neither follows from the other. A free-text address whose town is already
+    written needs that town moved into an element; a bare one needs a town
+    collected. Both carry the same finding, and telling them apart is a reading of
+    the data, so the audit hands over the lines rather than guessing a town out of
+    free text.
 
     * `read_iso20022(path)` - camt.053 statements, camt.054 notifications and
       camt.052 reports; one row per booked entry.
