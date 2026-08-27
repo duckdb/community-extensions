@@ -1,0 +1,20 @@
+extension:
+  name: celestial
+  description: Astronomical coordinates utilities
+  version: 0.2.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - teobouvard
+
+repo:
+  github: lisa-sgs/duckdb-celestial
+  ref: fcc3ab3615868d219ca4cff5c61e2db8a3c4beb0
+  andium: fcc3ab3615868d219ca4cff5c61e2db8a3c4beb0
+
+docs:
+  hello_world: |
+    SELECT angular_separation_deg(204.2538292, -29.8657611, 201.3650633, -43.0191125);
+  extended_description: |
+    The celestial extension provides functions for working with astronomical coordinates.

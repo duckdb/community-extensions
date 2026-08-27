@@ -1,0 +1,48 @@
+extension:
+  name: tpch_rust
+  description: Generate TPC-H data as DuckDB tables or Parquet files, powered by the pure-Rust tpchgen-rs generators
+  version: 0.1.0
+  language: Rust
+  build: cmake
+  license: MIT
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64;windows_amd64_mingw;windows_amd64_rtools"
+  maintainers:
+    - guillesd
+
+repo:
+  github: guillesd/duckdb-tpch-rust
+  ref: 997db7e13cd4342359ac3f215d20c63b434606da
+
+docs:
+  hello_world: |
+    -- Stream a single TPC-H table as a DuckDB table function and materialize it:
+    CREATE TABLE lineitem AS FROM tpch(1, 'lineitem');
+
+    -- Or query generated rows directly without materializing:
+    SELECT count(*) FROM tpch(0.1, 'orders');
+
+    -- Get a ready-to-run load script for the full 8-table schema:
+    SELECT statement FROM tpch_load(1);
+
+    -- Write Parquet files to disk instead (optionally a subset of tables):
+    CALL tpch_gen(1, 'data', tables := ['lineitem', 'orders']);
+  extended_description: |
+    ## tpch_rust
+
+    A Rust DuckDB extension (built on the C-extension template) that generates
+    [TPC-H](https://www.tpc.org/tpch/) data using the pure-Rust
+    [`tpchgen-rs`](https://github.com/clflushopt/tpchgen-rs) generators. It offers two modes:
+
+    - **DuckDB tables** — `tpch(sf, 'table')` is a table function that streams the rows of a
+      single TPC-H table, so you can materialize it with `CREATE TABLE ... AS FROM tpch(...)`.
+      `tpch_load(sf)` returns a ready-to-run load script for the full 8-table schema.
+    - **Parquet files** — `tpch_gen(sf, output_dir, [tables])` writes Parquet files directly to
+      disk, with knobs for `compression`, `row_group_bytes`, and `parts` (output-file count).
+
+    Supported tables: `nation`, `region`, `part`, `supplier`, `partsupp`, `customer`, `orders`,
+    `lineitem`. Generation is parallelized across CPU cores and streamed in bounded batches, so
+    memory stays flat regardless of scale factor.
+
+    See the [project README](https://github.com/guillesd/duckdb-tpch-rust) for benchmarks and the
+    full set of parameters.

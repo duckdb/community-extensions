@@ -1,0 +1,62 @@
+extension:
+  name: python_udf
+  description: "Embedded CPython UDFs for DuckDB — py_eval, py_agg, py_scan, py_register, py_call, py_map"
+  version: 0.2.0
+  language: Rust & Python
+  build: cargo
+  license: MIT
+  requires_toolchains: rust;python3
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_amd64_musl;wasm_eh;wasm_mvp;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+
+repo:
+  github: alitrack/duckdb-python
+  ref: refs/tags/v0.2.1
+
+docs:
+  hello_world: |
+    LOAD python_udf;
+    SELECT py_eval('lambda x: x * 2 + 1', x) FROM range(10) t(x);
+
+    -- Aggregate UDF
+    SELECT py_agg('sum', x) FROM range(100) t(x);
+
+    -- Scan from Python
+    SELECT * FROM py_scan('lambda _: [{"a":1}, {"a":2}]');
+
+    -- Register persistent UDF
+    SELECT py_register('dbl', 'lambda x: x * 2');
+
+    -- Call registered UDF
+    SELECT py_call('dbl', 21);
+
+    -- Map values
+    SELECT py_map('ord', 'hello world');
+
+  extended_description: |
+    ## CPython UDFs for DuckDB
+
+    Execute Python code directly in SQL queries with CPython embedded in DuckDB.
+
+    **7 Functions:**
+
+    | Function | Type | Description |
+    |----------|------|-------------|
+    | `py_eval(name, arg..)` | Scalar | Evaluate Python lambda/function per row |
+    | `py_agg(name, arg)` | Aggregate | Full-table aggregate UDF |
+    | `py_scan(func)` | Table | Generate rows from Python |
+    | `py_register(name, func)` | Management | Register a Python UDF |
+    | `py_call(name, arg..)` | Scalar | Call a registered UDF |
+    | `py_map(func, arg..)` | Scalar | Map a function over values |
+    | `py_list(name)` | Utility | List registered UDFs |
+
+    **Design:**
+    - CPython embedded via PyO3 (Rust FFI)
+    - Fresh Python interpreter per DuckDB connection
+    - Supports Python 3.11, 3.12, 3.13
+    - macOS, Linux x64 supported
+
+    **Note:** Extension binary name is `python_udf` to avoid collision
+    with DuckDB's core `python` extension.
+    The source repository remains `duckdb-python`.

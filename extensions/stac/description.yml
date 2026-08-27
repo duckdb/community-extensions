@@ -1,0 +1,128 @@
+extension:
+  name: stac
+  description: DuckDB extension for reading data from SpatioTemporal Asset Catalogs (STAC) using SQL.
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - ahuarte47
+
+repo:
+  github: ahuarte47/duckdb-stac
+  ref: 7c4a6f3874acab913c08db43c0cf8c651118f29c
+
+docs:
+  hello_world: |
+    -- Read the content of a static STAC catalog and return the first 2 items:
+    SELECT
+        collection, id
+    FROM
+        STAC_Read('https://raw.githubusercontent.com/radiantearth/stac-spec/refs/heads/master/examples/catalog.json')
+    LIMIT 2
+    ;
+
+    ┌───────────────┬────────────────────────────────────────────────────────────────┬─────────────────────────────────┐
+    │  collection   │                               id                               │             bbox                │
+    │    varchar    │                            varchar                             │           stac_bbox             │
+    ├───────────────┼────────────────────────────────────────────────────────────────┼─────────────────────────────────┤
+    │ sentinel2_l2a │ S2A_OPER_MSI_L2A_TL_EPAE_20190527T094026_A020508_T46VCQ_N02.12 │ {                               │
+    │               │                                                                │   'minx': 90.63571493952938,    │
+    │               │                                                                │   'miny': 91.27015715015226,    │
+    │               │                                                                │   'maxx': 62.12379856857608,    │
+    │               │                                                                │   'maxy': 62.96338922674105     │
+    │               │                                                                │ }                               │
+    ├───────────────┼────────────────────────────────────────────────────────────────┼─────────────────────────────────┤
+    │ sentinel2_l2a │ S2A_OPER_MSI_L2A_TL_MTI__20190518T203951_A020386_T24XWM_N02.12 │ {                               │
+    │               │                                                                │   'minx': -39.0008444956852,    │
+    │               │                                                                │   'miny': -34.13214411127818,   │
+    │               │                                                                │   'maxx': 77.42853163431232,    │
+    │               │                                                                │   'maxy': 78.37301671070006     │
+    │               │                                                                │ }                               │
+    └───────────────┴────────────────────────────────────────────────────────────────┴─────────────────────────────────┘
+
+
+    -- Search for items in a STAC catalog using the STAC API - Item Search endpoint:
+    SELECT
+        collection, id, bbox
+    FROM
+        STAC_Search(
+            'https://earth-search.aws.element84.com/v0/search',
+            collections := ['sentinel-s2-l2a-cogs'],
+            datetime := '2021-09-30/2021-10-30',
+            bbox := [-1.695007724869786, 42.788757186108654, -1.604482013650674, 42.84244150196227]
+        )
+    ;
+
+    ┌──────────────────────┬──────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+    │      collection      │            id            │                                                       bbox                                                        │
+    │       varchar        │         varchar          │                                                     stac_bbox                                                     │
+    ├──────────────────────┼──────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+    │ sentinel-s2-l2a-cogs │ S2B_30TWN_20211030_0_L2A │ {'minx': -3.0002344509650487, 'miny': 42.356331534440834, 'maxx': -1.6455652046460576, 'maxy': 43.35284638738093} │
+    │ sentinel-s2-l2a-cogs │ S2B_30TXN_20211030_0_L2A │ {'minx': -1.7857005522228677, 'miny': 42.335791505536065, 'maxx': -0.4124765189393069, 'maxy': 43.3461908738427}  │
+    │ sentinel-s2-l2a-cogs │ S2A_30TWN_20211025_0_L2A │ {'minx': -3.0002344509650487, 'miny': 42.356331534440834, 'maxx': -1.6455652046460576, 'maxy': 43.35284638738093} │
+    │ sentinel-s2-l2a-cogs │ S2A_30TXN_20211025_0_L2A │ {'minx': -1.7857005522228677, 'miny': 42.335791505536065, 'maxx': -0.4124765189393069, 'maxy': 43.3461908738427}  │
+    │ sentinel-s2-l2a-cogs │ S2B_30TWN_20211020_0_L2A │ {'minx': -3.0002344509650487, 'miny': 42.356331534440834, 'maxx': -1.6455652046460576, 'maxy': 43.35284638738093} │
+    │ sentinel-s2-l2a-cogs │ S2A_30TXN_20211015_0_L2A │ {'minx': -1.7857005522228677, 'miny': 42.335791505536065, 'maxx': -0.4124765189393069, 'maxy': 43.3461908738427}  │
+    │ sentinel-s2-l2a-cogs │ S2B_30TXN_20210930_0_L2A │ {'minx': -1.7857005522228677, 'miny': 42.335791505536065, 'maxx': -0.4124765189393069, 'maxy': 43.3461908738427}  │
+    └──────────────────────┴──────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  extended_description: |
+    A DuckDB extension for reading data from SpatioTemporal Asset Catalogs (STAC) using SQL.
+
+    The extension exposes STAC catalogs as relational tables, following the GeoParquet STAC specification.
+
+    Each row represents a single STAC item. Almost all item fields are mapped to columns;
+    nested JSON structures are preserved as Parquet structs where possible, but item properties are
+    promoted to the top level for easier filtering and querying.
+
+    The extension provides two table functions to read STAC catalogs:
+
+    - `STAC_Read`:
+      Reads the content of a SpatioTemporal Asset Catalog (STAC) catalog from the given URL or JSON file and returns it as a table.
+
+      ```sql
+      SELECT * FROM STAC_Read('https://example.com/stac/collection.json');
+      ```
+
+    - `STAC_Search`:
+
+      Searches the content of a SpatioTemporal Asset Catalog (STAC) catalog based on the given STAC API - Item Search
+      filtering criteria (https://api.stacspec.org/v1.0.0/item-search/) and returns matching items as a table.
+
+      The `url` parameter specifies the base URL of the STAC API - Item Search endpoint to query.
+
+      The optional parameters allow filtering by different criteria:
+
+      - `collections`: A list of collection IDs to filter the search results.
+      - `ids`: A list of item IDs to filter the search results.
+      - `bbox`: A bounding box to filter items by spatial intersection, specified as an array of four floats representing the minimum longitude, minimum latitude, maximum longitude, and maximum latitude.
+      - `intersects`: A geometry object (EPSG:4326) to filter items by spatial intersection.
+      - `datetime`: A string representing a temporal range to filter the search results, specified in the format "start_datetime/end_datetime" (e.g., "2021-01-01T00:00:00Z/2021-12-31T23:59:59Z").
+      - `max_items`: An integer specifying the maximum number of items to return in each result page.
+
+      ```sql
+      SELECT
+          *
+      FROM
+          STAC_Search(
+              'https://earth-search.aws.element84.com/v0/search',
+              collections := ['sentinel-s2-l2a-cogs'],
+              datetime := '2021-09-30/2021-10-30',
+              intersects := ST_MakeEnvelope(-1.695007724869786, 42.788757186108654, -1.604482013650674, 42.84244150196227)::GEOMETRY('EPSG::4326')
+          )
+      ;
+      ```
+
+      ```sql
+      SELECT
+          *
+      FROM
+          STAC_Search(
+              'https://earth-search.aws.element84.com/v0/search',
+              collections := ['sentinel-s2-l2a-cogs'],
+              datetime := '2021-09-30/2021-10-30',
+              bbox := [-1.695007724869786, 42.788757186108654, -1.604482013650674, 42.84244150196227]
+          )
+      ;
+      ```

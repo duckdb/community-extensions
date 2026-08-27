@@ -1,7 +1,7 @@
 extension:
   name: urlpattern
   description: WHATWG URLPattern API for matching and extracting components from URLs using pattern syntax
-  version: 0.3.0
+  version: 0.4.1
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,10 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_urlpattern
-  ref: 987739dae7466f5cd11f12845fdd30c1bdbcd3d8
+  andium: bc9864b9fad37bffe15f7499fc5b9021e970eaf8
+  # andium (DuckDB v1.4.5 track) left at the pre-v1.5-variegata commit;
+  # v0.4.1 targets the v1.5.x line and ships on that track via ref.
+  ref: refs/tags/v0.4.1
 
 docs:
   hello_world: |

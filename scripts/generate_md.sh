@@ -37,17 +37,18 @@ do
       rm -f pre.db
       rm -f post.db
       for thing in $things; do
-         $DUCKDB_BINARY -unsigned pre.db -c "SET extension_directory = 'build/extensions'; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
+         $DUCKDB_BINARY -unsigned pre.db -c "SET extension_directory = 'build/extensions'; INSTALL httpfs; LOAD httpfs; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
          rm -rf temp
-         $DUCKDB_BINARY -unsigned post.db -c "SET extension_directory = 'build/extensions'; FORCE INSTALL $extension FROM 'build/extension_dir'; LOAD $extension; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
+         $DUCKDB_BINARY -unsigned post.db -c "SET extension_directory = 'build/extensions'; LOAD httpfs; FORCE INSTALL $extension FROM 'build/extension_dir'; LOAD $extension; CREATE OR REPLACE TABLE $thing AS FROM duckdb_$thing();"
          rm -rf temp
       done
 
       mkdir -p $DOCS/$extension
       mkdir -p $DOCS/../screenshot
       
-      $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_no_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || list_reduce(examples, lambda x, y : x || ', ' || y) || ']' END AS examples  FROM (FROM (SELECT function_name, function_type, description, comment, examples FROM functions ORDER BY function_name, function_type) EXCEPT (SELECT function_name, function_type, description, comment, examples FROM pre.functions ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
-      $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_with_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || list_reduce(examples, lambda x, y : x || ', ' || y) || ']' END AS examples FROM (FROM ( SELECT count(*), function_name, function_type, description, comment, examples FROM functions GROUP BY ALL ORDER BY function_name, function_type) EXCEPT (SELECT count(*), function_name, function_type, description, comment, examples FROM pre.functions GROUP BY ALL ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
+      $DUCKDB_BINARY post.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})','{% raw %}\\1{% endraw %}', 'g');"
+      $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_no_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || examples.list_transform(lambda x: x.jekyll_format_function()).list_reduce(lambda x, y : x || ', ' || y) || ']' END AS examples FROM (FROM (SELECT function_name, function_type, description, comment, examples FROM functions ORDER BY function_name, function_type) EXCEPT (SELECT function_name, function_type, description, comment, examples FROM pre.functions ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
+      $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_with_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || examples.list_transform(lambda x: x.jekyll_format_function()).list_reduce(lambda x, y : x || ', ' || y) || ']' END AS examples FROM (FROM ( SELECT count(*), function_name, function_type, description, comment, examples FROM functions GROUP BY ALL ORDER BY function_name, function_type) EXCEPT (SELECT count(*), function_name, function_type, description, comment, examples FROM pre.functions GROUP BY ALL ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
       $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'post.db'; CREATE OR REPLACE TABLE functions AS FROM post.fun_no_overload GROUP BY ALL ORDER BY ALL;"
       $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'post.db'; CREATE OR REPLACE TABLE functions_overloads AS FROM post.fun_with_overload EXCEPT FROM post.fun_no_overload GROUP BY ALL ORDER BY ALL;"
       $DUCKDB_BINARY $DOCS/$extension.db -c "ATTACH 'pre.db'; ATTACH 'post.db'; CREATE OR REPLACE TABLE new_settings AS FROM ( SELECT * EXCLUDE (value) FROM post.settings ORDER BY name) EXCEPT (SELECT * EXCLUDE (value) FROM pre.settings ORDER BY name) ORDER BY name;"
@@ -56,16 +57,41 @@ do
 
       if [ -s "extensions/$extension/docs/function_descriptions.csv" ]; then
          cp extensions/$extension/docs/function_descriptions.csv $DOCS/functions.csv
-         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example || ']' as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
-         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example || ']' as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
+         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})', '{% raw %}\\1{% endraw %}', 'g');"
+         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example.jekyll_format_function() || ']' as examples FROM functions LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions; CREATE TABLE functions AS FROM tmp; DROP TABLE tmp;"
+         $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE TABLE tmp AS SELECT function_name, function_type, other.description as description, other.comment as comment, '[' || other.example.jekyll_format_function() || ']' as examples FROM functions_overloads LEFT JOIN read_csv('$DOCS/functions.csv') AS other ON function_name == other.function; DROP TABLE functions_overloads; CREATE TABLE functions_overloads AS FROM tmp; DROP TABLE tmp;"
          rm $DOCS/functions.csv
       fi
 
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
-      $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM new_settings) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
+      else
+         echo "This extension does not add any settings." > $DOCS/$extension/settings.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
+      else
+         echo "This extension does not add any functions." > $DOCS/$extension/functions.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions_overloads) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
+      else
+         echo "This extension does not add any function overloads." > $DOCS/$extension/functions_overloads.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM description) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM description;" > $DOCS/$extension/extension.md
+      else
+         echo "This extension does not have a description." > $DOCS/$extension/extension.md
+      fi
+
+      if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM types) == 0 THEN error('table empty') END"; then
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM types;" > $DOCS/$extension/types.md
+      else
+         echo "This extension does not add any types." > $DOCS/$extension/types.md
+      fi
 
       rm -f pre.db
       rm -f post.db
@@ -83,9 +109,15 @@ do
          if [[ "${REPOSITORY}" == "duckdb/duckdb-extension-alias" ]]; then
             extension=$(cat extensions/$extension/description.yml | yq -r ".repo.canonical_name")
          fi
-         cat extensions/$extension/description.yml | yq ".extension.name, .repo.github, .repo.ref" | xargs printf '%s,%s,%s,"' >> $EXTENSIONS_CSV
-
-         cat extensions/$extension/description.yml | yq -r '.extension.description' | sed 's/$/"/'  >> $EXTENSIONS_CSV
+         # Build the CSV row in one shot. The description is flattened to a single
+         # line and embedded double quotes are escaped ("" per RFC 4180), otherwise
+         # multi-line or quote-containing descriptions emit malformed rows that make
+         # DuckDB's CSV sniffer detect a single column and break the final query below.
+         CSV_NAME=$(yq -r '.extension.name' extensions/$extension/description.yml)
+         CSV_REPO=$(yq -r '.repo.github' extensions/$extension/description.yml)
+         CSV_REF=$(yq -r '.repo.ref' extensions/$extension/description.yml)
+         CSV_DESC=$(yq -r '.extension.description' extensions/$extension/description.yml | tr '\n' ' ' | sed 's/  */ /g; s/ *$//; s/"/""/g')
+         printf '%s,%s,%s,"%s"\n' "$CSV_NAME" "$CSV_REPO" "$CSV_REF" "$CSV_DESC" >> $EXTENSIONS_CSV
          echo "" >> $EXTENSION_README
          cat extensions/$extension/description.yml >> $EXTENSION_README
          echo "" >> $EXTENSION_README
@@ -155,5 +187,10 @@ do
 done
 
 rm -f x.db
+# Build the extensions index by positional column (#1 name, #2 repo, #4 description).
+# This relies on community_extensions.csv being well-formed: a row per extension with
+# exactly 4 columns. If a description leaks newlines/quotes into the CSV (see the row
+# construction above), DuckDB's CSV sniffer collapses it to a single column and this
+# query fails with "Positional reference 2 out of range (total 1 columns)".
 $DUCKDB_BINARY $DOCS/x.db -markdown -c "SELECT '['||#1||']({% link community_extensions/extensions/'||#1||'.md %})' as Name, '[<span class=github>GitHub</span>](https://github.com/'||#2||')' as GitHub , #4 as Description FROM read_csv('build/docs/community_extensions.csv');" > $DOCS/extensions_list.md.tmp
 rm -f x.db

@@ -1,0 +1,49 @@
+extension:
+  name: motorsport_telemetry
+  description: Query AiM MP4, Cosworth PDS, MoTeC LD, and Racelogic VBOX telemetry directly in DuckDB
+  version: 0.8.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw;windows_amd64_rtools"
+  maintainers:
+    - tobi
+
+repo:
+  github: tobi/duckdb_motorsport_telemetry
+  ref: e59091ede5322ac5e0f5a75971d273f04e6b461e
+
+docs:
+  hello_world: |
+    SELECT name, unit, frequency_hz, sample_count
+    FROM telemetry_metadata('run.ld')
+    WHERE sample_count > 0;
+
+    SELECT *
+    FROM read_telemetry('run.ld',
+      rate := 100,
+      channels := 'Ground Speed,Throttle Pos,Brake Pedal Pos');
+
+    SELECT name, unit, frequency_hz, sample_count
+    FROM telemetry_metadata('run.mp4')
+    WHERE sample_count > 0;
+
+    SELECT *
+    FROM read_aim('run.mp4',
+      rate := 10,
+      channels := 'RPM,GPS Speed,GPS Latitude,GPS Longitude');
+  extended_description: |
+    `motorsport_telemetry` reads AiM `aimd` telemetry embedded in MP4, Pi
+    Research/Cosworth PDS, MoTeC i2 LD, and Racelogic VBOX VBO files without an
+    export step. AiM MP4 support is native-only; the DuckDB-Wasm build does not
+    link the AiM parser, so `.mp4` inputs and the `read_aim`/`read_aimd`
+    functions are unavailable in the browser. The native reader exposes scalar
+    `CHS` channels and expands each valid 56-byte `GPS0` aggregate into 16 GPS
+    channels, including WGS84 position, speed, heading, accuracy, timing, and
+    status. It provides exact channel metadata, native-rate long-form samples,
+    and projected wide readers with time/channel pruning and type-aware
+    interpolation. Integer and event channels always use previous-value
+    semantics; only floating-point channels can interpolate linearly. The
+    parsers memory-map native files and table functions produce vectorized
+    DuckDB output.

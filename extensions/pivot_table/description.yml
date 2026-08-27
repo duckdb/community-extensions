@@ -1,7 +1,7 @@
 extension:
   name: pivot_table
   description: Provides a spreadsheet-style pivot_table function
-  version: 0.0.2
+  version: 0.0.3
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: Alex-Monahan/pivot_table
-  ref: 3e87d43b4c15a3640b26eb8942ce5e75335c879a
+  ref: 9852c3ad9af74f4aeb61f7140bd6220fd08fa0c5
 
 docs:
   hello_world: |

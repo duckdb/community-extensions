@@ -1,0 +1,128 @@
+extension:
+  name: duckgql
+  description: Adds ISO GQL graph querying and graph algorithms to DuckDB
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - rahul-iyer
+
+repo:
+  github: rahul-iyer/duckdb-gql
+  ref: 44e77c6835f9e6758bb3e3bccb1a642981dbf1e7
+
+docs:
+  hello_world: |
+    COPY (
+      SELECT * FROM (VALUES
+        ('p1', 'Ada', 'Person'),
+        ('p2', 'Grace', 'Person')
+      ) nodes(":ID(People)", "name:string", ":LABEL")
+    ) TO 'duckgql_nodes.csv' (FORMAT CSV, HEADER);
+
+    COPY (
+      SELECT * FROM (VALUES
+        ('p1', 'p2', 'KNOWS')
+      ) edges(":START_ID(People)", ":END_ID(People)", ":TYPE")
+    ) TO 'duckgql_edges.csv' (FORMAT CSV, HEADER);
+
+    CREATE GRAPH social ANY;
+
+    COPY GRAPH social FROM (
+      VERTICES 'duckgql_nodes.csv',
+      EDGES 'duckgql_edges.csv'
+    ) FORMAT GRAPH;
+
+    SESSION SET GRAPH social;
+
+    MATCH (person:Person)-[:KNOWS]->(friend:Person)
+    RETURN person.name, friend.name;
+
+  extended_description: |
+    DuckGQL is an experimental C++17 extension that adds a growing subset of
+    ISO/IEC 39075:2024 GQL to DuckDB. It combines graph pattern queries and
+    mutations with DuckDB's native relational storage and execution engine,
+    plus an explicit CSR layer for graph algorithms.
+
+    **What works in v0.2.0**
+
+    * Managed property graphs backed by typed DuckDB vertex and edge tables.
+    * Read-only, zero-copy graph projections over existing DuckDB and DuckLake
+      tables, including multiple heterogeneous vertex and edge mappings.
+    * Live DuckLake projections that follow committed snapshots, or pinned
+      projections for reproducible analysis.
+    * Mapping-scoped integer source keys, optional edge keys, and DuckGQL-managed
+      dense element IDs, without application-maintained numeric ID ranges.
+    * Inline typed graph schemas that persist in the catalog and immediately
+      materialize constrained vertex and edge tables without `COPY GRAPH`.
+    * Graph-header CSV, compressed CSV, and Parquet bulk import with optional
+      endpoint and identity validation.
+    * Directed `MATCH`, `OPTIONAL MATCH`, filtering, projection, aggregation,
+      ordering, paging, fixed multi-hop patterns, and a bounded
+      variable-length path subset.
+    * Standalone node and directed-path `INSERT`, fixed directed
+      `MATCH`-and-`INSERT`, single-node `INSERT RETURN`, property and label
+      mutation, and edge/node deletion.
+    * Native DuckDB ART indexes for selective vertex-property equality lookups.
+    * Explicit CSR-backed BFS, DFS, unweighted SSSP, PageRank, weak and strong
+      components, Louvain community detection, degree, closeness, local
+      clustering coefficient, and triangle counting.
+
+    **Storage and execution model**
+
+    Managed vertices and edges remain authoritative ordinary DuckDB tables
+    rather than entity-attribute-value rows. For referenced graphs, the mapped
+    DuckDB or DuckLake source tables remain authoritative and DuckGQL persists
+    only the typed graph mapping. Nodes retain their complete label set and each
+    edge has exactly one immutable type. DuckGQL lowers graph queries to native
+    DuckDB relational plans, allowing DuckDB to execute scans, joins,
+    aggregation, ordering, and recursive CTEs. The graph optimizer can choose
+    table scans, native property indexes, node-label postings, and selective
+    fixed-hop CSR expansion. CSR snapshots are immutable, database-instance
+    scoped, version checked, and derived rather than authoritative.
+
+    **Project status**
+
+    DuckGQL v0.2.0 is not yet a complete or conforming ISO GQL implementation.
+    Grammar recognition does not imply semantic or transactional conformance.
+    The machine-readable conformance manifest currently classifies 24 feature
+    families as partial and 12 as planned. Important restrictions include
+    autocommit-only graph lifecycle and CSR operations, a single vertex and
+    edge input per bulk load, and incomplete
+    general path searches, query composition, procedures, and the complete GQL
+    value/type system.
+
+    See the [documentation](https://duckgql.com/docs/), inspect the
+    [conformance manifest](https://github.com/rahul-iyer/duckdb-gql/blob/v0.2.0/test/conformance/iso-gql-2024.tsv),
+    or try the [browser playground](https://duckgql.com/).
+
+  known_limitations: |
+    * DuckGQL implements a practical subset of ISO/IEC 39075:2024 GQL; it is
+      experimental and not yet a conforming implementation.
+    * `CREATE GRAPH`, `DROP GRAPH`, and full-load `COPY GRAPH` are
+      autocommit-only. `COPY GRAPH` requires an empty graph.
+    * Bulk import currently accepts one vertex file, one edge file, at most one
+      scalar vertex-label column, and one edge-type column. Every edge row must
+      contain exactly one non-empty type.
+    * CSR construction and CSR algorithms are autocommit-only. Snapshots are
+      database-instance scoped and version checked. Graph mutations or direct
+      SQL writes invalidate managed snapshots; the next algorithm call rebuilds
+      the required projection automatically.
+    * Weighted SSSP is not implemented. The current SSSP implementation is
+      unweighted.
+    * Multiple-path and undirected insertion, general runtime property maps,
+      and open-graph schema evolution remain incomplete.
+    * `INSERT RETURN` currently supports one directly inserted node variable;
+      edge values, expressions, multiple return items, ordering, and pagination
+      are not yet supported.
+    * General path modes and searches, shortest-path groups, complete
+      variable-length path composition, procedure semantics, query composition,
+      named graph types, typed storage enforcement, and the complete GQL
+      value/type system remain incomplete.
+    * Referenced DuckDB and DuckLake graphs are read-only, and all mapped tables
+      must belong to one attached catalog. Source keys are currently integer
+      typed, and endpoint types must exactly match their vertex key types.
+    * One referenced table maps one static node or edge type. Composite and
+      string identities, multi-table joins for one element, mapping predicates,
+      and write-through mutations are not yet supported.

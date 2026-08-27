@@ -1,0 +1,57 @@
+extension:
+  name: orc
+  description: A DuckDB extension for reading Apache ORC files, written in pure Rust. Supports all ORC primitives, struct, list, map types and all compression codecs (Zlib, Snappy, LZO, LZ4, ZSTD).
+  version: 0.1.3
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb_orc
+  ref: 1dab6ffc2f2b401b765c87727a31e00a502152e6
+
+docs:
+  hello_world: |
+    -- Install and use the ORC extension
+    INSTALL orc FROM community;
+    LOAD orc;
+
+    -- Read a single ORC file
+    SELECT * FROM read_orc('data.orc');
+
+    -- Read multiple ORC files with a glob pattern
+    SELECT * FROM read_orc('sales/*.orc');
+
+    -- Filter and aggregate (DuckDB applies filters post-scan)
+    SELECT region, SUM(amount)
+    FROM read_orc('sales.orc')
+    WHERE year = 2024
+    GROUP BY region;
+
+    -- Column projection is pushed down to the ORC reader
+    SELECT col1, col2 FROM read_orc('big_table.orc');
+
+  extended_description: |
+    Built on top of [`orc-rust`](https://github.com/datafusion-contrib/orc-rust),
+    a native Rust ORC reader that outputs Arrow record batches.
+
+    ### Supported ORC Features
+
+    - **Data types**: all ORC primitives, struct, list, map
+    - **Encodings**: all ORC encodings (direct, dictionary, RLE, etc.)
+    - **Compression**: Zlib, Snappy, LZO, LZ4, ZSTD
+    - **Projection pushdown**: column pruning via DuckDB's optimizer
+    - **Multi-file globs**: `read_orc('*.orc')` — all files must have identical schema
+    - **Streaming**: files of any size, read in 2048-row batches
+
+    ### Known Limitations
+
+    - **Write support**: `orc-rust` 0.8+ has `ArrowWriter` but compression is not yet implemented (uncompressed only). Write support will be added to `duckdb_orc` once `orc-rust` supports compressed writes.
+    - **Single-threaded scan**: currently single-threaded sequential scan. ~5x slower than DuckDB's native Parquet reader on large single files. Multi-file globs also read sequentially. Stripe-level parallelism is planned.
+    - **No filter pushdown**: blocked by missing DuckDB C API
+      (`duckdb_table_function_supports_filter_pushdown` not exposed)
+    - **No union type**: not supported by `orc-rust` upstream

@@ -1,0 +1,4 @@
+function,function_type,description,comment,example
+read_zarr,table,"Reads a Zarr array store and returns its values as a table.","Supports local paths and object-store URLs. Use named parameters such as dims and array_path to select a dimension group or nested array.","SELECT * FROM read_zarr('path/to/store.zarr') LIMIT 10;"
+read_zarr_groups,table,"Lists the dimension groups available in a Zarr store.","Use this to discover valid dims values before scanning multi-group datasets.","SELECT * FROM read_zarr_groups('path/to/store.zarr');"
+read_zarr_metadata,table,"Returns array metadata for a Zarr store, including names, dimensions, shapes, and data types.","Use this to inspect a dataset and choose the array_path for nested stores such as OME-Zarr images.","SELECT name, dims, shape, dtype FROM read_zarr_metadata('image.ome.zarr');"

@@ -1,0 +1,40 @@
+extension:
+  name: nsv
+  description: Read and write NSV (Newline-Separated Values) files
+  version: 0.1.0
+  language: Rust & C++
+  build: cmake
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - namingbe
+
+repo:
+  github: nsv-format/nsv-duckdb
+  ref: 52da7b3a2248a4c11dbd51251c89555e9587c282
+
+docs:
+  hello_world: |
+    -- Read an NSV file (type narrowing mimics CSV behaviour)
+    SELECT * FROM read_nsv('data.nsv');
+
+    -- Write query results as an NSV
+    COPY my_table TO 'output.nsv' (FORMAT nsv);
+
+    -- Read without type narrowing, i.e. everything is a string
+    SELECT * FROM read_nsv('data.nsv', all_varchar=true);
+
+    -- Read a headerless file
+    SELECT * FROM read_nsv('data.nsv', header=false);
+
+    -- Write without a header row
+    COPY my_table TO 'output.nsv' (FORMAT nsv, HEADER false);
+
+  extended_description: |
+    [NSV](https://nsv-format.org) is a plain text data format for sequences of sequences.
+    A subset of these where the nested sequences all have the same length is of interest, for that is effectively a table.
+
+    The NSV format itself is type-agnostic. This extension attempts to closely follow what the CSV extension does for the type narrowing logic, the column name convention, and the interface surface. A subset of that, of course.
+
+    In terms of expressive power, NSV can be used for anything CSV is used for, but being a format much more amenable to parsing, the performance of that is far higher than for CSV, and so is its readability.
+    This extension is intended to enable performant queries against the files using the format.

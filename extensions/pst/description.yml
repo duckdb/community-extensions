@@ -1,17 +1,17 @@
 extension:
   name: pst
-  description: Read Microsoft PST files with rich schemas for common MAPI types (emails, contacts, appointments, tasks)
-  version: 0.1.0
+  description: Read and edit in place Microsoft PST files with rich schemas for common MAPI types (emails, contacts, appointments, tasks)
+  version: 0.2.0
   language: C++
   build: cmake
-  excluded_platforms: "windows_amd64;windows_amd64_mingw"
+  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
   license: MIT
   maintainers:
     - mach-kernel
 
 repo:
   github: intellekthq/duckdb-pst
-  ref: 372875c01072e18c15f446667d4a4533f4fefc5e
+  ref: v0.2.0
 
 docs:
   hello_world: |
@@ -38,8 +38,21 @@ docs:
     D SELECT subject, sender_email_address, message_delivery_time
       FROM read_pst_messages('*.pst', read_limit=100);
 
+    -- Preview an in-place delete. Without `really := true` the call
+    -- opens read-only and reports what it would do per row.
+    D SELECT status, count(*) FROM delete_pst_messages(
+        SELECT pst_path, node_id FROM read_pst_messages('/tmp/hr.pst')
+        WHERE sender_email_address = 'terminated@example.com'
+      ) GROUP BY status;
+    ┌───────────┬──────────────┐
+    │  status   │ count_star() │
+    │  varchar  │    int64     │
+    ├───────────┼──────────────┤
+    │ PREVIEWED │           17 │
+    └───────────┴──────────────┘
+
   extended_description: |
-    A DuckDB extension for reading Microsoft PST files with rich schemas for common MAPI types. Built on Microsoft's official [PST SDK](https://github.com/enrondata/microsoft-pst-sdk). Query emails, contacts, appointments, and more. Use it to analyze PST data in-place (locally or on object storage), import to DuckDB tables, or export to Parquet.
+    A DuckDB extension for reading and editing in place Microsoft PST files, with rich schemas for common MAPI types. Built on Microsoft's official [PST SDK](https://github.com/enrondata/microsoft-pst-sdk). Query emails, contacts, appointments, and more. Use it to analyze PST data in-place (locally or on object storage), import to DuckDB tables, export to Parquet, or delete from a store in place to scrub PII, drop out-of-scope custodian mail before a production, or strip attachments.
 
     ### Table Functions
 
@@ -53,6 +66,17 @@ docs:
     | `read_pst_appointments`       | `IPM.Appointment` | Calendar appointments and meetings     |
     | `read_pst_sticky_notes`       | `IPM.StickyNote`  | Sticky note items                      |
     | `read_pst_tasks`              | `IPM.Task`        | Task items                             |
+
+    ### In-place Deletion
+
+    | Function                  | Input Table                                                                 | Deletes                                         |
+    |---------------------------|-----------------------------------------------------------------------------|-------------------------------------------------|
+    | `delete_pst_messages`     | `(pst_path VARCHAR, node_id UINTEGER)`                                      | One message, and its attachments                |
+    | `delete_pst_folders`      | `(pst_path VARCHAR, node_id UINTEGER)`                                      | A folder, its subfolders and everything in them |
+    | `delete_pst_attachments`  | `(pst_path VARCHAR, message_node_id UINTEGER, attachment_node_id UINTEGER)` | One attachment, leaving the message             |
+    | `wipe_pst_free_space`     | a path or glob                                                              | Overwrites bytes no node points at              |
+
+    Gated behind `SET pst_allow_delete = true` (session) plus `really := true` per call. Without `really` the call opens read-only, resolves every target, and reports `PREVIEWED` or `FAILED` per row. Bind errors abort the statement; anything found later is reported per row so a mid-statement throw cannot leave already-committed deletes with no record of what went. Node IDs are checked against the mode, so `delete_pst_messages` refuses a folder or the store's root.
 
     ### Performance Features
 

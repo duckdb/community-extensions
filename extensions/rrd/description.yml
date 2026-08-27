@@ -1,0 +1,34 @@
+extension:
+  name: rrd
+  description: Read and write Rerun .rrd recording files, including live recordings
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - rozgo
+
+repo:
+  github: VertexStudio/duckdb-rrd
+  ref: v0.1.0
+
+docs:
+  hello_world: |
+    -- Scan a Rerun recording (works while it is still being written)
+    SELECT * FROM read_rrd('recording.rrd', entity => '/metrics/**', timeline => 'frame');
+
+    -- What is inside?
+    SELECT * FROM rrd_schema('recording.rrd');
+
+    -- Export query results as a new Rerun recording
+    COPY (SELECT frame, loss FROM training_metrics)
+    TO 'metrics.rrd' (FORMAT rrd, ENTITY '/metrics', TIMELINE 'frame', COLUMNS 'frame,loss');
+  extended_description: |
+    Query [Rerun](https://rerun.io) `.rrd` recordings with SQL: one row per
+    time point, one column per entity/component, with real DuckDB types
+    (nested lists, structs, blobs). Scans tolerate a partially-written tail,
+    so live recordings can be polled while another process appends to them.
+    `COPY ... TO (FORMAT rrd)` writes query results back out as recordings
+    the Rerun viewer opens natively.

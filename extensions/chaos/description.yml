@@ -9,8 +9,8 @@ extension:
     - taniabogatsch
 repo:
   github: taniabogatsch/duckdb-chaos
-  ref: 46ef95bf98ef008078c1cf753fa3d78e418b1456
-  ref_next: f076132edafe0a2b150d34af3ad0743bfb937c9f
+  andium: 46ef95bf98ef008078c1cf753fa3d78e418b1456
+  ref: f076132edafe0a2b150d34af3ad0743bfb937c9f
 
 docs:
   hello_world: |

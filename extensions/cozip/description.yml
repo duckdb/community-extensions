@@ -1,0 +1,31 @@
+extension:
+  name: cozip
+  description: Cloud-Optimized ZIP reader for DuckDB
+  version: 1.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - csaybar
+    - ryali93
+repo:
+  github: asterisk-labs/cozip_reader
+  ref: 593d2853a294c33dc1c505c5d7c504159b332489
+docs:
+  hello_world: |
+    INSTALL cozip FROM community;
+    LOAD cozip;
+
+    SELECT *
+    FROM read_cozip('https://huggingface.co/datasets/Major-TOM/Core-VIIRS-Nighttime-Light/resolve/main/2024/MAJORTOM-VIIRS-NTL_2024_median_000.zip')
+    LIMIT 10;
+  extended_description: |
+    cozip replaces the ZIP Central Directory scan with a Parquet metadata
+    file located through a fixed 51-byte header at byte 0 of the archive.
+    read_cozip(path) reads that Parquet directly through a virtual
+    cozip-subfile filesystem, so range requests flow lazily through the
+    underlying transport. Works on local files and remote URLs (HTTPS, S3,
+    GCS, Azure, HuggingFace), on native and WebAssembly. Every row gets
+    an extra cozip:gdal_vsi column with a /vsisubfile/ path that opens
+    the referenced inner file in GDAL or rasterio without re-downloading
+    the archive.

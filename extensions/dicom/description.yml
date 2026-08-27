@@ -1,0 +1,38 @@
+extension:
+  name: dicom
+  description: |
+    DuckDB integration with medical imaging data (DICOM - Digital Imaging and Communication in Medicine).
+  version: 0.7.0
+  language: C++
+  build: cmake
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  license: MIT
+  maintainers:
+    - nmontesg
+
+repo:
+  github: nmontesg/duck-dicom
+  ref: v0.7.0
+
+docs:
+  hello_world: |
+    INSTALL dicom FROM community;
+    LOAD dicom;
+    FROM read_dicom('path/to/dicom_file.dcm');
+
+  extended_description: |
+    The dicom extension for DuckDB provides functionality to import medical imaging data (DICOM, Digital Imaging and
+    Communication in Medicine) directly into DuckDB. It uses the powerful DCMTK C++ library to read DICOM files and
+    convert them into JSON format.
+
+    For full documentation and examples, see the project [`documentation`](https://nmontesg.github.io/duck-dicom/).
+    
+    **Key functionality:**
+
+    * `read_dicom()` - Table function to import DICOM files directly into DuckDB, including support for local and remote
+    files.
+    * `DICOM_TAG` - Custom type to work with DICOM tags, including conversion to and from `VARCHAR`.
+    * `tag_group()`, `tag_element()`, `tag_name()` - Scalar functions to work with DICOM tags.
+    * `dicom` secret type - Store credentials to establish connection with remote DICOM modalities, such as PACS systems.
+    * `query_dicom()` and `retrieve_dicom()` - Table functions to query and retrieve DICOM datasets from a remote
+    modalities directly into DuckDB using C-FIND and C-MOVE commands.

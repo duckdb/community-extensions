@@ -1,7 +1,7 @@
 extension:
   name: aixchess
   description: Efficiently query large chess game collections
-  version: 0.1.1
+  version: 0.2.0
   language: C++
   build: cmake
   license: GPL-3.0
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: thomas-daniels/aix
-  ref: f565c29a3dd51c219c4bc9013ad90596ec83df69
+  ref: 728e58fb70d343b6b69a9d0bc395db5309b4dc65
 
 docs:
   hello_world: |

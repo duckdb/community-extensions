@@ -40,6 +40,6 @@ extension:
   name: quickjs
   version: '2025120401'
 repo:
+  andium: 2d31ccebd7f44babc901c84ba0fe8b560647e136
   github: quackscience/duckdb-quickjs
-  ref: 2d31ccebd7f44babc901c84ba0fe8b560647e136
-  ref_next: 3250743f845a2c85957142fa3def70e41ee773c1
+  ref: 45272e851b8c154931b0642379edf208795fafc0

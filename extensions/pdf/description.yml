@@ -1,0 +1,75 @@
+# Community-extensions submission descriptor for the `pdf` extension.
+#
+# Staging copy for https://duckdb.org/community_extensions/extensions/pdf
+# Live file: extensions/pdf/description.yml in duckdb/community-extensions.
+# To publish:
+#   1. Fork/branch duckdb/community-extensions
+#   2. Copy this file over extensions/pdf/description.yml
+#   3. Set repo.ref to the release commit SHA in asubbarao/duckdb-pdf
+#   4. Open a PR against duckdb/community-extensions
+#
+# Keep this SHORT — storefront, not the manual. Full docs: repo README + COOKBOOK.
+
+extension:
+  name: pdf
+  description: Read, OCR, inspect, transform, and write PDFs in SQL
+  version: 0.8.0
+  language: C++
+  build: cmake
+  license: GPL-2.0-or-later
+  maintainers:
+    - asubbarao
+  # windows_amd64 (MSVC/vcpkg) builds and is supported. mingw/rtools use a
+  # different toolchain than the MSVC static linkage this extension relies on;
+  # windows_arm64 is untested; wasm cannot link Poppler/Tesseract.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;windows_arm64
+  requires_toolchains: vcpkg
+  vcpkg_url: https://github.com/microsoft/vcpkg.git
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+
+repo:
+  github: asubbarao/duckdb-pdf
+  ref: 6535c8107e4106058df6f2a111407c1b823fb858
+
+docs:
+  hello_world: |
+    LOAD pdf;
+
+    -- One row per page (file, list, or glob; parallel across pages/files)
+    SELECT filename, page, text
+    FROM read_pdf('reports/*.pdf')
+    WHERE contains(lower(text), 'revenue');
+
+    -- Metadata census
+    SELECT file, title, author, page_count FROM pdf_info('reports/*.pdf');
+
+    -- RAG chunks in one statement
+    CREATE TABLE chunks AS FROM pdf_chunks('reports/*.pdf');
+
+    -- Page raster + native write
+    SELECT pdf_to_png('report.pdf', 1, 150) AS page_image;
+    COPY (SELECT * FROM findings)
+    TO 'findings.pdf' (FORMAT pdf, TITLE 'Findings', FOOTER 'page {page}');
+
+  extended_description: |
+    **Everything PDF, in SQL** — Poppler, Tesseract (OCR), qpdf, and libharu,
+    statically linked. Paths or globs; no external tools at runtime for core
+    ops. Full docs and recipes:
+    [github.com/asubbarao/duckdb-pdf](https://github.com/asubbarao/duckdb-pdf).
+
+    **Read** — `read_pdf`, `read_pdf_lines`, `read_pdf_words` /
+    `read_pdf_layout` (word boxes), `read_pdf_elements`, `read_pdf_tables`,
+    `pdf_chunks`. Auto-OCR on image-only pages; English model bundled.
+
+    **Inspect** — `pdf_info`, outline, attachments, form fields, annotations,
+    revisions, signatures, embedded images.
+
+    **Convert / render** — text, markdown, HTML, XML, SVG, PNG; low-level
+    `poppler_render_page` + `tesseract_ocr` for blob pipelines.
+
+    **Transform & write** — merge, split, rotate, compress, encrypt/decrypt,
+    watermark, Bates, sign, redact; `write_pdf` / `COPY … (FORMAT pdf)`;
+    `to_pdf` for office docs (LibreOffice at runtime).
+
+    **Scope** — deterministic extraction, not ML document AI. **License** —
+    GPL-2.0-or-later (Poppler).

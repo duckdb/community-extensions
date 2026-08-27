@@ -1,0 +1,74 @@
+extension:
+  name: duckdb_delta_sharing
+  description: The most efficient way to query Delta Lake tables directly from DuckDB via the Delta Sharing protocol.
+  version: 0.6.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "windows_amd64_mingw"
+  maintainers:
+    - prequel-co
+
+repo:
+  github: prequel-co/DuckDB-Delta-Sharing
+  ref: a9ab9dd48160fa108861120bc1006b5d3546d0f3
+
+docs:
+  hello_world: |
+    INSTALL duckdb_delta_sharing FROM community;
+    LOAD duckdb_delta_sharing;
+    -- Required for network access
+    INSTALL httpfs;
+    LOAD httpfs;
+
+    -- Basic Configuration
+    -- Set your sharing endpoint and bearer token using DuckDB Secrets:
+    CREATE SECRET (
+        TYPE delta_sharing,
+        PROVIDER config,
+        ENDPOINT 'https://your-delta-sharing-server.com/api/2.0/delta-sharing',
+        BEARER_TOKEN 'your_private_token'
+    );
+
+    -- Alternatively, if you have DELTA_SHARING_ENDPOINT and DELTA_SHARING_BEARER_TOKEN set in your environment:
+    CREATE SECRET (TYPE delta_sharing, PROVIDER env);
+
+    -- Discovering Content
+    SELECT * FROM delta_share_list();                                   -- shares
+    SELECT * FROM delta_share_list('my_share');                         -- schemas in a share
+    SELECT * FROM delta_share_list('my_share', 'my_schema');            -- tables in a schema
+    SELECT * FROM delta_share_list_all_tables('my_share');              -- every table across all schemas
+    SELECT * FROM delta_share_list('my_share', 'my_schema', 'my_table');-- a table's columns
+
+    -- Reading Tables
+    SELECT * FROM delta_share_read('my_share', 'my_schema', 'my_table') 
+    WHERE year = 2024 
+    LIMIT 100;
+
+    -- Time Travel
+    SELECT count(*) 
+    FROM delta_share_read('my_share', 'my_schema', 'my_table', '2024-04-09 12:00:00');
+
+    -- Change Data Feed (CDF)
+    SELECT * 
+    FROM delta_share_change_data_feed('my_share', 'my_schema', 'my_table', 10);
+
+  extended_description: |
+    duckdb_delta_sharing is an extension for **querying Delta Lake tables directly
+    from DuckDB**. It implements the Delta Sharing protocol, allowing you to stream
+    data from remote Delta Sharing servers with native performance.
+
+    **Capabilities:**
+    - **Ultra-Fast Native Reader**: Built directly on DuckDB's `MultiFileReader` and C++ Parquet scanner. No Python overhead.
+    - **Variant Type**: The VARIANT data type stores semi-structured data in binary format.
+    - **Time Travel**: Query your data as it existed at any point in history.
+    - **Change Data Feed (CDF)**: Easily track incremental additions, removals, and updates.
+    - **Advanced Predicate Pushdown**: Filters are pushed to the server to minimize data transfer.
+    - **Secure by Design**: Supports OAuth/Bearer token authentication and industry-standard encryption.
+    - **Query Telemetry**: Optional SQL tracking to help administrators optimize performance.
+
+    **Architecture:**
+    Traditional Delta Sharing clients often rely on heavy frameworks like Spark. This extension allows
+    DuckDB to pull Parquet files directly into its memory. It natively handles partition discovery
+    (automatically mapping folder structures to columns), deletion vectors (row-level deletes without
+    rewriting files), and schema evolution (safely mapping Delta types to DuckDB's native types).

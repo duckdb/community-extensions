@@ -1,0 +1,38 @@
+extension:
+  name: prometheus
+  description: Query Prometheus-compatible HTTP APIs directly from DuckDB
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: Apache-2.0
+  excluded_platforms: "linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - botan
+
+repo:
+  github: botan/duckdb-prometheus
+  ref: 9d8c511355b21444e5051c1e6d35f90e260ef8ac
+
+docs:
+  hello_world: |
+    -- Replace localhost:9090 with your Prometheus-compatible endpoint.
+    SELECT timestamp, job, instance, value
+    FROM prometheus_scan(
+        'up',
+        current_timestamp - INTERVAL '15 minutes',
+        current_timestamp,
+        endpoint := 'http://localhost:9090',
+        step := INTERVAL '1 minute',
+        labels := ['job', 'instance']
+    )
+    ORDER BY timestamp DESC, job, instance;
+  extended_description: |
+    Run instant PromQL queries with `prometheus_query` and range queries with
+    `prometheus_scan`; their `_many` variants accept multiple expressions. Each sample
+    contains `labels MAP(VARCHAR, VARCHAR)`, `timestamp TIMESTAMPTZ`, and `value DOUBLE`.
+    Pass `labels := [...]` to expose selected labels as columns.
+
+    Discovery functions list labels, label values, series, and metric metadata. Requests
+    are unauthenticated. See the [README](https://github.com/botan/duckdb-prometheus) for
+    function signatures and limitations.

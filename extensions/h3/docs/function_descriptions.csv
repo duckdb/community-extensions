@@ -49,6 +49,7 @@ h3_cells_to_directed_edge,Convert an origin/destination pair to directed edge ID
 h3_are_neighbor_cells,True if the two cell IDs are directly adjacent,"",""
 h3_directed_edge_to_boundary_wkt,Convert directed edge ID to linestring WKT,"",""
 h3_directed_edge_to_boundary_wkb,Convert directed edge ID to linestring WKB,"",""
+h3_reverse_directed_edge,Convert a directed edge to one where origin and destination are swapped,"",SELECT h3_reverse_directed_edge('115283473fffffff');
 h3_get_hexagon_area_avg,Get average area of a hexagon cell at resolution,"",""
 h3_cell_area,Get the area of a cell ID,"",""
 h3_get_hexagon_edge_length_avg,Average hexagon edge length at resolution,"",""

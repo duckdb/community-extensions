@@ -1,0 +1,292 @@
+# Submit this file to duckdb/community-extensions at
+# extensions/quackiso/description.yml
+# `ref` is the tagged release commit in tempoloss/quackiso.
+extension:
+  name: quackiso
+  description: Query ISO 20022 (camt, pacs, pain) and SWIFT MT financial messages as SQL
+  version: 1.7.0
+  language: Rust
+  build: cargo
+  license: MIT
+  maintainers:
+    - tempoloss
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust;python3"
+
+repo:
+  github: tempoloss/quackiso
+  ref: e8d69f85cad1130032f1b34e50a65e5ce206d64d
+
+docs:
+  hello_world: |
+    -- Bank statements as rows: camt.053, camt.054 and camt.052. A glob is
+    -- parsed in parallel, one worker per file.
+    SELECT booking_date, amount, currency, credit_debit, counterparty_name
+    FROM read_iso20022('statements/*.xml', threads := 8)
+    ORDER BY booking_date;
+
+    -- On 14 November 2026 CBPR+ stops accepting a fully unstructured postal
+    -- address, with no grace period. This is the question that comes before the
+    -- migration, over SWIFT MT and ISO 20022 at once: of the traffic already on
+    -- disk, which parties would be refused, and what is wrong with them.
+    SELECT family, role, address_format, count(*) AS parties, count(finding) AS refused
+    FROM audit_addresses('inbox/**/*')
+    GROUP BY family, role, address_format
+    ORDER BY refused DESC;
+
+    -- The counts say how far a party is from the rule. `address_text` says what
+    -- there is to work with. A free-text address whose town is already written
+    -- needs labelling, a bare one needs the data, and neither is the other.
+    SELECT address_text, address_lines, finding
+    FROM audit_addresses('inbox/**/*')
+    WHERE finding IS NOT NULL AND address_text IS NOT NULL
+    ORDER BY address_lines DESC;
+
+    -- What is in the folder, before choosing a reader: one row per file with
+    -- the message type, the reader that covers it, and the record count.
+    SELECT family, reader, count(*) AS files, sum(records) AS records
+    FROM sniff_iso20022('inbox/**/*.xml')
+    GROUP BY family, reader;
+
+    -- SWIFT MT is read the same way, by path: one row per :61: statement line.
+    -- A `:61:` states no currency of its own, so the statement's balance carries
+    -- it, along with the account, onto every entry.
+    SELECT account, value_date, credit_debit, amount,
+           closing_balance_currency, closing_balance
+    FROM read_mt940('statements/*.txt')
+    ORDER BY value_date;
+
+    -- MT101 is the FIN original of pain.001, and the grain follows it: one row
+    -- per transaction, the header carried onto each. The boundary is an exact
+    -- `:21:`, because `:21R:` and `:21F:` are different fields of the same number.
+    SELECT sender_reference, tx_ref, ordering_customer, beneficiary, amount,
+           currency, requested_execution_date
+    FROM read_mt101('requests/*.txt')
+    ORDER BY sender_reference, tx_ref;
+
+    -- MT104 collects instead of paying, so field 50a is the creditor and 59a the
+    -- debtor. A settlement sequence states the batch total after the last
+    -- transaction, and `:19:` is on the wire only when it differs from the sum of
+    -- them, which is what lets a caller check a batch adds up.
+    SELECT sender_reference, sum(amount) AS collected,
+           any_value(sum_of_amounts) AS stated, any_value(settlement_amount) AS settled
+    FROM read_mt104('collections/*.txt')
+    GROUP BY sender_reference
+    ORDER BY sender_reference;
+
+    -- Interbank credit transfers (pacs.008, the ISO 20022 MT103).
+    SELECT uetr, amount, currency, debtor_name, creditor_agent_bic
+    FROM read_pacs008('pacs008.xml');
+
+    -- Credit transfer initiation (pain.001). The payer lives on the <PmtInf>
+    -- group and is carried down to every transaction in it.
+    SELECT payment_info_id, debtor_name, creditor_name, amount,
+           requested_execution_date
+    FROM read_pain001('pain001.xml');
+
+    -- Direct debits (pain.008): the creditor pulls, the mandate makes it legal.
+    SELECT mandate_id, sequence_type, debtor_name, amount
+    FROM read_pain008('pain008.xml');
+
+    -- Payment returns (pacs.004): what came back, beside what was settled.
+    -- A return with charges deducted is amount < original_amount.
+    SELECT return_id, amount, original_amount, return_reason_code,
+           original_debtor_name, original_creditor_name
+    FROM read_pacs004('pacs004.xml');
+
+    -- Payment status reports (pain.002). A status is stated per batch, per
+    -- payment group and per transaction, and status_level says which a row is.
+    SELECT status_level, status, reason_code, original_end_to_end_id, amount
+    FROM read_pain002('pain002.xml')
+    WHERE status_level = 'TRANSACTION';
+
+    -- Payment status requests (pacs.028): asking where a payment already sent
+    -- got to. A request states no status of its own, so every monetary column
+    -- is original_*, and scope says whether the row is one transaction or a
+    -- whole original message.
+    SELECT scope, original_msg_id, original_uetr, original_amount,
+           original_settlement_date
+    FROM read_pacs028('pacs028.xml');
+
+    -- The mandate itself (pain.009), which a direct debit pulls against:
+    -- who may collect, from whom, how often and up to what.
+    SELECT mandate_request_id, sequence_type, frequency, creditor_name,
+           debtor_name, collection_amount
+    FROM read_pain009('pain009.xml');
+
+    -- The investigation family (camt.027 here): the claim that money never
+    -- arrived. All seven investigation readers share the assignment and case
+    -- columns, so one case joins across the messages that answer it.
+    SELECT case_id, case_creator, assigner, assignee, original_amount,
+           original_settlement_date
+    FROM read_camt027('camt027.xml');
+
+    -- Amounts are DECIMAL(38,5), so totals are exact.
+    SELECT currency, SUM(amount) AS total
+    FROM read_iso20022('statements/*.xml')
+    WHERE credit_debit = 'DBIT'
+    GROUP BY currency;
+  extended_description: |
+    quackiso reads ISO 20022 and SWIFT MT financial messages directly into DuckDB
+    tables. No Python preprocessing step, no per-schema glue code: point a table
+    function at bank XML or at a folder of MT statements and get transactions as
+    rows.
+
+    Thirty-seven functions: thirty-five readers covering the payment lifecycle end
+    to end, in both directions, a sniffer that routes files to them, and an
+    address audit that reads both wire formats at once.
+
+    One of them has a date attached. On 14 November 2026 CBPR+ stops accepting a
+    fully unstructured postal address, with no grace period, and
+    `audit_addresses(path)` answers the question that comes before that migration:
+    of the traffic already on disk, which parties would be refused, and why. It
+    reads SWIFT MT as well as ISO 20022, and that is the point rather than a
+    bonus - an MT `:50K:` is a name and then free-text address lines, which is
+    exactly the shape that stops being accepted, so a migration answered on the
+    XML half alone is answered on the easier half. One classifier grades both
+    wires, so an MT party and an ISO 20022 party cannot disagree about what
+    UNSTRUCTURED means.
+
+    It reports the address lines themselves beside the counts, because a refusal
+    names what is missing while the lines are what there is to work with, and
+    neither follows from the other. A free-text address whose town is already
+    written needs that town moved into an element; a bare one needs a town
+    collected. Both carry the same finding, and telling them apart is a reading of
+    the data, so the audit hands over the lines rather than guessing a town out of
+    free text.
+
+    * `read_iso20022(path)` - camt.053 statements, camt.054 notifications and
+      camt.052 reports; one row per booked entry.
+    * `read_camt057(path)` - notifications to receive: money on its way in and
+      not yet booked; one row per expected item, with the account carried down
+      from its notification.
+    * `read_pacs008(path)` / `read_pacs009(path)` - customer and
+      financial-institution credit transfers (the ISO 20022 MT103 and
+      MT202/MT202COV); in the COV form the `underlying_*` columns carry the
+      customer transfer the cover settles.
+    * `read_pain001(path)` / `read_pain008(path)` - credit transfer and direct
+      debit initiation; the paying or collecting side lives on the `<PmtInf>`
+      group and is carried down, and direct debits carry the mandate.
+    * `read_pain009(path)` / `read_pain010(path)` / `read_pain011(path)` /
+      `read_pain012(path)` - the mandate's own lifecycle: the authorisation a
+      direct debit pulls against, its amendments, its cancellation and the
+      report that accepts or refuses each of the three. One row per mandate
+      record, with the amendment naming both the mandate it changes and what it
+      becomes.
+    * `read_pain013(path)` / `read_pain014(path)` - request to pay: the creditor
+      asking the debtor to activate a payment, and the answer. The request's
+      debtor and payment terms live on the `<PmtInf>` group and are carried down;
+      the answer states its status at group, payment-info or transaction level,
+      whichever the debtor's bank used.
+    * `read_pacs003(path)` / `read_pacs010(path)` - the interbank leg of a
+      direct debit collection, and the form where both sides are banks; there
+      the collecting bank sits on the credit instruction and is carried down.
+    * `read_pain002(path)` / `read_pacs002(path)` - payment status reports,
+      customer- and interbank-side; one row per status statement, at whichever
+      level the bank stated it, because a batch can be accepted or rejected
+      without a single transaction being detailed.
+    * `read_pacs028(path)` - payment status requests: the "where is my money?"
+      message, asking another bank for the status of a payment already sent. A
+      request carries no status of its own, so every monetary column is
+      `original_*`, and a request naming a whole original message with no
+      transaction detail is still a row.
+    * `read_pacs004(path)` / `read_pacs007(path)` - returns and reversals:
+      settled money coming back, from the receiver or taken back by the sender;
+      the returned amount sits beside the original, so partial returns are
+      visible.
+    * `read_camt056(path)` / `read_camt055(path)` / `read_camt029(path)` -
+      cancellation requests (interbank and customer-side) and the resolution
+      that answers them; a whole-batch cancellation with no transactions is
+      still a row.
+    * `read_camt027(path)` / `read_camt028(path)` / `read_camt030(path)` /
+      `read_camt031(path)` / `read_camt036(path)` / `read_camt037(path)` /
+      `read_camt087(path)` - the investigation family: the claim that the money
+      never arrived, the information that answers it, the notification that the
+      case moved, the refusal, the debit authorisation request and its response,
+      and the request to modify a payment rather than cancel it. All seven share
+      the same assignment and case columns, so one case joins across them.
+    * `read_mt101(path)` / `read_mt103(path)` / `read_mt104(path)` /
+      `read_mt202(path)` / `read_mt940(path)` / `read_mt942(path)` - SWIFT MT, the
+      FIN originals the pacs and pain messages replaced and banks still send: the
+      request for transfer, the customer transfer, the direct debit, the interbank
+      transfer with its COV cover, the customer statement and the interim report.
+      MT is flat tag-structured text rather than XML, so these share the scan and
+      column machinery and nothing else; the statement readers carry the account
+      and its balances onto every `:61:` line, and MT101 and MT104 carry their
+      header onto every transaction the way pain.001 carries a `<PmtInf>`. An
+      MT104 also states a batch total after its last transaction, reported beside
+      the sum of them because the format writes `:19:` only when the two differ.
+      MT carries no namespace, so the sniffer identifies it by its block structure
+      instead, and routes it the same way it routes XML.
+    * `sniff_iso20022(path)` - inventory before reading: one row per file with
+      the detected message type, the family, the count of record elements a
+      reader would turn into rows, and the reader that covers it. Identity comes
+      from the namespace, the era-spelled container names, the envelope binding,
+      or an MT block header, and content problems land in an
+      `error` column instead of aborting the scan, so a folder of mixed
+      downloads is a table rather than a failure.
+    * `audit_addresses(path)` - every party of every message beside the shape of
+      its postal address, classified against the CBPR+ rule that takes effect on
+      14 November 2026, when a fully unstructured address stops being accepted.
+      One row per party occurrence rather than per transaction, because the
+      question is asked across families: of the traffic already on disk, which
+      parties would be refused and why. It reads ISO 20022 and SWIFT MT through
+      one classifier, which is the point - an MT `:50K:` is a name and then
+      free-text lines, the shape the rule refuses, and `:50F:` states the town
+      and the country in a subfield where a translator can find them. The facts
+      and the verdict are separate columns: `address_format`, the counts and the
+      leaves are read off the wire, and `finding` is NULL when nothing in the
+      party would be refused.
+
+    All exception and status readers expose the original references (UETR,
+    end-to-end id, original message id), so one payment joins across its whole
+    lifecycle: initiation, settlement, status, cancellation, resolution, return.
+
+    Amounts are `DECIMAL(38,5)`, never `DOUBLE`. Values are converted from the
+    wire string straight to a scaled integer and never touch a float, so `SUM` is
+    exact; ISO 20022 permits 18 significant digits with up to 5 fraction digits,
+    which a 64-bit `DECIMAL(18,5)` cannot hold. An amount that cannot be
+    represented exactly raises an error rather than becoming a NULL that would
+    silently drop out of a total.
+
+    Dates are typed rather than left as text; offsets are normalised to UTC, and
+    both the `<Dt>` and `<DtTm>` wrappings are read.
+
+    Parsing is a streaming pass over XML events, so the peak is one output batch
+    plus the largest single XML subtree rather than the file: a 1.7 GB statement
+    of three million entries parses in 1.23 MiB of live heap and about 2 MB
+    resident, measured by `cargo test --release membound -- --ignored`, and
+    adds 7.7 MiB to a running DuckDB. A glob is parsed in parallel, one worker
+    per file - XML has no safe split points, so a single document is never
+    divided - with `threads := n` to pin the pool, itself capped at four times
+    the machine's parallelism; measured 6.9x on 8 files of 35 MB.
+
+    A file of the wrong message type fails loudly instead of returning an empty
+    table. The transaction element names collide across families (camt.056 and
+    pacs.004 both say `TxInf`, pacs.008 and pain.001 both say `CdtTrfTxInf`),
+    so identity is the message's own container and rows are only produced
+    inside it.
+
+    A file that is not XML at all is refused before it is buffered. An XML reader
+    reads at most 64 KiB of the decompressed input first: no markup in that
+    prefix, or a SWIFT MT block header ahead of any markup, is an error naming
+    the reason. Rejecting an 8 MiB file costs what rejecting a 128 KiB one does,
+    0.86 MiB of live heap, because the reader never reaches the parser. Markup
+    inside the prefix still goes to the parser, so a malformed document keeps its
+    own diagnostics; `sniff_iso20022` still reports a non-XML file as a row
+    rather than failing the scan, and the `read_mt*` readers keep their own
+    framing.
+
+    Tested against around 283 real messages from more than a dozen sources -
+    Goldman Sachs US/UK/EU and wire, SIX interbank, CBPR+, ProgressSoft,
+    Nivaes, Prowide, OpenBankProject, Mbanq, Handelsbanken, issettled, prog-nov,
+    salesking and Dolibarr among them - spanning twenty-seven message families
+    and every era of their vocabulary: renamed reason blocks, renamed
+    containers, namespace-prefixed subtrees, group-level fields carried down,
+    bare BICs where later editions put a party choice, and party
+    sides that reverse in a return. Every behaviour that looks like a special
+    case came from one of those files.
+
+    Paths are local files or globs; every row records its `source_file`. Remote
+    URIs and XSD validation are deliberately absent, with the reasoning recorded
+    in `docs/adr/`.

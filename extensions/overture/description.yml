@@ -1,0 +1,44 @@
+extension:
+  name: overture
+  description: Overture Maps helpers for DuckDB - geocoding, category normalization, spatial tiling, and reader macros for places, buildings, roads, and addresses
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - flipbitsnotburgers
+
+repo:
+  github: cubilica/duckdb-overture
+  ref: 26d03c207f575d8fbf3d6884c4b6acdc497cac68
+
+docs:
+  hello_world: |
+    -- Forward geocoding
+    SELECT * FROM geocode('nørrebrogade', west:=12.4, east:=12.7, south:=55.6, north:=55.8);
+
+    -- Reverse geocoding
+    SELECT * FROM reverse_geocode(55.6836, 12.5716);
+
+    -- Map Overture categories
+    SELECT overture_category('coffee_shop');
+
+    -- Spatial tile key
+    SELECT st_tile_index(52.52, 13.405);
+
+    -- Read Overture places with bbox filtering and category mapping (requires spatial + httpfs)
+    LOAD spatial; LOAD httpfs;
+    SET s3_region='us-west-2';
+    SELECT * FROM read_overture_places(west:=13.0, east:=13.8, south:=52.3, north:=52.7) LIMIT 10;
+
+  extended_description: |
+    DuckDB extension for working with Overture Maps data. Provides forward and reverse geocoding
+    against Overture addresses, category normalization (80+ Overture categories to ~30 normalized
+    ones, customizable via SQL), spatial grid tiling, and table macros for reading places,
+    buildings, roads, and addresses with bbox filtering.
+
+    The S3 bucket and Overture release version are configurable via variables:
+      SET VARIABLE overture_release = '2026-03-18.0';
+      SET VARIABLE overture_s3_base = 's3://my-mirror/overture';
+
+    Works in both native DuckDB and DuckDB-WASM.

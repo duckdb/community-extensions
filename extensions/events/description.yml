@@ -1,0 +1,14 @@
+docs:
+  extended_description: For more information regarding usage, see the [documentation](https://github.com/Query-farm/events).
+extension:
+  build: cmake
+  description: A extension that hooks into database events and sends JSON-formatted notifications to external programs.
+  language: C++
+  license: Apache-2.0
+  maintainers:
+  - rustyconover
+  name: events
+  version: '2026041501'
+repo:
+  github: query-farm/events
+  ref: d6e9afda80991072386f64825c5c11339f051e99

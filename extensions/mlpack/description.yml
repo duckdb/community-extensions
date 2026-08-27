@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: eddelbuettel/duckdb-mlpack
-  ref: 8437d78423e3cfc65f9226606908b301c2314710
-  ref_next: 013bee3310127e1523763b4a4419a18027f205d6
+  andium: 8437d78423e3cfc65f9226606908b301c2314710
+  ref: ead4698674d803909b1f9c01b083ecc7ea586c3a
 
 docs:
   hello_world: |
@@ -27,7 +27,7 @@ docs:
     CREATE TABLE M (key VARCHAR, json VARCHAR);
 
     -- Train model for 'Y' on 'X' using parameters 'Z', store in 'M'
-    CREATE TEMP TABLE A AS SELECT * FROM mlpack_adaboost("X", "Y", "Z", "M");
+    CREATE TEMP TABLE A AS SELECT * FROM mlpack_adaboost_train("X", "Y", "Z", "M");
 
     -- Count by predicted group
     SELECT COUNT(*) as n, predicted FROM A GROUP BY predicted;
@@ -53,7 +53,7 @@ docs:
     It uses three tables for data, parameters and results.
   
     ### General Information
-    A pair of paramaters "mlpack_verbose" (to show additional data) and "mlpack_silent" (to suppress display of minimal summaries) can also be set.
+    A pair of parameters "mlpack_verbose" (to show additional data) and "mlpack_silent" (to suppress display of minimal summaries) can also be set.
 
     The implementation still stresses the 'minimal' part of 'a (initial) MVP demo' (where MVP stands for 'minimally viable product').
     It wraps five supervised and unsupervised machine learning methods, and provides Linux and macOS builds.

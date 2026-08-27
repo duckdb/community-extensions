@@ -1,0 +1,75 @@
+extension:
+  name: duck_diff
+  description: Diff two relations (tables, queries) off a primary key, reporting per-key status (identical/different/left_only/right_only), a JSON summary of changed columns, and per-column left/right values.
+  version: 0.3.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - avaitla
+
+repo:
+  github: avaitla/duck_diff
+  ref: 9afb9a05ab3ab1b1cfbc27a8fdf2e81b157ed0b4
+
+docs:
+  hello_world: |
+    LOAD duck_diff;
+
+    -- Create two sample snapshots
+    CREATE TABLE users_v1 AS SELECT * FROM (VALUES
+        (1, 'Ada',   'ada@x.com',   100),
+        (2, 'Linus', 'linus@x.com',  50),
+        (3, 'Grace', 'grace@x.com',  75)
+    ) t(id, name, email, credits);
+
+    CREATE TABLE users_v2 AS SELECT * FROM (VALUES
+        (1, 'Ada',   'ada@x.com',   120),   -- credits changed
+        (2, 'Linus', 'linus@x.com',  50),   -- unchanged
+        (4, 'Mike',  'mike@x.com',   10)    -- new (id 3 removed)
+    ) t(id, name, email, credits);
+
+    -- Diff them off the primary key
+    SELECT id, diff_status, diff_data, credits_left, credits_right
+    FROM table_diff('FROM users_v1', 'FROM users_v2', pk := 'id')
+    ORDER BY id;
+
+    -- Or get counts and percentages per status
+    SELECT * FROM table_diff_summary('FROM users_v1', 'FROM users_v2', pk := 'id');
+
+  extended_description: |
+    `duck_diff` finds the difference between two tables — which can be on
+    entirely different systems if needed. Typical uses:
+
+    - Checking a copy is faithful: CDC pipelines, read replicas, warehouse
+      ELT, migrations. Per-key results show stale rows, missed deletes, and
+      missing inserts that row counts hide.
+    - Verifying a SQL rewrite (refactor, dialect translation, performance
+      work) returns the same rows as the original.
+    - Letting a coding agent such as Claude verify its own changes: the check
+      is deterministic (`n_total = n_identical`), so an agent can rewrite,
+      run the diff, and repeat until it passes — with Claude Code's
+      [`/goal`](https://code.claude.com/docs/en/goal), set the diff returning
+      true as the completion condition and it keeps working across turns
+      until that verifiably holds.
+
+    Each key gets a status (`identical` / `different` / `left_only` /
+    `right_only`), a JSON `diff_data` of the changed columns, and
+    `<c>_left` / `<c>_right` / `<c>_diff_status` columns. Composite keys are
+    supported; `upcast_types`, `numeric_tolerance`, `timestamp_precision`,
+    `null_equals_empty`, and `columns` / `ignore` / `context` control the
+    comparison across engines.
+
+    **Links:**
+    [website & cross-database recipe builder](https://avaitla.github.io/duck_diff/) ·
+    [function reference](https://github.com/avaitla/duck_diff/blob/main/docs/functions.md) ·
+    [runnable demos (MySQL, Postgres, ClickHouse, BigQuery, Snowflake, Iceberg, DuckLake, S3 Tables)](https://github.com/avaitla/duck_diff/tree/main/demo) ·
+    [AI-assisted migration guide](https://github.com/avaitla/duck_diff/blob/main/docs/ai-assisted-migration.md)
+
+    **Functions:**
+
+    | Function | Returns | Purpose |
+    |----------|---------|---------|
+    | `table_diff(left, right, pk := ...)` | table | one row per key: key column(s), `diff_status`, `diff_data`, expanded columns |
+    | `table_diff_summary(left, right, pk := ...)` | one row | counts (and percentages) per status |
+    | `schema_diff(left, right)` | table | per-column name/type comparison — reads no rows |

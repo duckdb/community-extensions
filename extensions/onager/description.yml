@@ -1,18 +1,18 @@
 extension:
   name: onager
   description: A DuckDB extension for graph data analytics
-  version: 0.1.0-alpha.4
+  version: 0.4.0
   language: Rust & C++
   build: cmake
   license: MIT OR Apache-2.0
   maintainers:
     - habedi
-  excluded_platforms: "windows_amd64_mingw;osx_amd64;wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "windows_amd64_mingw;osx_amd64;wasm_threads"
   requires_toolchains: rust
 
 repo:
   github: CogitatorTech/onager
-  ref: b6c46f7d989002d2b46cdcf392b5bed93f3cbaaf
+  ref: 49ad15b52321b914eb31710788418f2c01d4ba43
 
 docs:
   hello_world: |
@@ -37,3 +37,4 @@ docs:
     Onager is a graph analytics toolbox for DuckDB.
     For more information, visit the [GitHub repository](https://github.com/CogitatorTech/onager)
     or the [Onager documentation](https://cogitatortech.github.io/onager/).
+    You can also try Onager in your browser [here](https://cogitatortech.github.io/onager/playground/).

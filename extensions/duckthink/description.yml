@@ -1,0 +1,33 @@
+extension:
+  name: duckthink
+  description: ASK() — natural-language SQL for DuckDB, grounded in your dbt Semantic Layer
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw"
+  maintainers:
+    - pedro-filardi
+repo:
+  github: pedro-filardi/duckthink
+  ref: a5b93d09875d3c48124d3bb7640730708cc8f36e
+docs:
+  hello_world: |
+    CREATE SECRET oai (TYPE openai, API_KEY 'sk-...');
+    CREATE MODEL('gpt', 'gpt-4o-mini', 'openai');
+    SET ask_model = 'gpt';
+    -- Ground ASK in your dbt Semantic Layer: metrics, entities and tags come from the
+    -- manifest, and a tag scopes the question to a business domain — no ON (...) needed.
+    SET ask_dbt_semantic_manifest = 'target/manifest.json';
+    SET ask_dbt_scope_tags = 'support';
+    ASK('average ticket resolution time by team this month')
+      RETURN (team VARCHAR, avg_hours DECIMAL);
+  extended_description: |
+    duckthink brings ASK() — natural-language-to-SQL — to DuckDB, grounded in your dbt Semantic
+    Layer. Point it at a dbt manifest (SET ask_dbt_semantic_manifest) and generation uses your
+    real semantic models, metrics, entities and tags — so "gross margin" or "attrition rate"
+    resolve to their exact definitions instead of the model's best guess — and a dbt tag
+    (SET ask_dbt_scope_tags) scopes a question to a business domain. ASK writes exactly one
+    read-only SELECT over the tables in scope, executes it, and returns typed rows. It also runs
+    over the plain DuckDB catalog with no dbt, and optional embedding-based table retrieval
+    (SET ask_embed_model) scales it to large schemas. Works with OpenAI, Ollama or Anthropic.

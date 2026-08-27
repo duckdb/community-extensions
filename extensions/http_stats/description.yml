@@ -1,0 +1,56 @@
+extension:
+  name: http_stats
+  description: Better HTTP statistics for DuckDB
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - tlinhart
+repo:
+  github: tlinhart/duckdb-http-stats
+  ref: c7e3cff310bfe13e6e408ceb73865c43d6c82ef5
+  ref_next: db5ba06f18f803e9c6e34ca79568a9091ad098be
+docs:
+  hello_world: |
+    -- Run a query against remote source(s) with profiling enabled.
+    EXPLAIN ANALYZE SELECT * FROM (
+        SELECT count(*) FROM read_json('https://httpbin.org/json')
+        UNION ALL
+        SELECT count(*) FROM read_json('https://jsonplaceholder.typicode.com/todos/1')
+    );
+
+    -- ┌──────────────────────────────────────┐
+    -- │┌────────────────────────────────────┐│
+    -- ││             HTTP Stats             ││
+    -- ││                                    ││
+    -- ││    jsonplaceholder.typicode.com    ││
+    -- ││    ────────────────────────────    ││
+    -- ││          Total Requests: 2         ││
+    -- ││           HEAD: 1  GET: 1          ││
+    -- ││     in: 83 bytes  out: 0 bytes     ││
+    -- ││          Total Time: 0.19s         ││
+    -- ││                                    ││
+    -- ││             httpbin.org            ││
+    -- ││             ───────────            ││
+    -- ││          Total Requests: 2         ││
+    -- ││           HEAD: 1  GET: 1          ││
+    -- ││     in: 429 bytes  out: 0 bytes    ││
+    -- ││          Total Time: 1.12s         ││
+    -- │└────────────────────────────────────┘│
+    -- └──────────────────────────────────────┘
+  extended_description: |
+    The HTTP stats extension transparently intercepts all HTTP traffic and collects
+    request statistics (request counts, bytes sent and received and request time) on a
+    per-host basis. The collected statistics are surfaced through DuckDB's `EXPLAIN ANALYZE`
+    output.
+
+    The extension works alongside the HTTPFS extension, which provides DuckDB with HTTP(S)
+    and S3 file system support. When both extensions are loaded, HTTP stats wraps HTTPFS's
+    HTTP backend to measure traffic while HTTPFS handles the actual transport.
+
+    Key advantages over HTTPFS's built-in profiling:
+    - Works correctly when querying DuckDB databases stored on S3.
+    - Provides per-host breakdown for queries that fetch data from multiple remote servers.
+
+    For detailed documentation, visit the [extension repository](https://github.com/tlinhart/duckdb-http-stats).
