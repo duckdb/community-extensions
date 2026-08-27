@@ -9,7 +9,7 @@ extension:
     - paulmupeters
 repo:
   github: paulmupeters/spxlsx
-  ref: v0.1.5
+  ref: d8fe6ddcedc9eeccfdb6827f8955514adcd0c284
 docs:
   hello_world: |
     LOAD spxlsx;
