@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: Flamefork/duckdb-jsono
-  ref: v0.1.2
+  ref: 2de74326d63862c3c5c60a919e136d19b412d0ca
 
 docs:
   hello_world: |
