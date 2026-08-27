@@ -51,4 +51,4 @@ extension:
   version: '2026082701'
 repo:
   github: query-farm/httpclient
-  ref: c95c595f1d0ae960a50e0e13328e3b0debd1f44b
+  ref: b13df7a2c53dc1180b4aa6d6899c99742f4ee919
