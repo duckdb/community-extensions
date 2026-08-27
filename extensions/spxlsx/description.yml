@@ -1,7 +1,7 @@
 extension:
   name: spxlsx
   description: Query SharePoint lists and Excel workbooks directly from DuckDB
-  version: 0.1.4
+  version: 0.1.5
   language: C++
   build: cmake
   license: MIT
@@ -9,7 +9,7 @@ extension:
     - paulmupeters
 repo:
   github: paulmupeters/spxlsx
-  ref: v0.1.4
+  ref: d8fe6ddcedc9eeccfdb6827f8955514adcd0c284
 docs:
   hello_world: |
     LOAD spxlsx;
