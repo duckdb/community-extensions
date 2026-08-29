@@ -1,17 +1,18 @@
 extension:
   name: anofox_tabfm
-  description: Zero-shot tabular machine learning inside DuckDB — classification, regression, synthetic-data generation and imputation with real tabular foundation models (Mitra, TabPFN v2/2.5/3, TabICL, Orion-BiX, TabFM) on ONNX Runtime, no training loop
-  version: '2026.08.15'
+  description: Zero-shot tabular machine learning inside DuckDB — classification, regression, synthetic-data generation and imputation with real tabular foundation models (Mitra, TabDPT, TabPFN v2/2.5/2.6/3, TabICL, Orion-BiX/MSP, TabFM) on ONNX Runtime, no training loop
+  version: '2026.08.29'
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - sipemu
+    - jrosskopf
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
 
 repo:
   github: DataZooDE/anofox-tabfm
-  ref: 51f0850f0e635d35b7ba054b1bd732b18a026c35
+  ref: 94d7f0e45a2bd18066b8f52bf004a81351511dd6
 
 docs:
   hello_world: |
@@ -44,18 +45,31 @@ docs:
     MLOps: the model reads your labelled rows as context and predicts the rest.
 
     ### Built-in models
-    Seven models ship in the extension and are selected with `model :=` (or a
-    `SET anofox_tabfm_default_model` once per session):
+    Eleven models ship in the extension and are selected with `model :=` (or a
+    `SET anofox_tabfm_default_model` once per session). The catalog covers the
+    entire top five of the [TabArena](https://huggingface.co/spaces/TabArena/leaderboard)
+    v0.1.4 leaderboard.
+
+    Commercially usable:
 
     - **mitra** — AWS AutoGluon (Apache-2.0), no license gate, ~300 MB. A great default.
+    - **tabdpt** — Layer 6 AI (Apache-2.0), no license gate. Classification and
+      regression from one checkpoint; needs no weight conversion step.
     - **tabpfn-v2** — Prior Labs (Apache-2.0, attribution).
     - **tabicl-v2** — Inria (BSD-3-Clause).
     - **orion-bix** — Lexsi Labs (MIT), no license gate. Classification only.
-    - **tabpfn-v2-5** — Prior Labs TabPFN 2.5. **Non-commercial**: the weights
-      and their outputs may not be used for commercial or production purposes.
-    - **tabpfn-v3** — Prior Labs TabPFN 3. **Non-commercial**: testing,
-      evaluation and internal benchmarking only.
-    - **tabfm-v1** — Google TabFM (non-commercial, gated; ~6.6 GB).
+    - **orion-msp** — Lexsi Labs (MIT), no license gate. Classification only.
+
+    **Non-commercial** — the weights and their outputs may not be used for
+    commercial or production purposes:
+
+    - **tabpfn-v2-5** — Prior Labs TabPFN 2.5.
+    - **tabpfn-v2-5-real** — RealTabPFN 2.5, the same architecture continued
+      pre-trained on real tabular data.
+    - **tabpfn-v2-6** — Prior Labs TabPFN 2.6. Handles up to 50k rows / 2000 features.
+    - **tabpfn-v3** — Prior Labs TabPFN 3. Testing, evaluation and internal
+      benchmarking only.
+    - **tabfm-v1** — Google TabFM (gated; ~6.6 GB).
 
     `SELECT model, license, commercial FROM tabfm_list_models()` reports each
     model's license and whether it is commercially usable — worth checking
