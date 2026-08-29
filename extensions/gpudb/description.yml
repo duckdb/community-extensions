@@ -119,11 +119,13 @@ docs:
     handful of groups) stays a native win on Metal, and the first top-k call
     loses to native's zonemap top-k — both kept in the tables.
 
-    Community binaries ship the full Metal path on Apple Silicon and the CUDA
-    backend on Linux when the CUDA toolchain is present (CPU fallback
-    otherwise — same SQL surface either way, `LOAD` never fails on GPU-less
-    machines). `SELECT gpu_build_info();` reports which backends a binary
-    carries.
+    The community binary carries the full Metal backend on Apple Silicon. On
+    Linux the community binary is CPU-only (the community build machines have
+    no CUDA toolchain): every function works and returns the same results,
+    with `gpu_last_stats()` reporting `backend=CPU`. For the CUDA backend on
+    Linux use the release binary from the project's GitHub releases (static
+    CUDA runtime, needs only a driver) or build from source with `nvcc`.
+    `SELECT gpu_build_info();` reports which backends a binary carries.
 
     Source: https://github.com/singhpratech/duckdbgpumetaldbram
 
