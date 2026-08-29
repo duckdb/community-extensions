@@ -1,7 +1,7 @@
 extension:
   name: fusion_scanner
   description: Query Oracle Fusion from DuckDB through BI Publisher, with SSO, an ATTACH-able catalog and cached metadata
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: krokozyab/ofquack
-  ref: 0bb99ecbfdace76e2bc25245767279d2910ff604
+  ref: 8490c817869f4049b9372e9520cf081a4c80f5b4
 
 docs:
   hello_world: |
