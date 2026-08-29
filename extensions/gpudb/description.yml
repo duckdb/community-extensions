@@ -130,7 +130,10 @@ docs:
     Source: https://github.com/singhpratech/duckdbgpumetaldbram
 
   hardware_requirements: |
-    NVIDIA CUDA: any GPU with sm_75 or later. Driver 525+ recommended.
+    NVIDIA CUDA (release binary or source build, not the community binary):
+    any GPU with sm_75 or later; the release binary's static CUDA 13 runtime
+    needs driver 580 or newer, a source build needs only the driver matching
+    your toolkit.
     Apple Metal: any Apple Silicon Mac (M1 or later). macOS 13+ for
     int64 atomics; macOS 15+ for MSL 3.2.
     Falls back to CPU otherwise.
