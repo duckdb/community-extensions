@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: intellekthq/duckdb-pst
-  ref: v0.2.1
+  ref: d0a69a498c7726b7b75ed32616c7feac3271ff55
 
 docs:
   hello_world: |
