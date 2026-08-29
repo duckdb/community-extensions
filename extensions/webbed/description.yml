@@ -17,7 +17,7 @@ repo:
   andium: ddda30f11352138b2451657419640370d1612137
   # andium (DuckDB v1.4.5 track) left at its prior commit; the v2.8.0
   # correctness fixes ship on the v1.5.x track via ref.
-  ref: 5b446b5e47a4cef651d5ceb4272cb8c3da1cb33b
+  ref: f55e0bd9355813eeebf3e4b3bc4477f8d62685b1
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
