@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.7.0
+  version: 2.8.0
   language: C++
   build: cmake
   license: MIT
@@ -15,9 +15,9 @@ extension:
 repo:
   github: teaguesterling/duckdb_webbed
   andium: ddda30f11352138b2451657419640370d1612137
-  # andium (DuckDB v1.4.5 track) left at its prior commit; the v2.7.0
+  # andium (DuckDB v1.4.5 track) left at its prior commit; the v2.8.0
   # correctness fixes ship on the v1.5.x track via ref.
-  ref: c1b32efa4b8106d04ae74d0d898d9a650461792f
+  ref: f55e0bd9355813eeebf3e4b3bc4477f8d62685b1
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
