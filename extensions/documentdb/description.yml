@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: documentdb/duckdb-documentdb
-  ref: 4f2316f0f14c08f107a8e1d573d0439bfcfe26e4
+  ref: 333524efa1067bff895013ecb718ac55363a1e09
 
 docs:
   hello_world: |
