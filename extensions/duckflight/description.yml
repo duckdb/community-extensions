@@ -1,0 +1,25 @@
+extension:
+  name: duckflight
+  description: PostgreSQL wire-protocol and Arrow Flight SQL endpoints for a DuckDB database
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - nicosuave
+
+repo:
+  github: sidequery/duckflight-extension
+  ref: b444517f86ad7ce9a86496282499808247795680
+
+docs:
+  hello_world: |
+    -- Reports whether the embedded DuckFlight runtime loaded successfully.
+    SELECT * FROM duckflight_core_status();
+  extended_description: |
+    DuckFlight exposes PostgreSQL wire-protocol and Arrow Flight SQL servers backed by the exact
+    DuckDB database that loaded this extension. Production artifacts embed the platform-specific
+    DuckFlight core into the extension, so INSTALL and LOAD require no sidecar download. Network
+    clients authenticate through the configured authentication and TLS file.
