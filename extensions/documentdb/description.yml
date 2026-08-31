@@ -4,6 +4,7 @@ extension:
   version: 0.1.0
   language: C++
   build: cmake
+ vcpkg_commit: bd93b56711a393a3c498991e023f94b7542832bb
   license: MIT
   maintainers:
     - sandeepsnairms
