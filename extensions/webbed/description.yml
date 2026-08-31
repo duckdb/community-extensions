@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.8.0
+  version: 2.8.1
   language: C++
   build: cmake
   license: MIT
@@ -15,14 +15,17 @@ extension:
 repo:
   github: teaguesterling/duckdb_webbed
   andium: ddda30f11352138b2451657419640370d1612137
-  # andium (DuckDB v1.4.5 track) left at its prior commit; the v2.8.0
+  # andium (DuckDB v1.4.5 track) left at its prior commit; the v2.8.1
   # correctness fixes ship on the v1.5.x track via ref.
-  ref: f55e0bd9355813eeebf3e4b3bc4477f8d62685b1
+  ref: 9823acc1514ac017b26ca6cd85ac9ba7b8295755
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
     -- Load the extension
     LOAD webbed;
+
+    -- Read HTML files directly as structured document blocks
+    SELECT * FROM read_html_blocks('index.html');
 
     -- Read XML files directly into tables
     SELECT * FROM 'data.xml';
@@ -60,7 +63,7 @@ docs:
 
     **HTML Processing & Web Scraping**: Advanced HTML parsing capabilities with specialized functions for web data extraction. Extract text content with `html_extract_text()`, parse HTML tables into structured data with `html_extract_tables()`, extract links with metadata using `html_extract_links()`, and extract images with attributes using `html_extract_images()`. Perfect for web scraping and HTML document analysis workflows.
 
-    **Document Block Processing**: Convert HTML documents to and from structured block representations with `html_to_duck_blocks()` and `duck_blocks_to_html()`. Supports paragraphs, headings, code blocks, tables, lists, inline formatting (bold, italic, links, etc.), and frontmatter preservation. Integrates with the `duck_block_utils` extension for full Markdown support.
+    **Document Block Processing**: Convert HTML documents to and from structured block representations with `read_html_blocks()`, `parse_html_blocks()`, `html_to_duck_blocks()`, and `duck_blocks_to_html()`. Supports paragraphs, headings, code blocks, tables, lists, inline formatting (bold, italic, links, etc.), and frontmatter preservation. Integrates with the `duck_block_utils` extension for full Markdown support.
 
     **Smart Schema Inference & File Reading**: Automatically flatten XML/HTML documents into relational tables with intelligent type detection for dates, numbers, booleans, and nested structures. Functions like `read_xml()` and `read_html()` provide direct file-to-table conversion with configurable options including `datetime_format` presets, `nullstr` for custom NULL values, and schema customization. **SAX streaming** (v2.0) automatically handles files over 16MB using a push parser that processes XML in 64KB chunks — peak memory stays proportional to a single record, not the file size.
 
@@ -79,7 +82,9 @@ docs:
 
     **Key HTML Functions**:
     - `read_html(pattern)` - Read HTML files into tables
-    - `html_extract_tables(html)` - Extract HTML tables as structured data (this will often require post-processing given the possible complexity of HTML tables)
+    - `read_html_blocks(pattern)` - Read HTML files directly into flattened `duck_block` rows
+    - `parse_html_blocks(content)` - Parse HTML strings directly into flattened `duck_block` rows
+    - `html_extract_tables(html)` - Extract HTML tables as structured data
     - `html_extract_links(html)` - Extract all links with metadata
     - `html_extract_images(html)` - Extract images with attributes
     - `html_extract_text(html, xpath)` - XPath-based HTML text extraction
@@ -90,4 +95,4 @@ docs:
 
     See https://duckdb-webbed.readthedocs.io for comprehensive documentation and examples.
 
-    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 94 test suites with 3155 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
+    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 95 test suites with 3261 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
