@@ -1,7 +1,7 @@
 extension:
   name: motorsport_telemetry
   description: Query AiM MP4, Cosworth PDS, MoTeC LD, Racelogic VBOX and .telemetry recordings directly in DuckDB, with stint-aware laps
-  version: 1.3.3
+  version: 1.3.4
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobi/duckdb_motorsport_telemetry
-  ref: 0f7b0472e6a2356c477228cd4b86f308d85afdd8
+  ref: e9d941d7f3a88a7bb279ceada8555c3c90e611d1
 
 docs:
   hello_world: |
