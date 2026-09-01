@@ -1,7 +1,7 @@
 extension:
   name: duckflight
-  description: PostgreSQL wire-protocol and Arrow Flight SQL endpoints for a DuckDB database
-  version: 0.1.1
+  description: Query DuckDB from PostgreSQL and Arrow Flight SQL clients, including psql, ADBC, and Airport
+  version: 0.1.2
   language: Rust
   build: cargo
   license: MIT
@@ -12,14 +12,28 @@ extension:
 
 repo:
   github: sidequery/duckflight-extension
-  ref: 10b2157e6fc62ba162c3190cb4fed5ad8e95ffbb
+  ref: 379f43acbf604cf9eac3dff9b9703599a8cd6865
 
 docs:
   hello_world: |
-    -- Reports whether the embedded DuckFlight runtime loaded successfully.
-    SELECT * FROM duckflight_core_status();
+    -- Let PostgreSQL clients query this DuckDB database.
+    SELECT * FROM duckflight_pg_serve(
+      '127.0.0.1:5433', '/path/to/duckflight.toml'
+    );
+
+    -- Let Arrow Flight SQL clients query the same database.
+    SELECT * FROM duckflight_flight_serve(
+      '127.0.0.1:31337', '/path/to/duckflight.toml'
+    );
   extended_description: |
-    DuckFlight exposes PostgreSQL wire-protocol and Arrow Flight SQL servers backed by the exact
-    DuckDB database that loaded this extension. Production artifacts embed the platform-specific
-    DuckFlight core into the extension, so INSTALL and LOAD require no sidecar download. Network
-    clients authenticate through the configured authentication and TLS file.
+    Use DuckDB as a database server. DuckFlight lets existing PostgreSQL and Arrow Flight SQL
+    clients query the same live DuckDB database that loaded the extension—no export, copy, or
+    second database required.
+
+    Connect with PostgreSQL tools such as `psql`, Psycopg, JDBC, and BI applications; Arrow ADBC
+    Flight SQL clients; or another DuckDB instance through the Airport extension. Reads and writes
+    are immediately visible to DuckDB and every connected client.
+
+    Both listeners require authentication. A single `duckflight.toml` configures users, access
+    tokens, and optional TLS. See the
+    [quick start and authentication guide](https://github.com/sidequery/duckflight-extension/blob/main/docs/AUTHENTICATION.md).
