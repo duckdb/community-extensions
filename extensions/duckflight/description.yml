@@ -1,7 +1,7 @@
 extension:
   name: duckflight
   description: PostgreSQL wire-protocol and Arrow Flight SQL endpoints for a DuckDB database
-  version: 0.1.0
+  version: 0.1.1
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: sidequery/duckflight-extension
-  ref: 557155fdb10f220141eeb93b624c600cbc268350
+  ref: 10b2157e6fc62ba162c3190cb4fed5ad8e95ffbb
 
 docs:
   hello_world: |
