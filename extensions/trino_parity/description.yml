@@ -1,7 +1,7 @@
 extension:
   name: trino_parity
-  description: Native Trino-compatible scalar functions (trino_*) for the cases where DuckDB's built-ins diverge from Trino on Unicode and byte-level inputs — ICU full case folding, code-point reverse, Java-whitespace trim, NFC normalize, and raw-bytes xxhash64/sha512/hmac_sha256
-  version: 0.2.0
+  description: Native Trino-compatible scalar functions (trino_*) for the cases where DuckDB's built-ins diverge from Trino on Unicode and byte-level inputs — Trino's simple per-code-point case mapping, code-point reverse, Java-whitespace trim, NFC normalize, and raw-bytes xxhash64/sha512/hmac_sha256
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -10,19 +10,21 @@ extension:
 
 repo:
   github: brikk/duckdb-trino-parity-extension
-  ref: 8527a7fc00e2a3baf117cbf641b973d7cd9d931e
+  ref: b181c61c165b9f79e7902ee73de509f14b391299
 
 docs:
   hello_world: |
     INSTALL trino_parity FROM community;
     LOAD trino_parity;
 
-    -- Full Unicode case folding, matching Trino (Java) rather than DuckDB's
-    -- built-in lower(). Turkish dotted-I folds to 'i' + U+0307:
-    SELECT trino_lower('İSTANBUL');   -- 'i̇stanbul'
+    -- Trino's upper()/lower() are simple per-code-point mappings
+    -- (Character.toUpperCase(int)), so German sharp-S is unchanged —
+    -- DuckDB's built-in upper() gives 'STRAẞE' (U+1E9E):
+    SELECT trino_upper('straße');     -- 'STRAßE'
 
-    -- German sharp-S upper-cases to 'SS', not U+1E9E:
-    SELECT trino_upper('straße');     -- 'STRASSE'
+    -- Java whitespace trim: tab / LF / CR / FF / VT are stripped
+    -- (DuckDB's built-in trim() only strips spaces):
+    SELECT trino_trim(E'\tx\n');       -- 'x'
 
     -- Code-point reverse (DuckDB's built-in reverse is grapheme-aware):
     SELECT trino_reverse('a😀b');     -- 'b😀a'
@@ -49,8 +51,7 @@ docs:
 
     | Function | DuckDB built-in | Trino spec | `trino_*` result |
     |---|---|---|---|
-    | `lower('İ')` (U+0130) | `'i'` (simple case folding) | `'i'` + U+0307 (full folding) | matches Trino |
-    | `upper('ß')` (U+00DF) | `'ẞ'` (U+1E9E) | `'SS'` | matches Trino |
+    | `upper('ß')` (U+00DF) | `'ẞ'` (U+1E9E, utf8proc special case) | `'ß'` unchanged (simple per-code-point mapping) | matches Trino |
     | `reverse('cafe'+U+0301)` | grapheme-aware | code-point-only | matches Trino |
     | `trim` (tab/LF/CR/FF/VT) | not stripped | Java `Character.isWhitespace` strips them | matches Trino |
     | `xxhash64(varbinary)` | no direct built-in | XXH64, big-endian bytes | matches Trino |
@@ -61,9 +62,11 @@ docs:
 
     - **String (ICU):** `trino_lower/1`, `trino_upper/1`, `trino_reverse/1`,
       `trino_trim/1`, `trino_ltrim/1`, `trino_rtrim/1`, `trino_normalize/1` —
-      root-locale full case folding, code-point reverse, and
-      `Character.isWhitespace` trim, via statically-linked ICU vendored into the
-      binary (so Unicode behaviour is independent of the host DuckDB build).
+      simple per-code-point case mapping (Trino's `Character.toUpperCase(int)`
+      model — no `SpecialCasing` expansions or final-sigma rule), code-point
+      reverse, and `Character.isWhitespace` trim, via statically-linked ICU
+      vendored into the binary (so Unicode behaviour is independent of the host
+      DuckDB build).
     - **Hash (vendored):** `trino_xxhash64/1`, `trino_sha512/1`,
       `trino_hmac_sha256/2` — over raw `VARBINARY`, self-contained (no
       dependency on the `crypto` / `hashfuncs` community extensions).
