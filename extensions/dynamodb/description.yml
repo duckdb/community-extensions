@@ -35,7 +35,7 @@ extended_description: |
     It implements filter pushdown on partition keys, sort keys, and GSIs to minimize read capacity consumption, with remaining filtering and all aggregation handled by DuckDB's execution engine.
     For a detailed description take a look at the [extension repository](https://github.com/lukaswelsch/duckdb-dynamodb). 
   
-    Paramter reference:
+    Parameter reference:
     - **table_name ('orders')**: Target DynamoDB table to scan.
     - **endpoint**: Custom connection URL (useful for local development).
     - **allow_full_scan (false / true)**: Safety toggle to prevent accidental unindexed full-table reads.
