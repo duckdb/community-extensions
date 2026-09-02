@@ -8,6 +8,7 @@ extension:
   build: cmake
   license: MIT
   maintainers:
+    - venkata-chikkam
     - iqea-ai
 
 repo:
