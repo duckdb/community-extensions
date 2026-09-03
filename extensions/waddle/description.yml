@@ -11,7 +11,7 @@ extension:
   # (Optional) param that specifies required extra toolchains
   requires_toolchains: "rust"
   # (Optional) param that specifies a precise vcpkg commit to use
-  vcpkg_commit: "ce613c41372b23b1f51333815feb3edd87ef8a8b"
+  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
   # (Optional) this extension requires additional custom toolchain setup
   custom_toolchain_script: true
   # (Optional) ';' separated list of additional platforms
