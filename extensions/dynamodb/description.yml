@@ -1,0 +1,47 @@
+extension:
+  name: dynamodb
+  description: Adds a dynamodb_scan function that enables querying DynamoDB tables.
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - lukaswelsch
+
+repo:
+  github: lukaswelsch/duckdb-dynamodb
+  ref: 2eb2dd68db65ef4a8590b30b9931471b3b30a75c
+
+docs:
+  hello_world: |
+    -- Create a DynamoDB secret based on the credential_chain
+    CREATE OR REPLACE SECRET dynamo_secret (
+      TYPE dynamodb
+    );
+    
+    -- Query a DynamoDB table called 'orders'. The table has a GSI on status, to which this query restricts results. 
+    FROM dynamodb_scan('orders')
+    WHERE status='ACTIVE';
+    
+    -- Perform a SUM aggregation on a full table, without a GSI or PK. This requires setting allow_full_scan to true.
+    SELECT SUM(amount) 
+    FROM dynamodb_scan('orders', allow_full_scan=True) 
+    WHERE createdAt::timestamp > '2026-05-01 00:00:00'::TIMESTAMP;
+    
+
+extended_description: |
+    This extension adds support for querying DynamoDB tables directly from DuckDB. 
+    It implements filter pushdown on partition keys, sort keys, and GSIs to minimize read capacity consumption, with remaining filtering and all aggregation handled by DuckDB's execution engine.
+    For a detailed description take a look at the [extension repository](https://github.com/lukaswelsch/duckdb-dynamodb). 
+  
+    Parameter reference:
+    - **table_name ('orders')**: Target DynamoDB table to scan.
+    - **endpoint**: Custom connection URL (useful for local development).
+    - **allow_full_scan (false / true)**: Safety toggle to prevent accidental unindexed full-table reads.
+    - **parallel_segments**: Number of threads to divide and speed up the scan.
+    - **schema_mode ('hybrid'|'infer')**: Controls how DynamoDB attributes are mapped to data types.
+      - hybrid (default): activates the hybrid mode, in which rare attributes are stored in an _extra JSON column.
+      - infer: same as hybrid_threshold=0; all attributes are converted to columns
+    - **hybrid_threshold (0.8)**: Attributes must appear in this percent of samples to be a column
+    - **sample_size (200)**: How many rows should be checked to infer the schema from.

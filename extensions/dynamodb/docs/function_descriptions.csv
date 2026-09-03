@@ -1,0 +1,2 @@
+function,description,comment,example
+dynamodb_scan,"Scan a DynamoDB table directly","","FROM dynamodb_scan('orders')"
