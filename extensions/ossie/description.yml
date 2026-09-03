@@ -1,0 +1,113 @@
+extension:
+  name: ossie
+  description: The Apache Ossie (incubating) reference implementation for DuckDB. Reads Ossie
+    semantic model files in YAML or JSON and answers semantic queries against the tables in DuckDB,
+    from a single binary, with no infrastructure. Also exposes the semantic layer via MCP.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - venkata-chikkam
+    - iqea-ai
+
+repo:
+  github: iqea-ai/duckdb-ossie
+  ref: ef995aa581455840c7adc4e24d30220b047962a3
+
+docs:
+  hello_world: |
+    INSTALL ossie FROM community;
+    LOAD ossie;
+
+    -- A model is a file you supply. This one is written inline so the example runs as pasted;
+    -- normally you would point ossie_load at a .yaml or .json file from your own repository.
+    CREATE TABLE orders(order_id INTEGER, customer_id INTEGER, amount DECIMAL(10,2));
+    CREATE TABLE customers(customer_id INTEGER, country VARCHAR);
+    INSERT INTO orders VALUES (1,1,100.00),(2,1,250.00),(3,2,75.00);
+    INSERT INTO customers VALUES (1,'US'),(2,'DE');
+
+    COPY (SELECT '{
+      "version": "0.2.0.dev0",
+      "semantic_model": [{
+        "name": "sales",
+        "datasets": [
+          {"name": "orders", "source": "memory.main.orders", "fields": [
+            {"name": "customer_id", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "customer_id"}]}},
+            {"name": "amount",      "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "amount"}]}}]},
+          {"name": "customers", "source": "memory.main.customers", "primary_key": ["customer_id"], "fields": [
+            {"name": "customer_id", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "customer_id"}]}},
+            {"name": "country",     "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "country"}]}}]}],
+        "relationships": [{"name": "orders_to_customers", "from": "orders", "to": "customers",
+                           "from_columns": ["customer_id"], "to_columns": ["customer_id"]}],
+        "metrics": [{"name": "revenue", "expression": {"dialects": [
+                     {"dialect": "ANSI_SQL", "expression": "SUM(orders.amount)"}]}}]}]}'
+    ) TO 'sales_model.json' (FORMAT csv, HEADER false, QUOTE '');
+
+    CALL ossie_load('sales_model.json');
+
+    -- Discover the vocabulary. An agent reads these before asking anything.
+    SELECT name, expression FROM ossie_metrics();
+    SELECT dataset, name FROM ossie_fields();
+
+    -- Ask a question: metrics, dimensions, filters.
+    SELECT * FROM ossie_query(['revenue'], ['customers.country']);
+
+    -- Or get the SQL without running it, for use where DuckDB is not the executor.
+    SELECT ossie_compile(['revenue'], ['customers.country'], []);
+
+  extended_description: |
+    Apache Ossie is a vendor-neutral file format for semantic models: datasets bound to physical
+    tables, fields, declared relationships, and metrics written as aggregate expressions. It
+    describes data in place and never transforms it. What the format deliberately leaves open is
+    the *query* those definitions go into -- the joins, the GROUP BY, and the grain -- because
+    those depend on the question being asked, and the file does not know the question.
+
+    **Every other shipped Ossie implementation is a converter**, translating definitions into some
+    vendor's semantic layer so that vendor's engine can run them. This one executes the query
+    itself. It is the first Ossie implementation that answers a question rather than translating
+    one, and it needs no infrastructure: a model file, your tables, and a single binary.
+
+    **Functions**
+
+    - `ossie_load(path, ...)` -- parse and validate a model, YAML or JSON. Named arguments:
+      `rebind` remaps warehouse-qualified source prefixes onto the local catalog,
+      `validate_sources` requires every dataset's table to exist, and `allow_filter_functions`
+      sets the filter policy at load so a caller supplying filters cannot widen its own policy
+    - `ossie_query(metrics, dimensions, filters)` -- compile the request and execute it
+    - `ossie_compile(metrics, dimensions, filters)` -- the same SQL as text, without running it
+    - `ossie_datasets()`, `ossie_fields()`, `ossie_metrics()`, `ossie_relationships()` -- the
+      model's vocabulary, including `ai_context` synonyms and cardinality derived from declared keys
+
+    **Refusals are a feature**
+
+    The primary consumer is an AI agent, which cannot check the number it receives, so a plausible
+    wrong answer is worse than an error. Where the model or the request underdetermines the query,
+    the extension refuses and names the offending object: metrics that aggregate at more than one
+    grain, joins that would fan out and inflate every aggregate, and requests where two different
+    join paths could produce two different numbers. Error text is part of the interface -- an agent
+    reads it and retries -- so refusals are tested on their message, not merely on the fact that
+    they threw.
+
+    **Conformance**
+
+    Models are validated against the format's own `core-spec/osi-schema.json`. The test suite
+    includes five models published by other Ossie implementers -- Databricks, GoodData, NVIDIA,
+    Omni and OrionBelt -- vendored verbatim from apache/ossie; four load and answer queries, and
+    the fifth carries only DATABRICKS expressions, which this extension does not execute.
+    Generated SQL is checked against hand-written TPC-DS SQL at sf=1 across every metric and every
+    dimension, so correctness is measured against the numbers rather than against our own output.
+
+    Current limits are documented rather than hidden: ANSI_SQL expressions only, one semantic model
+    per file, table-backed sources only, all joins emitted as INNER, and metrics spanning more than
+    one grain refused rather than answered wrongly. See docs/limitations.md.
+
+    **Serving a model to an AI agent**
+
+    `examples/server.sql` publishes a model over MCP via the duckdb_mcp community extension, giving
+    an agent a `semantic_query` tool plus `metrics` and `dimensions` resources to discover names
+    from. The agent can reach nothing but the model's own vocabulary: filters are allowlisted,
+    subqueries are refused outright, and no argument lets a caller widen that.
+
+    This is an independent implementation of the Apache Ossie file format. It is not affiliated
+    with, endorsed by, or an official product of the Apache Software Foundation.
