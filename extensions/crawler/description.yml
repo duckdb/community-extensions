@@ -1,60 +1,74 @@
+docs:
+  hello_world: |
+    LOAD crawler;
+
+    -- Crawl a list of URLs and inspect results
+    SELECT url, status, content_type, response_time_ms,
+           html.document IS NOT NULL AS has_html
+    FROM crawl(['https://example.com', 'https://httpbin.org/get'])
+    LIMIT 10;
+
+    -- Extract structured data from a single URL (LATERAL join)
+    SELECT
+      t.url,
+      c.status,
+      c.html.opengraph ->> 'og:title' AS og_title,
+      c.html.readability ->> 'title' AS title
+    FROM (VALUES ('https://example.com')) t(url),
+         crawl_url(t.url) c;
+
+    -- Crawl a site and extract JSON-LD schema data
+    SELECT url, schema['Product'] AS product_schema
+    FROM crawl(['https://example.com/product'])
+    WHERE schema['Product'] IS NOT NULL;
+  extended_description: |
+    The crawler extension adds web crawling and HTML data extraction capabilities to DuckDB.
+
+    Data is fetched via libcurl and parsed using a hybrid C++/Rust pipeline (reqwest + scraper).
+    Each crawled page returns structured HTML fields including the raw document, extracted
+    JavaScript variables (SPA hydration state), Open Graph tags, JSON-LD/microdata schemas,
+    readability-extracted content, and more.
+
+    **Table functions:**
+    - `crawl(urls TEXT[])` — Fetch multiple URLs in parallel, returns one row per URL
+    - `crawl_url(url TEXT)` — Fetch a single URL, supports LATERAL join patterns
+    - `sitemap(url TEXT)` — Parse an XML sitemap into a table of URLs
+
+    **Output schema** (same for both crawl/crawl_url):
+    - `url TEXT` — final URL after redirects
+    - `status INTEGER` — HTTP status code
+    - `content_type TEXT` — response Content-Type
+    - `html STRUCT` with sub-fields:
+      - `html.document TEXT` — raw HTML
+      - `html.hydration MAP(TEXT, JSON)` — SPA hydration key-value pairs (e.g., `__PRELOADED_STATE__`)
+      - `html.meta JSON` — `<meta>` tag values
+      - `html.opengraph JSON` — Open Graph metadata
+      - `html.schema MAP(TEXT, JSON)` — JSON-LD / microdata schemas by type
+      - `html.readability JSON` — readability-extracted article content
+      - `html.js JSON` — extracted JavaScript window variables
+    - `final_url TEXT` — URL after redirects
+    - `response_time_ms BIGINT`
+    - `error TEXT` — error message if fetch failed
+    - `depth INTEGER` — crawl depth
+
+    **robots.txt compliance:**
+    The extension fetches and caches `robots.txt` for each domain and respects
+    `Disallow` rules and `Crawl-delay` directives.
+
 extension:
-  name: crawler
-  description: SQL-native web crawler with HTML extraction and MERGE support
-  version: '2026020501'
-  language: C++
   build: cmake
+  description: Web crawling and HTML data extraction extension with parallel fetching,
+    structured data extraction (JSON-LD, OpenGraph, SPA hydration state), and robots.txt
+    compliance.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads
+  language: C++
   license: MIT
   maintainers:
-    - onnimonni
-
+  - midwork-finds-jobs
+  name: crawler
   requires_toolchains: rust
-  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  version: 0.5.0
 
 repo:
   github: midwork-finds-jobs/duckdb-crawler
-  andium: f0aad857435a2ce138c567e8af11f9d4f8ae0c25
-  ref: 7725ede99eff1657a2cee770048be33328ae9f02
-
-docs:
-  hello_world: |
-    SELECT url, jq(html.document, 'h1').text as title
-    FROM crawl(['https://example.com']);
-  extended_description: |
-    The crawler extension provides SQL-native web crawling capabilities for DuckDB.
-
-    Features:
-    - `crawl()` table function with automatic rate limiting and robots.txt compliance
-    - `crawl_url()` for LATERAL joins
-    - `sitemap()` for XML sitemap parsing
-    - `read_html()` for Google Sheets-style IMPORTHTML (tables, lists, JS variables)
-    - `jq()` and `htmlpath()` functions for CSS selector-based extraction
-    - `html.readability` for article extraction
-    - `html.schema` for JSON-LD/microdata parsing
-    - `CRAWLING MERGE INTO` syntax for upsert operations
-
-    Example with read_html (like Google Sheets =IMPORTHTML):
-    ```sql
-    SELECT * FROM read_html('https://en.wikipedia.org/wiki/...', 'table.wikitable', 1);
-    SELECT * FROM read_html('https://example.com/page', 'js=jobs');
-    ```
-
-    Example with extraction:
-    ```sql
-    SELECT
-        url,
-        jq(html.document, '.price', 'data-amount') as price,
-        html.readability.title as article_title
-    FROM crawl(['https://example.com/products']);
-    ```
-
-    Example with MERGE:
-    ```sql
-    CRAWLING MERGE INTO pages
-    USING crawl(['https://example.com']) AS src
-    ON (src.url = pages.url)
-    WHEN MATCHED THEN UPDATE BY NAME
-    WHEN NOT MATCHED THEN INSERT BY NAME;
-    ```
-
-    For full documentation see: https://github.com/midwork-finds-jobs/duckdb-crawler
+  ref: 3830ded85ce76c67ab9c63ce8667758c8fa1dd76
