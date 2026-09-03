@@ -1,7 +1,7 @@
 extension:
   name: orc
   description: A DuckDB extension for reading Apache ORC files, written in pure Rust. Supports all ORC primitives, struct, list, map types and all compression codecs (Zlib, Snappy, LZO, LZ4, ZSTD).
-  version: 0.2.0
+  version: 0.2.1
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: alitrack/duckdb_orc
-  ref: 891ecbdc8a5802b16a364909cb295dcd8694932c
+  ref: e2bb83eb1f50531dddf3074b14eb56d85401b8f3
 
 docs:
   hello_world: |
