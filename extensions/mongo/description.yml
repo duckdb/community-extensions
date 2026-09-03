@@ -1,29 +1,49 @@
 extension:
   name: mongo
-  description: Integrates DuckDB with MongoDB, enabling direct SQL queries over MongoDB collections without exporting data or ETL
-  version: 0.2.8
+  description: Integrates DuckDB with MongoDB, enabling direct SQL queries and writes over MongoDB collections without ETL
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - stephaniewang526
-  # Optional: specify vcpkg commit if needed
   vcpkg_commit: "f74a2eade17a628413746557d04db25ccf6e76f9"
   excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;
 
 repo:
   github: stephaniewang526/duckdb-mongo
-  ref: 42e8bd1a4bc03924b0d746c55ecf227b86b546fe
+  ref: cce7784951aa452b16aaab736c7b95e87c7add2b
 
 docs:
   hello_world: |
     -- Attach to MongoDB
     ATTACH 'host=localhost port=27017' AS mongo_db (TYPE MONGO);
 
-    -- Query your collections
+    -- Query collections with SQL
     SELECT * FROM mongo_db.mydb.mycollection LIMIT 10;
+
+    -- Load a CSV directly into MongoDB
+    INSERT INTO mongo_db.mydb.mycollection
+    SELECT * FROM read_csv('data.csv');
   extended_description: |
-    The duckdb-mongo extension provides direct SQL access to MongoDB collections without requiring data export or ETL processes.
-    It supports both standalone MongoDB instances and MongoDB Atlas clusters, with automatic schema inference and filter pushdown
-    for efficient querying. The extension enables you to run analytical SQL queries directly against MongoDB data, including
-    joins, aggregations, and complex analytical operations.
+    The duckdb-mongo extension provides direct SQL access to MongoDB collections without requiring data export
+    or ETL processes. It supports both standalone MongoDB instances and MongoDB Atlas clusters.
+
+    **Reading data:**
+    - Automatic schema inference from sampled documents, with nested document flattening
+    - User-provided schemas and Atlas SQL `__schema` document support
+    - Query pushdown to MongoDB for filters, projections, limits, TopN, and aggregations (COUNT, SUM, MIN, MAX, AVG)
+    - BSON type mapping including ObjectId, Decimal128, arrays, and nested documents
+
+    **Writing data (new in v0.3.0):**
+    - `INSERT INTO` -- insert rows from any DuckDB source (CSV, Parquet, other databases, subqueries)
+    - `CREATE TABLE AS SELECT` -- create new MongoDB collections from query results
+    - `COPY TO (FORMAT mongo)` -- bulk-load data into MongoDB collections
+    - `DROP TABLE` -- drop MongoDB collections
+
+    **Connections and security:**
+    - MongoDB Atlas support via connection strings or DuckDB Secrets
+    - TLS/SSL encryption, custom CA certificates
+    - `mongo_enable_direct_scan` setting to restrict `mongo_scan` to attached catalogs only
+
+    For detailed setup and usage instructions, visit the [extension repository](https://github.com/stephaniewang526/duckdb-mongo).
