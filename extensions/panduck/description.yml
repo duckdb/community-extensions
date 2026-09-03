@@ -1,7 +1,7 @@
 extension:
   name: panduck
   description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
-  version: 0.1.2
+  version: 0.1.3
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: e4d3115e26394c419d0ad0e12c38e471b356fa56
+  ref: 3324fc1c6b1d072ffd6f20c65ac7cda0fa808121
 docs:
   hello_world: |
     LOAD panduck;
