@@ -13,7 +13,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: 3324fc1c6b1d072ffd6f20c65ac7cda0fa808121
+  ref: 67618f67290ecd35bc9ec0663e942331f22d4a5d
 docs:
   hello_world: |
     LOAD panduck;
