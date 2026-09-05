@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 3b5940d3189ec1cf999e96359685cd98e2a74225
+  ref: 84f2ce56eaedcf57638bba3a6afa73a68c455869
 
 docs:
   hello_world: |
@@ -82,8 +82,9 @@ docs:
       `fraction_csp3()`, `num_heteroatoms()`, and the full ring-count descriptor family.
 
     **Fingerprints & similarity:**
-    - `morgan_fp_bits()` (RDKit MorganGenerator, ECFP4 / 2048-bit default) and
-      `maccs_keys()` (167-bit MACCS).
+    - `morgan_fp_bits()` (Morgan/ECFP-style, radius 2 / 2048-bit default) and
+      `maccs_keys()` (167-bit MACCS). Morgan bit positions are not claimed to
+      be identical to RDKit's MorganGenerator.
     - Full bit-fingerprint similarity family over raw BLOBs, faithful to RDKit
       `DataStructs/BitOps.cpp`: `tanimoto_bit`, `dice_bit`, `cosine_bit`, `kulczynski_bit`,
       `sokal_bit`, `mcconnaughey_bit`, `asymmetric_bit`, `braun_blanquet_bit`,
