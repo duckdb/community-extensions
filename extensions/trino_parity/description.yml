@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: brikk/duckdb-trino-parity-extension
-  ref: e93c6b78f460db4f1fc93b78f4b771a8665e3ec0
+  ref: 0059004e24d7cfc2b84ae1788efae7c075a1b690
 
 docs:
   hello_world: |
