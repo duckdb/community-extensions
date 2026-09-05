@@ -1,0 +1,125 @@
+extension:
+  name: panduck
+  description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
+  version: 0.1.5
+  language: C++
+  build: cmake
+  license: MIT
+  requires_toolchains: vcpkg
+  maintainers:
+    - teaguesterling
+  # The default pin from extension-ci-tools v1.5.5, which is what panduck's own
+  # distribution pipeline builds green against on every platform including wasm.
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+repo:
+  github: teaguesterling/duckdb_panduck
+  ref: 2d9c3b2a3088b87d2cf05c62d1ae24669c5e2883
+docs:
+  hello_world: |
+    LOAD panduck;
+
+    -- Read a document straight into flattened duck_block rows
+    SELECT * FROM read_docx_blocks('report.docx');
+    SELECT * FROM read_epub_blocks('book.epub');
+    SELECT * FROM read_latex_blocks('paper.tex');
+
+    -- Or let the path pick the reader
+    SELECT * FROM panduck_read_blocks('notes.org');
+    SELECT panduck_format_for('paper.tex');       -- 'latex'
+    SELECT panduck_can_read('archive.docx');      -- true
+
+    -- Formats with no file: parse a string directly
+    SELECT * FROM read_mediawiki_blocks_string('== Heading ==');
+
+    -- Outline any supported document
+    SELECT * FROM doc_toc('report.docx');
+
+    -- Write back out as Pandoc JSON that a real pandoc accepts
+    SELECT panduck_write_pandoc_ast('doc.json',
+        (SELECT list(b) FROM read_odt_blocks('doc.odt') b)
+    );
+
+    -- Or get the AST as a struct without touching the filesystem
+    SELECT panduck_blocks_to_pandoc_ast(
+        (SELECT list(b) FROM read_rtf_blocks('memo.rtf') b)
+    );
+
+  extended_description: |
+    Panduck reads document formats natively into the `duck_block` vocabulary shared
+    with `duck_block_utils`, `markdown` and `webbed` -- so a DOCX, an EPUB and a
+    LaTeX paper all land in the same seven-column shape and can be queried together.
+
+    **It does not link Pandoc.** Pandoc is a Haskell program; the only C bindings
+    that ever existed went unmaintained in 2017, and a Cabal foreign-library request
+    has been open upstream since 2020. Linking the GHC runtime into a dlopen'd DuckDB
+    extension would be a bad neighbour even if it existed. Panduck is instead
+    compatible with Pandoc's **data model**: every reader is hand-written, and a
+    checked mapping table pins the correspondence to Pandoc's AST constructors.
+
+    ## Readers
+
+    | Function | Format |
+    |----------|--------|
+    | `read_docx_blocks(path)` | Word OOXML |
+    | `read_odt_blocks(path)` | OpenDocument Text |
+    | `read_epub_blocks(path)` | EPUB 2/3 |
+    | `read_rtf_blocks(path)` | Rich Text Format |
+    | `read_latex_blocks(path)` | LaTeX |
+    | `read_org_blocks(path)` | Org mode |
+    | `read_rst_blocks(path)` | reStructuredText |
+    | `read_ipynb_blocks(path)` | Jupyter notebooks |
+    | `read_mediawiki_blocks(path)` | MediaWiki wikitext |
+    | `read_textile_blocks(path)` | Textile |
+    | `read_pandoc_blocks(path)` | Pandoc JSON AST (reaches all 43 formats pandoc reads) |
+
+    Every text format also has a `_string` variant that parses content directly.
+    DOCX, ODT, EPUB and RTF read lists, blockquotes, tables, images and footnotes;
+    document metadata is extracted for every format that has any.
+
+    ## Dispatch
+
+    | Function | Description |
+    |----------|-------------|
+    | `panduck_read_blocks(path)` | Read any supported path, reader chosen by extension |
+    | `panduck_format_for(path)` | Which format a path resolves to |
+    | `panduck_can_read(path)` | Whether a path is supported |
+    | `panduck_supported_extensions()` | The registry, as a table |
+    | `panduck_register_doc_reader(...)` | Register a reader at runtime |
+
+    ## Document helpers
+
+    | Function | Description |
+    |----------|-------------|
+    | `doc_toc(path)` | Table of contents for any supported document |
+    | `doc_render(path)` | Render a document to text |
+
+    ## Writing Pandoc JSON
+
+    | Function | Description |
+    |----------|-------------|
+    | `panduck_blocks_to_pandoc_ast(blocks)` | duck_block list to a Pandoc AST document |
+    | `panduck_blocks_to_pandoc_blocks(blocks)` | duck_block list to a Pandoc block array |
+    | `panduck_write_pandoc_ast(path, blocks)` | Write Pandoc JSON to a file |
+    | `panduck_pandoc_ast_map()` | The constructor mapping, as a queryable table |
+
+    The governing rule is that panduck may be **more** faithful than pandoc -- richer
+    attributes, better block types, metadata pandoc does not extract -- so long as the
+    mapping back to valid Pandoc JSON stays total. Every fixture and a set of
+    hand-built constructs are round-tripped through a real pandoc in CI to hold that.
+
+    ## Scope
+
+    This is an early release. Ten readers are implemented and tested against reference
+    implementations, with 2034 test assertions, differential validation against a real
+    pandoc on every fixture, and eight checks in CI.
+
+    The readers were audited over five rounds before this release, each round asking a
+    question the previous one could not answer -- does a construct come back at all, do
+    any words go missing, do all ten readers agree on one logical document. That found
+    18 defects, including silent text loss in DOCX where a hyperlink's anchor text was
+    dropped outright. All are fixed and pinned by tests. Three findings remain open and
+    are recorded in the documentation rather than omitted.
+
+    Known divergences from pandoc are declared and reasoned in the repository's
+    roundtrip ledger rather than hidden -- including several where pandoc is the one
+    losing information.
