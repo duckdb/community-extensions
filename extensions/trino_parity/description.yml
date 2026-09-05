@@ -1,7 +1,7 @@
 extension:
   name: trino_parity
   description: Native Trino-compatible scalar functions (trino_*) for the cases where DuckDB's built-ins diverge from Trino on Unicode and byte-level inputs — Trino's simple per-code-point case mapping, code-point reverse, Java-whitespace trim, NFC normalize, and raw-bytes xxhash64/sha512/hmac_sha256
-  version: 0.3.0
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: brikk/duckdb-trino-parity-extension
-  ref: b181c61c165b9f79e7902ee73de509f14b391299
+  ref: 3d6b049b936527f3b451eeec3ce8dc69bba8c054
 
 docs:
   hello_world: |
@@ -28,6 +28,10 @@ docs:
 
     -- Code-point reverse (DuckDB's built-in reverse is grapheme-aware):
     SELECT trino_reverse('a😀b');     -- 'b😀a'
+
+    -- HMAC uses raw bytes; empty data is valid, but an empty key throws
+    -- "Empty key" to match Trino's SecretKeySpec API contract:
+    SELECT hex(trino_hmac_sha256('data'::BLOB, 'key'::BLOB));
 
     -- The catalog of functions this extension provides:
     SELECT trino_name, arg_count, category FROM trino_meta();  -- 10 rows
@@ -69,7 +73,9 @@ docs:
       DuckDB build).
     - **Hash (vendored):** `trino_xxhash64/1`, `trino_sha512/1`,
       `trino_hmac_sha256/2` — over raw `VARBINARY`, self-contained (no
-      dependency on the `crypto` / `hashfuncs` community extensions).
+      dependency on the `crypto` / `hashfuncs` community extensions). HMAC
+      rejects an empty key with `Empty key`, matching Trino (empty data remains
+      valid; binary-NUL and >64-byte keys are supported).
 
     Aligned Trino functions (e.g. `length`, `abs`, `year`, `substring`,
     `regexp_extract`) are intentionally NOT shipped — a caller emits them as
