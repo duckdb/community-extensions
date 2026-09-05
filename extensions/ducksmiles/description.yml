@@ -4,13 +4,14 @@ extension:
   version: 0.5.0
   language: C++
   build: cmake
+  requires_toolchains: rust
   license: MIT
   maintainers:
     - nkwork9999
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 96c85cc2c895e5fdaecb3e2e30009d1201fa5103
+  ref: 3b5940d3189ec1cf999e96359685cd98e2a74225
 
 docs:
   hello_world: |
@@ -69,6 +70,11 @@ docs:
     toxicophore filtering, and structure-based virtual screening.
 
     **Descriptors (RDKit-faithful ports):**
+    - 21 structural-profile functions: fragments, formal charge, hydrogen and
+      bond counts, ring membership, elemental counts, fractions, isotope-aware
+      heavy-atom mass and mean heavy-atom degree. A pinned RDKit 2025.09.6
+      reference suite checks 4,510 inputs; this is finite-corpus validation,
+      not a guarantee of full RDKit parser/sanitizer equivalence.
     - `logp_crippen()` / `mol_mr()` - Wildman-Crippen LogP and molar refractivity.
     - `tpsa()` - Ertl topological polar surface area.
     - `qed()` - QED drug-likeness (Bickerton 2012), a port of RDKit `Chem.QED`.
