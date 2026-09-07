@@ -1,7 +1,7 @@
 extension:
   name: zim
   description: Read and write .zim (Kiwix / openZIM) archives directly in DuckDB via libzim, from local files or remote S3/HTTP — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more, with a zim:// filesystem, full-text search, and COPY TO for building archives from any query.
-  version: 0.8.1
+  version: 0.9.0
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -12,7 +12,7 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_zim
-  ref: df80e1e713b08f75e4fb8f7e0a18250486b127f7
+  ref: 2aca66d7c460c8470661bed02c9f5fe3a8db21d1
 docs:
   hello_world: |
     -- Load the extension
