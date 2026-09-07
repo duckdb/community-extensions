@@ -10,17 +10,20 @@
 | [`RT_Read`](#rt_read) | Reads a raster file (or a mosaic of raster files) and returns a table with the raster data. |
 | [`RT_ReadCells`](#rt_readcells) | Reads a raster file (or a mosaic of raster files) and returns a table with one row per value cell in the raster. |
 | [`RT_Write`](#rt_write) | (`COPY TO`) Exports the data table to a new raster file. |
+| [`RT_Create`](#rt_create) | Creates a new raster file from a given file name and set of parameters. |
 
 **[Scalar Functions](#scalar-functions)**
 
 | Function | Summary |
 | --- | --- |
+| [`RT_Metadata`](#rt_metadata) | Retrieves the metadata of a raster file, returning it as a JSON string. |
 | [`RT_Array2Cube`](#rt_array2cube) | Packages a plain SQL array into a datacube column. |
 | [`RT_Cube2Array`](#rt_cube2array) | Extracts pixel values from a datacube column into a plain SQL array. |
 | [`RT_Cube2Type`](#rt_cube2type) | Changes the pixel data type of a datacube. |
 | [`RT_Cube<UnaryOp>`](#rt_cubeunaryop) | Applies a unary operation to the datacube element-wise (`RT_CubeNeg`, `RT_CubeAbs`, …). |
 | [`RT_Cube<BinaryOp>`](#rt_cubebinaryop) | Applies a binary operation between two datacubes or a datacube and a scalar. Operators `+`, `-`, `*`, `/`, `^`, `%` are also supported. |
 | [`RT_CubeStats`](#rt_cubestats) | Calculates statistics for a specific band (0-based index) of a datacube. |
+| [`RT_Stats`](#rt_stats) | Calculates statistics for a specific band (0-based index) of a raster, optionally within a geometry. |
 | [`RT_GdalConfig`](#rt_gdalconfig) | Sets a GDAL configuration option (equivalent to CPLSetConfigOption). |
 
 **[Spatial Functions](#spatial-functions)**
@@ -226,6 +229,7 @@ The `RT_ReadCells` function accepts parameters, most of them optional:
 | `sibling_files` | VARCHAR[] | An optional list of sibling files that are required to open the file. Only for single-file version of the function. |
 | `warp_options` | VARCHAR[] | An optional list of warp options passed to reproject or warp the raster. It accepts the same options as the GDAL `Warp` tool (https://gdal.org/en/stable/programs/gdalwarp.html). |
 | `separate_bands` | BOOLEAN | `true` means that each input goes into a separate band in the VRT dataset. Otherwise, the files are considered as source rasters of a larger mosaic and the VRT file has the same number of bands as the input files. Only for multi-file version of the function. `false` is the default. |
+| `ignore_nodata` | INTEGER | An optional parameter to ignore cells with nodata values. It accepts the following values: `0` (default) to never ignore cells, `1` to ignore cells with at least one band having a nodata value, and `2` to ignore cells with all bands having nodata values. |
 
 This is the list of columns returned by `RT_ReadCells`:
 
@@ -265,6 +269,111 @@ SELECT
     id, x, y, geometry, col, row, band_1, band_2, band_3
 FROM
     RT_ReadCells('path/to/raster/file.tif', warp_options := ['-t_srs', 'EPSG:4326', '-r', 'nearest'])
+;
+```
+
+----
+
+### RT_Create
+
+The `RT_Create` function allows you to create a new raster file from scratch by specifying the file name, spatial reference system, extent, resolution, number of bands, data type, and other parameters.
+
+Please note that the `RT_Create` function creates an empty raster file with the specified parameters. You then need to populate the raster and then write it to disk using the `RT_Write` function. You can create the raster in memory (using the `Memory` driver) and finally write it to disk in a specific format (e.g. GeoTIFF, COG, etc.) with the `RT_Write` function.
+
+> See [RT_Drivers](#rt_drivers) for a list of supported file formats and drivers.
+
+The table returned by `RT_Create` (Similar to `RT_Read`) is a tiled representation of the raster file[s], where each row corresponds to a tile of the raster. The tile size is determined by the original block size of the raster file[s], but it can be overridden by the user using the `blocksize_x` and `blocksize_y` parameters. The `geometry` column is a `GEOMETRY` of type `POLYGON` that represents the footprint of each tile, and you can use it to create a new geoparquet file by adding the option `GEOPARQUET_VERSION`.
+
+Both `databand` and `datacube` columns share the same underlying type: a BLOB encoding an N-dimensional array of pixel values. The terms are interchangeable in the context of this extension — they only differ in how `RT_Read` names the output columns. By default, `RT_Create` produces one column per raster band, named `databand_1`, `databand_2`, etc. When the `datacube` option is `true`, all bands are merged into a single column named `datacube`. In either case the BLOB layout is identical.
+
+The `RT_Create` function accepts a first set of parameters, all of them mandatory, for creating a new raster dataset:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `path` | VARCHAR | The path to the file to create. |
+| `crs` | VARCHAR | The coordinate reference system (CRS) of the raster dataset, specified as an EPSG code (e.g., 'EPSG:4326') or a WKT string. |
+| `x_min` | DOUBLE | The minimum X coordinate (left) of the raster extent. |
+| `y_min` | DOUBLE | The minimum Y coordinate (bottom) of the raster extent. |
+| `x_max` | DOUBLE | The maximum X coordinate (right) of the raster extent. |
+| `y_max` | DOUBLE | The maximum Y coordinate (top) of the raster extent. |
+| `width` | INTEGER | The width (number of columns) of the raster dataset. |
+| `height` | INTEGER | The height (number of rows) of the raster dataset. |
+| `num_bands` | INTEGER | The number of bands in the raster dataset. |
+| `data_type` | INTEGER | The GDAL data type for the raster bands (e.g., 3 for `GDT_Int16`). |
+| `nodata_value` | DOUBLE | The nodata value for the raster bands. |
+| `driver_name` | VARCHAR | The GDAL driver to use for creating the raster file. `Memory` is the default. |
+
+The `data_type` parameter is an integer that corresponds to the GDAL data type for the raster bands. The following table shows the mapping between GDAL data types and their corresponding integer values:
+
+| Code | Key | Description |
+|------|-----------|-------------|
+| 0    | UINT8 | Eight bit unsigned integer |
+| 1    | INT8 | 8-bit signed integer |
+| 2    | UINT16 | Sixteen bit unsigned integer |
+| 3    | INT16 | Sixteen bit signed integer |
+| 4    | UINT32 | Thirty two bit unsigned integer |
+| 5    | INT32 | Thirty two bit signed integer |
+| 6    | UINT64 | 64 bit unsigned integer |
+| 7    | INT64 | 64 bit signed integer |
+| 8    | FLOAT | Thirty two bit floating point |
+| 9    | DOUBLE | Sixty four bit floating point |
+
+Similar to `RT_Read`, the `RT_Create` function also accepts optional parameters for controlling the fetching of raster tiles:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `data_format` | VARCHAR | Compression format used when packing the pixel data into the BLOB. See the data format table in the BLOB structure section below. `RAW` (uncompressed) is the default. |
+| `blocksize_x` | INTEGER | The block size of the tile in the x direction. You can use this parameter to override the original block size of the raster. |
+| `blocksize_y` | INTEGER | The block size of the tile in the y direction. You can use this parameter to override the original block size of the raster. |
+| `datacube` | BOOLEAN | When `true`, all bands are merged into a single `datacube` column; otherwise each band is returned as a separate `databand_N` column. `false` is the default. |
+
+This is the list of columns returned by `RT_Create`, similar to `RT_Read`:
+
++ `id` is a unique identifier for each tile of the raster.
++ `x` and `y` are the coordinates of the center of each tile. The coordinate reference system is the same as the one of the raster file.
++ `bbox` is the bounding box of each tile, which is a struct with `xmin`, `ymin`, `xmax`, and `ymax` fields.
++ `geometry` is the footprint of each tile as a polygon.
++ `level`, `tile_x`, and `tile_y` are the tile grid coordinates. The raster is partitioned into tiles of `blocksize_x` × `blocksize_y` pixels (or the file's native block size when not overridden).
++ `cols` and `rows` are the actual pixel dimensions of the tile, which may differ from the requested block size at the edges of the raster.
++ `metadata` is a JSON column with the raster file metadata: band properties (data type, nodata value, etc.), spatial reference system, geotransform, and any driver-specific metadata.
++ `databand_1`, `databand_2`, … are BLOB columns, each holding the pixel data for one raster band together with a small binary header that describes the tile layout. When the `datacube` option is `true`, a single `datacube` column is returned instead, containing all bands in the same BLOB format.
+
+Note that GDAL is single-threaded, so this table function cannot fully exploit DuckDB parallelism.
+
+#### Signature
+
+```sql
+RT_Create (file_path VARCHAR,
+           crs VARCHAR,
+           x_min DOUBLE,
+           y_min DOUBLE,
+           x_max DOUBLE,
+           y_max DOUBLE,
+           width INTEGER,
+           height INTEGER,
+           num_bands INTEGER,
+           data_type INTEGER,
+           nodata_value DOUBLE,
+           driver_name VARCHAR DEFAULT 'Memory',
+           data_format VARCHAR DEFAULT 'RAW',
+           blocksize_x INTEGER DEFAULT NULL,
+           blocksize_y INTEGER DEFAULT NULL,
+           datacube BOOLEAN DEFAULT false
+          )
+```
+
+#### Examples
+
+```sql
+SELECT
+    *
+FROM
+    RT_Create(
+        '/vsimem/raster-sample.tiff', 'EPSG:25830', 499980.0, 4789760.0, 510220.0, 4800000.0, 2048, 2048, 1, 3 /*GDT_Int16*/, -9999.0,
+        driver_name := 'Memory',
+        blocksize_x := 512,
+        blocksize_y := 512
+    )
 ;
 ```
 
@@ -364,6 +473,28 @@ WITH (
 ----
 
 ## Scalar Functions
+
+### RT_Metadata
+
+Retrieves the metadata of a raster file, returning it as a JSON string.
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `filepath` | VARCHAR | The path to the raster file whose metadata will be retrieved. |
+
+#### Signature
+
+```sql
+RT_Metadata (filepath VARCHAR)
+```
+
+#### Examples
+
+```sql
+SELECT RT_Metadata('path/to/raster/file.tif');
+```
+
+----
 
 ### RT_Array2Cube
 
@@ -703,6 +834,57 @@ FROM (
 
 ----
 
+### RT_Stats
+
+Calculates statistics for a specific band (0-based index) of a raster, optionally within a geometry.
+
+The returned value is a `STRUCT` with the following fields:
+
+| Field | Type | Description |
+| ----- | ---- | ----------- |
+| `minimum` | DOUBLE | Minimum pixel value among valid (non-nodata) cells. |
+| `maximum` | DOUBLE | Maximum pixel value among valid (non-nodata) cells. |
+| `sum` | DOUBLE | Sum of all valid pixel values. |
+| `mean` | DOUBLE | Mean (average) of all valid pixel values. |
+| `stddev` | DOUBLE | Population standard deviation of all valid pixel values. |
+| `valid_count` | BIGINT | Number of valid (non-nodata) cells. |
+| `nodata_count` | BIGINT | Number of nodata cells. |
+
+Function accepts two different forms with the following parameters.
+
+Just to compute statistics for a specific band of a raster:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `filepath` | VARCHAR | The raster file path to compute statistics for. |
+| `band` | INTEGER | The 0-based index of the band to compute statistics for. |
+
+To compute statistics for a specific band of a datacube, but only for those valid (non-nodata)
+cells that fall within a geometry (Zonal statistics):
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| `filepath` | VARCHAR | The raster file path to compute statistics for. |
+| `band` | INTEGER | The 0-based index of the band to compute statistics for. |
+| `geometry` | GEOMETRY | The geometry to use for spatial filtering. |
+
+#### Signature
+
+```sql
+RT_Stats (filepath VARCHAR, band INTEGER)
+RT_Stats (filepath VARCHAR, band INTEGER, geometry GEOMETRY)
+```
+
+#### Examples
+
+```sql
+SELECT
+    RT_Stats('path/to/raster/file.tif', 0)
+;
+```
+
+----
+
 ### RT_GdalConfig
 
 Sets a GDAL configuration option (equivalent to `CPLSetConfigOption`).
@@ -735,13 +917,13 @@ SELECT RT_GdalConfig('AWS_NO_SIGN_REQUEST', 'YES');
 
 ### RT_RasterValue
 
-Returns the value in a band of a datacube at the specified pixel coordinates (column, row).
+Returns the value in a band of a datacube or filepath at the specified pixel coordinates (column, row).
 
 The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| [`databand`, `filepath`] | [DATACUBE, VARCHAR] | The input datacube column or filepath to the raster. |
 | `band` | INTEGER | The 0-based index of the band to read the value from. |
 | `col` | INTEGER | The pixel column index within the tile. |
 | `row` | INTEGER | The pixel row index within the tile. |
@@ -750,7 +932,7 @@ The function accepts the following parameters:
 #### Signature
 
 ```sql
-RT_RasterValue (datacube DATACUBE,
+RT_RasterValue ([datacube DATACUBE, filepath VARCHAR],
                 band INTEGER,
                 col INTEGER,
                 row INTEGER,
@@ -765,18 +947,23 @@ SELECT
 FROM
     RT_Read('path/to/raster/file.tif')
 ;
+
+SELECT
+    RT_RasterValue('path/to/raster/file.tif', 0, 10, 20, -9999.0),
+    RT_RasterValue('path/to/raster/file.tif', 0, 20, 20, -9999.0)
+;
 ```
 ----
 
 ### RT_RasterValues
 
-Returns the values in a band of a datacube at the specified array of pixel coordinates (column, row).
+Returns the values in a band of a datacube or filepath at the specified array of pixel coordinates (column, row).
 
 The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| [`databand`, `filepath`] | [DATACUBE, VARCHAR] | The input datacube column or filepath to the raster. |
 | `band` | INTEGER | The 0-based index of the band to read the values from. |
 | `cols` | INTEGER[] | The array of pixel column indices within the tile. |
 | `rows` | INTEGER[] | The array of pixel row indices within the tile. |
@@ -785,7 +972,7 @@ The function accepts the following parameters:
 #### Signature
 
 ```sql
-RT_RasterValues (datacube DATACUBE,
+RT_RasterValues ([databand DATACUBE, filepath VARCHAR],
                  band INTEGER,
                  cols INTEGER[],
                  rows INTEGER[],
@@ -800,13 +987,17 @@ SELECT
 FROM
     RT_Read('path/to/raster/file.tif')
 ;
+
+SELECT
+    RT_RasterValues('path/to/raster/file.tif', 0, [10, 11], [20, 21], -9999.0)
+;
 ```
 
 ----
 
 ### RT_CoordValue
 
-Returns the value in a band of a datacube at the given world coordinates (x, y).
+Returns the value in a band of a datacube or filepath at the given world coordinates (x, y).
 
 The function converts the world coordinates to pixel coordinates using the affine geotransform matrix provided in the `metadata` argument, and then retrieves the value at those pixel coordinates. If the coordinates are out of bounds of the tile, the function returns the specified `default_value`.
 
@@ -814,11 +1005,11 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| [`databand`, `filepath`] | [DATACUBE, VARCHAR] | The input datacube column or filepath to the raster. |
 | `band` | INTEGER | The 0-based index of the band to read the value from. |
 | `x` | DOUBLE | The x coordinate in the same spatial reference system as the raster. |
 | `y` | DOUBLE | The y coordinate in the same spatial reference system as the raster. |
-| `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size. |
+| `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size (Only required for datacube input). |
 | `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
 
 The `metadata` argument is expected to contain the affine geotransform matrix and block size of the tile, which are used to convert between pixel coordinates and world coordinates.
@@ -835,6 +1026,12 @@ RT_CoordValue (datacube DATACUBE,
                y DOUBLE,
                metadata JSON,
                default_value DOUBLE)
+
+RT_CoordValue (filepath VARCHAR,
+               band INTEGER,
+               x DOUBLE,
+               y DOUBLE,
+               default_value DOUBLE)
 ```
 
 #### Examples
@@ -845,23 +1042,28 @@ SELECT
 FROM
     RT_Read('path/to/raster/file.tif')
 ;
+
+SELECT
+    RT_CoordValue('path/to/raster/file.tif', 0, 545600.0, 4724500.0, -9999.0) AS v1,
+    RT_CoordValue('path/to/raster/file.tif', 0, 545800.0, 4724800.0, -9999.0) AS v2
+;
 ```
 
 ----
 
 ### RT_CoordValues
 
-Returns the values in a band of a datacube at the specified array of world coordinates (x, y).
+Returns the values in a band of a datacube or filepath at the specified array of world coordinates (x, y).
 
 The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| [`databand`, `filepath`] | [DATACUBE, VARCHAR] | The input datacube column or the filepath to the raster. |
 | `band` | INTEGER | The 0-based index of the band to read the values from. |
 | `xs` | DOUBLE[] | The array of x-coordinates of the pixels within the tile. |
 | `ys` | DOUBLE[] | The array of y-coordinates of the pixels within the tile. |
-| `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size. |
+| `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size (Only required for datacube input). |
 | `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
 
 #### Signature
@@ -873,6 +1075,12 @@ RT_CoordValues (datacube DATACUBE,
                 ys DOUBLE[],
                 metadata JSON,
                 default_value DOUBLE)
+
+RT_CoordValues (filepath VARCHAR,
+                band INTEGER,
+                xs DOUBLE[],
+                ys DOUBLE[],
+                default_value DOUBLE)
 ```
 
 #### Examples
@@ -882,6 +1090,10 @@ SELECT
     RT_CoordValues(databand_1, 0, [545600.0, 545601.0], [4724500.0, 4724501.0], metadata, -9999.0)
 FROM
     RT_Read('path/to/raster/file.tif')
+;
+
+SELECT
+    RT_CoordValues('path/to/raster/file.tif', 0, [545600.0, 545601.0], [4724500.0, 4724501.0], -9999.0)
 ;
 ```
 
