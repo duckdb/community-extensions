@@ -1,0 +1,76 @@
+extension:
+  name: marc21
+  description: Read, write, validate and edit MARC 21 bibliographic data (ISO 2709, MARCXML, MARC-in-JSON, breaker, Aleph; UTF-8 and MARC-8)
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - mgbilby
+
+repo:
+  github: mgbilby/duckdb-marc21
+  ref: 498cbd0e0b29b0ee05044942ff4717a5247e705b
+
+docs:
+  hello_world: |
+    -- 1. Read a binary MARC dump (gzip and globs work; MARC-8 and UTF-8
+    --    are detected per record and decoded to NFC Unicode)
+    SELECT control_number,
+           marc_subfield(fields, '245', 'a')  AS title,
+           marc_subfields(fields, '650', 'a') AS subjects
+    FROM read_marc('catalogue/*.mrc.gz');
+
+    -- 2. One row per subfield, for frequency and completeness work
+    SELECT tag, code, count(*) FROM read_marc_subfields('dump.mrc')
+    GROUP BY ALL ORDER BY 3 DESC;
+
+    -- 3. MARCXML, MARC-in-JSON (incl. FOLIO SRS shape), breaker, Aleph
+    SELECT * FROM read_marcxml('export.xml');
+    SELECT * FROM read_marcjson('records.ndjson');
+
+    -- 4. Address by MARCspec; validate structurally or against Avram
+    SELECT marc_spec(leader, fields, '008/35-37') FROM read_marc('dump.mrc');
+    SELECT marc_validate(leader, fields)          FROM read_marc('dump.mrc');
+
+    -- 5. Batch-edit and write back — full encoding crosswalk
+    COPY (SELECT marc_set_subfield(fields, '040', 'a', 'XX-XxUND') AS fields,
+                 leader
+          FROM read_marc('in.mrc'))
+    TO 'out.mrc' (FORMAT marc, ENCODING 'marc8');
+
+    -- 6. Or write MARCXML / breaker / MARC-in-JSON
+    COPY (SELECT * FROM read_marc('in.mrc')) TO 'out.xml' (FORMAT marcxml);
+
+  extended_description: |
+    A cleanly licensed MARC 21 toolkit for DuckDB, aimed at cataloging and
+    metadata librarians: the parser, MARC-8 tables and writer are implemented
+    from ISO 2709 and the Library of Congress specifications only, not from
+    previous software, and verified by differential fuzzing and round-trip
+    testing.
+
+    ### Read
+    `read_marc` (nested LIST(STRUCT) per record), `read_marc_subfields`
+    (one row per subfield), `read_marc_raw` (original bytes + error column),
+    `read_marcxml`, `read_marc_breaker`, `read_marcjson` (community shape,
+    NDJSON and FOLIO SRS envelopes), `read_alephseq`.  Glob patterns, gzip,
+    and DuckDB FileSystem protocols (httpfs URLs — including SRU and OAI-PMH
+    responses, whose envelopes are handled).  `read_z3950` retrieves records
+    live from Z39.50 servers (Library of Congress, OCLC, most ILSes) with a
+    built-in dependency-free client.  Scans parallelise across and within
+    files.
+
+    ### Write
+    `COPY ... TO (FORMAT marc | marcxml | mrk | marcjson)`.  ISO 2709 output
+    in UTF-8 or MARC-8 (full LC code tables: ANSEL, Cyrillic, Greek, Hebrew,
+    Arabic, EACC with escape designations; NCR fallback), round-trip tested.
+
+    ### Query, validate, edit
+    MARCspec addressing (`marc_spec`), structural and Avram-schema validation
+    (`marc_validate`, `marc_validate_avram`), format detection, record
+    editing (`marc_set_subfield`, `marc_remove_fields`, `marc_replace_values`,
+    ...), merge with field protection (`marc_merge`), record diff
+    (`marc_diff`), identifier normalisation (`marc_isbn13`, `marc_issn`,
+    `marc_lccn`, `marc_oclc`), NACO normalisation and match keys for
+    deduplication, and a FOLIO Source Record Storage bridge
+    (`marc_parse_json`) for in-place analytics on an ATTACHed FOLIO database.
