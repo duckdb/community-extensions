@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.8.2
+  version: 2.9.0
   language: C++
   build: cmake
   license: MIT
@@ -15,9 +15,9 @@ extension:
 repo:
   github: teaguesterling/duckdb_webbed
   andium: ddda30f11352138b2451657419640370d1612137
-  # andium (DuckDB v1.4.5 track) left at its prior commit; the v2.8.2
-  # duck_block correctness fixes ship on the v1.5.x track via ref.
-  ref: 093856b645ce4dbdfdff37b3c02ce0221b1b19d6
+  # andium (DuckDB v1.4.5 track) left at its prior commit; v2.9.0 ships on the
+  # v1.5.x track via ref and is verified against DuckDB 2.0 (main) as well.
+  ref: 73189d2712ad7296ac5f49029df11bdb8ee07d61
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
@@ -95,4 +95,4 @@ docs:
 
     See https://duckdb-webbed.readthedocs.io for comprehensive documentation and examples.
 
-    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 100 test suites with 3828 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
+    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 102 test suites with 3951 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.

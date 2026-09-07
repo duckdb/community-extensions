@@ -1,7 +1,7 @@
 extension:
   name: duck_block_utils
   description: Build, transform, validate, and extract content from structured documents using the duck_block type
-  version: 2.0.0
+  version: 3.0.1
   language: C++
   build: cmake
   license: MIT
@@ -14,7 +14,7 @@ repo:
   # so advancing this pin would point a v1.4.5 build at a tree that cannot build for
   # it. v1.4.5 users should move to the v1.5.x track.
   andium: 125662df9e5450105dc9b7957ad955cb53d7beec
-  ref: 3f2a0f0a88325e20f4a4a0441fb7f8e3bcc9f18b
+  ref: 959965034939352e6e6389da7c202b365d924fa5
 docs:
   hello_world: |
     -- Build a document programmatically
