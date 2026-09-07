@@ -52,6 +52,10 @@ on:
         required: false
         type: boolean
         default: false
+      require_ref_next:
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: build-${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ inputs.extension_name || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}-${{ inputs.duckdb_version || '' }}
@@ -90,6 +94,7 @@ jobs:
       env:
         ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
         PIP_BREAK_SYSTEM_PACKAGES: 1
+        COMMUNITY_EXTENSION_REQUIRE_REF_NEXT: ${{ inputs.require_ref_next }}
       run: |
         pip install pyyaml
         # scripts/build.py takes DUCKDB_VERSION from environment
@@ -100,7 +105,7 @@ jobs:
   build:
     needs: prepare
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.5-variegata
-    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
+    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' && needs.prepare.outputs.COMMUNITY_EXTENSION_REF != '' }}
     with:
       duckdb_version: ${{ inputs.duckdb_version || 'v1.5.5' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
