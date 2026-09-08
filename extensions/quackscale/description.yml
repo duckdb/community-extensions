@@ -9,6 +9,7 @@ extension:
   maintainers:
     - lmangani
     - smithclay
+    - rustyconover
 
 repo:
   github: Query-farm/quackscale
