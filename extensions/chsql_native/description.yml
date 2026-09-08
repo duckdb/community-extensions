@@ -10,6 +10,7 @@ extension:
   maintainers:
     - lmangani
     - adubovikov
+    - rustyconover
 
 repo:
   github: Query-farm/duckdb-extension-clickhouse-native
