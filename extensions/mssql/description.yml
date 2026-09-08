@@ -21,7 +21,10 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-extension"
-  ref: "v0.2.5"
+  # v0.2.5. A SHA rather than the tag name, at the maintainers' request:
+  # a tag can be moved, and this one was -- after v0.2.5 was tagged and before
+  # it was submitted here, to pick up a fix.
+  ref: d35b617c16587e02b4d6e62057ead8f84c1568bf
 
 docs:
   hello_world: |
