@@ -20,6 +20,9 @@ jobs:
       exclude_archs: 'windows_amd64_mingw' # TODO: fixme: extension template fails?
       skip_tests: true
       save_cache: true
+      # Release 2026.06.24
+      # Temporary override; remove when extension-ci-tools updates its default.
+      vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
     secrets: inherit
 
   parse_dependency_list:
@@ -52,4 +55,7 @@ jobs:
       save_cache: true
       vcpkg_extra_dependencies: ${{needs.parse_dependency_list.outputs.dependencies}}
       vcpkg_binary_sources: ${{ vars.VCPKG_BINARY_SOURCES }}
+      # Release 2026.06.24
+      # Temporary override; remove when extension-ci-tools updates its default.
+      vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
     secrets: inherit
