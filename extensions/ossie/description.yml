@@ -3,7 +3,7 @@ extension:
   description: The Apache Ossie (incubating) reference implementation for DuckDB. Reads Ossie
     semantic model files in YAML or JSON and answers semantic queries against the tables in DuckDB,
     from a single binary, with no infrastructure. Also exposes the semantic layer via MCP.
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: iqea-ai/duckdb-ossie
-  ref: ef995aa581455840c7adc4e24d30220b047962a3
+  ref: 5180c67299ca14fde9d46806c7d35f9f53c2f1a9
 
 docs:
   hello_world: |
@@ -91,12 +91,14 @@ docs:
 
     **Conformance**
 
-    Models are validated against the format's own `core-spec/osi-schema.json`. The test suite
+    Models are validated against the format's own `core-spec/ossie-schema.json`. The test suite
     includes five models published by other Ossie implementers -- Databricks, GoodData, NVIDIA,
     Omni and OrionBelt -- vendored verbatim from apache/ossie; four load and answer queries, and
     the fifth carries only DATABRICKS expressions, which this extension does not execute.
-    Generated SQL is checked against hand-written TPC-DS SQL at sf=1 across every metric and every
-    dimension, so correctness is measured against the numbers rather than against our own output.
+    Generated SQL is diffed against hand-written TPC-DS equivalents with symmetric EXCEPT over
+    dsdgen(sf = 0.01) data, so correctness is measured against the numbers rather than against our
+    own output. That currently covers total_sales and books_sales. The remaining metrics are
+    exercised by golden-SQL, grain or vocabulary tests, none of which can catch a wrong number.
 
     Current limits are documented rather than hidden: ANSI_SQL expressions only, one semantic model
     per file, table-backed sources only, all joins emitted as INNER, and metrics spanning more than
@@ -106,8 +108,14 @@ docs:
 
     `examples/server.sql` publishes a model over MCP via the duckdb_mcp community extension, giving
     an agent a `semantic_query` tool plus `metrics` and `dimensions` resources to discover names
-    from. The agent can reach nothing but the model's own vocabulary: filters are allowlisted,
-    subqueries are refused outright, and no argument lets a caller widen that.
+    from. Within that tool the agent reaches nothing but the model's own vocabulary: filters are
+    allowlisted, subqueries are refused outright, and no argument lets a caller widen that.
+
+    That holds for the connection, not just the tool: server.sql disables every built-in duckdb_mcp
+    tool -- query, export, list_tables, describe, database_info -- so tools/list returns only
+    semantic_query and calling anything else is refused. Disabling query alone would not be enough,
+    because export takes an arbitrary SQL argument and reaches the same data. A CI job asserts both
+    directions of this on every push.
 
     This is an independent implementation of the Apache Ossie file format. It is not affiliated
     with, endorsed by, or an official product of the Apache Software Foundation.
