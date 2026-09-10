@@ -10,8 +10,8 @@ extension:
     - ColinLeeo
 
 repo:
-  github: ColinLeeo/tsfile-duckdb
-  ref: 34e6865cbb251cf318cc443d8bb3a26c018e60a9
+  github: TimechoLab/tsfile-duckdb
+  ref: 0a95f6233f71b9ae3ed55ef0fe57e1791bad817f
 
 docs:
   hello_world: |
