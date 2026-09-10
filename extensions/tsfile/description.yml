@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: TimechoLab/tsfile-duckdb
-  ref: e741cc4741a1b00eb65078382ac3b81b8dc5375d
+  ref: 9840c600fec9aefec3d9351d8ee27c643033b752
 
 docs:
   hello_world: |
