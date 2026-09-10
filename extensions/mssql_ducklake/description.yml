@@ -36,8 +36,8 @@ docs:
     release and adds a SQL Server metadata manager beside DuckLake's built-in PostgreSQL and
     SQLite ones; it talks to the server through the mssql extension (native TDS, no ODBC), which
     must be installed too. Everything DuckLake does - snapshots, time travel, schema evolution,
-    data inlining, partitioning, the maintenance functions, `ducklake:postgres:` catalogs as well
-    - works as in the stock extension; the data files live wherever DuckLake puts them.
+    data inlining, partitioning, the maintenance functions, `ducklake:postgres:` catalogs as
+    well - works as in the stock extension; the data files live wherever DuckLake puts them.
 
     Documentation: https://hugr-lab.github.io/mssql-ducklake/
 
