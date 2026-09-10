@@ -1,7 +1,7 @@
 extension:
   name: apple_health
   description: Read Apple Health export.zip / export.xml as typed DuckDB tables (records, workouts, activity rings, workout routes and GPX points)
-  version: 0.1.0
+  version: 0.1.1
   language: C
   build: cmake
   license: Apache-2.0
@@ -13,7 +13,8 @@ extension:
 
 repo:
   github: Mjboothaus/duckdb-apple-health
-  ref: 092eed0d46eda0926697212abb6a1bd5975aa71a
+  # v0.1.1 — stable C extension API stamp v1.2.0 (community CI load fix)
+  ref: c447fa60d56b445da430c3f8472794dde9c79ec2
 
 docs:
   hello_world: |
