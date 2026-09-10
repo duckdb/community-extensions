@@ -31,22 +31,10 @@ docs:
     SELECT count(*) FROM lake.t;
 
   extended_description: |
-    Runs [DuckLake](https://ducklake.select) with its **catalog in Microsoft SQL Server or
-    Azure SQL**. The extension embeds the complete, unmodified DuckLake source at a pinned
-    release and adds a SQL Server metadata manager beside DuckLake's built-in PostgreSQL and
-    SQLite ones; it talks to the server through the mssql extension (native TDS, no ODBC), which
-    must be installed too. Everything DuckLake does - snapshots, time travel, schema evolution,
-    data inlining, partitioning, the maintenance functions, `ducklake:postgres:` catalogs as
-    well - works as in the stock extension; the data files live wherever DuckLake puts them.
+    Runs [DuckLake](https://ducklake.select) with its **catalog in Microsoft SQL Server or Azure SQL**. The extension embeds the complete, unmodified DuckLake source at a pinned release and adds a SQL Server metadata manager beside DuckLake's built-in PostgreSQL and SQLite ones; it talks to the server through the mssql extension (native TDS, no ODBC), which must be installed too. Everything DuckLake does - snapshots, time travel, schema evolution, data inlining, partitioning, the maintenance functions, `ducklake:postgres:` catalogs as well - works as in the stock extension; the data files live wherever DuckLake puts them.
 
     Documentation: https://hugr-lab.github.io/mssql-ducklake/
 
-    **Mutually exclusive with the stock `ducklake` extension**: both provide the same functions
-    and the same `ducklake:` attach prefix - load one or the other, and load `mssql_ducklake`
-    before the first `ATTACH 'ducklake:...'`. Needs the mssql extension v0.2.5 or newer, and a
-    SQL Server 2019+ or Azure SQL database (a UTF-8 collation).
+    **Mutually exclusive with the stock `ducklake` extension**: both provide the same functions and the same `ducklake:` attach prefix - load one or the other, and load `mssql_ducklake` before the first `ATTACH 'ducklake:...'`. Needs the mssql extension v0.2.5 or newer, and a SQL Server 2019+ or Azure SQL database (a UTF-8 collation).
 
-    Experimental. The catalog is shaped for SQL Server on creation (primary keys, UTF-8 binary
-    collation, indexes, forced parameterization), commits go to the server as T-SQL, and the
-    1000-table benchmark runs at 1.5x of the PostgreSQL backend's time with commits at parity;
-    what is not there yet is on the limitations page.
+    Experimental. The catalog is shaped for SQL Server on creation (primary keys, UTF-8 binary collation, indexes, forced parameterization), commits go to the server as T-SQL, and the 1000-table benchmark runs at 1.5x of the PostgreSQL backend's time with commits at parity; what is not there yet is on the limitations page.
