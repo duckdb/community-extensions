@@ -2,7 +2,7 @@ extension:
   name: gcs
   description: DuckDB GCS Extension
   extended_description: A native GCS extension with support for standard Google auth methods
-  version: 0.0.8
+  version: 0.0.9
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: northpolesec/duckdb-gcs
-  ref: 84082773578a49454fcbdc055562d827c76c76af
+  ref: 7612d198de85dee10ffd6e818fb51174eb0a1da1
 
 docs:
   hello_world: |
@@ -27,4 +27,3 @@ docs:
     ├─────────────────────────────────────────┼─────────┼───────┼──────────────────────────┤
     │ gcss://rah-public-gcs-testing/quack.txt │ 🦆      │   4   │ 2025-09-23 16:20:03-04   │
     └─────────────────────────────────────────┴─────────┴───────┴──────────────────────────┘
-
