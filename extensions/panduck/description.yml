@@ -14,10 +14,24 @@ extension:
 repo:
   github: teaguesterling/duckdb_panduck
   ref: 5a0331b8c16c1b87039fce21f61c04d9bf73ad81
-  # SAME COMMIT AS `ref`, deliberately. Without ref_next, scripts/build.py prints
-  # "Skipping prerelease validation" and the PR passes green having never built against
-  # DuckDB v2.0 -- a green that means "did not look". panduck v0.2.0 merged that way.
-  ref_next: 5a0331b8c16c1b87039fce21f61c04d9bf73ad81
+  # DIFFERENT FROM `ref`, and this is what ref_next is for. The v0.5.0 tag builds against
+  # stable DuckDB on all eleven platform targets, and does NOT compile against
+  # v2.0-cyanoptera: reader_registry.cpp calls Catalog::GetEntry, and the tag does not pull
+  # in duckdb/catalog/catalog.hpp transitively the way v1.5.5 does. ref_next is the commit
+  # on main that adds the include -- one line, no behaviour change, suite unchanged at 2548
+  # assertions.
+  #
+  # WHAT MATTERS MORE THAN THE PIN: this was caught by test_against_latest on THIS PR,
+  # which only runs because ref_next is set at all. Without it scripts/build.py prints
+  # "Skipping prerelease validation" and the PR passes green having never built against the
+  # next DuckDB -- a green that means "did not look". panduck v0.2.0 merged that way. It has
+  # now caught two real defects: the v2.0 source break fixed in 0.4.1, and this one.
+  #
+  # panduck's own canary was on DuckDB `main` and passed on 5a0331b while this job failed on
+  # the same source, because `main` still had the transitive include. That canary now builds
+  # v2.0-cyanoptera -- the version with consequences -- and that fix is in the ref_next
+  # commit too.
+  ref_next: caf1ff9d55f6b3c4ccaae7ff6dd2b5745d39f6e7
 docs:
   hello_world: |
     LOAD panduck;
