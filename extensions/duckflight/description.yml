@@ -1,7 +1,7 @@
 extension:
   name: duckflight
   description: Query DuckDB from PostgreSQL and Arrow Flight SQL clients, including psql, ADBC, and Airport
-  version: 0.1.5
+  version: 0.1.6
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: sidequery/duckflight-extension
-  ref: 24f4b3ca9d30cb688cf168ca50bbf733eeb70181
+  ref: a4cfbfa9865054a3c4d57338b9501685ced47141
 
 docs:
   hello_world: |
@@ -36,4 +36,21 @@ docs:
 
     Both listeners require authentication. A single `duckflight.toml` configures users, access
     tokens, and optional TLS. See the
-    [quick start and authentication guide](https://github.com/sidequery/duckflight-extension/blob/main/docs/AUTHENTICATION.md).
+    [quick start and authentication guide](https://github.com/sidequery/duckflight-extension/blob/main/README.md#authentication-setup).
+
+    Server-control functions:
+
+    | Function | Purpose |
+    | --- | --- |
+    | `duckflight_pg_serve(address, config_file)` | Starts an authenticated PostgreSQL listener; returns its protocol and bound address. |
+    | `duckflight_flight_serve(address, config_file)` | Starts an authenticated Arrow Flight SQL listener; returns its protocol and bound address. |
+    | `duckflight_stop(protocol, address)` | Stops the specified listener and returns its status. |
+    | `duckflight_servers()` | Lists running listeners and their bound addresses. |
+    | `duckflight_core_status()` | Reports whether the runtime loaded, its ABI version, and status details. |
+
+    The automatically detected functions below also include PostgreSQL compatibility macros
+    and internal session/catalog helpers installed by the runtime. These support PostgreSQL
+    queries and client metadata discovery; they are not additional server controls or a complete
+    implementation of PostgreSQL functions. Their catalog comments describe each helper.
+    DuckDB 1.5.5 does not expose function-description setters through the table-function C API,
+    so the five native server functions are documented above.
