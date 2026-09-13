@@ -1,0 +1,44 @@
+extension:
+  name: apart
+  description: Evaluate affine decision trees in SQL
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - jokasimr
+
+repo:
+  github: jokasimr/apart
+  ref: 470d3a3e76ab8cb28822dc4c87f24768e4a977ad
+
+docs:
+  hello_world: |
+    LOAD apart;
+
+    -- Split on x + y = 1, then on x - y = 0.
+    SELECT x, y,
+           decision_tree(
+             {
+                 weights: [
+                     [1.0, 1.0],
+                     [1.0, -1.0],
+                     [1.0, -1.0]
+                 ],
+                 thresholds: [1.0, 0.0, 0.0],
+                 children: [[2, 3], [-1, -2], [-4, -3]],
+                 values: ['A', 'B', 'C', 'D']
+             },
+             x, y
+           ) AS region
+    FROM (VALUES (1, 0), (0, 1), (-1, 0), (0, -1)) AS points(x, y);
+  extended_description: |
+    `apart` evaluates affine decision trees. Each node compares a weighted sum
+    of the inputs with a threshold, and each leaf supplies a result.
+
+    The tree stays constant for the query while the inputs vary by row. Inputs
+    can be separate columns or a fixed-size array. Leaf values can use any
+    DuckDB type, including lists and structs.
+
+    See the [documentation](https://github.com/jokasimr/apart#readme) and
+    [example use cases](https://github.com/jokasimr/apart/tree/main/examples).
