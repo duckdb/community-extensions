@@ -1,7 +1,7 @@
 extension:
   name: panduck
   description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
-  version: 0.4.1
+  version: 0.5.0
   language: C++
   build: cmake
   license: MIT
@@ -13,11 +13,11 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: c8aee8a04204d3e91a7932eef7de8c7d0dca7750
+  ref: 5a0331b8c16c1b87039fce21f61c04d9bf73ad81
   # SAME COMMIT AS `ref`, deliberately. Without ref_next, scripts/build.py prints
   # "Skipping prerelease validation" and the PR passes green having never built against
   # DuckDB v2.0 -- a green that means "did not look". panduck v0.2.0 merged that way.
-  ref_next: c8aee8a04204d3e91a7932eef7de8c7d0dca7750
+  ref_next: 5a0331b8c16c1b87039fce21f61c04d9bf73ad81
 docs:
   hello_world: |
     LOAD panduck;
@@ -105,7 +105,15 @@ docs:
     | Function | Description |
     |----------|-------------|
     | `doc_toc(path)` | Table of contents for any supported document |
-    | `doc_render(path)` | Render a document to text |
+    | `doc_section(path, heading)` | The blocks under one heading (`match := 'contains'` for a fragment) |
+    | `doc_search_sections(path, pattern)` | The section whose CONTENT matches, not its heading |
+    | `doc_container(path, id)` | The blocks inside one container |
+    | `doc_render(path, fmt)` | Render a document to `md`, `html` or text |
+
+    Each of these accepts `expand_embedded := true`, which parses a format embedded in a
+    document -- a markdown cell inside a `.ipynb` -- so a notebook is navigable rather
+    than a wall of `raw` blocks. Opt-in: it needs the `markdown` extension, and an
+    unchanged call reads identically without it.
 
     ## Writing Pandoc JSON
 
@@ -113,6 +121,7 @@ docs:
     |----------|-------------|
     | `panduck_blocks_to_pandoc_ast(blocks)` | duck_block list to a Pandoc AST document |
     | `panduck_blocks_to_pandoc_blocks(blocks)` | duck_block list to a Pandoc block array |
+    | `panduck_blocks_to_pandoc_json(blocks)` | duck_block list to Pandoc JSON text |
     | `panduck_write_pandoc_ast(path, blocks)` | Write Pandoc JSON to a file |
     | `panduck_pandoc_ast_map()` | The constructor mapping, as a queryable table |
 
@@ -125,8 +134,8 @@ docs:
 
     This is an early release. Ten native readers are implemented and tested against
     reference implementations -- RTF, DOCX, ODT, EPUB, LaTeX, Org, RST, ipynb, MediaWiki,
-    Textile -- plus a Pandoc AST reader, with 2384 test assertions, differential validation
-    against a real pandoc on every fixture, and eight checks in CI. PDF, Markdown and HTML
+    Textile -- plus a Pandoc AST reader, with 2548 test assertions, differential validation
+    against a real pandoc on every fixture, and seven jobs in CI. PDF, Markdown and HTML
     are read by delegating to the pdf, markdown and webbed extensions rather than by a
     reader here.
 
