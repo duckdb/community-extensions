@@ -1,0 +1,46 @@
+extension:
+  name: mmcif
+  description: Read and write protein structure mmcif files using SQL
+  version: 0.0.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - sverhoeven
+
+repo:
+  github: i-VRESSE/duckdb-mmcif
+  ref: 55b11e2bc2031491b3ea59adf5d26011b13ecc70
+
+docs:
+  hello_world:
+    -- single table
+    SELECT count(*) FROM mmcif_scan('https://files.rcsb.org/download/1AMB.cif.gz', 'atom_site');
+    -- 438
+
+    -- All tables in file
+    ATTACH 'https://files.rcsb.org/download/1AMB.cif.gz' AS mmcifdb (TYPE mmcif);
+    USE mmcifdb;
+
+    SELECT count(*) FROM information_schema.tables WHERE table_catalog = 'mmcifdb';
+    -- 43
+
+    SELECT count(*) FROM atom_site;
+    -- 438
+
+    -- Positions of Zinc atoms
+    SELECT Cartn_x, Cartn_y, Cartn_z FROM atom_site WHERE type_symbol = 'ZN';
+
+    -- Write mode
+    ATTACH '1amb_updated.cif' AS wdb (TYPE mmcif, READ_WRITE TRUE);
+    USE wdb;
+
+    BEGIN;
+    INSERT INTO atom_site (label_atom_id, Cartn_x, type_symbol) VALUES ('O1', 3.5, 'O');
+    UPDATE atom_site SET type_symbol='ZZ' WHERE label_atom_id='O1';
+    DELETE FROM atom_site WHERE label_atom_id='O1';
+    COMMIT;   -- writes the mutated tables back to the attached file
+extended_description: |
+  The mmcif extension adds support for reading and writing [mmCIF](https://mmcif.wwpdb.org/) (PDBx) structural-biology files.
+  
+  mmCIF files can be downloaded from then [Protein Data Bank](https://www.rcsb.org/).
