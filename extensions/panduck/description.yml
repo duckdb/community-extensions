@@ -1,7 +1,7 @@
 extension:
   name: panduck
   description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
-  version: 0.5.0
+  version: 0.5.1
   language: C++
   build: cmake
   license: MIT
@@ -13,25 +13,17 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: 5a0331b8c16c1b87039fce21f61c04d9bf73ad81
-  # DIFFERENT FROM `ref`, and this is what ref_next is for. The v0.5.0 tag builds against
-  # stable DuckDB on all eleven platform targets, and does NOT compile against
-  # v2.0-cyanoptera: reader_registry.cpp calls Catalog::GetEntry, and the tag does not pull
-  # in duckdb/catalog/catalog.hpp transitively the way v1.5.5 does. ref_next is the commit
-  # on main that adds the include -- one line, no behaviour change, suite unchanged at 2548
-  # assertions.
+  ref: cfbdfb9917eb89475b32d203d3e464008537e61d
+  # THE SAME COMMIT AS `ref`, and that is measured, not defaulted. panduck's own pipeline on
+  # this exact commit built v2.0-cyanoptera green on all nine platform targets, and DuckDB
+  # `main` as an advisory canary, also nine of nine. 0.5.0 needed a separate ref_next because
+  # its tag lacked an explicit duckdb/catalog/catalog.hpp include; that fix (panduck #56) is
+  # in this tag.
   #
-  # WHAT MATTERS MORE THAN THE PIN: this was caught by test_against_latest on THIS PR,
-  # which only runs because ref_next is set at all. Without it scripts/build.py prints
-  # "Skipping prerelease validation" and the PR passes green having never built against the
-  # next DuckDB -- a green that means "did not look". panduck v0.2.0 merged that way. It has
-  # now caught two real defects: the v2.0 source break fixed in 0.4.1, and this one.
-  #
-  # panduck's own canary was on DuckDB `main` and passed on 5a0331b while this job failed on
-  # the same source, because `main` still had the transitive include. That canary now builds
-  # v2.0-cyanoptera -- the version with consequences -- and that fix is in the ref_next
-  # commit too.
-  ref_next: caf1ff9d55f6b3c4ccaae7ff6dd2b5745d39f6e7
+  # ref_next STAYS SET even when it equals ref: without it scripts/build.py prints "Skipping
+  # prerelease validation" and test_against_latest never runs -- a green that means "did not
+  # look". panduck v0.2.0 merged that way, and the job has since caught two real defects.
+  ref_next: cfbdfb9917eb89475b32d203d3e464008537e61d
 docs:
   hello_world: |
     LOAD panduck;
@@ -148,8 +140,8 @@ docs:
 
     This is an early release. Ten native readers are implemented and tested against
     reference implementations -- RTF, DOCX, ODT, EPUB, LaTeX, Org, RST, ipynb, MediaWiki,
-    Textile -- plus a Pandoc AST reader, with 2548 test assertions, differential validation
-    against a real pandoc on every fixture, and seven jobs in CI. PDF, Markdown and HTML
+    Textile -- plus a Pandoc AST reader, with 2931 test assertions, differential validation
+    against a real pandoc on every fixture, and nine jobs in CI. PDF, Markdown and HTML
     are read by delegating to the pdf, markdown and webbed extensions rather than by a
     reader here.
 
