@@ -12,6 +12,7 @@ extension:
 repo:
   github: paleolimbot/duckdb-nanoarrow
   ref: 42e4199a67c4cd0789087562a025e87e7130fdc3
+  ref_next: 2507666f14fedfbad6783bc1d74cbdf177d69b8f
 
 docs:
   hello_world: |
