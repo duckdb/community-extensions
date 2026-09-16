@@ -22,7 +22,8 @@ extension:
 repo:
   github: flozer/duckdb-salesforce
   # community-extensions CI checks out exactly this ref to build + sign.
-  ref: v0.15.0
+  # tag v0.15.0
+  ref: 819d86800e95772740197ac5e3b4ad9a48270aff
 
 docs:
   hello_world: |
