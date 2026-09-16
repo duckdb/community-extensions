@@ -11,6 +11,7 @@ extension:
 repo:
   github: i-VRESSE/duckdb-mmcif
   ref: 55b11e2bc2031491b3ea59adf5d26011b13ecc70
+  ref_next: ac5b197b4ce3aa49ffdcb99a6e987555a1081c16
 
 docs:
   hello_world:
