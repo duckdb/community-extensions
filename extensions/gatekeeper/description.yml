@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nozzle/duckdb-gatekeeper
-  ref: v0.1.2
+  ref: bc6578f92b1861e8bf44f9971c2007774ca54e08
 
 docs:
   hello_world: |
