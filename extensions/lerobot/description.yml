@@ -1,0 +1,47 @@
+extension:
+  name: lerobot
+  description: Query and create LeRobot v3 datasets, including frame data, images, and video observation windows.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - kaka11chen
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "multimedia"
+  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
+  test_config: '{"test_env_variables":{"LEROBOT_NON_GPL_FFMPEG_TESTS":"1"}}'
+
+repo:
+  github: AstroVela/duckdb-lerobot
+  ref: 901f26a6639c3f3ba763a4df758d83e197694806
+
+docs:
+  hello_world: |
+    LOAD lerobot;
+
+    COPY (
+      SELECT 0::BIGINT AS episode_index,
+             'pick up a block' AS task,
+             i::FLOAT AS action
+      FROM range(10) AS frames(i)
+      ORDER BY i
+    ) TO 'lerobot_example' (
+      FORMAT lerobot,
+      FPS 10,
+      FEATURES '{"action": {"dtype": "float32", "shape": [1]}}'
+    );
+
+    SELECT episode_index, frame_index, timestamp, action
+    FROM lerobot_scan('lerobot_example')
+    ORDER BY frame_index;
+
+  extended_description: |
+    Read LeRobot v3 metadata and frame data, create datasets with COPY, decode
+    RGB video frames, and select temporal observation windows with SQL.
+    TorchCodec integration is available through a separate optional Python package.
+
+    The extension source is Apache-2.0. Native binaries statically link LGPL FFmpeg,
+    libaom, dav1d, and zlib with their respective licenses. GPL codecs are excluded
+    from the default build. Corresponding source and rebuilding instructions are
+    described in [REDISTRIBUTION.md](https://github.com/AstroVela/duckdb-lerobot/blob/v1.5-variegata/REDISTRIBUTION.md).
