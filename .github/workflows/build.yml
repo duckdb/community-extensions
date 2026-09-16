@@ -73,6 +73,8 @@ jobs:
       COMMUNITY_EXTENSION_OPT_IN_PLATFORMS: ${{ inputs.more_opt_in }}${{ steps.parse.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS }}
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
+      COMMUNITY_EXTENSION_RELEASE_MATERIALS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_RELEASE_MATERIALS }}
+      COMMUNITY_EXTENSION_EXTRA_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_EXTRA_CONFIG }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
       COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && '84bab45d415d22042bd0b9081aea57f362da3f35' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT }}
     env:
@@ -120,6 +122,9 @@ jobs:
       override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
       vcpkg_url: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_URL}}
       vcpkg_commit: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT}}
+      include_release_materials: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_RELEASE_MATERIALS == 'true' }}
+      vcpkg_binary_sources: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_RELEASE_MATERIALS == 'true' && 'clear' || '' }}
+      extra_extension_config: ${{ fromJSON(needs.prepare.outputs.COMMUNITY_EXTENSION_EXTRA_CONFIG || '""') }}
       skip_tests: ${{ inputs.skip_tests || false }}
       save_cache: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME == 'quack' && github.event_name != 'pull_request' }}
 
@@ -155,6 +160,7 @@ jobs:
     secrets: inherit
     with:
       deploy_latest: true
+      include_release_materials: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_RELEASE_MATERIALS == 'true' }}
       duckdb_version: ${{ inputs.duckdb_version || 'v1.5.5' }}
       duckdb_tag: ${{ inputs.duckdb_tag || '' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v1.5-variegata' }}

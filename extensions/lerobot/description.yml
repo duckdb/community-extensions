@@ -10,6 +10,9 @@ extension:
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   requires_toolchains: "multimedia"
   vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
+  release_materials: true
+  extra_extension_config: |
+    set(LEROBOT_PACKAGE_RELEASE ON CACHE BOOL "Generate corresponding source and rebuild materials" FORCE)
   test_config: '{"test_env_variables":{"LEROBOT_NON_GPL_FFMPEG_TESTS":"1"}}'
 
 repo:
@@ -45,3 +48,7 @@ docs:
     libaom, dav1d, and zlib with their respective licenses. GPL codecs are excluded
     from the default build. Corresponding source and rebuilding instructions are
     described in [REDISTRIBUTION.md](https://github.com/AstroVela/duckdb-lerobot/blob/v1.5-variegata/REDISTRIBUTION.md).
+
+    Each native download has a companion `<name>.duckdb_extension.sources.json`
+    at the same repository path. It records the signed download's checksums and
+    links to the corresponding source archive, notices, and rebuild instructions.

@@ -102,6 +102,48 @@ Maintainers who need users to pin or install historical extension builds should 
 community extension descriptor path, for example through separate custom extension repositories, separate channels, or
 direct artifact URLs.
 
+### Publishing accompanying source and rebuild materials
+
+Native extensions can opt into publishing build-generated release materials:
+
+```yaml
+extension:
+  # Existing descriptor fields ...
+  release_materials: true
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  extra_extension_config: |
+    set(MY_EXTENSION_PACKAGE_RELEASE ON CACHE BOOL "Package release materials" FORCE)
+```
+
+Replace the example CMake option with your extension's packaging option. Its
+build must populate `build/<config>/extension/<name>/release/` with regular files
+using flat filenames, including:
+
+- The corresponding sources, build/relink instructions, and license notices
+  required for the binary being distributed.
+- `distribution-manifest.json`, whose `extension_sha256` identifies the exact
+  unsigned extension produced by the same build.
+- `SHA256SUMS`, covering every other file in that directory, including the
+  manifest, using `sha256sum` format.
+
+Opted-in builds disable the vcpkg binary cache so packaging can collect dependency
+source downloads. Missing materials or mismatched checksums fail publication.
+The publisher stores the verified materials before invoking DuckDB's existing
+signing and binary upload script. It then downloads the published binary and
+checks that only its 256-byte signature trailer changed.
+
+For a binary URL ending in `.duckdb_extension.gz`, the companion
+`.duckdb_extension.sources.json` contains the download checksum, signed binary
+checksum, source URLs, and their checksums. Compare the download checksum before
+using an association: replacing a binary and its companion is not atomic.
+Hash-addressed materials and publication receipts live under `release_materials/`
+in the same public bucket. They must be retained independently of Actions
+artifact expiration and replacement of the latest binary.
+
+The publisher checks integrity and association, not source completeness or
+license compliance. Extension maintainers remain responsible for those contents.
+This opt-in path currently supports native targets only.
+
 ## Upgrading an extension to a new DuckDB version
 When a new DuckDB version is (about to be) released, there are two states your extension can be in, which we will illustrate using the example extension described before:
 

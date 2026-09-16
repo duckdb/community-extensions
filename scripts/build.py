@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 import yaml
 # TODO: check prefix, needs to be in installation dir
 
@@ -35,7 +36,21 @@ if dir_name != extension_name:
 
 # todo check other stuff like build system etc.
 
+release_materials = desc['extension'].get('release_materials', False)
+if not isinstance(release_materials, bool):
+    raise ValueError('extension.release_materials must be a boolean')
+extra_config = desc['extension'].get('extra_extension_config', '')
+if not isinstance(extra_config, str):
+    raise ValueError('extension.extra_extension_config must be a string')
+if release_materials:
+    excluded = set(desc['extension'].get('excluded_platforms', '').split(';'))
+    if not {'wasm_mvp', 'wasm_eh', 'wasm_threads'} <= excluded:
+        raise ValueError('release_materials currently requires excluding all Wasm platforms')
+
 with open('env.sh', 'w+') as hdl:
+	hdl.write(f"COMMUNITY_EXTENSION_RELEASE_MATERIALS={str(release_materials).lower()}\n")
+	# Keep the GitHub output on one line; fromJSON restores the CMake content.
+	hdl.write(f"COMMUNITY_EXTENSION_EXTRA_CONFIG={json.dumps(extra_config)}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
 	if 'canonical_name' in desc.get('repo', {}):
 		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")

@@ -57,6 +57,10 @@ on:
         required: false
         type: string
         default: "./duckdb/scripts/extension-upload-single.sh"
+      include_release_materials:
+        required: false
+        type: boolean
+        default: false
       repository:
         required: false
         type: string
@@ -118,6 +122,22 @@ jobs:
           path: |
             /tmp/extension
 
+      - name: Download release materials
+        if: ${{ inputs.include_release_materials }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version }}-extension-${{ matrix.duckdb_arch }}${{ inputs.artifact_postfix }}-release
+          path: /tmp/extension/release
+
+      - name: Check out release publication tooling from the workflow repository
+        if: ${{ inputs.include_release_materials }}
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository }}
+          ref: ${{ github.sha }}
+          path: .community-release-tools
+          persist-credentials: false
+
       - name: Deploy
         shell: bash
         env:
@@ -128,6 +148,12 @@ jobs:
           DUCKDB_EXTENSION_SIGNING_PK: ${{ secrets.S3_DUCKDB_ORG_COMMUNITY_SIGNING_PK }}
           DUCKDB_DEPLOY_SCRIPT_MODE: for_real
           PIP_BREAK_SYSTEM_PACKAGES: 1
+          INCLUDE_RELEASE_MATERIALS: ${{ inputs.include_release_materials }}
+          EXTENSION_NAME: ${{ inputs.extension_name }}
+          EXTENSION_PLATFORM: ${{ matrix.duckdb_arch }}
+          DEPLOY_LATEST: ${{ inputs.deploy_latest }}
+          DEPLOY_VERSIONED: ${{ inputs.deploy_versioned }}
+          DEPLOY_SCRIPT: ${{ inputs.deploy_script }}
         run: |
           pwd
           python3 -m pip install awscli
@@ -144,7 +170,16 @@ jobs:
           git fetch --tags --no-recurse-submodules
           export EXT_VERSION=`git tag --points-at HEAD`
           export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
-          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $EXT_VERSION $DUCKDB_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
+          if [ "$INCLUDE_RELEASE_MATERIALS" = "true" ]; then
+            python3 .community-release-tools/scripts/release_materials.py \
+              --name "$EXTENSION_NAME" --extension-version "$EXT_VERSION" \
+              --duckdb-version "$DUCKDB_VERSION" --arch "$EXTENSION_PLATFORM" \
+              --bucket "$BUCKET_NAME" --deploy-script "$DEPLOY_SCRIPT" \
+              --deploy-latest "$DEPLOY_LATEST" --deploy-versioned "$DEPLOY_VERSIONED" --publish
+          else
+            "$DEPLOY_SCRIPT" "$EXTENSION_NAME" "$EXT_VERSION" "$DUCKDB_VERSION" \
+              "$EXTENSION_PLATFORM" "$BUCKET_NAME" "$DEPLOY_LATEST" "$DEPLOY_VERSIONED"
+          fi
 
   clean_cache:
     needs:
