@@ -91,7 +91,7 @@ class ReleaseMaterialsTests(unittest.TestCase):
                 ],
             )
             # Material uploads and their index must finish before binary publication.
-            indices = [key for key in self.objects if key.endswith('/source-index.json')]
+            indices = [key for key in self.objects if key.endswith('/source-index.json') and '/files/' not in key]
             self.assertEqual(len(indices), 1)
             index = json.loads(self.objects[indices[0]])
             for entry in index['files'].values():
