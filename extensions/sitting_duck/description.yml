@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.14.0
+  version: 1.14.1
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,8 +9,8 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: 6f69f8ff6185aeeea1573f166be1fa8ad38bfe50
-  ref_next: 6f69f8ff6185aeeea1573f166be1fa8ad38bfe50
+  ref: c0e5e7fa5c31527bea5d064ac25776c4c1983c49
+  ref_next: c0e5e7fa5c31527bea5d064ac25776c4c1983c49
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
@@ -86,7 +86,7 @@ docs:
     ```
     Supports type selectors, `#name`, `.semantic` (~80 aliases), combinators, `:has()`, `:not()`,
     `:match()` / `:contains()` structural patterns, scope/call-graph pseudo-classes, and pseudo-element navigation.
-    Bare type matching: `if` matches `if` + `if_statement` + `if_clause`.
+    Bare type matching is EXACT: `if` matches only the `if` node type; use `[type^=if]` for prefix matching.
 
     v1.10.0 adds runtime-loadable tree-sitter grammars (`register_language()`, off by
     default behind `sitting_duck_enable_runtime_grammars`), `ast_to_blocks` (render code
