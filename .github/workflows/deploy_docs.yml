@@ -27,6 +27,7 @@ jobs:
     - name: Generate docs
       run: |
         unzip generated_md.zip
+        rm -f web/community_extensions/extensions/*.md
         cp build/docs/*.md web/community_extensions/extensions/.
         cp build/docs/extensions_list.md.tmp web/_includes/list_of_community_extensions.md
 
