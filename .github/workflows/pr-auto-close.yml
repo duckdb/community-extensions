@@ -1,11 +1,8 @@
 name: Close a PR after 1 month of inactivity
-# Basically: any pr with the label ci failure or changes requested that has no new activity (i.e. comments, commits etc) for a month should be closed
-# 7 days before close, bot leaves a warning (will close in 7 days if no new activity
-# after 30 days, close pr with a comment
 
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 permissions:
@@ -23,7 +20,7 @@ jobs:
       - uses: actions/stale@v9
         with:
           only-labels: ${{ matrix.label }}
-          # pr becomes stale after 23 days, closed a week later without further activity
+          # pr becomes stale after 23 days of inactivity, closed a week later if no updates
           days-before-pr-stale: 23
           days-before-pr-close: 7
           stale-pr-label: 'stale'
