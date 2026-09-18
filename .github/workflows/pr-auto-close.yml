@@ -1,0 +1,33 @@
+name: Close a PR after 1 month of inactivity
+# Basically: any pr with the label ci failure or changes requested that has no new activity (i.e. comments, commits etc) for a month should be closed
+# 7 days before close, bot leaves a warning (will close in 7 days if no new activity
+# after 30 days, close pr with a comment
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  pull-requests: write
+
+jobs:
+  auto-close:
+    if: github.repository == 'duckdb/community-extensions' || github.event_name != 'schedule' # better way to describe that job can be run for funsies?
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        label: ['CI failure', 'changes requested']
+
+    steps:
+      - uses: actions/stale@v9
+        with:
+          only-labels: ${{ matrix.label }}
+          # pr becomes stale after 23 days, closed a week later without further activity
+          days-before-pr-stale: 23
+          days-before-pr-close: 7
+          stale-pr-label: 'stale'
+          stale-pr-message: >
+            This PR has had no activity for 23 days. It will be closed in 7 day if there is no new activity.
+          close-pr-message: >
+            Closing this PR do to 30 days of inactivity. Feel free to reopen it once the ${{ matrix.label }} has been addressed.
