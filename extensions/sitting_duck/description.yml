@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
-  description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.14.2
+  description: Parse, transform, and unparse source code ASTs across 27 languages with tree-sitter grammars, CSS selectors, pattern matching, and code generation
+  version: 1.15.0
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,8 +9,8 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: 23db660091800b43b50e1ed53e7ee9a8612755a9
-  ref_next: 23db660091800b43b50e1ed53e7ee9a8612755a9
+  ref: 17b509d8c7e4f39a8143506f5af669dc77539944
+  ref_next: 17b509d8c7e4f39a8143506f5af669dc77539944
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
@@ -23,6 +23,12 @@ docs:
         return name
     ', 'python')
     WHERE is_function_definition(semantic_type);
+
+    -- AST Unparse: Reconstruct source code from AST table
+    WITH ast AS (
+        SELECT * FROM parse_ast('def add(a, b): return a + b', 'python')
+    )
+    SELECT ast_unparse(ast) AS reconstructed_code;
 
     -- Pattern matching: find eval() calls and capture arguments
     SELECT captures['X'].peek as dangerous_input, file_path, start_line
@@ -88,6 +94,11 @@ docs:
     `:match()` / `:contains()` structural patterns, scope/call-graph pseudo-classes, and pseudo-element navigation.
     Bare type matching is EXACT: `if` matches only the `if` node type; use `[type^=if]` for prefix matching.
 
+    v1.15.0 introduces `ast_unparse()` — a rules-based AST unparser that reconstructs formatted
+    source code from AST tables with guaranteed roundtrip pseudo-identity (parse(unparse(parse(S))) == parse(S)),
+    and `ast_unparse_rules()` for discovering formatting and indentation policies across languages.
+    All C++ and table functions also now register complete parameter and category documentation in `duckdb_functions()`.
+
     v1.10.0 adds runtime-loadable tree-sitter grammars (`register_language()`, off by
     default behind `sitting_duck_enable_runtime_grammars`), `ast_to_blocks` (render code
     structure as duck_blocks documents), and `ast_patch`/`ast_replace` (AST-anchored
@@ -111,14 +122,17 @@ docs:
     - `ast_call_graph(source)` - aggregated caller→callee graph with call counts
     - `ast_find_references(source, name)` - scope-chain-aware symbol reference resolution
 
-    **Table Functions:**
+    **Table & Scalar Functions:**
     - `read_ast(file_pattern, language := NULL)` - Parse source files into AST rows (parallel)
     - `parse_ast(content, language)` - Parse source code strings (table function)
     - `parse_ast_list(content, language)` - Parse source code strings (scalar, returns LIST<STRUCT>; v1.7.0)
+    - `ast_unparse(ast_table, [indent_size, use_tabs, newline])` - Reconstruct source code from AST table (v1.15.0)
+    - `ast_unparse_rules([language])` - Discover active unparse formatting rules (v1.15.0)
     - `ast_match(source, pattern, lang)` - Pattern matching for code search
     - `ast_select(source, css_selector)` - CSS selector queries
     - `ast_select_from(table_name, selector)` - CSS selectors on pre-parsed tables (v1.7.2)
-    - `ast_type_map(language)` - Node type discovery across languages
+    - `ast_type_map([language])` - Node type discovery across languages
+    - `register_language(name, grammar_path, [options])` - Runtime tree-sitter grammar loading (v1.10.0)
 
     **v1.7.0 extraction suffix:**
     Any extraction parameter (`context`, `source`, `structure`, `peek`) can take a `+schema`
