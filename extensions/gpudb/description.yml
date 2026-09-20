@@ -20,7 +20,6 @@ repo:
 
 docs:
   hello_world: |
-    INSTALL gpudb FROM community;
     LOAD gpudb;
 
     -- which processor will run, and what this build can do
