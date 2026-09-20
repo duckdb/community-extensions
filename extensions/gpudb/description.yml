@@ -171,11 +171,13 @@ docs:
     a binary needs follows the CUDA toolkit it was built with: a CUDA 13
     build needs R580 or newer, a CUDA 12.x build reaches the GPU on R525+.
     Falls back to CPU otherwise.
-    Linux: x86-64 with glibc 2.34 or newer, and libgomp.so.1 present at
-    load time (apt install libgomp1, dnf install libgomp) - the extension
-    links OpenMP dynamically. It is on most images already; in a minimal
-    container LOAD fails with "libgomp.so.1: cannot open shared object
-    file".
+    Linux: the binaries this registry builds (x86-64 and arm64) need
+    libgomp.so.1 present at load time (apt install libgomp1, dnf
+    install libgomp) - the extension links OpenMP dynamically. It is on
+    most images already; in a minimal container LOAD fails with
+    "libgomp.so.1: cannot open shared object file". The project's own
+    release binary and the pip wheel are x86-64 with glibc 2.34 or
+    newer, and the wheel bundles its own libgomp.so.1.
 
   known_limitations: |
     * Window functions, FULL joins, median / stddev / quantiles, and
