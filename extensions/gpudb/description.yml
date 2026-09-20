@@ -167,10 +167,12 @@ docs:
     which is the floor the shipped binaries declare. The binary compiles
     its shaders at run time as Metal shading language 3.2; building from
     source needs the macOS 15 SDK.
+
     NVIDIA CUDA: any GPU with sm_75 or later (Turing and newer). The driver
     a binary needs follows the CUDA toolkit it was built with: a CUDA 13
     build needs R580 or newer, a CUDA 12.x build reaches the GPU on R525+.
     Falls back to CPU otherwise.
+
     Linux: the binaries this registry builds (x86-64 and arm64) need
     libgomp.so.1 present at load time (apt install libgomp1, dnf
     install libgomp) - the extension links OpenMP dynamically. It is on
