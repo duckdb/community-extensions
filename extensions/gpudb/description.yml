@@ -4,7 +4,7 @@
 
 extension:
   name: gpudb
-  description: Plain DuckDB SQL on the GPU - GROUP BY, joins, filters and top-k on Apple Silicon Metal and NVIDIA CUDA, used only when measured faster, same answers. First SQL execution engine that targets Apple Silicon GPUs.
+  description: GPU-accelerated plain DuckDB SQL on Apple Silicon Metal and NVIDIA CUDA - GROUP BY, joins, filters and top-k run on the GPU when measured faster, with the same answers. First SQL execution engine that targets Apple Silicon GPUs.
   version: 0.7.0
   language: C++
   build: cmake
