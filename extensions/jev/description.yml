@@ -10,7 +10,7 @@ extension:
     - judoaseeta
 
 repo:
-  github: judoaseeta/duckdb_jev
+  github: judoaseeta/duckdb-jev
   ref: 58e548463b0bfb25d86bc68b11515a1daaf87ab3
 
 docs:
