@@ -15,7 +15,13 @@ repo:
   andium: bc9864b9fad37bffe15f7499fc5b9021e970eaf8
   # andium (DuckDB v1.4.5 track) left at the pre-v1.5-variegata commit;
   # v0.4.1 targets the v1.5.x line and ships on that track via ref.
-  ref: refs/tags/v0.4.1
+  # raw commit for refs/tags/v0.4.1 (catalog refs must not be movable tags)
+  ref: 33d5e8970db776331f957678a4cb0a0542e59601
+  # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
+  # Without it scripts/build.py prints "Skipping prerelease validation" and the
+  # run passes green having verified nothing on that line. Same commit as ref;
+  # this pin is what will report whether it builds there.
+  ref_next: 33d5e8970db776331f957678a4cb0a0542e59601
 
 docs:
   hello_world: |
