@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse, transform, and unparse source code ASTs across 27 languages with tree-sitter grammars, CSS selectors, pattern matching, and code generation
-  version: 1.15.0
+  version: 1.15.1
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,8 +9,8 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: 8a81af603f6ddf98b905623d71dfe6b11de25c54
-  ref_next: 8a81af603f6ddf98b905623d71dfe6b11de25c54
+  ref: 2629067dbd0080bb9730349848a8065fa6162e37
+  ref_next: 2629067dbd0080bb9730349848a8065fa6162e37
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
