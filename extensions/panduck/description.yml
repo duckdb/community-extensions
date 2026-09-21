@@ -22,7 +22,7 @@ repo:
   # ref_next STAYS SET even when it equals ref: without it scripts/build.py prints "Skipping
   # prerelease validation" and test_against_latest never runs -- a green that means "did not
   # look". panduck v0.2.0 merged that way, and the job has since caught two real defects.
-  ref_next: 4dc698503e5b56a4c17999eca1c5dc72a177add7
+  ref_next: ea891eddedf65fd68fa5ce4ce431fbe133f1aa0a
 docs:
   hello_world: |
     LOAD panduck;
@@ -139,7 +139,7 @@ docs:
 
     This is an early release. Ten native readers are implemented and tested against
     reference implementations -- RTF, DOCX, ODT, EPUB, LaTeX, Org, RST, ipynb, MediaWiki,
-    Textile -- plus a Pandoc AST reader, with 2931 test assertions, differential validation
+    Textile -- plus a Pandoc AST reader, with 2956 test assertions, differential validation
     against a real pandoc on every fixture, and eleven jobs in CI. PDF, Markdown and HTML
     are read by delegating to the pdf, markdown and webbed extensions rather than by a
     reader here.
