@@ -10,6 +10,11 @@ extension:
 repo:
   github: teaguesterling/sitting_duck
   ref: b8c06a843193a84065ae24cc95c6a4052f3c84ec
+  # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
+  # Without it scripts/build.py prints "Skipping prerelease validation" and the
+  # run passes green having verified nothing on that line. Same commit as ref;
+  # this pin is what will report whether it builds there.
+  ref_next: b8c06a843193a84065ae24cc95c6a4052f3c84ec
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
