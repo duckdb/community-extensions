@@ -12,6 +12,11 @@ extension:
 repo:
   github: teaguesterling/plinking_duck
   ref: 0859a3c3c38daef417d666313516074a375f6631
+  # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
+  # Without it scripts/build.py prints "Skipping prerelease validation" and the
+  # run passes green having verified nothing on that line. Same commit as ref;
+  # this pin is what will report whether it builds there.
+  ref_next: 0859a3c3c38daef417d666313516074a375f6631
 
 docs:
   hello_world: |
