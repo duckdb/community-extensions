@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.9.1
+  version: 2.9.2
   language: C++
   build: cmake
   license: MIT
@@ -17,7 +17,7 @@ repo:
   andium: ddda30f11352138b2451657419640370d1612137
   # andium (DuckDB v1.4.5 track) left at its prior commit; v2.9.1 ships on the
   # v1.5.x track via ref and is verified against DuckDB 2.0 (main) as well.
-  ref: cdd866f0b6b6be7927a3bb56e2c16e18fe04e9b4
+  ref: 4b70396efc17cb74a3723a7d1ee650aa5e4fa064
   # ref_next is what makes the PRERELEASE leg actually build against DuckDB
   # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
   # the PR passes green having verified nothing on that line. Same commit as
