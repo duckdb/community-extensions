@@ -1,7 +1,7 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.9.3
+  version: 1.9.4
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ repo:
   # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; every
   # change since ships on the v1.5.x track via ref, which is a v1.5.4 tree.
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
-  ref: b923ad8938833fa225dbeed9e1e5a72b6f5dadb3
+  ref: cd50cca9a1698a7a6df1381c26df0e24cf18d8ce
   # ref_next is what makes the PRERELEASE leg actually build against DuckDB
   # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
   # the PR passes green having verified nothing on that line. Same commit as
