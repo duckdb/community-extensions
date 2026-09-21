@@ -16,6 +16,11 @@ repo:
   # v1.4.5 users should move to the v1.5.4 track.
   andium: 2013ac345d6f19e61ee78cacae161eb272cf1837
   ref: ed51705a1db83eb382423aff564fe8373c2322b7
+  # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
+  # Without it scripts/build.py prints "Skipping prerelease validation" and the
+  # run passes green having verified nothing on that line. Same commit as ref;
+  # this pin is what will report whether it builds there.
+  ref_next: ed51705a1db83eb382423aff564fe8373c2322b7
 docs:
   hello_world: |
     -- Load the extension
