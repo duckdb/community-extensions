@@ -1,7 +1,7 @@
 extension:
   name: func_apply
   description: Dynamic function invocation - call any scalar function or macro by name at runtime
-  version: 0.3.0
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -15,7 +15,7 @@ repo:
   # (GHSA-55g5-vp25-phpg) is delivered on the v1.5.4 track via `ref`;
   # v1.4.5 users should move to the v1.5.4 track.
   andium: 2013ac345d6f19e61ee78cacae161eb272cf1837
-  ref: ed51705a1db83eb382423aff564fe8373c2322b7
+  ref: d183d72d8a45323f92a33483d982f9d37444773c
 docs:
   hello_world: |
     -- Load the extension
