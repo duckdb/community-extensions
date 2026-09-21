@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nozzle/duckdb-gatekeeper
-  ref: d9a7c749552ad6917f1753b77a69af9ab1f55654
+  ref: 6b1e80b72655cd201ddb80183c31d7179f0606d6
 
 docs:
   hello_world: |
@@ -72,8 +72,8 @@ docs:
     Gatekeeper answers one question about SQL you did not write: does this statement
     stay inside the lines you drew? It is built for multi-tenant analytics, LLM agents,
     and embedded dashboard builders where the SQL text is untrusted but the database is
-    yours. It parses the statement, binds it on your connection, and authorizes every
-    **resolved** table, view, and caller-written function against a two-layer policy: a
+    yours. It parses the statement, binds it on your connection, and authorizes each
+    caller-attributable **resolved** table, view, and function against a two-layer policy: a
     lockable global ceiling and per-request options that may narrow it but never widen it.
 
     Ask the question with `gatekeeper_validate`, which returns the decision without
@@ -94,7 +94,7 @@ docs:
     2. **Inspect the AST** for statement type, dynamic SQL, never-bind functions, and
        bind-time expressions the caller wrote.
     3. **Bind** on your connection, using the caller's search path and transaction.
-    4. **Authorize** every resolved table and view, plus each caller-requested function,
+    4. **Authorize** each caller-attributable resolved table, view, and function,
        against both the global policy and the request options.
     5. **Check the plan**: only reviewed read operators, resolved functions and
        implementations chosen during binding pass.
@@ -215,7 +215,7 @@ docs:
     | Option | Type | Default | Notes |
     |--------|------|---------|-------|
     | `allowed_tables` | STRUCT[] | unrestricted (non-internal) | `{catalog?, schema, table}`. `'*'` matches any whole component; omitted or NULL catalog matches any. `[]` denies all tables and views. Until this is set, every non-internal table and view is readable. |
-    | `blocked_tables` | STRUCT[] | `[]` | Same identity rules. A match always denies, including inside views and macros. |
+    | `blocked_tables` | STRUCT[] | `[]` | Same identity rules. A match always denies what the caller names; does not reach inside trusted views, macros, or attached tables. |
     | `use_default_functions` | BOOLEAN | `true` | `true`: 953 reviewed defaults **plus** `allowed_functions`. `false`: only `allowed_functions`. |
     | `allowed_functions` | VARCHAR[] | `[]` | Leaf names, ASCII case-folded. No wildcards. |
     | `blocked_functions` | VARCHAR[] | `[]` | Always wins over the allowlist for what the caller writes and the implementations DuckDB binds for it. Does not reach inside trusted views, macros, or attached tables. |
@@ -251,12 +251,18 @@ docs:
     omitted options from the built-in defaults. The policy is shared by every connection
     of the database instance, is not persisted, and is not undone by rollback. Request
     options are intersected with it: either layer's block wins, and each layer must allow
-    every resolved table or view and every caller-written function. Trusted views, macros,
-    and attached tables are opaque to function policy: what their definitions introduce is
-    theirs, not the caller's, and is exempt from the allowlist, from `blocked_functions`, and
-    from the never-bind list alike, apart from Gatekeeper's own control plane. The exemption
-    is by origin, not by name: the same function written by the caller next to the view is
-    the caller's, and ambiguous caller syntax such as `t.x` or `list[i]` triggers a
+    each caller-attributable resolved table, view, and function. Trusted views, macros,
+    and attached tables are opaque to table and function policy: the caller must be allowed
+    to reference the outer table/view or invoke the macro, and what its definition introduces
+    is its own. Dependencies are exempt from `allowed_tables`, `blocked_tables`, the
+    internal-object rule, the function allowlist, `blocked_functions`, and the never-bind list,
+    apart from Gatekeeper's own control plane. Allowing a view admits the tables behind it;
+    blocking an underlying table does not withdraw the view. Block the view or macro itself.
+    A host macro that forwards an argument into `query_table(n)` delegates table selection
+    through that capability; caller table restrictions do not apply to what it selects.
+    Dependency evidence still lists the underlying objects. The exemption is by origin,
+    not by name: a table or function the caller names next to the view remains the caller's,
+    and ambiguous caller syntax such as `t.x` or `list[i]` triggers a
     query-wide implementation check that can reach a trusted expansion using the same
     function. Blocks also reach bound implementations such as `sum` behind
     `list_sum`, and when the caller writes a name-selected dispatcher (`list_aggregate`,
@@ -345,11 +351,11 @@ docs:
 
     | | point lookup (1 K rows) | aggregate (10 M rows) | large statement (11 KB) |
     | --- | ---: | ---: | ---: |
-    | plain connection | 65 µs | 3.5 ms | 4.0 ms |
-    | enforced connection | 94 µs (+29 µs) | 3.7 ms (+174 µs) | 7.3 ms (+3.2 ms) |
-    | enforced, audit log at debug | 144 µs (+79 µs) | 3.8 ms (+312 µs) | 7.4 ms (+3.4 ms) |
-    | validate, then execute | 228 µs (+163 µs) | 4.0 ms (+451 µs) | 7.4 ms (+3.4 ms) |
-    | denied on an enforced connection | 216 µs | 364 µs | 2.6 ms |
+    | plain connection | 68 µs | 3.8 ms | 4.1 ms |
+    | enforced connection | 96 µs (+29 µs) | 4.0 ms (+188 µs) | 7.4 ms (+3.3 ms) |
+    | enforced, audit log at debug | 148 µs (+80 µs) | 4.1 ms (+335 µs) | 7.5 ms (+3.5 ms) |
+    | validate, then execute | 236 µs (+168 µs) | 4.3 ms (+481 µs) | 7.6 ms (+3.5 ms) |
+    | denied on an enforced connection | 218 µs | 384 µs | 2.6 ms |
 
     Median of 1000 runs per cell after 20 warm-ups, `execute().fetchall()` through the Python
     client on one connection of an in-memory database; Apple M3 Max, DuckDB 1.5.5, Gatekeeper
