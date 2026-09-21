@@ -11,6 +11,11 @@ extension:
 repo:
   github: teaguesterling/duckdb_mcp
   ref: a6b8648e4e0ec121da534b704b962ac41e2638bf
+  # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
+  # Without it scripts/build.py prints "Skipping prerelease validation" and the
+  # run passes green having verified nothing on that line. Same commit as ref;
+  # this pin is what will report whether it builds there.
+  ref_next: a6b8648e4e0ec121da534b704b962ac41e2638bf
 
 docs:
   hello_world: |
