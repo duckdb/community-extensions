@@ -23,7 +23,8 @@ repo:
   # Deliberately NOT the same commit as ref. v0.3.0 (ref) includes duckdb/main/materialized_query_result.hpp, a header v2.0-cyanoptera removed outright (the include was unused; nothing referenced the class).
   # ref_next therefore points at main, which carries the fix, while ref keeps
   # shipping the released version on the stable line.
-  ref_next: 3f1d59c20310c1b23acce794565681771b0a0156
+  # Second fix: v2.0 also deletes ConstantExpression(const Value &); main now routes it through a CompatConstant shim.
+  ref_next: ba9851692caa74e37db9088ad0fab2dff0e13c60
 docs:
   hello_world: |
     -- Load the extension
