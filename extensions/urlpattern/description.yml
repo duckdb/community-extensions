@@ -19,9 +19,17 @@ repo:
   ref: 33d5e8970db776331f957678a4cb0a0542e59601
   # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
   # Without it scripts/build.py prints "Skipping prerelease validation" and the
-  # run passes green having verified nothing on that line. Same commit as ref;
-  # this pin is what will report whether it builds there.
-  ref_next: 33d5e8970db776331f957678a4cb0a0542e59601
+  # run passes green having verified nothing on that line.
+  #
+  # Deliberately NOT the same commit as ref. v0.4.1 (ref, tagged 2026-07-19)
+  # predates the v2.0 compat work: it assigns ScalarFunction::varargs and
+  # ::null_handling as public fields, which v2.0-cyanoptera moved into
+  # FunctionSignature behind Get/SetVarArgs and Get/SetNullHandling. Commit
+  # 25284e3 (2026-09-05) routes those through feature-detecting helpers in
+  # src/include/duckdb_compat.hpp. ref_next therefore points at current main,
+  # so the prerelease leg validates the code that actually compiles on v2.0,
+  # while ref keeps shipping the released v0.4.1 on the stable line.
+  ref_next: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
 
 docs:
   hello_world: |
