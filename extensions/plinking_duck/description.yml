@@ -14,9 +14,12 @@ repo:
   ref: 0859a3c3c38daef417d666313516074a375f6631
   # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
   # Without it scripts/build.py prints "Skipping prerelease validation" and the
-  # run passes green having verified nothing on that line. Same commit as ref;
-  # this pin is what will report whether it builds there.
-  ref_next: 0859a3c3c38daef417d666313516074a375f6631
+  # run passes green having verified nothing on that line.
+  #
+  # Deliberately NOT the same commit as ref. v0.9.0 (ref) declares unique_ptr<MaterializedQueryResult> in QuerySource; v2.0 removed that class and Connection::Query() returns unique_ptr<QueryResult> there.
+  # ref_next therefore points at main, which carries the fix, while ref keeps
+  # shipping the released version on the stable line.
+  ref_next: 939e81d4565f6f2c782e61519f002c23617fac57
 
 docs:
   hello_world: |
