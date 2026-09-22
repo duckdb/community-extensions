@@ -1,7 +1,7 @@
 extension:
   name: duck_block_utils
   description: Build, transform, validate, and extract content from structured documents using the duck_block type
-  version: 3.3.0
+  version: 3.4.0
   language: C++
   build: cmake
   license: MIT
@@ -14,8 +14,8 @@ repo:
   # so advancing this pin would point a v1.4.5 build at a tree that cannot build for
   # it. v1.4.5 users should move to the v1.5.x track.
   andium: 125662df9e5450105dc9b7957ad955cb53d7beec
-  ref: 95a84e6dbfb25d1925df2ad402f978c438a3f724
-  ref_next: 95a84e6dbfb25d1925df2ad402f978c438a3f724
+  ref: 39941a70c7d4e48d5e70ffdaddb680793e59968a
+  ref_next: 39941a70c7d4e48d5e70ffdaddb680793e59968a
 docs:
   hello_world: |
     -- Build a document programmatically
@@ -78,7 +78,8 @@ docs:
         kind VARCHAR,                       -- 'block', 'inline' or 'value'
         element_type VARCHAR,               -- 'heading', 'paragraph', 'bold', 'link', etc.
         content VARCHAR,                    -- text, iff the element has a single text child
-        level INTEGER,                      -- depth in a depth-first ordering; top is 1
+        level INTEGER,                      -- depth in a depth-first ordering; top is 1 (0 is the
+                                            --   optional explicit document root)
         encoding VARCHAR,                   -- 'text', 'json', 'yaml', 'html', 'xml',
                                             --   'latex', 'markdown', 'toml'
         attributes MAP(VARCHAR, VARCHAR),   -- element-specific metadata
