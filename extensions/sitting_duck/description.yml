@@ -12,9 +12,20 @@ repo:
   ref: b8c06a843193a84065ae24cc95c6a4052f3c84ec
   # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
   # Without it scripts/build.py prints "Skipping prerelease validation" and the
-  # run passes green having verified nothing on that line. Same commit as ref;
-  # this pin is what will report whether it builds there.
-  ref_next: b8c06a843193a84065ae24cc95c6a4052f3c84ec
+  # run passes green having verified nothing on that line.
+  #
+  # Deliberately NOT the same commit as ref. Pinning ref_next at v1.11.0 failed
+  # on v2.0 inside this extension's own compat shim:
+  #   src/include/duckdb_compat.hpp:351: error: 'const class
+  #   duckdb::ConstantExpression' has no member named 'GetValue'
+  # v2.0-cyanoptera replaced ConstantExpression::value with a Literal, reached
+  # as GetLiteral().ToValue(), and deleted the ConstantExpression(const Value &)
+  # constructor. main fixes that site (duckdb_compat.hpp:357 now returns
+  # expr.GetLiteral().ToValue(), returning Value by value rather than by
+  # reference). ref_next therefore points at main so the prerelease leg builds
+  # code where that break is repaired, while ref keeps shipping released
+  # v1.11.0 on the stable line.
+  ref_next: b52cf325dcae16cdd50fb582deb42aa0b6395c2e
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
