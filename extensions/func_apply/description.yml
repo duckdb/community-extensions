@@ -18,9 +18,12 @@ repo:
   ref: ed51705a1db83eb382423aff564fe8373c2322b7
   # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
   # Without it scripts/build.py prints "Skipping prerelease validation" and the
-  # run passes green having verified nothing on that line. Same commit as ref;
-  # this pin is what will report whether it builds there.
-  ref_next: ed51705a1db83eb382423aff564fe8373c2322b7
+  # run passes green having verified nothing on that line.
+  #
+  # Deliberately NOT the same commit as ref. v0.3.0 (ref) includes duckdb/main/materialized_query_result.hpp, a header v2.0-cyanoptera removed outright (the include was unused; nothing referenced the class).
+  # ref_next therefore points at main, which carries the fix, while ref keeps
+  # shipping the released version on the stable line.
+  ref_next: 3f1d59c20310c1b23acce794565681771b0a0156
 docs:
   hello_world: |
     -- Load the extension
