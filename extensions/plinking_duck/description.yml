@@ -19,7 +19,8 @@ repo:
   # Deliberately NOT the same commit as ref. v0.9.0 (ref) declares unique_ptr<MaterializedQueryResult> in QuerySource; v2.0 removed that class and Connection::Query() returns unique_ptr<QueryResult> there.
   # ref_next therefore points at main, which carries the fix, while ref keeps
   # shipping the released version on the stable line.
-  ref_next: 939e81d4565f6f2c782e61519f002c23617fac57
+  # Second fix: the entry point was guarded on DUCKDB_BUILD_LOADABLE_EXTENSION, which v2.0 never defines, so no _plinking_duck_duckdb_cpp_init was exported.
+  ref_next: e35b263bdc4abaa8639bdb35118be892af370561
 
 docs:
   hello_world: |
