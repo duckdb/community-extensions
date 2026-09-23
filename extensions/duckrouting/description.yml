@@ -1,7 +1,7 @@
 extension:
   name: duckrouting
   description: Graph routing for DuckDB - shortest paths, flow, spanning trees and more, following pgRouting's semantics and powered by the Boost Graph Library.
-  version: 0.1.1
+  version: 0.1.3
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: am2222/duckrouting
-  ref: 01c09d5e59a106e1661bc1cf46737311ae91260d
+  ref: bd35c747bf5a36a4a7a46b2ca8f4565a6b8d0c94
 
 docs:
   hello_world: |
