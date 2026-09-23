@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckdb_lance_conversion
-  ref: 0c556ebfa769e2fbf95317612d3a0b42f4c03629
+  ref: 0d91bea2679171c7169a156133ed034d23edf513
 
 docs:
   hello_world: |
