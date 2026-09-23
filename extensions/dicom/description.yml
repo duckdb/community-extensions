@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: nmontesg/duck-dicom
-  ref: v0.7.1
+  ref: 9bc10d132f751036925540e6b8433f0a595cfb38
 
 docs:
   hello_world: |
