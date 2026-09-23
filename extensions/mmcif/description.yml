@@ -14,7 +14,7 @@ repo:
   ref_next: ac5b197b4ce3aa49ffdcb99a6e987555a1081c16
 
 docs:
-  hello_world:
+  hello_world: |
     -- single table
     SELECT count(*) FROM mmcif_scan('https://files.rcsb.org/download/1AMB.cif.gz', 'atom_site');
     -- 438
