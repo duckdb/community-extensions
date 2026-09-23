@@ -1,7 +1,7 @@
 extension:
   name: duck_geoarrow
   description: DuckDB extension for converting GEOMETRY/WKB to and from GeoArrow native encodings, powered by geoarrow-c.
-  version: 0.1.4 # x-release-please-version
+  version: 0.1.5 # x-release-please-version
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,13 @@ extension:
 
 repo:
   github: am2222/duck_geoarrow
-  ref: 56f57f0e2c10f87c7455d5b585777e3412ee11a9
+  ref: 6e539f3ff8327913b3fbef99335d9109a4790124
+  # ref_next is what makes the PRERELEASE leg (build_next.yml, DuckDB
+  # v2.0-cyanoptera) actually build. It runs with require_ref_next: true, so
+  # without this key the job resolves an empty ref, skips, and the PR goes green
+  # having verified nothing against v2. Same commit as ref: the compat header
+  # keeps one tree building on both v1.5.5 and v2.0.
+  ref_next: 6e539f3ff8327913b3fbef99335d9109a4790124
 
 docs:
   hello_world: |
