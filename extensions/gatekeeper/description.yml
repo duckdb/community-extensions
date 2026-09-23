@@ -1,7 +1,7 @@
 extension:
   name: gatekeeper
-  description: Authorize untrusted read-only SQL from tenants, LLM agents, and dashboards with table and function policies, structured validation results, and optional connection enforcement.
-  version: 0.2.0
+  description: Authorization for untrusted read-only SQL from tenants, LLM agents, and dashboard builders. Validate a statement without executing it, or enforce a lockable policy on the connection itself, with an audit log of every decision.
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,8 @@ extension:
 
 repo:
   github: nozzle/duckdb-gatekeeper
-  ref: 6b1e80b72655cd201ddb80183c31d7179f0606d6
+  ref: 9c3c7acb229be0e30c03ebf88867f291631ad0f1
+  ref_next: 9c3c7acb229be0e30c03ebf88867f291631ad0f1
 
 docs:
   hello_world: |
@@ -69,13 +70,16 @@ docs:
     -- allowed | code    | error_type
     -- false   | binding | Catalog
   extended_description: |
-    Gatekeeper checks whether untrusted SQL stays within your table and function policy.
-    It is built for multi-tenant analytics, LLM agents, and embedded dashboards where you
-    control the database but not the queries.
+    Gatekeeper answers one question about SQL you did not write: does this statement stay
+    inside the lines you drew? It is built for multi-tenant analytics, LLM agents, and
+    embedded dashboard builders where the SQL text is untrusted but the database is yours.
 
-    - **Validate a statement** without executing it and get structured diagnostics.
-    - **Set a global policy** that per-request options can narrow, never widen.
-    - **Optionally enforce on a connection**, with an audit log and log-only rollout mode.
+    - **Ask with `gatekeeper_validate`**: the decision and structured diagnostics, without
+      executing anything.
+    - **Draw the lines once**: a lockable global policy that per-request options can narrow,
+      never widen.
+    - **Or let DuckDB answer for itself**: `CALL gatekeeper_enforce()` refuses denied
+      statements on that connection, with an audit log and a log-only rollout mode.
 
     ### Validate a query
 
@@ -125,8 +129,9 @@ docs:
     | `error_type` | VARCHAR | DuckDB exception category (`parser`, `Catalog`, `Binder`, ...) for engine errors. |
     | `error_message` | VARCHAR | The engine's message; empty for policy denials. |
     | `position` | BIGINT | Zero-based parser byte offset, or NULL. |
-    | `objects` | STRUCT[] | Resolved `catalog`, `schema`, `table`, `type` (`table`, `view`, `replacement`) the query bound to. Empty unless `ok`. |
+    | `objects` | STRUCT[] | Resolved `catalog`, `schema`, `table`, `type` (`table`, `view`, `replacement`), including trusted dependencies. See `caller_objects` for the caller-attributable catalog subset. Empty unless `ok`. |
     | `functions` | STRUCT[] | Resolved `catalog`, `schema`, `name`, `type` the query bound to. Empty unless `ok`. |
+    | `caller_objects` | STRUCT[] | Caller-attributable catalog tables/views, with the same fields as `objects`. Sorted, deduplicated subset of `objects`; empty unless `ok`. |
 
     Violation `rule` values: `function`, `table`, `internal_object`, `dynamic_sql`,
     `replacement_scan`, `bind_time_expression`, `statement`, `limit`,
@@ -158,9 +163,10 @@ docs:
     - A caller's separate reference to an underlying table or function is still checked.
     - A macro forwarding a caller argument to `query_table(n)` delegates table selection;
       caller table restrictions do not constrain that selection.
-    - `objects` and `functions` still report the dependencies as binding evidence.
+    - `objects` and `functions` still report the dependencies as binding evidence;
+      `caller_objects` lists only the tables and views the caller reached.
 
-    See the [trusted-definition rules](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/docs/security.md#function-enforcement-and-trusted-expansion)
+    See the [trusted-definition rules](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#function-enforcement-and-trusted-expansion)
     for query-wide name overlaps and bound implementation checks.
 
     ### Enforced connections
@@ -177,7 +183,7 @@ docs:
     - Parameters and relation queries are covered; prepared executions use the current policy.
     - The result includes host-setting `warnings`. Keep a separate host connection for administration.
 
-    See the [enforcement guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/docs/security.md#enforced-connections)
+    See the [enforcement guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#enforced-connections)
     for setup and execution-boundary details, including parser-time side effects.
 
     ### Audit and log-only mode
@@ -196,8 +202,8 @@ docs:
       anything. Set it back to `false` to restore enforcement.
 
     Log-only mode protects nothing while enabled. Before locking configuration, plan how
-    the host will turn it off. See the [audit log](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/docs/security.md#audit-log)
-    and [log-only guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/docs/security.md#log-only-mode).
+    the host will turn it off. See the [audit log](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#audit-log)
+    and [log-only guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#log-only-mode).
 
     ### What is never allowed
 
@@ -210,7 +216,7 @@ docs:
 
     File readers are grantable, but are **not defaults**. Granting a reader permits its
     resource access; `allowed_tables` does not restrict file paths. See the
-    [function policy](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/docs/security.md#never-bind-functions)
+    [function policy](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#never-bind-functions)
     for the exact never-bind list and trusted-definition exceptions.
 
     ### Security boundaries
@@ -225,22 +231,27 @@ docs:
       possible, set resource limits, and lock configuration before handing out connections.
     - **Diagnostics can reveal names.** Treat engine error messages and audit logs as host data.
 
-    Read the [security model](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/docs/security.md)
+    Read the [security model](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md)
     for the full boundaries and setup requirements. Report suspected bypasses through
-    [SECURITY.md](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/SECURITY.md).
+    [SECURITY.md](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/SECURITY.md).
 
     ### Compatibility
 
     - **Native:** release binaries target DuckDB 1.5.5, source revision
       `d8cdaa33fda8df955cc76ef58a280f68f4cd43fa`. Each binary requires its matching engine.
       Community builds can target other engines; builds and regression tests establish compatibility.
+    - **DuckDB 2.0:** the same source builds against `v2.0-cyanoptera` (this descriptor's
+      `ref_next`), and the community repository's 2.0 builds come from it; there are no GitHub
+      assets for 2.0. Decisions are the same on both engines;
+      [Compatibility and review](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#compatibility-and-review)
+      lists what a host on 2.0 sees differently.
     - **Wasm:** EH only, browser-tested with `@duckdb/duckdb-wasm@1.33.1-dev64.0`
       embedding DuckDB 1.5.5. MVP and threads/COI are excluded.
     - **API stability:** Gatekeeper is in early development (0.x); options and result schemas
       may change between releases.
 
-    See [build-pin maintenance](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/inventories/README.md#repinning-the-engine)
-    and [Wasm setup](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/test/wasm/README.md).
+    See [build-pin maintenance](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/inventories/README.md#repinning-the-engine)
+    and [Wasm setup](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/test/wasm/README.md).
 
     ### Benchmarks
 
@@ -249,22 +260,22 @@ docs:
 
     | | point lookup (1 K rows) | aggregate (10 M rows) | large statement (11 KB) |
     | --- | ---: | ---: | ---: |
-    | plain connection | 68 µs | 3.8 ms | 4.1 ms |
-    | enforced connection | 96 µs (+29 µs) | 4.0 ms (+188 µs) | 7.4 ms (+3.3 ms) |
-    | enforced, audit log at debug | 148 µs (+80 µs) | 4.1 ms (+335 µs) | 7.5 ms (+3.5 ms) |
-    | validate, then execute | 236 µs (+168 µs) | 4.3 ms (+481 µs) | 7.6 ms (+3.5 ms) |
-    | denied on an enforced connection | 218 µs | 384 µs | 2.6 ms |
+    | plain connection | 64 µs | 3.2 ms | 3.8 ms |
+    | enforced connection | 93 µs (+28 µs) | 3.4 ms (+166 µs) | 7.0 ms (+3.3 ms) |
+    | enforced, audit log at debug | 142 µs (+78 µs) | 3.5 ms (+304 µs) | 7.1 ms (+3.4 ms) |
+    | validate, then execute | 229 µs (+165 µs) | 3.7 ms (+453 µs) | 7.2 ms (+3.4 ms) |
+    | denied on an enforced connection | 322 µs | 451 µs | 2.7 ms |
 
     Median of 1000 runs per cell after 20 warm-ups, `execute().fetchall()` through the Python
     client on one connection of an in-memory database; Apple M3 Max, DuckDB 1.5.5, Gatekeeper
-    0.2.0. The plain row is the client round trip plus the engine's own work; in parentheses,
+    0.3.0. The plain row is the client round trip plus the engine's own work; in parentheses,
     what each mode adds to it.
 
     The check is a second parse and bind of the statement plus the AST walk, so its cost
     follows the statement's size, not the data's. `gatekeeper_validate` runs the same check;
     the rest of its row is the second client round trip. A refusal never reaches the engine.
     The table is regenerated by
-    [scripts/benchmark.py](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/scripts/benchmark.py).
+    [scripts/benchmark.py](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/scripts/benchmark.py).
 
     Full documentation, including a Python integration example, is in the
-    [README](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.2.0/README.md).
+    [README](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/README.md).
