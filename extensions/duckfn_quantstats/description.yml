@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: shijianjs/duckfn-quantstats
-  ref: v0.1.0
+  ref: 2c2c1a47a15d2649d214a8bf1351c7be5426d6bb
 
 docs:
   hello_world: |
