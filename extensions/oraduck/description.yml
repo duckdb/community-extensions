@@ -1,0 +1,46 @@
+extension:
+  name: oraduck
+  description: Fast COPY of query results into Oracle through the OCI Direct Path API
+  version: '0.3.0'
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - hugues31
+  # Oracle Instant Client, loaded at run time, needs glibc and exists for x86_64 and arm64 Linux and
+  # x86_64 Windows; macOS (Instant Client 23 only on Apple Silicon) is not tested yet
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_arm64;linux_amd64_musl;osx_amd64;osx_arm64"
+
+repo:
+  github: hugues31/oraduck
+  ref: 8417b38b261e56cc31c1b6bd9de74c2fe70145c7
+
+install_notes: |
+  **Oracle Instant Client** (Basic or Basic Light, version 19 or later) is required to talk to Oracle.
+  OraDuck loads it at run time: put its directory in `LD_LIBRARY_PATH` (Linux) or `PATH` (Windows)
+  before starting DuckDB. On Linux, Instant Client also needs `libaio` and `libnsl`.
+  Without it, the extension loads and reports what is missing.
+
+docs:
+  hello_world: |
+    CREATE SECRET oracle_test (TYPE oraduck, USER 'scott', PASSWORD 'tiger', DSN 'dbhost:1521/ORCLPDB1');
+
+    -- The target table must exist in Oracle; columns are matched by name
+    COPY (SELECT id, amount, operation_date, label FROM source)
+    TO 'MY_SCHEMA.MY_TABLE' (FORMAT oraduck, CONNECTION 'oracle_test');
+  extended_description: |
+    OraDuck loads the result of a DuckDB query into an existing Oracle table through the OCI Direct Path
+    API, the engine behind `sqlldr direct=true`: one Oracle session per DuckDB thread, native encodings
+    (NUMBER, DATE, TIMESTAMP, BINARY_FLOAT/DOUBLE) and no intermediate file.
+
+    - `COPY ... TO 'SCHEMA.TABLE' (FORMAT oraduck, CONNECTION '<secret>')`, with an `oraduck` secret
+      (USER, PASSWORD, DSN in EZConnect form)
+    - all sessions commit together at the end; any error aborts the whole load
+    - on Oracle 19c, 1.2 to 3.2 times faster than a CSV export loaded by parallel direct path SQL*Loader,
+      and 6 to 500 times faster than loading with INSERT statements from DuckDB (quack-oracle,
+      duckdb-oracle), from 100k x 5 to 10M x 50 rows x columns
+
+    The target table must exist. Parallel direct path loads cannot maintain indexes: an indexed table
+    needs `SKIP_INDEX_MAINTENANCE true` (like `sqlldr skip_index_maintenance=true`), which leaves its
+    indexes UNUSABLE until they are rebuilt.
+    Benchmark, type mapping and limitations: https://github.com/hugues31/oraduck
