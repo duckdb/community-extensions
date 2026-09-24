@@ -9,7 +9,7 @@ extension:
   maintainers:
     - wasade
   requires:
-    duckdb: "1.5.3"
+    duckdb: "1.5.5"
   requires_toolchains: "rust;omp"
 
 repo:
