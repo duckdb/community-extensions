@@ -25,8 +25,11 @@ docs:
     -- predicates are pushed down into a block seek):
     SELECT * FROM 'variants.gorz' WHERE chrom = 'chr1' AND pos BETWEEN 1500 AND 2500;
 
-    -- Read a .gord dictionary (e.g. written by `pgor ... | write example.gord`),
-    -- keeping only the partitions tagged sample1 or sample99 (GOR's -f):
+    -- Read a partitioned .gord dictionary table (not shown here), keeping only
+    -- the partitions tagged sample1 or sample99 (GOR's -f). See the GORpipe paper
+    -- (Guðbjartsson et al., Bioinformatics 2016, doi:10.1093/bioinformatics/btw199)
+    -- and "Ultra-fast joint-genotyping with SparkGOR" (Guðbjartsson et al.,
+    -- bioRxiv 2022, doi:10.1101/2022.10.25.513331):
     SELECT * FROM read_gord('example.gord', f := ['sample1', 'sample99']);
   extended_description: |
     The `gorz` extension reads and writes [GORpipe](https://github.com/gorpipe/gor)
