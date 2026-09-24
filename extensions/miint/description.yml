@@ -11,6 +11,7 @@ extension:
   requires:
     duckdb: "1.5.5"
   requires_toolchains: "rust;omp"
+  test_config: '{"test_env_variables": {"MIINT_SIMD": "baseline"}}'
 
 repo:
   github: the-miint/duckdb-miint
