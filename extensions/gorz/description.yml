@@ -58,3 +58,8 @@ docs:
 
     Single-threaded, standard block-zip; validates GOR order (chromosomes ascend
     lexicographically, positions non-decreasing) and errors out otherwise.
+
+    ### References
+
+    - Guðbjartsson H. et al. [GORpipe: a query tool for working with sequence data based on a Genomic Ordered Relational (GOR) architecture](https://doi.org/10.1093/bioinformatics/btw199). *Bioinformatics* 32(20):3081–3088, 2016.
+    - Guðbjartsson H. et al. [Ultra-fast joint-genotyping with SparkGOR](https://doi.org/10.1101/2022.10.25.513331). *bioRxiv*, 2022.
