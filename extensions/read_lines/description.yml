@@ -13,6 +13,9 @@ repo:
   # v1.5.4 tree, so v0.4.0 ships on the v1.5.x track only.
   andium: 8075509bc21b936c228879ada22c8a46657109aa
   ref: c74ad3976cbad35b4202f3f430c94a97bd10b875
+  # ref_next == ref (deliberate): make test_against_latest build+test this release
+  # against DuckDB v2.0-cyanoptera instead of skipping the prerelease leg.
+  ref_next: c74ad3976cbad35b4202f3f430c94a97bd10b875
 docs:
   hello_world: |
     -- Read all lines from a file
