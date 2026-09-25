@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.12.1
+  version: 1.13.0
   language: C++
   build: cmake
   license: Apache-2.0
@@ -16,7 +16,13 @@ extension:
 repo:
   github: teaguesterling/duck_hunt
   andium: 68ca1c4676f706980a6503c19b789f5224596b4d
-  ref: 3c363e2646525f0c2028a147c57e223a562def52
+  ref: 3cb555ef05078cf741a419a324e68bef7ce4c8b7
+  # ref_next == ref (deliberate): makes the prerelease leg actually BUILD+TEST
+  # v1.13.0 against DuckDB v2.0-cyanoptera. Without ref_next, test_against_latest
+  # is skipped -- a green that verified nothing on the v2.0 line. v1.13.0 carries
+  # the v2.0 fix (#69: return QueryResult base; v2.0 removed MaterializedQueryResult),
+  # so this validates the next line rather than skipping it.
+  ref_next: 3cb555ef05078cf741a419a324e68bef7ce4c8b7
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
