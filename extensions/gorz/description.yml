@@ -1,7 +1,7 @@
 extension:
   name: gorz
   description: Read GORpipe .gorz and .gord files and write .gorz as native DuckDB tables
-  version: 0.1.1
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: gorfather/duckdb-gorz
-  ref: 582880d0f5ab23423f6680fcd82babb4fce1c4e1
+  ref: 1d86719faf3efc07ef4c269a2ad60cf49ef514f5
 
 docs:
   hello_world: |
@@ -21,6 +21,16 @@ docs:
       TO 'variants.gorz' (FORMAT gorz);
 
     SELECT * FROM read_gor('variants.gorz', range := 'chr1:1500-2500');
+    -- Equivalently, in plain SQL on the bare file name (the chrom / pos
+    -- predicates are pushed down into a block seek):
+    SELECT * FROM 'variants.gorz' WHERE chrom = 'chr1' AND pos BETWEEN 1500 AND 2500;
+
+    -- Read a partitioned .gord dictionary table (not shown here), keeping only
+    -- the partitions tagged sample1 or sample99 (GOR's -f). See the GORpipe paper
+    -- (Guðbjartsson et al., Bioinformatics 2016, doi:10.1093/bioinformatics/btw199)
+    -- and "Ultra-fast joint-genotyping with SparkGOR" (Guðbjartsson et al.,
+    -- bioRxiv 2022, doi:10.1101/2022.10.25.513331):
+    SELECT * FROM read_gord('example.gord', f := ['sample1', 'sample99']);
   extended_description: |
     The `gorz` extension reads and writes [GORpipe](https://github.com/gorpipe/gor)
     genomic files — block-compressed `.gorz` and `.gord` dictionaries — as native
@@ -32,6 +42,7 @@ docs:
     - `read_gor(path)` — auto-detects `.gorz` vs `.gord` by extension.
     - `read_gorz(path)` / `read_gord(path)` — force the kind.
     - A **replacement scan**, so a bare literal works: `SELECT count(*) FROM 'variants.gord';`
+    - **`pgor … | write x.gord` folders** — pass the folder itself (`FROM 'x.gord'`); its `x.gord/thedict.gord` is read.
     - **Projection & parallel scan** — only selected columns are read; large files scan across threads.
     - **`WHERE chrom/pos` → block seek** — range predicates seek into the right block instead of scanning the whole file.
     - **`range := 'chrN:start-end'`** — GOR's `-p` semantics as a hard positional filter (also `'chrN'`, `'chrN:start-'`, `'chrN:pos'`).
@@ -47,3 +58,8 @@ docs:
 
     Single-threaded, standard block-zip; validates GOR order (chromosomes ascend
     lexicographically, positions non-decreasing) and errors out otherwise.
+
+    ### References
+
+    - Guðbjartsson H. et al. [GORpipe: a query tool for working with sequence data based on a Genomic Ordered Relational (GOR) architecture](https://doi.org/10.1093/bioinformatics/btw199). *Bioinformatics* 32(20):3081–3088, 2016.
+    - Guðbjartsson H. et al. [Ultra-fast joint-genotyping with SparkGOR](https://doi.org/10.1101/2022.10.25.513331). *bioRxiv*, 2022.
