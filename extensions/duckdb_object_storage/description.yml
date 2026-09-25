@@ -1,0 +1,70 @@
+extension:
+  name: duckdb_object_storage
+  description: Store writable DuckDB databases in local or S3-compatible object storage through SlateDB
+  version: 0.1.0
+  language: Rust & C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;windows_arm64_mingw"
+  requires_toolchains: rust
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-object-storage
+  ref: ed06b778c68a567cc08ed9d70d9cb029813f57ac
+
+docs:
+  hello_world: |
+    INSTALL duckdb_object_storage FROM community;
+    LOAD duckdb_object_storage;
+
+    ATTACH 'duckdb_objfs://database.db' AS object_db;
+    CREATE TABLE object_db.items(i INTEGER);
+    INSERT INTO object_db.items VALUES (1), (2);
+    CHECKPOINT object_db;
+
+    SELECT * FROM object_db.items;
+
+  extended_description: |
+    `duckdb_object_storage` provides a DuckDB virtual filesystem backed by
+    SlateDB. A native DuckDB database, including the files required for WAL
+    recovery, can be stored through the `duckdb_objfs://` URI scheme.
+
+    The default backend stores SlateDB objects on the local filesystem:
+
+    ```sql
+    SET duckdb_objfs_root = '/var/lib/duckdb-objfs';
+    ATTACH 'duckdb_objfs://analytics.db' AS analytics;
+    ```
+
+    An in-memory backend is available for testing:
+
+    ```sql
+    SET duckdb_objfs_backend = 'memory';
+    ATTACH 'duckdb_objfs://temporary.db' AS temporary;
+    ```
+
+    For S3 and S3-compatible services, credentials and endpoint options are
+    resolved through DuckDB's Secret Manager:
+
+    ```sql
+    INSTALL cache_httpfs FROM community;
+    LOAD cache_httpfs;
+
+    CREATE SECRET duckdb_objfs_s3 (
+      TYPE S3,
+      PROVIDER credential_chain,
+      REGION 'us-east-1',
+      SCOPE 's3://my-bucket/duckdb-data'
+    );
+
+    SET duckdb_objfs_backend = 's3';
+    SET duckdb_objfs_bucket = 'my-bucket';
+    SET duckdb_objfs_root = 'duckdb-data';
+    ATTACH 'duckdb_objfs://analytics.db' AS analytics;
+    ```
+
+    The extension supports configurable in-memory and persistent local SST
+    caches, cache statistics, OpenDAL I/O statistics, read-only attachments,
+    and multiple read-only processes alongside a single writer.
