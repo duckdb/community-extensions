@@ -1,7 +1,7 @@
 extension:
   name: read_lines
   description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection with context, and GitHub-style '#L12-24' fragments so a line range can be attached to any path, including URIs served by other extensions.
-  version: 0.4.0
+  version: 0.4.2
   language: C++
   build: cmake
   license: MIT
@@ -9,18 +9,14 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_read_lines
+  ref: a908e4b34f29fefc0794058439150740fca1da40
+  # ref_next == ref (deliberate): validate the shipped release on DuckDB
+  # v2.0-cyanoptera. v0.4.2 carries the v2.0 entrypoint fix (#15: emit the
+  # extension entry point unconditionally) that the prior refs lacked.
+  ref_next: a908e4b34f29fefc0794058439150740fca1da40
   # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; ref is a
   # v1.5.4 tree, so v0.4.0 ships on the v1.5.x track only.
   andium: 8075509bc21b936c228879ada22c8a46657109aa
-  ref: de60f5dab22b4c40aacfa1af58977600b89bd98a
-  # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
-  # Without it scripts/build.py prints "Skipping prerelease validation" and the
-  # run passes green having verified nothing on that line.
-  #
-  # Deliberately NOT the same commit as ref. v0.4.0 (ref) guards its entry point on DUCKDB_BUILD_LOADABLE_EXTENSION, which v2.0 consumes but never defines, so the extension exported no entry point and wasm/macOS failed to link.
-  # ref_next therefore points at main, which carries the fix, while ref keeps
-  # shipping the released version on the stable line.
-  ref_next: a908e4b34f29fefc0794058439150740fca1da40
 docs:
   hello_world: |
     -- Read all lines from a file
