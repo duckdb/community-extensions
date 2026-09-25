@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: hugues31/oraduck
-  ref: 8417b38b261e56cc31c1b6bd9de74c2fe70145c7
+  ref: 193025eb3d284468c278c325321562569cbe5c25
 
 install_notes: |
   **Oracle Instant Client** (Basic or Basic Light, version 19 or later) is required to talk to Oracle.
