@@ -1,0 +1,51 @@
+extension:
+  name: clickhouse_scanner
+  description: Read and write ClickHouse tables directly from DuckDB.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  requires_toolchains: "vcpkg"
+  maintainers:
+    - redox
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+
+repo:
+  github: altertable-ai/duckdb-clickhouse
+  ref: 36d412bff2394e2b41149b42298be06e627701d8
+
+docs:
+  hello_world: |
+    INSTALL clickhouse_scanner FROM community;
+    LOAD clickhouse_scanner;
+
+    CREATE SECRET ch (
+        TYPE clickhouse,
+        HOST 'abc123.eu-west-1.aws.clickhouse.cloud',
+        PORT 9440,
+        USER 'default',
+        PASSWORD 'my-pass',
+        DATABASE 'analytics'
+    );
+    ATTACH '' AS ch (TYPE clickhouse, SECRET ch);
+
+    SELECT event, count(*)
+    FROM ch.analytics.events
+    WHERE ts > now() - INTERVAL 1 DAY
+    GROUP BY ALL;
+
+    INSERT INTO ch.analytics.events
+    SELECT * FROM read_parquet('events/*.parquet');
+  extended_description: |
+    The ClickHouse extension attaches a ClickHouse server, or ClickHouse Cloud,
+    as a DuckDB database. Tables are read and written with ordinary DuckDB SQL
+    over ClickHouse's native protocol, with TLS. Filters, projections and
+    `LIMIT`s are pushed down to ClickHouse.
+
+    Features include:
+    - `ATTACH` support for ClickHouse databases, including secrets for credentials
+    - reads from attached schemas and tables, including joins with local data
+    - writes with `INSERT`, `COPY`, `CREATE TABLE`, `UPDATE` and `DELETE`
+    - `clickhouse_query` and `clickhouse_execute` for ClickHouse SQL that DuckDB cannot express
+    - `clickhouse_scan` to read one table without attaching a database
