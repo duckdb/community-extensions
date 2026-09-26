@@ -1,5 +1,6 @@
 extension:
   name: anofox_optimize
+  version: 2026.09.26
   description: Combinatorial decision algorithms as SQL — bin packing, knapsack, wave batching, sequencing, scheduling, assortment and portfolio selection
   language: C++
   build: cmake
@@ -14,7 +15,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-optimize
-  ref: 2e2073098660f245204a1cc49de52506a900dc1b
+  ref: 5ea8943bf6052489ff3ae824e9a657d2e0ba8c14
 
 docs:
   hello_world: |
