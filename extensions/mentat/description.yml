@@ -1,0 +1,34 @@
+extension:
+  name: mentat
+  description: Datomic-compatible Datalog query engine as a DuckDB extension
+  version: 1.8.0
+  language: Rust
+  build: cargo
+  license: Apache-2.0
+  maintainers:
+    - gburd
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+
+repo:
+  github: gburd/mentat
+  ref: bc58439b512b6f35fd97ac9e289575bd04d2c038
+
+docs:
+  hello_world: |
+    LOAD mentat;
+    -- Every function takes the mentat store's file path as its first argument.
+    SELECT mentat_transact('/tmp/demo.mentat',
+      '[{:db/ident :person/name :db/valueType :db.type/string :db/cardinality :db.cardinality/one}]');
+    SELECT mentat_transact('/tmp/demo.mentat', '[{:person/name "Alice"} {:person/name "Bob"}]');
+    -- mentat_query is a table function: run Datalog, get rows back, join native SQL.
+    SELECT * FROM mentat_query('/tmp/demo.mentat',
+      '[:find ?e ?name :where [?e :person/name ?name]]', '{}');
+  extended_description: |
+    mentat is a Datomic-compatible database: an EDN/Datalog front-end over an
+    entity-attribute-value store with an immutable transaction log. This
+    extension embeds the mentat store and exposes it to DuckDB as a scalar
+    function (`mentat_transact`) and a table function (`mentat_query`), so
+    Datalog results can be joined against native DuckDB tables. The same engine
+    is also an embedded Rust library, a CLI, and a PostgreSQL extension.
+    Source: https://codeberg.org/gregburd/mentat
