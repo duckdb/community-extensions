@@ -1,7 +1,7 @@
 extension:
   name: erpl_tunnel
   description: Reach any TCP service from DuckDB through an SSH bastion, Tailscale or NetBird — and publish local ports back onto those networks.
-  version: 2026.08.22
+  version: 2026.09.26
   language: C++
   build: cmake
   license: BSL 1.1
@@ -17,4 +17,4 @@ extension:
 
 repo:
   github: DataZooDE/erpl-tunnel
-  ref: 01e6ebecdeab583cd7fdf5800856ff950a9f0fdf
+  ref: 8f5589b7bf0b589788e77eb48610db4fb729eb35
