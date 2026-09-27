@@ -1,0 +1,56 @@
+extension:
+  name: typed_ai
+  description: Ask a model yes/no, pick-one and score questions about your rows, with real probabilities and spending capped by default
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - hfmsio
+
+repo:
+  github: hfmsio/duckdb-typed-ai
+  ref: dc99a3af0cfeee998265dbeb209b24812fa79083
+
+docs:
+  hello_world: |
+    -- Needs a TypeSafe API key in TYPESAFE_API_KEY, or: CREATE SECRET (TYPE typed_ai, PROVIDER 'jev', API_KEY '...');
+    CREATE TABLE tickets AS SELECT * FROM (VALUES
+      ('card declined again, I want my money back'),
+      ('how do I export a dashboard to PDF?')) t(body);
+
+    -- Keep the rows where the answer is yes
+    SELECT * FROM tickets WHERE typed_is(body, 'the customer wants a refund');
+
+    -- Pick one option, or score on a scale (0 = calm, 2 = furious)
+    SELECT body,
+           typed_pick(body, 'which team should handle this?', ['billing', 'technical', 'sales']) AS team,
+           typed_score(body, 'how angry is the customer?', ['calm', 'annoyed', 'furious']) AS anger
+    FROM tickets;
+
+    -- Price a query without calling anything, and see what has been spent
+    SET typed_dry_run = true;
+    SELECT typed_prob(body, 'mentions a competitor') FROM tickets;
+    SELECT dry_run_usd, spent_usd, budget_usd FROM typed_usage();
+  extended_description: |
+    `typed_ai` asks a model typed questions about rows and returns the model's own odds as probabilities.
+    It works with [TypeSafe Jev](https://docs.typesafe.ai) and with any OpenAI-compatible server that returns
+    `logprobs`, including a local Ollama or vLLM.
+
+    | Function | Returns |
+    | --- | --- |
+    | `typed_is(input, statement [, threshold])` | `BOOLEAN`, for `WHERE` |
+    | `typed_prob(input, statement)` | probability of yes, 0 to 1 |
+    | `typed_pick(input, question, options)` | the most likely option |
+    | `typed_score(input, question, levels)` | probability-weighted level |
+    | `typed_ask(input, question_json)` | the full answer as JSON |
+    | `typed_usage()` | spend, budget, requests, cache and breaker state |
+
+    Spending is capped from the first query: 1,000 rows per query and $1.00 per database until you raise
+    `typed_max_rows` or `typed_budget_usd`. `typed_dry_run` prices a query without calling anything. A job that
+    stops partway keeps every answer it paid for, so running it again costs only the missing rows.
+
+    Row contents are sent to the provider named in the profile (a DuckDB secret), over https unless the
+    server is on localhost. Do not send data you may not share. HTTP goes through `httpfs`, which is loaded on
+    first use.
