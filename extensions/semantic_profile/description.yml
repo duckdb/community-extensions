@@ -1,7 +1,7 @@
 extension:
   name: semantic_profile
   description: Profiles what the values in a table mean rather than what shape they are — semantic type per column, PII and format drift, and cross-column contradictions
-  version: 0.1.0
+  version: 0.2.0
   language: Rust
   build: cargo
   license: MIT
@@ -15,7 +15,7 @@ extension:
 
 repo:
   github: patricktrainer/duckdb-semantic-profile
-  ref: 82f838a75246033f3017450438b0d383dfaf8914
+  ref: 1f2b8361de6dd8cb9cee6a64b9f10741f43ab517
 
 docs:
   hello_world: |
@@ -42,12 +42,14 @@ docs:
     -- A dry run first: no API calls, so you see the cost before spending it.
     SELECT total_requests, approx_input_tokens FROM sem_cost('orders', rows := 3);
 
-    -- The findings, with the offending values attached.
+    -- The findings, with the offending values attached. A cross-column finding
+    -- names the field it blames and the one it conflicts with.
     SELECT column_name, probe_id, rows_flagged, examples
     FROM sem_report('orders', rows := 3);
-    -- email    sentinel_used_as_value   1  ['n/a']
-    -- customer placeholder_or_test_value 1 ['Test Company']
-    -- (row)    geo_inconsistent         1        -- country US, postal code SW1A 1AA
+    -- email        sentinel_used_as_value     1  ['n/a']
+    -- customer     placeholder_or_test_value  1  ['Test Company']
+    -- postal_code  category_product_mismatch, geo_inconsistent, internally_contradictory
+    --                                         1  ['postal_code=SW1A 1AA; country=US']
 
   extended_description: |
     `SUMMARIZE`, `pandas.describe()` and similar tools profile the *shape* of data:
@@ -63,8 +65,9 @@ docs:
 
     ### How it works
 
-    Three steps, and the middle one is what makes it adapt to a table rather than
-    run a fixed checklist.
+    Four steps. The second is what makes it adapt to a table rather than run a
+    fixed checklist; the fourth is what makes a cross-column finding say what is
+    wrong.
 
     1. **Discover** — one request per column. What does this column actually hold,
        judged from its values, its neighbours and a few whole rows? The column name
@@ -74,10 +77,16 @@ docs:
        running *here*. `sem_probes()` shows the result before you pay for it.
     3. **Execute** — one request per row. The state is the whole row and the
        questions are every selected value probe plus every cross-column check, so
-       the coherence checks ride along essentially free.
+       the coherence checks ride along in a request already being sent.
+    4. **Attribute** — one small request per row a cross-column check suspects:
+       which field is most responsible? Checks that back off when made to point
+       at something are dropped, and the rest are grouped by field, so a defect
+       repeated across rows usually reads as one finding.
 
-    Cost is `2 × columns + rows`, not `columns × rows`. A 20-column table at 500
-    sampled rows is about 540 requests. `sem_cost()` dry-runs without calling out.
+    Cost is `2 × columns + rows`, plus the attribution requests, not
+    `columns × rows`. A 20-column table at 500 sampled rows is about 540
+    requests, plus one per suspect row. `sem_cost()` dry-runs without calling
+    out.
 
     ### Reading the output
 
@@ -90,7 +99,7 @@ docs:
     ### Functions
 
     `sem_profile`, `sem_columns`, `sem_probes`, `sem_values`, `sem_report`,
-    `sem_findings`, `sem_cost`, `sem_catalog`; the primitives `ts_ask`, `ts_noul`,
+    `sem_row_fields`, `sem_findings`, `sem_cost`, `sem_catalog`; the primitives `ts_ask`, `ts_noul`,
     `ts_choice`, `ts_score`; and `sem_config`, `sem_settings`, `sem_stats`,
     `sem_status`, `sem_sql`.
 
