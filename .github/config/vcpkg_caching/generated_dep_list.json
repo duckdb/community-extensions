@@ -2,7 +2,6 @@
   "linux_amd64": [
     "abseil",
     "apache-datasketches",
-    "arrow",
     "avro-c",
     "blas",
     "boost-asio",
@@ -30,7 +29,6 @@
   "linux_amd64_musl": [
     "abseil",
     "apache-datasketches",
-    "arrow",
     "avro-c",
     "boost-asio",
     "catch2",
@@ -98,7 +96,6 @@
   "osx_arm64": [
     "abseil",
     "apache-datasketches",
-    "arrow",
     "avro-c",
     "blas",
     "boost-asio",
@@ -169,7 +166,6 @@
   "windows_amd64": [
     "abseil",
     "apache-datasketches",
-    "arrow",
     "avro-c",
     "blas",
     "boost-asio",
