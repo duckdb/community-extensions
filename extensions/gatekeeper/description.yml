@@ -1,7 +1,7 @@
 extension:
   name: gatekeeper
   description: Authorization for untrusted read-only SQL from tenants, LLM agents, and dashboard builders. Validate a statement without executing it, or enforce a lockable policy on the connection itself, with an audit log of every decision.
-  version: 0.3.0
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: nozzle/duckdb-gatekeeper
-  ref: 9c3c7acb229be0e30c03ebf88867f291631ad0f1
-  ref_next: 9c3c7acb229be0e30c03ebf88867f291631ad0f1
+  ref: b597a8a430407791401e00c723aefe671fdd4b0d
+  ref_next: b597a8a430407791401e00c723aefe671fdd4b0d
 
 docs:
   hello_world: |
@@ -26,8 +26,8 @@ docs:
     -- Trusted setup: install the global ceiling, then freeze it.
     -- An omitted catalog matches any database; add catalog: 'mydb' to pin one.
     CALL gatekeeper_configure(
-        allowed_tables := [{schema: 'reporting', 'table': '*'}],
-        blocked_functions := ['md5']
+        allowed_tables := [{schema_path: ['reporting'], 'table': '*'}],
+        blocked_functions := [{catalog:'system', schema_path:['main'], name:'md5', type:'scalar'}]
     );
     -- Success
     -- true
@@ -47,10 +47,10 @@ docs:
     -- false   | unsupported
 
     -- Denied: tables are matched by resolved identity, with structured diagnostics
-    SELECT allowed, code, violations[1].rule AS rule, violations[1].schema AS schema, violations[1]."table" AS "table"
+    SELECT allowed, code, violations[1].rule AS rule, violations[1].schema_path AS schema_path, violations[1]."table" AS "table"
     FROM gatekeeper_validate('SELECT * FROM secrets');
-    -- allowed | code      | rule  | schema | table
-    -- false   | forbidden | table | main   | secrets
+    -- allowed | code      | rule  | schema_path | table
+    -- false   | forbidden | table | [main] | secrets
 
     -- Denied: a request can narrow the global policy but never widen it
     SELECT allowed, code, violations[1].rule AS rule, violations[1].function_name AS function_name
@@ -61,7 +61,7 @@ docs:
     -- Narrowed: per-request options restrict a tenant to one table within the ceiling
     SELECT allowed, code
     FROM gatekeeper_validate('SELECT count(*) FROM reporting.orders',
-                             allowed_tables := [{schema: 'reporting', 'table': 'orders'}]);
+                             allowed_tables := [{schema_path: ['reporting'], 'table': 'orders'}]);
     -- allowed | code
     -- true    | ok
 
@@ -109,15 +109,32 @@ docs:
 
     | Option | Type | Default | Notes |
     |--------|------|---------|-------|
-    | `allowed_tables` | STRUCT[] | unrestricted (non-internal) | `{catalog?, schema, table}`. `'*'` matches any whole component; omitted or NULL catalog matches any. `[]` denies all tables and views. Until this is set, every non-internal table and view is readable. |
-    | `blocked_tables` | STRUCT[] | `[]` | Same identity rules. A match always denies what the caller names; does not reach inside trusted views, macros, or attached tables. |
-    | `use_default_functions` | BOOLEAN | `true` | `true`: 953 reviewed defaults **plus** `allowed_functions`. `false`: only `allowed_functions`. |
-    | `allowed_functions` | VARCHAR[] | `[]` | Leaf names, ASCII case-folded. No wildcards. |
-    | `blocked_functions` | VARCHAR[] | `[]` | Always wins over the allowlist for what the caller writes and the implementations DuckDB binds for it. Does not reach inside trusted views, macros, or attached tables. |
+    | `allowed_tables` | STRUCT[] | unrestricted (non-internal) | `{catalog?, schema_path: VARCHAR[], table}`. Nonempty path, outermost first; `'*'` matches one component at exactly that depth, never recursively. Omitted or NULL catalog matches any. `[]` denies all tables and views. Until this is set, every non-internal table and view is readable. |
+    | `blocked_tables` | STRUCT[] | `[]` | Same identity rules, including exact depth: `['*']` does not block nested schemas on 2.0. A match always denies what the caller names; does not reach inside trusted views, macros, or attached tables. |
+    | `use_default_functions` | BOOLEAN | `true` | `true`: 919 reviewed qualified defaults (913 distinct names) **plus** `allowed_functions`. `false`: only `allowed_functions`. |
+    | `allowed_functions` | STRUCT[] | `[]` | Resolved `{catalog?, schema_path, name, type?}` grants. Required exact leaf; `'*'` means multiplication, not all functions. Defaults cover reviewed system.main identities. |
+    | `blocked_functions` | STRUCT[] | `[]` | Same qualified identity rules as grants, including optional kind and exact schema depth. A matching block always wins for caller-attributable functions. Does not reach inside trusted views, macros, or attached tables. |
 
-    Only a whole-component `'*'` is a wildcard: `sales_*`, `?`, and `%` are literal names.
+    Only a whole-component `'*'` is a wildcard in catalog/schema components and table names:
+    `sales_*`, `?`, and `%` are literal names. Function names cannot be omitted or wildcarded;
+    schema-wide function permission is unsupported.
     Wildcards also match objects created or attached later, so prefer explicit catalog
     names when that scope is not intended.
+
+    Configurable function grants and blocks match exact catalog-entry names, without alias
+    canonicalization, including Parquet readers, JSON extraction aliases, and window aliases.
+    Cover each intended entry explicitly: `read_parquet` and `parquet_scan` have separate
+    permissions, and Parquet file shorthand selects `parquet_scan`. Source-defined parser/binder
+    rewriting determines the operation or entry checked, not general semantic equivalence.
+
+    Internal table/view and function grants require exact schema components; tables/views also
+    require an exact table name. Catalog may be omitted, NULL, or `*`; block namespace wildcards
+    still match internal entries. The actual entry's `internal` flag controls this, not the
+    `system` catalog name. Non-internal entries can use schema patterns; unknown bound-function
+    internal origin cannot use schema-wildcard grants. Reviewed defaults already name exact identities.
+
+    Follow the [policy v2 migration guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/policy-migration.md)
+    for legacy function strings, old `schema` fields, typed empty lists, and canonical settings.
 
     ### Result columns
 
@@ -125,17 +142,35 @@ docs:
     |--------|------|---------|
     | `allowed` | BOOLEAN | True exactly when `code = 'ok'`. |
     | `code` | VARCHAR | `ok`, `forbidden`, `unsupported`, `parser`, `binding`, `invalid_input`. |
-    | `violations` | STRUCT[] | `rule`, `message`, `catalog`, `schema`, `table`, `function_name`, `position`. Nonempty only for `forbidden` and `unsupported`. |
+    | `violations` | STRUCT[] | `rule`, `message`, `catalog`, `schema_path VARCHAR[]`, `table`, `function_name`, `position BIGINT`, `function_type`, `object_type` (other fields VARCHAR, in this order). Nonempty only for `forbidden` and `unsupported`. |
     | `error_type` | VARCHAR | DuckDB exception category (`parser`, `Catalog`, `Binder`, ...) for engine errors. |
     | `error_message` | VARCHAR | The engine's message; empty for policy denials. |
     | `position` | BIGINT | Zero-based parser byte offset, or NULL. |
-    | `objects` | STRUCT[] | Resolved `catalog`, `schema`, `table`, `type` (`table`, `view`, `replacement`), including trusted dependencies. See `caller_objects` for the caller-attributable catalog subset. Empty unless `ok`. |
-    | `functions` | STRUCT[] | Resolved `catalog`, `schema`, `name`, `type` the query bound to. Empty unless `ok`. |
+    | `objects` | STRUCT[] | Resolved `catalog`, `schema_path VARCHAR[]`, `table`, `type` (`table`, `view`, `replacement`), including trusted dependencies. See `caller_objects` for the caller-attributable catalog subset. Empty unless `ok`. |
+    | `functions` | STRUCT[] | Resolved `catalog`, `schema_path VARCHAR[]`, `name`, `type` the query bound to. Empty unless `ok`. |
     | `caller_objects` | STRUCT[] | Caller-attributable catalog tables/views, with the same fields as `objects`. Sorted, deduplicated subset of `objects`; empty unless `ok`. |
+    | `caller_functions` | STRUCT[] | Identities in `functions` checked by caller-scoped policy at any authorization point. Same fields; sorted, deduplicated, empty unless `ok`. |
 
     Violation `rule` values: `function`, `table`, `internal_object`, `dynamic_sql`,
     `replacement_scan`, `bind_time_expression`, `statement`, `limit`,
     `unsupported_structure`. Branch on `code` and `violations[].rule`, not on message text.
+
+    Known denied functions retain their catalog, schema path, name, and `function_type`, even
+    though `functions` is empty on failure. `function_type` uses the same kinds as `functions[].type`;
+    it is `''` for unresolved kinds and nonfunction violations. Resolved catalog-object denials
+    retain `object_type = 'table'` or `'view'` for allowlist misses, explicit blocks, and
+    internal-object refusals; the `table` rule alone does not distinguish tables from views.
+    `object_type` is `''` for unresolved objects and function-only or other nonobject violations,
+    including replacement-reader refusals whose `table` contains a written path. All
+    evidence lists (`objects`, `functions`, `caller_objects`, `caller_functions`) remain empty on failure.
+    Consumers pinning the violation STRUCT must include both trailing VARCHAR kind fields.
+    Audit decisions returned by
+    `duckdb_logs_parsed('Gatekeeper')` carry the same violation shape.
+
+    `functions` remains combined host-facing evidence of caller-attributable functions and trusted
+    dependencies. `caller_functions` is its caller-scoped authorization subset, including implied
+    capabilities and conservative over-attribution; it is not a lexical call list or public-safe
+    projection. `caller_objects` remains the conservative catalog-table/view subset of `objects`.
 
     ### Global policy
 
@@ -157,23 +192,34 @@ docs:
 
     Allow the outer view/table or macro to expose it as a host-controlled capability.
     Its dependencies are **opaque to table and function policy**, including blocks and
-    the never-bind list; Gatekeeper's control plane remains refused on every route.
+    the caller's never-bind list. Independent control-plane and supported-execution-scope
+    checks still apply: Gatekeeper's control plane remains refused on every route, and
+    private catalog authorization refuses unsupported Quack dependencies even inside trusted
+    bodies. Deferred binding can execute remotely before that refusal; see the
+    [Quack support matrix](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/quack.md).
 
     - Allowing a view admits its underlying tables. Block the view itself to withdraw it.
     - A caller's separate reference to an underlying table or function is still checked.
     - A macro forwarding a caller argument to `query_table(n)` delegates table selection;
       caller table restrictions do not constrain that selection.
-    - `objects` and `functions` still report the dependencies as binding evidence;
-      `caller_objects` lists only the tables and views the caller reached.
+    - `objects` and `functions` still report transitive dependencies as host binding evidence.
+      For Quack, this is checked local binding, not recursively complete remote lineage.
+      `caller_objects` is conservative query-wide attribution, not exact lexical dependencies:
+      a caller-written name can attribute a matching hidden object inside a trusted body.
+    - Validation results and audit diagnostics, including all evidence lists, violations and engine
+      errors, are privileged host information. `caller_objects` is not universally caller-safe.
+      Applications may expose a minimal decision or a separately reviewed projection.
 
-    See the [trusted-definition rules](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#function-enforcement-and-trusted-expansion)
+    See the [trusted-definition rules](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/security.md#function-enforcement-and-trusted-expansion)
     for query-wide name overlaps and bound implementation checks.
 
     ### Enforced connections
 
     To have DuckDB refuse denied statements automatically, finish trusted setup first:
     load extensions, attach catalogs, configure policy and host restrictions, enable logging,
-    and lock configuration. Then, outside a transaction, run this on each untrusted connection:
+    and lock configuration. Then, outside a transaction, run this on each LOCAL connection
+    before handing out SQL access. On DuckDB 2.0, use a fresh local connection or `DISCONNECT`
+    during trusted setup, before submitting activation, and keep the connection LOCAL:
 
     ```sql
     CALL gatekeeper_enforce();
@@ -182,8 +228,10 @@ docs:
     - Denials raise a `Permission Error`; enforcement is permanent for that connection.
     - Parameters and relation queries are covered; prepared executions use the current policy.
     - The result includes host-setting `warnings`. Keep a separate host connection for administration.
+    - An already-connected DuckDB 2.0 session can dispatch SQL before the local enforcement hook,
+      including the activation call. A successful remote result does not establish local enforcement.
 
-    See the [enforcement guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#enforced-connections)
+    See the [enforcement guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/security.md#enforced-connections)
     for setup and execution-boundary details, including parser-time side effects.
 
     ### Audit and log-only mode
@@ -198,12 +246,15 @@ docs:
 
     - **Denials and policy changes:** recorded at `INFO`.
     - **Allowed decisions:** also recorded with `SET logging_level = 'debug'`.
-    - **Trial rollout:** `SET gatekeeper_log_only = true` records decisions without refusing
-      anything. Set it back to `false` to restore enforcement.
+    - **Trial rollout:** `SET gatekeeper_log_only = true` records policy denials without refusing
+      them. Set it back to `false` to restore policy refusals.
+    - **Routing exception:** DuckDB 2.0 `CONNECT`/`DISCONNECT` remain refused before binding,
+      with audit `mode = 'enforce'`, so the rollout preserves LOCAL routing.
 
-    Log-only mode protects nothing while enabled. Before locking configuration, plan how
-    the host will turn it off. See the [audit log](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#audit-log)
-    and [log-only guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#log-only-mode).
+    Apart from those routing controls, log-only provides no policy protection, including for
+    Gatekeeper's settings. Before locking configuration, plan how
+    the host will turn it off. See the [audit log](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/security.md#audit-log)
+    and [log-only guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/security.md#log-only-mode).
 
     ### What is never allowed
 
@@ -216,7 +267,7 @@ docs:
 
     File readers are grantable, but are **not defaults**. Granting a reader permits its
     resource access; `allowed_tables` does not restrict file paths. See the
-    [function policy](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#never-bind-functions)
+    [function policy](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/security.md#never-bind-functions)
     for the exact never-bind list and trusted-definition exceptions.
 
     ### Security boundaries
@@ -225,15 +276,18 @@ docs:
     isolate the filesystem, or impose memory and time limits.
 
     - **Binding can perform I/O.** Prepared statements may bind before enforcement hooks run.
+      Unsupported deferred Quack bodies and native DuckDB 1.5 preparation of constant remote
+      SQL can execute remotely before a later refusal; see
+      [remote scope and preparation limits](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/quack.md).
     - **Parsing can have side effects.** DuckDB evaluates some `PRAGMA` arguments before
       enforcement; validate complete text first if your host cannot accept that residual.
     - **The host controls the environment.** Restrict external access and autoloading where
       possible, set resource limits, and lock configuration before handing out connections.
     - **Diagnostics can reveal names.** Treat engine error messages and audit logs as host data.
 
-    Read the [security model](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md)
+    Read the [security model](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/security.md)
     for the full boundaries and setup requirements. Report suspected bypasses through
-    [SECURITY.md](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/SECURITY.md).
+    [SECURITY.md](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/SECURITY.md).
 
     ### Compatibility
 
@@ -242,16 +296,16 @@ docs:
       Community builds can target other engines; builds and regression tests establish compatibility.
     - **DuckDB 2.0:** the same source builds against `v2.0-cyanoptera` (this descriptor's
       `ref_next`), and the community repository's 2.0 builds come from it; there are no GitHub
-      assets for 2.0. Decisions are the same on both engines;
-      [Compatibility and review](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/docs/security.md#compatibility-and-review)
+      assets for 2.0. The policy model is shared, with engine-specific capabilities and refusals;
+      [Compatibility and review](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/docs/security.md#compatibility-and-review)
       lists what a host on 2.0 sees differently.
     - **Wasm:** EH only, browser-tested with `@duckdb/duckdb-wasm@1.33.1-dev64.0`
       embedding DuckDB 1.5.5. MVP and threads/COI are excluded.
     - **API stability:** Gatekeeper is in early development (0.x); options and result schemas
       may change between releases.
 
-    See [build-pin maintenance](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/inventories/README.md#repinning-the-engine)
-    and [Wasm setup](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/test/wasm/README.md).
+    See [build-pin maintenance](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/inventories/README.md#repinning-the-engine)
+    and [Wasm setup](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/test/wasm/README.md).
 
     ### Benchmarks
 
@@ -260,22 +314,22 @@ docs:
 
     | | point lookup (1 K rows) | aggregate (10 M rows) | large statement (11 KB) |
     | --- | ---: | ---: | ---: |
-    | plain connection | 64 µs | 3.2 ms | 3.8 ms |
-    | enforced connection | 93 µs (+28 µs) | 3.4 ms (+166 µs) | 7.0 ms (+3.3 ms) |
-    | enforced, audit log at debug | 142 µs (+78 µs) | 3.5 ms (+304 µs) | 7.1 ms (+3.4 ms) |
-    | validate, then execute | 229 µs (+165 µs) | 3.7 ms (+453 µs) | 7.2 ms (+3.4 ms) |
-    | denied on an enforced connection | 322 µs | 451 µs | 2.7 ms |
+    | plain connection | 63 µs | 3.3 ms | 3.8 ms |
+    | enforced connection | 92 µs (+29 µs) | 3.5 ms (+164 µs) | 7.0 ms (+3.3 ms) |
+    | enforced, audit log at debug | 159 µs (+96 µs) | 3.6 ms (+320 µs) | 7.2 ms (+3.4 ms) |
+    | validate, then execute | 233 µs (+170 µs) | 3.8 ms (+449 µs) | 7.2 ms (+3.4 ms) |
+    | denied on an enforced connection | 322 µs | 471 µs | 2.7 ms |
 
     Median of 1000 runs per cell after 20 warm-ups, `execute().fetchall()` through the Python
     client on one connection of an in-memory database; Apple M3 Max, DuckDB 1.5.5, Gatekeeper
-    0.3.0. The plain row is the client round trip plus the engine's own work; in parentheses,
+    0.4.0. The plain row is the client round trip plus the engine's own work; in parentheses,
     what each mode adds to it.
 
     The check is a second parse and bind of the statement plus the AST walk, so its cost
     follows the statement's size, not the data's. `gatekeeper_validate` runs the same check;
     the rest of its row is the second client round trip. A refusal never reaches the engine.
     The table is regenerated by
-    [scripts/benchmark.py](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/scripts/benchmark.py).
+    [scripts/benchmark.py](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/scripts/benchmark.py).
 
     Full documentation, including a Python integration example, is in the
-    [README](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.3.0/README.md).
+    [README](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.0/README.md).
