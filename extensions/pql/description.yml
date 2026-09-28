@@ -15,16 +15,154 @@ repo:
 
 docs:
   hello_world: |
+    -- 1,200 customers, their orders, and a question about the future.
     CREATE TABLE customers AS
-      SELECT i AS id, (i % 7) + 1 AS tier, (i % 5) = 0 AS churned FROM range(300) t(i);
-    TRAIN MODEL churn PREDICT customers.churned FOR customers;
-    PREDICT customers.churned FOR customers WHERE tier >= 5 USING MODEL churn;
+      SELECT i AS id, 1 + i % 4 AS tier,
+             DATE '2025-01-01' + INTERVAL (i % 300) DAY AS last_seen
+      FROM range(1200) t(i);
+    CREATE TABLE orders AS
+      SELECT c.id AS customer_id,
+             c.last_seen - INTERVAL (7 * k + (c.id * 7 + k * 13) % 5) DAY AS ts,
+             10 + (c.id * 31 + k * 17) % 90 AS amount
+      FROM customers c, range(1, 9) t(k)
+      WHERE k <= c.tier + c.id % 3;
+    INSERT INTO orders
+      SELECT id, last_seen + INTERVAL (1 + id * 13 % 28) DAY, 10 + id * 3 % 90
+      FROM customers WHERE tier * 20 + id * 37 % 60 > 70;
+
+    -- Will each customer order again within 30 days of when we last saw them?
+    TRAIN MODEL reorder PREDICT EXISTS(orders) FOR customers AT last_seen HORIZON 30 DAYS;
+
+    -- One row per customer, with a probability.
+    PREDICT EXISTS(orders) FOR customers WHERE tier >= 3 USING MODEL reorder;
   extended_description: |
-    PQL adds `TRAIN MODEL`, `PREDICT`, `BACKTEST MODEL`, `EXPLAIN MODEL` and
-    `DROP MODEL` to DuckDB. A model is trained directly on the tables in the
-    catalog: PQL follows foreign keys to build features from related tables
-    (counts, averages, recency, spacing), holds out a slice, and reports the
-    metric. Forecast targets (`COUNT(orders)`, `SUM(orders.total)`,
-    `EXISTS(orders)` over a `HORIZON`) are labelled at anchor times so that
-    nothing after the anchor can leak into the features. Models live for the
-    session; `pql_models()` lists them with their defining statement.
+    PQL adds predictive statements to SQL. A model is trained directly on the
+    tables in the catalog: PQL follows the foreign keys, builds features from the
+    related tables (counts, averages, recency, spacing), holds out a slice by
+    time, and reports how good the model is before you use it. No feature
+    engineering, no export, no separate service.
+
+    ### The five statements
+
+    ```sql
+    TRAIN [OR REPLACE] MODEL <name>
+      PREDICT <target>                        -- a column, or COUNT / EXISTS / SUM / AVG / MIN / MAX over a related table
+      FOR <table> [AS <alias>]
+      [ WHERE <filter> ]                      -- which entities take part
+      [ AT <column> | EVERY <n> <unit> ]      -- the anchor time of each example
+      [ HORIZON <n> <unit> ]                  -- how far ahead the target is counted
+      [ USING GRAPH (<table>, ...) ]          -- restrict the tables used
+      [ EXCLUDE (<column>, ...) ]             -- columns the model must not see
+      [ SPLIT TEMPORAL VALIDATE FROM <ts> TEST FROM <ts> ]
+      [ OPTIONS (<key> = <value>, ...) ];
+
+    PREDICT <target> FOR <table> [ WHERE <filter> ] USING MODEL <name>;
+    BACKTEST MODEL <name> [ FROM <ts> ] [ TO <ts> ];   -- replay it row by row against what happened
+    EXPLAIN MODEL <name>;                                -- which features it relies on
+    DROP MODEL [IF EXISTS] <name>;
+    ```
+
+    Every statement is also a table function, `pql_exec('<statement>')`, so a
+    prediction joins to anything. `pql_models()` lists the models in the session.
+
+    ### What TRAIN returns
+
+    The hello-world above prints one row like this:
+
+    ```text
+    model    target          train_rows val_rows test_rows metric  val    test   pr_auc  baseline features
+    reorder  EXISTS(orders)  710        237      237       auroc   0.871  0.815  0.891   0.608    26
+    ```
+
+    - `test` is the number to trust: scored once, on a later slice the model never
+      saw during selection.
+    - `baseline` is what you get with no model at all: the positive rate for a
+      yes/no target, "the same as last window" for a quantity. If `test` does not
+      beat it, PQL has just told you so.
+    - `pr_auc` is average precision, the honest score when positives are rare.
+    - `val` picked the epoch and is optimistic by construction. Do not quote it.
+
+    ### Two kinds of question
+
+    **A column that already exists** is imputation and needs no dates:
+
+    ```sql
+    TRAIN MODEL vip PREDICT customers.is_vip FOR customers;
+    ```
+
+    **Something in the future** is a forecast. `AT` says where "now" is for each
+    row, `HORIZON` how far to look, and the target is any aggregate over a related
+    table, optionally narrowed:
+
+    ```sql
+    TRAIN MODEL spend   PREDICT SUM(orders.amount) FOR customers AT last_seen HORIZON 60 DAYS;
+    TRAIN MODEL refunds PREDICT EXISTS(orders WHERE orders.status = 'refunded')
+      FOR customers AT last_seen HORIZON 60 DAYS;
+    ```
+
+    For forecasts the engine computes the label itself from the window after the
+    anchor and builds features only from before it, so the answer cannot leak
+    into the inputs. Rows without a natural timestamp can use `EVERY 1 MONTH`
+    to generate a grid of anchors from the data's own span.
+
+    ### See why, and check it row by row
+
+    ```sql
+    EXPLAIN MODEL reorder;
+    ```
+    ```text
+    feature              slots importance
+    tier                 1     0.381
+    orders: count 365d   1     0.018
+    orders: count 30d    1     0.010
+    ```
+
+    Each feature group is shuffled in turn and `importance` is what the model
+    loses. If something you did not expect sits at the top, that is usually a
+    leak; `EXCLUDE (that_column)` removes it before anything is fitted.
+
+    ```sql
+    SELECT count(*) AS n,
+           round(avg(abs(error)), 2)             AS model_mae,
+           round(avg(abs(baseline - actual)), 2) AS persistence_mae
+    FROM pql_exec('BACKTEST MODEL spend FROM ''2025-09-15''');
+    ```
+
+    ### It is still SQL
+
+    ```sql
+    SELECT c.tier, round(avg(p.prediction), 3) AS chance_to_reorder
+    FROM pql_exec('PREDICT EXISTS(orders) FOR customers USING MODEL reorder') p
+    JOIN customers c ON c.id = p.id
+    GROUP BY c.tier ORDER BY 1;
+    ```
+
+    ### Good to know
+
+    - Needs DuckDB v1.5.5 or later; built against the current release and tested
+      against the next one on every change.
+    - Models live for the session and are not saved in the database file.
+      Retraining is seconds, so `TRAIN` in the same job you `PREDICT` in.
+    - Predicting a column that already exists has no leakage guarantee: every
+      other column on the row is a feature, including ones that are consequences
+      of the target. A near-perfect score there usually means a tautology.
+      Forecast targets are the path with the structural guarantee.
+    - Filters compare a column to a literal (`=`, `<`, `IN`, `IS NULL`, `AND`,
+      `OR`). Tables are named without a schema. Text targets are refused rather
+      than trained as multi-class.
+    - `SHOW MODELS` is not available on its own (DuckDB parses it first); use
+      `pql_models()` or `pql_exec('SHOW MODELS')`.
+    - On RelBench, the standard benchmark for prediction over relational
+      databases, PQL scores in the same class as the published graph neural
+      network and as gradient boosting over hand-built features, from a single
+      statement on a laptop CPU.
+
+    ### Learn more
+
+    - [Tutorial](https://github.com/Guepard-Corp/duckdb-pql/blob/main/docs/tutorial.md):
+      a 15-minute walk from first model to backtest, with real output.
+    - [Reference](https://github.com/Guepard-Corp/duckdb-pql/blob/main/docs/reference.md):
+      full syntax, options, result columns, and the current limitations.
+    - [How it works](https://github.com/Guepard-Corp/duckdb-pql/blob/main/docs/how-it-works.md):
+      features, leakage, the two model architectures.
+    - Issues and questions: https://github.com/Guepard-Corp/duckdb-pql/issues
