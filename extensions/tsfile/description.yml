@@ -1,0 +1,34 @@
+extension:
+  name: tsfile
+  description: Query and write Apache TsFile table-model files from DuckDB
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - ColinLeeo
+
+repo:
+  github: TimechoLab/tsfile-duckdb
+  ref: 9840c600fec9aefec3d9351d8ee27c643033b752
+
+docs:
+  hello_world: |
+    INSTALL tsfile FROM community;
+    LOAD tsfile;
+
+    SELECT time, device_id, temperature
+    FROM read_tsfile('/data/measurements.tsfile', 'sensors')
+    WHERE time BETWEEN 1700000000000 AND 1700003600000;
+
+  extended_description: |
+    The TsFile extension exposes the read_tsfile(path, table_name) table
+    function for querying Apache TsFile table-model files and supports writing
+    query results with COPY ... TO ... (FORMAT TSFILE). It maps TsFile columns
+    to DuckDB types, pushes projections, time predicates, and TAG predicates
+    into the reader, and streams results in DuckDB vector-sized batches.
+
+    The initial release supports one local file and one table per scan.
+    Tree-model files, multi-file scans, automatic table discovery, parallel
+    scans, and FIELD predicate pushdown are not yet implemented.

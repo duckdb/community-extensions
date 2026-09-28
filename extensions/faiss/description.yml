@@ -8,14 +8,10 @@ extension:
   maintainers:
     - JAicewizard
     - arjenpdevries
-  # windows_amd64 fails to link against the CLAPACK that vcpkg provides on MSVC
-  # (unresolved d_sign, pow_ri, pow_dd, r_sign - the f2c runtime), and it took the
-  # four platforms that do build down with it, so nothing was published at all.
-  # Temporary: remove once the MSVC LAPACK link is fixed upstream.
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   requires_toolchains: "fortran;omp"
   vcpkg_url: "https://github.com/microsoft/vcpkg.git"
-  vcpkg_commit: "54760c3439fa2fdf2f42ccd730fcf2639c3fe101"
+  vcpkg_commit: "26826180d398b4bb4f0453ae9d38a1c2c4d472dc"
 
 repo:
   github: "duckdb-faiss-ext/duckdb-faiss-ext"
@@ -39,6 +35,6 @@ docs:
     -- Get 10 results
     SELECT id, UNNEST(FAISS_SEARCH('name', 10, data)) FROM queries;
   extended_description: |
-    The FAISS extension allows DuckDB users to store vector data in faiss, and query this data, making reliable vector search more accessible. On all linux platforms, this platform also supports GPU indexes, you can move a supported index to the GPU using `CALL FAISS_MOVE_GPU({index_name}, {gpu number})`. Currently only CUDA is supported, note that GPU support may be split into a seperate extension in the future.
+    The FAISS extension allows DuckDB users to store vector data in faiss, and query this data, making reliable vector search more accessible. On all linux platforms, this platform also supports GPU indexes, you can move a supported index to the GPU using `CALL FAISS_MOVE_GPU({index_name}, {gpu number})`. Currently only CUDA is supported, note that GPU support may be split into a separate extension in the future.
 
     Some (most) indices are not supported for gpus, however this is very easily resolvable. Please open an issue over at our repository in order to get this resolved!

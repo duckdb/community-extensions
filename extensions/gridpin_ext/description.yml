@@ -1,0 +1,65 @@
+extension:
+  name: gridpin_ext
+  description: Offline geocoding from a single country file — forward and reverse, no server, no network
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: Apache-2.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - gridpin-reserve
+
+repo:
+  github: gridpin/duckdb-gridpin
+  ref: cf94e5d3994e48fbf12b67a2b808cdde9bda428d
+
+docs:
+  hello_world: |
+    -- Country data files are free downloads: https://gridpin.dev
+    -- (France, Italy, the Netherlands and Serbia today; one file per country.)
+    LOAD gridpin_ext;
+
+    -- Point the extension at a downloaded sheet. One sheet is loaded at a time.
+    SELECT gridpin_load('./france.bin');
+
+    -- Forward geocoding: an address string in, a JSON object out.
+    SELECT gridpin_geocode('10 rue de rivoli paris');
+
+    -- Reverse geocoding: coordinates in, the nearest address out.
+    SELECT gridpin_reverse(48.8686, 2.3305);
+
+    -- It is an ordinary scalar function, so a whole table geocodes in one query.
+    SELECT id,
+           json_extract(gridpin_geocode(address), '$.lat') AS lat,
+           json_extract(gridpin_geocode(address), '$.lon') AS lon
+    FROM customers;
+  extended_description: |
+    GridPin resolves addresses to coordinates and back **entirely offline**: one
+    memory-mapped file per country, millisecond lookups on a single core, and typo
+    tolerance built into the index. There is no server to run, no database to import,
+    no API key and no per-request fee — the addresses you geocode never leave the machine.
+
+    ### Functions
+
+    | Function | Purpose |
+    |---|---|
+    | `gridpin_load(path)` | memory-map a country sheet; the last path wins |
+    | `gridpin_geocode(address)` | address string → JSON object with `lat`, `lon`, `street`, `city` |
+    | `gridpin_reverse(lat, lon)` | coordinates → JSON object for the nearest address |
+    | `gridpin_load_poi(path)` | optional points-of-interest layer, consulted after addresses |
+    | `gridpin_reset()` | drop the loaded sheet so another country can be loaded |
+
+    A query issued before `gridpin_load` is a clear error rather than a crash, and an
+    address with no match returns `{}` — an empty result is a documented contract, not a
+    guess.
+
+    ### Data files
+
+    Country sheets are published as free downloads at
+    [gridpin.dev](https://gridpin.dev) and in the [releases of the main
+    repository](https://github.com/gridpin/gridpin/releases). Each sheet carries its own
+    source licence (France comes from the national BAN registry under Licence Ouverte;
+    Italy, the Netherlands and Serbia are built from Overture). The engine itself is
+    Apache-2.0 and lives at [gridpin/gridpin](https://github.com/gridpin/gridpin); this
+    repository holds the extension crate only.

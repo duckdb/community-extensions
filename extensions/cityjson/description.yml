@@ -1,7 +1,7 @@
 extension:
   name: cityjson
-  description: Read, write, and query CityJSON, CityJSONSeq, and FlatCityBuf 3D city model files.
-  version: 0.2.0
+  description: Read, write, and query CityJSON, CityJSONSeq, FlatCityBuf, and CityParquet 3D city model files.
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cityjson/duckdb-cityjson
-  ref: d511bdba26392bab7d4b789f294065a3fbed58d6
+  ref: a1455e1a0896160660f4646d240f2fb85be34617
 
 docs:
   hello_world: |
@@ -20,36 +20,65 @@ docs:
     -- Read a CityJSONSeq (line-delimited) file
     SELECT * FROM read_cityjsonseq('buildings.city.jsonl');
 
-    -- Read a FlatCityBuf file
-    SELECT * FROM read_flatcitybuf('buildings.fcb');
+    -- Read a FlatCityBuf file, pushing a bounding box into its spatial index
+    SELECT * FROM read_flatcitybuf('buildings.fcb',
+      min_x => 84000, min_y => 444000, max_x => 84500, max_y => 444500);
 
     -- Extract geometries as WKB at a specific Level of Detail
     SELECT * FROM read_cityjson('buildings.city.json', lod=>'1.2');
 
-    -- Write query results to CityJSONSeq
+    -- Write query results to CityJSONSeq; the source CRS and metadata travel too
     COPY (SELECT * FROM read_cityjson('buildings.city.json'))
       TO 'output.city.jsonl' (FORMAT cityjsonseq);
 
     -- Inspect file metadata
     SELECT * FROM cityjson_metadata('buildings.city.json');
 
+    -- Read material and texture definitions
+    SELECT * FROM cityjson_materials('buildings.city.jsonl');
+
+    -- Build a CityParquet package: a schema you can validate, mutate and write out
+    CREATE SCHEMA city;
+    CREATE TABLE city.building AS SELECT * FROM read_cityjson('buildings.city.json');
+    PRAGMA cityparquet_init('city');
+    PRAGMA cityparquet_validate('city');
+    SELECT * FROM cityparquet_write('city', 'out/city');
+
   extended_description: |
     The CityJSON extension provides table functions for reading and writing 3D city model files
-    in CityJSON (.city.json), CityJSONSeq (.city.jsonl), and FlatCityBuf (.fcb) formats.
-    CityJSON is a JSON-based encoding for 3D city models (buildings, terrain, vegetation, etc.)
-    based on the CityGML data model.
+    in CityJSON (.city.json), CityJSONSeq (.city.jsonl), and FlatCityBuf (.fcb) formats, and for
+    building CityParquet packages. CityJSON is a JSON-based encoding for 3D city models
+    (buildings, terrain, vegetation, etc.) based on the CityGML data model.
 
-    Supported functions:
+    Reading and writing:
     - `read_cityjson`, `read_cityjsonseq`, `read_flatcitybuf` — table functions for querying city objects
     - `cityjson_metadata`, `cityjsonseq_metadata`, `flatcitybuf_metadata` — inspect file headers
     - `COPY ... TO` with formats `cityjson`, `cityjsonseq`, and `flatcitybuf` — write query results
 
+    Appearance:
+    - `cityjson_materials`, `cityjson_textures`, `cityjson_geometry_templates` — sidecar readers
+    - Per-LoD `material_lod*` / `texture_lod*` reference columns, or `appearance := 'sidecar'`
+      to normalise appearance into sidecar tables with global ids and inlined UV coordinates
+
+    CityParquet packages — a package is a DuckDB schema, so it is queryable while you build it:
+    - `cityparquet_init`, `cityparquet_read`, `cityparquet_write` — create, load and write a package
+    - `insert_cityjson`, `insert_cityjsonseq`, `insert_flatcitybuf` — add a file, routed by CityGML module
+    - `cityparquet_validate`, `cityparquet_reconcile`, `cityparquet_orphans`, `cityparquet_vacuum`
+    - `cityparquet_delete` (with cascade) and `cityparquet_merge`
+    - `cityjson_geoparquet_geo` — the GeoParquet `geo` and CityParquet `city` footer objects
+
     Additional features:
     - Automatic schema inference from CityJSON attributes
     - Wide columnar layout: one WKB geometry column per Level of Detail, plus a per-object `bbox` extent
-    - LOD-based geometry extraction as WKB blobs via the `lod` parameter
+    - `geometry_properties_lod*` as a native STRUCT, so semantic surfaces and shells are columns
+    - Spatial and attribute-query pushdown on FlatCityBuf, using the file's R-tree and B+tree indexes
+    - Selective deserialisation: a query projecting no geometry never decodes it
     - Filter pushdown on `id`, `feature_id`, and `object_type`
     - Streaming reads of large CityJSONSeq files and remote files over HTTP/S3/GCS
+    - CRS handling follows GeoParquet's tri-state convention, so a georeferenced file never
+      silently claims OGC:CRS84
     - Support for CityJSON v2.0 and CityJSONSeq formats
 
+    Full documentation — every function, its parameters and its output schema — is at
+    [cityjson.github.io/duckdb-cityjson](https://cityjson.github.io/duckdb-cityjson/).
     For more information on the CityJSON format, see https://www.cityjson.org/.

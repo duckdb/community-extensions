@@ -1,0 +1,391 @@
+## The DuckDB community-extensions registry entry for subtoken.
+##
+## This file is the submission: it is copied to `extensions/subtoken/description.yml`
+## in duckdb/community-extensions. Merging it there makes DuckDB's CI build this
+## repository at `repo.ref` for every platform in the matrix and publish the
+## binaries, after which `INSTALL subtoken FROM community` works for anyone.
+##
+## The `repo.ref` below names a commit that carries the build contract in
+## `Makefile` and the `extension-ci-tools` submodule. `scripts/check_description_examples.py`
+## asserts only that the ref is a full 40-character SHA, because a check that the commit
+## carries the contract would go quiet in any clone that no longer has the
+## object, which is the shape of check this repository keeps deleting.
+##
+## `build:` and `language:` are labels for the extension's page — the registry's
+## `scripts/build.py` reads neither. The recipe that actually runs is `make
+## configure_ci`, `make release`, `make test_release` at this repository's root.
+
+extension:
+  name: subtoken
+  description: Text becomes tokens, tokens become vectors. Inside DuckDB, with no network, no key and no bill
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  # wasm: the artifact is a native cdylib and the bundled weights alone are 30 MB.
+  # musl and windows_arm64 are opt-in in the distribution matrix and are not
+  # opted into. windows_amd64_mingw is excluded; windows_amd64 (MSVC) is not.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw"
+  # python3 backs the metadata-stamp venv the C-API build contract uses.
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - hughcameron
+
+repo:
+  github: meridian-online/subtoken
+  ref: c453860544b53803bb9b830c4818e4f1ad2d4057
+
+docs:
+  hello_world: |
+    -- A vector for a string, from a model compiled into this binary. No API
+    -- key, no network call, no per-row bill.
+    CREATE TABLE corpus (id INTEGER, description VARCHAR);
+    INSERT INTO corpus VALUES
+        (1, 'a maker of industrial fasteners'),
+        (2, 'a regional freight forwarder'),
+        (3, 'a foundry casting valve bodies'),
+        (4, 'a chain of hardware stores');
+
+    -- 256 floats per row, for this model.
+    SELECT id, len(subtoken_embed(description)) AS width FROM corpus ORDER BY id;
+
+    -- subtoken_embed is a scalar, so it composes with WHERE and LIMIT: embed a filtered
+    -- subset rather than a whole table.
+    SELECT id, subtoken_embed(description) AS v
+    FROM corpus
+    WHERE description LIKE '%valve%';
+
+    -- Long text is cut before the mean is taken, and the vector that comes back
+    -- is full width and unit norm either way — nothing about it says content was
+    -- dropped. Ask, rather than counting tokens.
+    SELECT count(*) AS truncated_rows
+    FROM corpus
+    WHERE subtoken_is_truncated(description);
+
+    -- Which build, which model, which width.
+    SELECT subtoken_version();
+
+  extended_description: |
+    `subtoken` turns a string into a vector inside DuckDB, using a
+    [Model2Vec](https://github.com/MinishLab/model2vec) static embedding model
+    compiled into the extension binary. There is no API key to configure, no
+    network call at query time, and no per-row cost.
+
+    Every other route to an embedding inside DuckDB is either a transformer
+    forward pass or a call to a hosted provider. Over a large text column the
+    first is slow enough that people leave SQL to do it, and the second is an
+    invoice you find out about afterwards. A static embedding is neither: it is a
+    token lookup and a mean, so it is bounded, local and free at the margin.
+
+    Being a scalar is the point. `subtoken_embed` composes with `WHERE` and `LIMIT`, so a
+    filtered subset of a table can be embedded without materialising the rest,
+    and it behaves the same over a local Parquet file as over a remote one.
+
+    ## What it is good at, and what it is not
+
+    **This is not a drop-in replacement for a hosted transformer, and the
+    difference is measured rather than hedged.** A static embedding is the mean
+    of its token vectors with no contextual attention, and what that costs is
+    specific rather than general. The figures in this section come from the
+    harness, corpora and committed `results.json` in
+    `eval/static-embedding-map-fidelity/` in
+    [meridian-online/finetype](https://github.com/meridian-online/finetype),
+    read at the commit `scripts/check_quality_claims.py` pins, and where a
+    figure compares, it compares the bundled `potion-base-8M` against
+    `all-MiniLM-L6-v2`.
+
+    **There is a free floor under this, and it was measured beside the model.**
+    DuckDB's `fts` extension scores BM25 over the same corpora with no model
+    loaded, which is the result a reader already has; a bundled model that does
+    not beat it has not earned its download. The ranked-lift figures below are
+    normalised so that a random-vector control scores zero and
+    `all-MiniLM-L6-v2` scores one on the same corpus.
+
+    **Two different questions live under "similarity", and this embedder answers
+    them differently.** *Pairwise judgement* asks how alike two given strings
+    are — is A a duplicate of B. *Ranked retrieval* asks a whole corpus for the
+    rows most like A. The neighbourhood figures under *What it is not for* are
+    ranked retrieval, and they are the weak result on this page; the
+    duplicate-detection figures under *What it is good at* are pairwise, and
+    they point the other way. Word-order blindness is a failure of both — a
+    phrase and its shuffle are false neighbours *and* a false duplicate.
+
+    ### What it is good at
+
+    **Pairwise duplicate scoring, which is the strongest result in the run.**
+    Over the 216 column names in 12 semantic classes, pooled average precision
+    at telling a near-duplicate of a string from an unrelated string is 0.9113
+    for the bundled model, against 0.7262 for BM25 on the same 216 rows, on a
+    scale whose floor is 0.5 because the pool holds one positive and one
+    negative pair per anchor. Telling apart two strings that merely share a
+    class is the harder question, and there the same corpus gives 0.6862 for the
+    bundled model and 0.6815 for `all-MiniLM-L6-v2`.
+
+    **Coarse classification and tagging.** Over those same 216 column names in
+    12 semantic classes, clustering the raw static vectors recovers more of the
+    label structure than clustering MiniLM's — 0.3924 against 0.3510 by adjusted
+    mutual information. Read that one as indicative rather than settled, because
+    216 rows is a small sample; it is also the shape of text a database column
+    usually holds.
+
+    **Reading a corpus as regions.** Project these vectors down to two dimensions
+    and the groups you see still line up with the corpus's own labels: 71% of
+    what MiniLM's map recovers on long-form prose, 67% on short text, 88% on very
+    short strings. That is measured against a random-vector control rather than
+    against nothing, so it is a share of the structure a real embedder finds and
+    a fake one does not.
+
+    ### What it is not for
+
+    **Ranked nearest-neighbour lookup — "show me the rows most like this one".**
+    Take a point's 20 nearest neighbours in a map built from these vectors, and
+    the same point's in a map built from MiniLM's: 13% are the same rows on
+    long-form prose, 28% on short text, 40% on very short strings. The regions
+    agree and the neighbourhoods do not. There is deliberately no similarity or
+    nearest-neighbour function in this extension, and this is the reason.
+
+    **And a BM25 index you already have scores about as well on long prose.**
+    Over 3,000 posts from 20 Newsgroups, ranked lift is 0.763 for the bundled
+    model and 0.746 for BM25 on the same rows. Over their 3,000 subject lines it
+    is 0.853 for the model against 0.694 for BM25. Over the 216 column names it
+    is 0.883 against 0.588. The shorter and more name-like the text, the more
+    the model is worth; on long-form prose the gap is narrow enough that
+    bundling weights is hard to argue for over the `fts` extension DuckDB
+    already ships.
+
+    **And the neighbourhood penalty depends on the shape of your text, in the
+    opposite direction to the usual guess.** It is worst on long prose and
+    mildest on very short strings — 13%, then 28%, then 40% as the text gets
+    shorter. The more context a text carries, the more is lost by not attending
+    to it. So a column of names, codes or identifiers is at the good end for
+    neighbourhoods, and a column of paragraphs is at the bad end.
+
+    **Region structure does not run down the same line, and a one-line
+    description is the case to watch.** 71% on long-form prose, 67% on short
+    text, 88% on very short strings — short text is the weakest of the three for
+    regions, not the middle of them. A column of titles, subject lines or
+    one-line descriptions is therefore in the better half for neighbourhoods and
+    at the bottom for regions, so read the two rows of the table below as two
+    separate measurements rather than as one gradient.
+
+    | | long-form prose | short text | very short strings |
+    |---|---|---|---|
+    | corpus | 20 Newsgroups posts | their subject lines | column names |
+    | rows | 3,000 | 3,000 | 216 |
+    | ranked lift, this model | 0.763 | 0.853 | 0.883 |
+    | ranked lift, BM25 with no model | 0.746 | 0.694 | 0.588 |
+    | nearest neighbours that survive | 13% | 28% | 40% |
+    | region structure kept | 71% | 67% | 88% |
+
+    **It also does not read word order.** A Model2Vec vector is the mean of its
+    token vectors, so `subtoken_embed('valve bodies')` and `subtoken_embed('bodies valve')` are
+    the same vector — a false duplicate, which is a pairwise failure and not a
+    ranked-retrieval one. Repetition does count — a word twice pulls the mean
+    toward it — but any phrase and its shuffle land in the same place.
+
+    ```sql
+    SELECT subtoken_embed('valve bodies') = subtoken_embed('bodies valve') AS order_is_ignored;
+    ```
+
+    Our figures were measured with the harness in
+    `eval/static-embedding-map-fidelity/` against `potion-base-8M` as Hugging
+    Face served it at the time; that harness names the model rather than
+    recording a revision, so the tie between these figures and the weights in
+    this binary is asserted here rather than recorded there. What is enforced is
+    narrower, and worth having: vectors from two model versions are not
+    comparable, so `scripts/check_quality_claims.py` registers the figures above
+    against finetype's committed `results.json` at `196d102a`, and reddens when
+    the bundled revision moves off the one in
+    [`models/potion-base-8M/SOURCE.md`](https://github.com/meridian-online/subtoken/blob/main/models/potion-base-8M/SOURCE.md)
+    that these figures were published against, which forces a re-run or a
+    deliberate re-blessing instead of a quiet drift. It holds this section and
+    the README's copy of it to the same figures at the same time.
+
+    ## The SQL surface
+
+    Seven functions, and `subtoken_embed` is the one you came for.
+
+    | function | returns | what it is for |
+    |---|---|---|
+    | `subtoken_embed(text VARCHAR)` | `FLOAT[]` | the vector for one string |
+    | `subtoken_is_truncated(text VARCHAR)` | `BOOLEAN` | whether `subtoken_embed(text)` had to drop content to fit |
+    | `subtoken_version()` | `VARCHAR` | which build, which model, which vector width |
+    | `subtoken_model_id()` | `VARCHAR` | the model key on its own, to store beside a vector column |
+    | `subtoken_models()` | `STRUCT(model, backend, revision, width, input_limit, licence, tier, "key")` | the catalogue row for the model this build serves |
+    | `subtoken_cache_stats()` | `STRUCT(hits, misses, encoded, uncached, entries, capacity)` | what the cache has been doing |
+    | `subtoken_cache_clear()` | `BIGINT` | drop the cached vectors; returns how many |
+
+    ### Which model wrote a stored vector
+
+    Vectors from two models are not comparable, and a stored column will not tell you it has the wrong ones: the width is the same, the norm is the same, and the numbers are plausible. Upgrade the extension over a table you built last quarter and the only signal is that the answers drift.
+
+    `subtoken_model_id()` is the value that makes it answerable. It is the full 64-character key this build derives from its own tokenizer, weights and config — the same key `subtoken_version()` abbreviates to twelve characters inside its sentence, at full length and on its own, so it can be stored in a column and compared. Store it once, beside the vectors:
+
+    ```sql
+    CREATE TABLE corpus_vectors AS
+        SELECT id, subtoken_embed(description) AS v, subtoken_model_id() AS model_id
+        FROM corpus;
+    ```
+
+    One datum per column: the vector in one, the id of the model that wrote it in the next. Any later session can then refuse **before** it compares anything, in a predicate that reads no vector at all:
+
+    ```sql
+    -- Nothing to do: every row here was written by the model now loaded.
+    SELECT count(*) AS written_by_another_model
+    FROM corpus_vectors
+    WHERE model_id <> subtoken_model_id();
+    ```
+
+    Take a row from a build carrying different weights, and the refusal is what you get instead of a plausible answer:
+
+    ```sql
+    INSERT INTO corpus_vectors
+    VALUES (5, subtoken_embed('a supplier of hydraulic seals'), 'written-by-another-build');
+
+    -- Row 5 comes back NULL: the comparison is not attempted, because the id
+    -- beside its vector is not this build's.
+    SELECT id,
+           CASE WHEN model_id = subtoken_model_id()
+                THEN v = subtoken_embed('a foundry casting valve bodies')
+           END AS is_the_same_text
+    FROM corpus_vectors
+    ORDER BY id;
+    ```
+
+    Because the key is derived from the asset bytes, it moves when the weights, the tokenizer or the config move, and it does not move when only this extension's own code changes — so a release that leaves the model alone leaves your stored ids valid.
+
+    `subtoken_models()` is the rest of the row: which model, which backend, at which revision, how wide its vectors are, how much text it reads, under what licence, and at what support tier.
+
+    ```sql
+    SELECT (subtoken_models()).model, (subtoken_models()).width, (subtoken_models()).input_limit;
+    ```
+
+    `key` is quoted in the type above because DuckDB quotes keywords when it prints a `STRUCT`; a field reference does not need the quotes, and `(subtoken_models()).key` returns the same string as `subtoken_model_id()`.
+
+    ### NULL, and text with nothing in it
+
+    `subtoken_embed(NULL)` is `NULL`. Text that tokenises to nothing — the empty string,
+    whitespace, a string of characters the vocabulary does not carry — is a **zero
+    vector of full width**, because the mean over zero tokens is zero. The two are
+    different on purpose: a missing value is not the same as a value that carries
+    no signal, and only one of them should disappear from a `WHERE ... IS NOT NULL`.
+
+    ```sql
+    SELECT subtoken_embed(NULL) IS NULL              AS null_stays_null,
+           list_sum(subtoken_embed('')) = 0.0        AS empty_is_a_zero_vector,
+           len(subtoken_embed(''))                   AS still_full_width;
+    ```
+
+    If you want the single behaviour a text pipeline usually gives you, ask for it:
+
+    ```sql
+    SELECT subtoken_embed(coalesce(description, '')) FROM corpus;
+    ```
+
+    ### A long text is truncated before the mean, and nothing about the vector says so
+
+    `subtoken_embed` builds its vector from at most **512 tokens**, and from a bounded
+    number of characters before that — just over three thousand for this model.
+    Anything past either is dropped before the mean, not down-weighted, and the
+    vector that comes back is full width and unit norm either way. Two rows whose
+    descriptions agree up to the cut and then diverge completely embed to the same
+    place, and nothing about the result tells you that happened.
+
+    Which limit bites first is a property of the text. For URLs, camelCase or
+    snake_case identifiers and run-together compound words the character cut lands
+    while the token count is still nowhere near 512; a line of Korean is two or
+    three tokens per character and reaches the token cap in a few hundred
+    characters. You do not need to reason about which case you are in:
+
+    ```sql
+    SELECT subtoken_is_truncated(repeat('a very long description of a valve foundry ', 500)) AS long_text_is_truncated,
+           subtoken_is_truncated('a foundry casting valve bodies')                           AS short_text_is_not,
+           subtoken_is_truncated(repeat(' ', 5000))                                          AS whitespace_lost_nothing;
+    ```
+
+    What it reports is whether `subtoken_embed` pooled less of the text than the whole of it
+    would have given, which is not the same question as whether the text was long.
+    Five thousand spaces is `false`; so is a column of characters this vocabulary
+    does not carry, however far past the character cut it runs, because the cut
+    took nothing that would have reached the mean. `subtoken_is_truncated(NULL)` is
+    `NULL`, matching `subtoken_embed(NULL)`, so it drops out of a `WHERE` clause the same way.
+
+    ### What counts as the same string
+
+    The bundled tokenizer lowercases, strips accents and ignores surrounding
+    whitespace, so you do not have to normalise a column before embedding it. Word
+    order still matters, and different words still give different vectors.
+
+    ```sql
+    SELECT subtoken_embed('Steel') = subtoken_embed('  steel  ')          AS case_and_space_fold,
+           subtoken_embed('café')  = subtoken_embed('cafe' || chr(769))   AS accents_fold;
+    ```
+
+    The cache keys on the exact input bytes rather than on the tokenizer's folded
+    form, so those variants do occupy separate cache entries. That is deliberate:
+    reproducing a dependency's normalisation in the cache would mean a tokenizer
+    bump quietly changing which inputs share an entry, and the failure would be a
+    vector returned for text nobody embedded.
+
+    ### Repeating a query does not re-embed, up to a stated number of distinct values
+
+    Vectors are cached against the exact input bytes and a digest of the bundled
+    model's own files, so re-running a query re-embeds nothing — **for as many
+    distinct values as the cache holds** — and a future build with different
+    weights cannot serve you the old ones.
+
+    ```sql
+    SELECT subtoken_cache_clear();
+    CREATE TABLE v AS SELECT subtoken_embed(description) FROM corpus;
+    SELECT subtoken_cache_stats().encoded AS encoded_first_pass,
+           subtoken_cache_stats().uncached AS turned_away;
+
+    CREATE TABLE w AS SELECT subtoken_embed(description) FROM corpus;
+    SELECT subtoken_cache_stats().encoded AS encoded_after_a_repeat;
+    ```
+
+    **The bound.** The cache spends a fixed memory budget — 64 MiB — so it holds
+    `capacity` vectors and no more. Once it is full it **stops admitting new values
+    rather than evicting old ones**, and `uncached` counts every lookup it turned
+    away. `subtoken_cache_stats().capacity` is the only place to read the
+    figure: it depends on the model's vector width and on how your platform's
+    allocator rounds, which the extension measures at startup rather than assuming.
+
+    ```sql
+    SELECT subtoken_cache_stats().capacity > 0 AS capacity_is_measured;
+    ```
+
+    A column with more distinct values than `capacity` is served for `capacity` of
+    them on a re-run and re-embeds the rest — a hit rate of `capacity / distinct`,
+    holding steady as the column grows. Under any recency-ordered policy instead —
+    LRU, FIFO, or two generations — a repeated scan evicts every value exactly
+    before it is next wanted and the hit rate is **zero**, which is a cliff rather
+    than a slope. What the choice costs is adaptivity: the values kept are the ones
+    seen first in the session, so if you move on to a different column the cache
+    stays full of the old one. `SELECT subtoken_cache_clear();` empties it, and
+    a non-zero `uncached` is the sign that it is time.
+
+    ## The model
+
+    `minishlab/potion-base-8M`, a Model2Vec static embedding model, taken from its
+    published release at a pinned revision and compiled into the binary. Because
+    the weights ship inside the extension, the download is larger than most —
+    around 30 MB compressed — and in exchange there is nothing to fetch, configure
+    or pay for at query time.
+
+    The same run that produced the figures above also measured `potion-base-32M`
+    and `potion-retrieval-32M`, either of which could have been bundled instead.
+    They score better than this one on some of those figures and worse on
+    others; what decided the bundle is that their weights file is over four
+    times the size of this one, on an artifact that is already among the largest
+    the community registry serves. `SOURCE.md` records the three figures that
+    split the two candidates, the size reading and the date it was taken.
+
+    The model's publisher declares it MIT in its model card. The upstream
+    repository carries no `LICENSE` file at the pinned revision, so no MIT text or
+    copyright line for the model is reproduced with it; if you need the licence in
+    hand rather than declared, take it up with the publisher before redistributing
+    the weights. The extension's own code is MIT.
+
+    Source, checksums and the revision the weights came from are in
+    [`models/potion-base-8M/SOURCE.md`](https://github.com/meridian-online/subtoken/blob/main/models/potion-base-8M/SOURCE.md).

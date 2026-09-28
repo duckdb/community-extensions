@@ -1,0 +1,79 @@
+extension:
+  name: storage_compat
+  description: Read DuckDB database files written in a newer storage format than this DuckDB supports
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  # The embedded guest DuckDB is collapsed into one relocatable object with every
+  # non-C-API symbol localized. That step is linker-specific: `ld -r
+  # -exported_symbols_list` on macOS, `ld -r` + `objcopy --localize-hidden` on ELF.
+  # No equivalent is implemented for MSVC/mingw or WASM yet, so those are excluded.
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;windows_arm64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - carlopi
+
+repo:
+  github: carlopi/duckdb-storage-compat
+  ref: 40441cc6fcfb9e0623bcfdc192c3a63bf2fcf28a
+
+docs:
+  hello_world: |
+    -- A database written by a newer DuckDB cannot be opened directly:
+    ATTACH 'file200.db' AS db;
+    -- IO Error: Trying to read a database file with version number 999,
+    -- but we can only read versions between 64 and 68.
+
+    -- With storage_compat, attach it through the prefix instead:
+    LOAD storage_compat;
+    ATTACH 'storage_compat:file200.db' AS db;
+
+    SHOW ALL TABLES;
+    SELECT * FROM db.events;
+
+    -- Columns whose type this DuckDB cannot represent are shown, never invented:
+    --   ts  UNSUPPORTED(TIMESTAMPTZ_NS)
+    -- Reading one is refused rather than guessed; the other columns read normally.
+    SELECT id, label FROM db.future;
+
+    -- Full inventory, including what is not readable and why:
+    SELECT * FROM db.storage_compat_tables();
+
+  extended_description: |
+    In a deployment with more than one DuckDB, the versions drift. One service writes
+    with a newer DuckDB while another still reads with an older one, and the older one
+    refuses the file outright — there is no partial read, because the catalog layer
+    changes shape between storage versions and DuckDB's binary serialization has no
+    forward compatibility by design.
+
+    The producer-side fix (`ATTACH ... (STORAGE_VERSION '...')`) only helps if you
+    control every writer. `storage_compat` is the consumer-side fix: it can be deployed
+    unilaterally by the service doing the reading, so producers and consumers can
+    version independently.
+
+    It works by embedding the newer DuckDB inside the extension and reaching it only
+    through its C API. The newer engine reads its own format — so results are correct by
+    construction, not by reimplementing a reader — and the extension translates the
+    chunks it returns into the host engine's vectors. Nothing is pinned to a specific
+    storage version: rebuild with a newer guest and the same extension covers the next
+    format too.
+
+    ATTACH through the `storage_compat:` prefix and the file appears as an ordinary
+    read-only attached database: tables and views, native types (LIST, STRUCT, MAP,
+    ENUM, DECIMAL, UUID, INTERVAL), projection pushdown, joins against local tables.
+
+    **It never guesses.** When you do not control the producers, a writer can start
+    using a type your engine has never heard of without warning, so degrading
+    predictably is the whole point. A column whose type the host cannot represent keeps
+    its place in the catalog as `UNSUPPORTED(<the newer engine's type name>)`, the
+    table's other columns read normally, and projecting the unrepresentable one raises
+    an error naming the column, the storage format of the file and the DuckDB you are
+    running. `db.storage_compat_tables()` lists every column with a `readable` flag and
+    a reason. Tables are never silently hidden and values are never invented.
+
+    All write paths are refused and the file is left byte-identical; the embedded engine
+    is additionally opened read-only.
+
+    **Size.** This extension contains a complete second DuckDB, so the binary is large
+    (tens of MB). That is inherent to the approach: correctness comes from shipping the
+    engine that owns the format rather than reimplementing its reader.

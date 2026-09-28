@@ -1,0 +1,104 @@
+extension:
+  name: semantic_profile
+  description: Profiles what the values in a table mean rather than what shape they are — semantic type per column, PII and format drift, and cross-column contradictions
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  # wasm: no wasm target (the Rust template's staticlib example is dropped, since
+  #   its `mod lib;` shim cannot remap a multi-module crate).
+  # windows_amd64_mingw: the Rust toolchain here targets MSVC, not GNU.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - patricktrainer
+
+repo:
+  github: patricktrainer/duckdb-semantic-profile
+  ref: 82f838a75246033f3017450438b0d383dfaf8914
+
+docs:
+  hello_world: |
+    -- Judgments come from TypeSafe's System One model, so the extension needs an
+    -- API key. It is read from TYPESAFE_API_KEY, or from a file -- never from
+    -- SQL, which would put it in query logs and shell history.
+    SELECT sem_config('api_key_file', '~/.typesafe-key');
+
+    CREATE TABLE orders AS SELECT * FROM (VALUES
+      ('Acme Industrial', 'ops@acme.com',  'US', '94607',    '12 kg'),
+      ('Harborline Ltd',  'post@hl.co.uk', 'GB', 'BS1 6QH',  '9 kg'),
+      ('Test Company',    'n/a',           'US', 'SW1A 1AA', '26.4')
+    ) t(customer, email, country, postal_code, weight);
+
+    -- SUMMARIZE finds nothing wrong here: every column is a VARCHAR, nothing is
+    -- null, and the cardinalities are exactly what you would expect.
+    SUMMARIZE orders;
+
+    -- What each column actually holds, judged from the values rather than the name.
+    SELECT column_name, semantic_type, unit_or_currency FROM sem_columns('orders');
+    -- weight -> physical_measurement, unit_or_currency = 'mixed'
+    --           ('12 kg' and a bare '26.4' in one column)
+
+    -- A dry run first: no API calls, so you see the cost before spending it.
+    SELECT total_requests, approx_input_tokens FROM sem_cost('orders', rows := 3);
+
+    -- The findings, with the offending values attached.
+    SELECT column_name, probe_id, rows_flagged, examples
+    FROM sem_report('orders', rows := 3);
+    -- email    sentinel_used_as_value   1  ['n/a']
+    -- customer placeholder_or_test_value 1 ['Test Company']
+    -- (row)    geo_inconsistent         1        -- country US, postal code SW1A 1AA
+
+  extended_description: |
+    `SUMMARIZE`, `pandas.describe()` and similar tools profile the *shape* of data:
+    types, ranges, quantiles, null and distinct counts. They are structurally blind
+    to what the values mean. This extension asks the other question, using
+    [TypeSafe](https://docs.typesafe.ai)'s System One model (Jev), which returns
+    calibrated typed judgments rather than free text.
+
+    It finds defects that move no statistic: fake rows that read as ordinary data,
+    values that are not what the column claims, unit and format drift within a
+    column, PII sitting in free text, and **contradictions between columns in the
+    same row** — which a column-at-a-time profiler cannot reach even in principle.
+
+    ### How it works
+
+    Three steps, and the middle one is what makes it adapt to a table rather than
+    run a fixed checklist.
+
+    1. **Discover** — one request per column. What does this column actually hold,
+       judged from its values, its neighbours and a few whole rows? The column name
+       is treated as a hint that may be lying.
+    2. **Select** — one request per column. Code narrows a 20-probe catalog to those
+       that could apply to the discovered semantic type, then asks which are worth
+       running *here*. `sem_probes()` shows the result before you pay for it.
+    3. **Execute** — one request per row. The state is the whole row and the
+       questions are every selected value probe plus every cross-column check, so
+       the coherence checks ride along essentially free.
+
+    Cost is `2 × columns + rows`, not `columns × rows`. A 20-column table at 500
+    sampled rows is about 540 requests. `sem_cost()` dry-runs without calling out.
+
+    ### Reading the output
+
+    Findings carry calibrated probabilities, not booleans. `threshold` is an
+    argument and re-slicing a report re-reads cached judgments, so it costs nothing.
+    `sem_report` also reports `needs_review`: rows near 0.5, where the model is
+    genuinely uncertain rather than mildly suspicious. Every finding carries the
+    offending values and the rows they came from.
+
+    ### Functions
+
+    `sem_profile`, `sem_columns`, `sem_probes`, `sem_values`, `sem_report`,
+    `sem_findings`, `sem_cost`, `sem_catalog`; the primitives `ts_ask`, `ts_noul`,
+    `ts_choice`, `ts_score`; and `sem_config`, `sem_settings`, `sem_stats`,
+    `sem_status`, `sem_sql`.
+
+    ### Notes
+
+    - Needs a [TypeSafe](https://docs.typesafe.ai) API key, and sends sampled values
+      to that API. `sem_cost()` says how much will go before any of it does.
+    - Responses are cached to disk, content-addressed, so re-runs are free and
+      deterministic. That cache holds the sampled values in plaintext.
+    - The macro layer installs automatically only on an in-memory database, where
+      nothing persists. Profile a database file by attaching it `READ_ONLY`.

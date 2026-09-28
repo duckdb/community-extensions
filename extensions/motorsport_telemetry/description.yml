@@ -1,7 +1,7 @@
 extension:
   name: motorsport_telemetry
-  description: Query Cosworth PDS, MoTeC LD, and Racelogic VBOX telemetry directly in DuckDB
-  version: 0.6.1
+  description: Query AiM MP4, Cosworth PDS, MoTeC LD, Racelogic VBOX and .telemetry recordings directly in DuckDB, with stint-aware laps
+  version: 1.3.4
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobi/duckdb_motorsport_telemetry
-  ref: 8cc06a597e33e7558be759cbffa44f2a2e1baa49
+  ref: e9d941d7f3a88a7bb279ceada8555c3c90e611d1
 
 docs:
   hello_world: |
@@ -24,11 +24,31 @@ docs:
     FROM read_telemetry('run.ld',
       rate := 100,
       channels := 'Ground Speed,Throttle Pos,Brake Pedal Pos');
+
+    SELECT name, unit, frequency_hz, sample_count
+    FROM telemetry_metadata('run.mp4')
+    WHERE sample_count > 0;
+
+    SELECT *
+    FROM read_aim('run.mp4',
+      rate := 10,
+      channels := 'RPM,GPS Speed,GPS Latitude,GPS Longitude');
   extended_description: |
-    `motorsport_telemetry` reads Pi Research/Cosworth PDS, MoTeC i2 LD, and
-    Racelogic VBOX VBO telemetry without an export step. It provides exact
-    channel metadata, native-rate long-form samples, and projected wide readers
-    with time/channel pruning and type-aware interpolation. Integer and event
-    channels always use previous-value semantics; only floating-point channels
-    can interpolate linearly. The parsers memory-map native files and table
-    functions produce vectorized DuckDB output.
+    `motorsport_telemetry` reads AiM `aimd` telemetry embedded in MP4, Pi
+    Research/Cosworth PDS, MoTeC i2 LD, Racelogic VBOX VBO, and
+    motorsport-telemetry-rs `.telemetry` recordings (zstd MTJ JSONL or the
+    legacy zip, detected by content) without an export step.
+    `telemetry_laps` returns each lap with a session-monotonic virtual lap
+    number, stint index, the dash's own stint lap counter, and a normalized
+    kind (flying, out, in, out-in, pit); `telemetry_file_metadata` reports
+    flying-lap and stint counts and picks the fastest flying lap. AiM MP4 support is native-only; the DuckDB-Wasm build does not
+    link the AiM parser, so `.mp4` inputs and the `read_aim`/`read_aimd`
+    functions are unavailable in the browser. The native reader exposes scalar
+    `CHS` channels and expands each valid 56-byte `GPS0` aggregate into 16 GPS
+    channels, including WGS84 position, speed, heading, accuracy, timing, and
+    status. It provides exact channel metadata, native-rate long-form samples,
+    and projected wide readers with time/channel pruning and type-aware
+    interpolation. Integer and event channels always use previous-value
+    semantics; only floating-point channels can interpolate linearly. The
+    parsers memory-map native files and table functions produce vectorized
+    DuckDB output.

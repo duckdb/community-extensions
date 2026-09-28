@@ -1,7 +1,7 @@
 extension:
   name: trino_parity
-  description: Native Trino-compatible scalar functions (trino_*) for the cases where DuckDB's built-ins diverge from Trino on Unicode and byte-level inputs — ICU full case folding, code-point reverse, Java-whitespace trim, NFC normalize, and raw-bytes xxhash64/sha512/hmac_sha256
-  version: 0.2.0
+  description: Native Trino-compatible scalar functions (trino_*) for the cases where DuckDB's built-ins diverge from Trino on Unicode and byte-level inputs — Trino's simple per-code-point case mapping, code-point reverse, Java-whitespace trim, NFC normalize, and raw-bytes xxhash64/sha512/hmac_sha256
+  version: 0.5.0
   language: C++
   build: cmake
   license: MIT
@@ -10,19 +10,24 @@ extension:
 
 repo:
   github: brikk/duckdb-trino-parity-extension
-  ref: 8527a7fc00e2a3baf117cbf641b973d7cd9d931e
+  ref: dbdb85c502f82ddecab0779df092a6d1817f0b5a
 
 docs:
   hello_world: |
     INSTALL trino_parity FROM community;
     LOAD trino_parity;
 
-    -- Full Unicode case folding, matching Trino (Java) rather than DuckDB's
-    -- built-in lower(). Turkish dotted-I folds to 'i' + U+0307:
-    SELECT trino_lower('İSTANBUL');   -- 'i̇stanbul'
+    -- Trino's upper()/lower() are simple per-code-point mappings
+    -- (Character.toUpperCase(int)), so German sharp-S is unchanged —
+    -- DuckDB's built-in upper() gives 'STRAẞE' (U+1E9E):
+    SELECT trino_upper('straße');     -- 'STRAßE'
 
-    -- German sharp-S upper-cases to 'SS', not U+1E9E:
-    SELECT trino_upper('straße');     -- 'STRASSE'
+    -- Unicode 16 data includes case pairs absent from older ICU snapshots:
+    SELECT trino_lower(chr(11311)) = chr(11359) AS glagolitic_unicode16; -- true
+
+    -- Java whitespace trim: tab / LF / CR / FF / VT are stripped
+    -- (DuckDB's built-in trim() only strips spaces):
+    SELECT trino_trim(E'\tx\n');       -- 'x'
 
     -- Code-point reverse (DuckDB's built-in reverse is grapheme-aware):
     SELECT trino_reverse('a😀b');     -- 'b😀a'
@@ -33,6 +38,11 @@ docs:
     `trino_parity` provides native `trino_<name>(...)` scalar functions for the
     specific cases where DuckDB's built-ins diverge from Trino's documented
     behaviour on Unicode and byte-level inputs.
+
+    Version 0.5.0 vendors ICU 76.1 / Unicode 16.0, fixing newer case mappings
+    and NFC normalization data missing from the previous Unicode 13 snapshot.
+    The compatibility target is Trino 483 on JDK 25. Matching version labels
+    alone does not guarantee parity with other Trino/JDK combinations.
 
     It is designed to be loaded server-side by anything that pushes Trino-shaped
     predicates down to DuckDB. If a Trino connector naively pushes
@@ -49,8 +59,7 @@ docs:
 
     | Function | DuckDB built-in | Trino spec | `trino_*` result |
     |---|---|---|---|
-    | `lower('İ')` (U+0130) | `'i'` (simple case folding) | `'i'` + U+0307 (full folding) | matches Trino |
-    | `upper('ß')` (U+00DF) | `'ẞ'` (U+1E9E) | `'SS'` | matches Trino |
+    | `upper('ß')` (U+00DF) | `'ẞ'` (U+1E9E, utf8proc special case) | `'ß'` unchanged (simple per-code-point mapping) | matches Trino |
     | `reverse('cafe'+U+0301)` | grapheme-aware | code-point-only | matches Trino |
     | `trim` (tab/LF/CR/FF/VT) | not stripped | Java `Character.isWhitespace` strips them | matches Trino |
     | `xxhash64(varbinary)` | no direct built-in | XXH64, big-endian bytes | matches Trino |
@@ -61,12 +70,22 @@ docs:
 
     - **String (ICU):** `trino_lower/1`, `trino_upper/1`, `trino_reverse/1`,
       `trino_trim/1`, `trino_ltrim/1`, `trino_rtrim/1`, `trino_normalize/1` —
-      root-locale full case folding, code-point reverse, and
-      `Character.isWhitespace` trim, via statically-linked ICU vendored into the
-      binary (so Unicode behaviour is independent of the host DuckDB build).
+      simple per-code-point case mapping (Trino's `Character.toUpperCase(int)`
+      model — no `SpecialCasing` expansions or final-sigma rule), code-point
+      reverse, and `Character.isWhitespace` trim, via statically-linked ICU 76.1
+      vendored into the binary (so Unicode behaviour is independent of the host
+      DuckDB build).
     - **Hash (vendored):** `trino_xxhash64/1`, `trino_sha512/1`,
       `trino_hmac_sha256/2` — over raw `VARBINARY`, self-contained (no
       dependency on the `crypto` / `hashfuncs` community extensions).
+      Empty HMAC keys are rejected with `Empty key`, matching Trino; empty
+      messages and nonempty binary keys remain supported.
+
+    The ten-function catalog and three-column `trino_meta()` schema are
+    unchanged. Validation against pinned OpenJDK 25 covers all 1,112,064 valid
+    Unicode scalar values and 99,825 NFC conformance column checks, with zero
+    mismatches. See the [Unicode 16 validation report](https://github.com/brikk/duckdb-trino-parity-extension/blob/main/docs/REPORT-unicode16-validation.md)
+    for provenance, commands, and the limits of that validation.
 
     Aligned Trino functions (e.g. `length`, `abs`, `year`, `substring`,
     `regexp_extract`) are intentionally NOT shipped — a caller emits them as

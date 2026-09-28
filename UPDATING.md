@@ -40,7 +40,7 @@ duckdb-stable-build:
   with:
     duckdb_version: v1.3.2
     ci_tools_version: v1.3.2
-    extension_name: quack
+    extension_name: waddle
 
 duckdb-next-build:
   name: Build extension binaries
@@ -48,7 +48,7 @@ duckdb-next-build:
   with:
     duckdb_version: main
     ci_tools_version: main
-    extension_name: quack
+    extension_name: waddle
 ```
 
 We can see that we are running two workflows that call into the same reusable workflow. 
@@ -57,13 +57,13 @@ Firstly we have the `duckdb-stable-build` workflow, which should target the late
 
 Secondly we have the `duckdb-next-build` workflow. This workflow has a very different purpose: it will try to build the extension against the latest version of DuckDB, to make sure that it still works. This is not used for any release process but is purely meant to inform the maintainer whether the extension is still compatible with latest DuckDB main.
 
-Now let's take a look at our extension descriptor in the community extensions repo, we take this sample from [the quack extension](`https://github.com/duckdb/community-extensions/blob/main/extensions/quack/description.yml`) which builds the [C++ extension template](https://github.com/duckdb/extension-template) as a community extension:
+Now let's take a look at our extension descriptor in the community extensions repo, we take this sample from [the waddle extension](https://github.com/duckdb/community-extensions/blob/main/extensions/waddle/description.yml) which builds the [C++ extension template](https://github.com/duckdb/extension-template) as a community extension:
 
 ```yaml
 extension:
-  name: quack
+  name: waddle
   description: Provides a hello world example demo
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -72,7 +72,7 @@ extension:
 
 repo:
   github: duckdb/extension-template
-  ref: c7d9ef3463376dc2b64959abf3a477eae2280142
+  ref: cfaf3e236008e782d27f4341b0ee036002d0a449
 ```
 
 ### Release process
@@ -139,7 +139,7 @@ duckdb-stable-build:
 ```yaml
 repo:
   github: duckdb/extension-template
-  ref: c7d9ef3463376dc2b64959abf3a477eae2280142
+  ref: cfaf3e236008e782d27f4341b0ee036002d0a449
   ref_next: <latest commit of vx.y-codename of your repo>
 ```
 

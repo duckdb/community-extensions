@@ -1,0 +1,86 @@
+extension:
+  name: duckrouting
+  description: Graph routing for DuckDB - shortest paths, flow, spanning trees and more, following pgRouting's semantics and powered by the Boost Graph Library.
+  version: 0.1.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - am2222
+
+repo:
+  github: am2222/duckrouting
+  ref: 509ece151c166dfc3fc07ea6a63f92286eae45aa
+
+docs:
+  hello_world: |
+    INSTALL duckrouting FROM community;
+    LOAD duckrouting;
+
+    -- Any table with an id, two endpoints and a cost is a graph. No topology
+    -- tables to build, no geometry required.
+    CREATE TABLE edges (
+      id BIGINT, source BIGINT, target BIGINT, cost DOUBLE, reverse_cost DOUBLE
+    );
+    INSERT INTO edges VALUES
+      (1, 5, 6, 1, 1), (2, 6, 10, -1, 1), (3, 10, 15, -1, 1), (4, 6, 7, 1, 1);
+
+    -- Shortest path from vertex 5 to vertex 7
+    SELECT node, edge, agg_cost FROM duckrouting_dijkstra(
+      'SELECT id, source, target, cost, reverse_cost FROM edges', 5, 7);
+    -- node | edge | agg_cost
+    --    5 |    1 |      0.0
+    --    6 |    4 |      1.0
+    --    7 |   -1 |      2.0
+
+    -- Everything within a cost radius: the service area around a point
+    SELECT node, agg_cost FROM duckrouting_driving_distance(
+      'SELECT id, source, target, cost, reverse_cost FROM edges', 6, 2.0);
+
+    SELECT duckrouting_version('hello');
+
+  extended_description: |
+    `duckrouting` brings graph routing to DuckDB. It follows
+    [pgRouting](https://pgrouting.org/)'s function semantics - the same column
+    names, the same conventions, the same edge encoding - and runs on the
+    [Boost Graph Library](https://www.boost.org/doc/libs/release/libs/graph/).
+
+    ### The edges query
+
+    Every function takes its graph as a string of SQL returning `id`, `source`,
+    `target` and `cost`, plus an optional `reverse_cost`. A **negative cost means
+    the edge does not exist in that direction** - that is how one-way streets are
+    written, and it is pgRouting's convention rather than an error condition.
+
+    ### What is here
+
+    | Family | Functions |
+    | --- | --- |
+    | Dijkstra | `dijkstra`, `_cost`, `_cost_matrix`, `_via`, `_near`, `_near_cost`, `driving_distance` |
+    | A* | `astar`, `_cost`, `_cost_matrix` (needs `x1, y1, x2, y2`) |
+    | Bidirectional | `bd_dijkstra`, `bd_astar` and their cost forms |
+    | K shortest paths | `ksp` (Yen), `with_points_ksp` |
+    | All pairs | `floyd_warshall`, `johnson` |
+    | Components | `connected_components`, `strong_components`, `biconnected_components`, `articulation_points`, `bridges`, `make_connected` |
+    | Spanning trees | `kruskal`, `prim` and their BFS/DFS/DD traversals |
+    | Traversal | `breadth_first_search`, `depth_first_search`, `binary_breadth_first_search` |
+    | Flow | `max_flow`, `push_relabel`, `edmonds_karp`, `boykov_kolmogorov`, `max_flow_min_cost`, `edge_disjoint_paths`, `max_cardinality_match` |
+    | With points | routing from a point partway along an edge, not just from a vertex |
+    | Contraction | `contraction_hierarchies`, `dead_end_contraction`, `linear_contraction` |
+    | Analysis | colouring, planarity, betweenness centrality, min cut, circuits, dominator tree |
+    | Other | `tsp`, `tsp_euclidean`, `chinese_postman`, `line_graph`, orderings, `transitive_closure` |
+
+    ### Verification
+
+    Results are checked against pgRouting's own published output - the queries and
+    expected results from its documentation and test suite - rather than against
+    hand-written expectations. Where the two legitimately differ, because a
+    shortest path ties or a spanning tree is not unique, the difference is
+    documented and the tests assert the properties that *are* determined.
+
+    ### Geometry helpers
+
+    `duckrouting_find_close_edges`, `duckrouting_separate_crossing` and
+    `duckrouting_separate_touching` are SQL macros over DuckDB's `spatial`
+    extension. Run `INSTALL spatial; LOAD spatial;` before calling one; spatial is
+    not needed for anything else.

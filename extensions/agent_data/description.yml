@@ -1,7 +1,7 @@
 extension:
   name: agent_data
   description: A DuckDB extension written in Rust for querying, analysing and inspecting AI coding agents history. Read conversations, plans, todos, history, and usage stats directly from your local agent data directories.
-  version: 0.3.0
+  version: 0.4.0
   language: Rust
   build: cargo
   license: MIT
@@ -9,10 +9,11 @@ extension:
   requires_toolchains: "rust"
   maintainers:
     - axsaucedo
+    - asubbarao
 
 repo:
   github: axsaucedo/agent_data_duckdb
-  ref: 134e48d47d5a901bc923f258ad1cd29b82d3a2ff
+  ref: ca2c0b85d1065aa58cea6211e6d1e982f340b3bf
 
 docs:
   hello_world: |
@@ -53,7 +54,7 @@ docs:
 
   extended_description: |
 
-    **Supported agents:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (`~/.claude`), Claude Desktop, [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) (`~/.copilot`), [OpenAI Codex](https://openai.com/codex) (`~/.codex`), and [Gemini CLI](https://github.com/google-gemini/gemini-cli) (`~/.gemini`).
+    **Supported agents:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (`~/.claude`), Claude Desktop, [GitHub Copilot CLI](https://docs.github.com/en/copilot/github-copilot-in-the-cli) (`~/.copilot`), [Cursor](https://cursor.com) (`source='cursor'`), [OpenAI Codex](https://openai.com/codex) (`~/.codex`), [Gemini CLI](https://github.com/google-gemini/gemini-cli) (`~/.gemini`), and [xAI Grok](https://x.ai) (`~/.grok`, `source='grok'`).
 
     Written in 🦀 Rust.
 
@@ -75,13 +76,14 @@ docs:
     FROM read_conversations(path='~/.copilot');
     FROM read_conversations(path='~/.codex');
     FROM read_conversations(path='~/.gemini');
+    FROM read_conversations(path='~/.grok');
     ```
 
     ### Available Functions
 
     All functions accept two optional parameters:
     - **`path`** — data directory path (default: `~/.claude`). Auto-detected from folder structure (`projects/` → Claude, `session-state/` → Copilot, dated `sessions/` → Codex, `tmp/` + `installation_id` → Gemini).
-    - **`source`** — explicit provider override: `'claude'`, `'claude-desktop'`, `'copilot'`, `'codex'`, or `'gemini'`. Use when auto-detection fails or for non-standard directory layouts.
+    - **`source`** — explicit provider override: `'claude'`, `'claude-desktop'`, `'copilot'`, `'cursor'`, `'codex'`, `'gemini'`, or `'grok'`. Use when auto-detection fails or for non-standard directory layouts.
 
     Every table includes a **`source`** column (`'claude'` or `'copilot'`) as the first column.
 

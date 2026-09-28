@@ -44,9 +44,13 @@ with open('env.sh', 'w+') as hdl:
 		if 'andium' in desc['repo']:
 			extension_ref = desc['repo']['andium']
 	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
-		if 'ref_next' in desc['repo']:
+		if desc['repo'].get('ref_next'):
 			extension_ref = desc['repo']['ref_next']
-	hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
+		elif os.environ.get('COMMUNITY_EXTENSION_REQUIRE_REF_NEXT') == 'true':
+			print("Skipping prerelease validation: repo.ref_next is not defined")
+			extension_ref = None
+	if extension_ref:
+		hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
 	opt_in_platforms = desc['extension'].get('opt_in_platforms')

@@ -1,0 +1,58 @@
+extension:
+  name: duckdb_rphonetic
+  description: Phonetic algorithms for German and European name matching
+  version: 0.2.0
+  language: Rust
+  build: cmake
+  license: Apache-2.0
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "linux_amd64_musl"
+  maintainers:
+    - guizmaii
+
+repo:
+  github: guizmaii-opensource/duckdb_rphonetic
+  # v0.2.0
+  ref: ac89f6debd3f5339df18553fc504b682f05d1185
+
+docs:
+  hello_world: |
+    -- Kölner Phonetik: a German-language counterpart to Soundex.
+    -- Spelling variants of the same name encode identically.
+    SELECT cologne_phonetic('Müller'), cologne_phonetic('Mueller');
+    -- 657, 657
+
+    -- Daitch-Mokotoff Soundex returns SEVERAL codes for ambiguous spellings,
+    -- so a match is a set overlap rather than an equality test.
+    SELECT daitch_mokotoff('Klein'), daitch_mokotoff('Cleyn');
+    -- [586000], [586000, 486000]
+
+    SELECT list_has_any(daitch_mokotoff('Klein'), daitch_mokotoff('Cleyn'));
+    -- true
+  extended_description: |
+    Two phonetic encoders aimed at European name matching, wrapping the
+    [rphonetic](https://crates.io/crates/rphonetic) crate by Dalvany — a Rust
+    port of Apache Commons Codec.
+
+    * `cologne_phonetic(VARCHAR) -> VARCHAR` — Kölner Phonetik (Postel, 1969),
+      the German-language counterpart to Soundex. Handles umlauts and ß, so
+      `Müller` and `Mueller` share a code.
+    * `daitch_mokotoff(VARCHAR) -> VARCHAR[]` — Daitch-Mokotoff Soundex, built
+      for Germanic and Slavic surnames. Returns a list because ambiguous
+      spellings legitimately encode several ways; match with `list_has_any`.
+
+    Neither exists in core DuckDB, whose `soundex` and `double_metaphone` are
+    tuned for English. Trigram similarity is not a substitute: `Klein` and
+    `Cleyn` share no trigrams at all, yet both encoders match them.
+
+    **Behavioural note.** Kölner Phonetik implementations disagree on whether a
+    dropped `0` breaks a run of identical digits. This extension follows
+    `rphonetic`, which yields `cologne_phonetic('Dieter') = '227'`; Apache
+    Commons Codec yields `27`. The two differ on 36 of a 279-name test corpus.
+    Every divergence is committed to the repository and pinned by a test, so the
+    output cannot change silently. An `H` carries no code at all and, since
+    0.2.0, never breaks a run: `cologne_phonetic('Mülhler') = '657'`, the same
+    as `Müller`, on which both implementations agree. The published reference vectors
+    (`Müller-Lüdenscheidt` -> `65752682`, `Wikipedia` -> `3412`,
+    `Breschnew` -> `17863`) are unaffected. Daitch-Mokotoff agrees with
+    Commons Codec on all 279 names.

@@ -11,5 +11,6 @@ extension:
   name: tributary
   version: '2025120401'
 repo:
+  andium: 3b2a5c1e23bb2cf608874f64dbf9469f5f945892
   github: query-farm/tributary
-  ref: 36faa17973a9b45180871e4db6929a382b3214ab
+  ref: cb1fb527ea29628b976a0b2b819bc0692d9d226b

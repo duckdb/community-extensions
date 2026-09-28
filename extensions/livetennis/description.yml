@@ -1,0 +1,48 @@
+extension:
+  name: livetennis
+  description: Query the Live Tennis API from SQL - live matches, upcoming fixtures and player search as table functions
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - bensynapse
+
+repo:
+  github: livetennisapi/duckdb-livetennis
+  ref: v0.1.0
+
+docs:
+  hello_world: |
+    LOAD livetennis;
+
+    -- A free API key (no card) is self-serve at https://livetennisapi.com/subscribe/free
+    CREATE SECRET (TYPE livetennis, API_KEY 'ltk_...');
+
+    -- Matches on court right now, with the latest score
+    SELECT tournament, p1_name, p2_name, sets, games, points
+    FROM live_tennis_matches();
+
+    -- Upcoming ATP fixtures (also: wta, challenger, itf, juniors; omit for all tours)
+    SELECT start_time, tournament, round, player1_name, player2_name
+    FROM live_tennis_fixtures('atp')
+    WHERE start_time IS NOT NULL
+    ORDER BY start_time;
+
+    -- Player search
+    SELECT player_id, name, tour, country, ranking
+    FROM live_tennis_players('alcaraz');
+  extended_description: |
+    This extension exposes the [Live Tennis API](https://livetennisapi.com) as DuckDB
+    table functions: `live_tennis_matches()` (matches currently in play),
+    `live_tennis_fixtures([tour])` (upcoming scheduled fixtures) and
+    `live_tennis_players(search)` (player search). Coverage spans ATP, WTA,
+    Challenger, ITF and junior Grand Slam draws.
+
+    An API key is required; the free tier (30 requests/minute, 100/day, no card)
+    covers everything the extension exposes. The key can be provided with
+    `CREATE SECRET (TYPE livetennis, API_KEY '...')`, the `livetennis_api_key`
+    setting, or the `LIVE_TENNIS_API_KEY` environment variable.
+
+    This extension is maintained by the Live Tennis API team.

@@ -1,0 +1,73 @@
+extension:
+  name: jev
+  description: Ask your tables questions in plain language — filter, rank and classify rows with a condition you write as a sentence
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - judoaseeta
+
+repo:
+  github: judoaseeta/duckdb-jev
+  ref: 58e548463b0bfb25d86bc68b11515a1daaf87ab3
+
+docs:
+  hello_world: |
+    -- Judging rows needs a TypeSafe API key (https://console.typesafe.ai)
+    SET jev_api_key = '...';
+
+    CREATE TABLE tickets AS SELECT * FROM (VALUES
+      ('card declined again, I want my money back'),
+      ('how do I export a dashboard to PDF?')) t(body);
+
+    -- A boolean, so it composes with the rest of SQL
+    SELECT * FROM tickets WHERE jev(tickets, 'the customer wants a refund');
+
+    -- The probability behind it, for ranking and for picking a threshold
+    SELECT body, jev_prob(tickets, 'the customer is angry') AS p
+    FROM tickets ORDER BY p DESC;
+
+    -- One of n, per row
+    SELECT jev_choice(tickets, 'which team should handle this?',
+                      ['billing', 'technical', 'sales']) AS team, count(*)
+    FROM tickets GROUP BY 1;
+  extended_description: |
+    `jev` lets you filter, rank and classify rows with plain-language conditions. Every row is judged by
+    [TypeSafe's Jev](https://docs.typesafe.ai), a model that returns calibrated probabilities instead of
+    generated text, so there is no index, no embeddings and no vector column.
+
+    | Function | Returns | Purpose |
+    | --- | --- | --- |
+    | `jev(row, condition [, threshold])` | `BOOLEAN` | `WHERE` predicate. Threshold: argument → `jev_threshold` → 0.5 |
+    | `jev_prob(row, condition)` | `DOUBLE` | Probability 0..1 that the row satisfies the condition |
+    | `jev_score(row, question, levels)` | `DOUBLE` | Probability-weighted position on ordered levels (0 .. n-1) |
+    | `jev_score_norm(row, question, levels)` | `DOUBLE` | The same, normalised to 0..1 |
+    | `jev_choice(row, question, options)` | `VARCHAR` | The most likely option, returned verbatim |
+    | `jev_confidence(row, question, kind, options)` | `DOUBLE` | Confidence of a `score` / `choice` answer |
+    | `jev_eval(row, question [, kind [, options]])` | `JSON` | The full answer: probabilities, legend, confidence |
+    | `jev_stats()` | `JSON` | Requests, tokens, estimated cost, cache hits |
+    | `jev_cache_clear()` | `BOOLEAN` | Forget the cached judgments |
+
+    `row` is the table itself, an alias, a subquery alias, or any single expression: DuckDB hands the
+    whole row over as a struct, and the column names are part of what the model reads.
+
+    ### How it works
+
+    DuckDB gives a scalar function a vector of up to 2048 rows at a time, so the batch is already there.
+    Rows go out `jev_batch_size` (20) per request — one shared state, one question per row, which
+    amortises the per-request overhead — over a process-wide pool of `jev_concurrency` (16) kept-alive
+    connections. Answers are cached by row content, so re-running a query, changing the threshold or
+    sorting by probability is free, and rows that a cheaper predicate rejects first are never judged.
+
+    This is a port of [pg-jev](https://github.com/realZachi/pg-jev) ([pgjev.com](https://pgjev.com)),
+    which does the same for PostgreSQL, and speaks the same API.
+
+    ### Settings
+
+    `jev_api_key` (falls back to the `TYPESAFE_API_KEY` environment variable), `jev_api_url`, `jev_model`,
+    `jev_threshold`, `jev_batch_size`, `jev_concurrency`, `jev_timeout`, `jev_max_retries`,
+    `jev_max_rows_per_statement`, `jev_max_chars_per_statement`, `jev_cache_max_entries`.
+
+    Row contents are sent to a third-party API, so do not point it at data you may not share.

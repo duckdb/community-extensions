@@ -1,52 +1,66 @@
 extension:
   name: paimon
   description: Query Apache Paimon tables directly from DuckDB
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: Apache-2.0
-  excluded_platforms: "linux_amd64_gcc4;linux_amd64_musl;osx_amd64;osx_arm64;windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;windows_arm64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "linux_amd64_gcc4;linux_amd64_musl;osx_amd64;windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;windows_arm64_mingw;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - mrdrivingduck
 
 repo:
   github: polardb/duckdb-paimon
-  andium: d1bba0fa7767e3761de45521f3ecdaf465807c57
-  ref: 0764988fac3c37161ae465dd9232ff95213db329
+  andium: 543e43a91edf05ab796e67e19a3cb7240e52bcf6
+  ref: 5e89198235c8be6a402f2b02ef54f249914eee29
 
 docs:
   hello_world: |
-    -- Query local Paimon tables
+    INSTALL paimon FROM community;
+    LOAD paimon;
+
+    -- Query a local Paimon warehouse as a catalog
+    ATTACH './data' AS local_paimon (TYPE paimon);
+    SELECT count(*) FROM local_paimon.testdb.testtbl;
+
+    -- Or scan one table without attaching the warehouse
     SELECT * FROM paimon_scan('./data/testdb.db/testtbl');
 
-    -- Configure OSS credentials for remote tables
+    -- Configure credentials for remote object storage
     CREATE SECRET my_oss (
         TYPE paimon,
+        PROVIDER config,
         key_id 'your-access-key-id',
         secret 'your-access-key-secret',
-        endpoint 'oss-cn-hangzhou.aliyuncs.com'
+        endpoint 'oss-cn-hangzhou.aliyuncs.com',
+        scope 'oss://your-bucket/warehouse'
     );
 
-    -- Query Paimon tables on OSS
-    SELECT * FROM paimon_scan('oss://your-bucket/warehouse', 'your_db', 'your_table');
+    -- Attach and query a remote Paimon warehouse
+    ATTACH 'oss://your-bucket/warehouse' AS oss_paimon (TYPE paimon);
+    SELECT count(*) FROM oss_paimon.your_db.your_table;
 
-    -- Attach as catalog
-    ATTACH 'oss://my-bucket/warehouse' AS paimon_lake (TYPE paimon);
-    SHOW ALL TABLES IN paimon_lake;
+    -- Inspect the snapshots available for a Paimon table
+    SELECT snapshot_id, commit_time
+    FROM paimon_snapshots('./data/testdb.db/testtbl');
+
+    -- Query a specific snapshot
+    SELECT * FROM paimon_scan('./data/testdb.db/testtbl', snapshot_from_id=2);
   extended_description: |
-    The Paimon extension enables DuckDB to read and query Apache Paimon format data directly.
-    Apache Paimon is a lake format that enables building a Realtime Lakehouse Architecture with
-    Flink and Spark for both streaming and batch operations.
+    The Paimon extension lets DuckDB read and query Apache Paimon tables directly. Apache Paimon is a lake format for realtime lakehouse workloads with Flink and Spark.
 
-    Key features:
+    **Capabilities:**
+    - Read Paimon tables from local filesystems and remote object storage.
+    - Create append-only tables and insert data, plus create and drop schemas and tables through an attached catalog.
+    - Attach filesystem or REST catalogs, or scan a single table with `paimon_scan`.
+    - Inspect snapshot history and query a historical snapshot by ID or timestamp.
+    - Push projections and predicates down to reduce the data read.
     - Zero JVM dependency — Pure C++ implementation
-    - Apache Arrow data exchange for zero-copy transfers
-    - Parallel scan architecture utilizing multi-core CPUs
-    - Secure credential management via DuckDB's Secret Manager
-    - Support for local and remote OSS storage
-    - Projection pushdown optimization
+    - Apache Arrow data exchange for zero-copy transfers and parallel scans across DuckDB threads.
+    - Use scoped DuckDB Secrets for Alibaba Cloud OSS or Amazon S3 credentials.
 
-    Built on top of [paimon-cpp](https://github.com/alibaba/paimon-cpp), this extension brings
-    DuckDB's powerful local analytics to the Paimon data lake ecosystem.
+    Remote filesystem warehouses support Alibaba Cloud OSS and Amazon S3. Configure S3 with DuckDB's credential chain or static credentials; remote object storage catalogs are currently read-only. Paimon REST catalogs can be attached with `METASTORE 'rest'`, the catalog server URI, and an access token.
+
+    Built on [paimon-cpp](https://github.com/apache/paimon-cpp), the extension brings DuckDB's local analytics to the Paimon data lake ecosystem.
 
     For more information, visit the [extension repository](https://github.com/polardb/duckdb-paimon).

@@ -1,0 +1,97 @@
+extension:
+  name: dq
+  description: Data quality assertion framework — SQL-native expect_* rules, profiling, and persisted quality reports
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;linux_arm64_musl;windows_arm64"
+  requires_toolchains: "rust"
+  test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb_dq
+  ref: 3d5e95d24383353a1bd36e20edfa76ee169b805a
+
+docs:
+  hello_world: |
+    -- Single assertion → result table (0 rows = pass)
+    SELECT * FROM expect_not_null('sales', 'amount');
+    -- rule | table_name | column_name | passed | row_count | failed_count | error
+
+    -- Enumerated values, regex, foreign keys, custom SQL
+    SELECT * FROM expect_accepted_values('customers', 'status', 'active,inactive,suspended');
+    SELECT * FROM expect_match_regex('customers', 'email', '^[^@]+@[^@]+\\.com$');
+    SELECT * FROM expect_relationship('orders', 'customer_id', 'customers', 'id');
+    SELECT * FROM expect_custom_sql('orders', 'amount < 0');
+
+    -- Profiling
+    SELECT * FROM profile_table('sales');
+
+    -- Batch assertions (GX-style JSON rule set)
+    SELECT * FROM validate_expectations('sales', '{
+      "expect_table_row_count_between":   {"min": 100, "max": 10000000},
+      "expect_column_values_not_null":    {"column": "order_id"},
+      "expect_column_values_unique":      {"column": "order_id"},
+      "expect_column_values_in_range":    {"column": "amount", "min": 0, "max": 100000},
+      "expect_column_values_match_regex": {"column": "email", "pattern": "^[^@]+@[^@]+$"},
+      "expect_column_relationship":       {"column": "customer_id", "to_table": "customers", "to_column": "id"},
+      "expect_custom_sql":                {"sql": "{table}.amount < 0"}
+    }');
+
+    -- Run + persist a named quality check, then view report history
+    SELECT dq_run('daily_sales', 'sales', '{"expect_table_row_count_between": {"min": 100, "max": 10000000}}');
+    SELECT * FROM dq_reports();
+
+    -- Profile-driven suggestions: what should I be checking? (recall-first)
+    SELECT * FROM dq_suggest('sales');
+
+  extended_description: |
+    # duckdb_dq
+
+    Data quality assertion framework for DuckDB — SQL-native `expect_*` rules, profiling, and persisted quality reports. Zero Python, zero external services: everything runs inside DuckDB on a persistent secondary connection, so DuckDB's vectorized engine does all the counting.
+
+    ## Functions
+
+    | Function | Type | Description |
+    |----------|------|-------------|
+    | `expect_not_null(table, column)` | table | Fails if any NULL in column |
+    | `expect_unique(table, column)` | table | Fails if duplicate values in column |
+    | `expect_in_range(table, column, lo, hi)` | table | Fails on NULL / below lo / above hi |
+    | `expect_row_count_between(table, lo, hi)` | table | Fails if row count outside [lo, hi] |
+    | `expect_accepted_values(table, column, 'a,b,c')` | table | Fails on NULL / values outside allowed set |
+    | `expect_match_regex(table, column, pattern)` | table | Fails on NULL / values not matching regex |
+    | `expect_relationship(table, column, to_table, to_column)` | table | Fails on orphan values (broken FK) |
+    | `expect_custom_sql(table, where_clause)` | table | Fails on rows returned by custom WHERE (supports `{table}`) |
+    | `expect_min_between` / `expect_max_between` / `expect_mean_between` / `expect_stddev_between` / `expect_sum_between` | table | Statistical bounds on aggregate |
+    | `expect_distinct_count_between(table, column, lo, hi)` | table | Fails if COUNT(DISTINCT column) outside [lo, hi] |
+    | `expect_column_type(table, column, type)` | table | Fails if column's logical type ≠ expected |
+    | `expect_table_column_count_between(table, lo, hi)` | table | Fails if table column count outside [lo, hi] |
+    | `expect_null_proportion_between` / `expect_unique_proportion_between` | table | Fails if ratio outside [lo, hi] |
+    | `expect_quantile_between(table, column, q, lo, hi)` | table | Fails if quantile_cont(col, q) outside [lo, hi] |
+    | `expect_columns_unique_together(table, col1, col2)` | table | Fails if tuple has duplicates |
+    | `expect_column_length_between` / `expect_null_count_between` / `expect_row_count_to_equal` | table | Length / null count / exact count |
+    | `expect_not_in_set` / `expect_not_match_regex` / `expect_match_date_format` / `expect_sorted` / `expect_median_between` | table | 27 assertions total |
+    | `profile_table(table)` | table | Per-column profiling (count, null %, distinct, min, max) |
+    | `validate_expectations(table, json_rules)` | table | Batch assertions from a JSON rule set |
+    | `dq_run(name, table, json_rules)` | scalar | Run rule set, persist one report row, return summary |
+    | `dq_reports()` | table | Persisted run history (name, table, summary, passed, run_at) |
+    | `dq_dashboard(table, json_rules)` | table | dash-compatible dashboard JSON + checks/passed/failed/pass_rate |
+    | `dq_federated(sources_json, table, json_rules)` | table | Cross-DB quality baseline via duckdb_universal (per-source results) |
+    | `dq_suggest(table)` | table | Profile-driven candidate rules (rule, column, severity, reason, params) — recall-first: surfaces checks worth running instead of waiting for you to invent them; suggestions feed straight into `validate_expectations` |
+
+    ## Design
+
+    - **Assertions compile to SQL** — `expect_in_range('t','c',0,100)` becomes `SELECT COUNT(*) FROM t WHERE c IS NULL OR c < 0 OR c > 100`. DuckDB counts, Rust does zero per-row work.
+    - **Persistent secondary connection** — DuckDB forbids querying the main connection from function callbacks; `engine.rs` keeps ONE connection created in the init callback (early connect, required on macOS ARM64) and reuses it for every assertion query.
+    - **Result is a first-class table** — assertions can be `WHERE NOT passed`'d, joined, aggregated, or fed into dashboards/CI.
+    - **Rule JSON = data contract seed** — a `validate_expectations` rule set is a machine-verifiable contract.
+
+    ## Build
+
+    ```sh
+    make configure   # once: venv + platform stamp
+    make release     # → build/release/dq.duckdb_extension
+    ```

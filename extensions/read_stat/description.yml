@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dylanmeysmans/duckdb-read-stat
-  ref: 52c29607852663fc7c318c5e0dc5dcbd2d565aa6
+  ref: f8ff95c2a6b81d81d99ae133bb37ec78e69fff15
 
 docs:
   hello_world: |

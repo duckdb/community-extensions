@@ -1,17 +1,12 @@
 # Submission file for https://github.com/duckdb/community-extensions
 #
-# To publish via `INSTALL salesforce FROM community; LOAD salesforce;`, copy this
-# file to community-extensions/extensions/salesforce/description.yml in a fork of
-# duckdb/community-extensions and open a PR. The community CI builds + signs the
-# extension for every supported platform from the pinned repo ref below.
-#
-# STAGED in flozer/duckdb-salesforce only. Submitting it is HUMAN-GATED (gate
-# C.5) and has NOT been done. Submission ref: v0.14.1.
+# Live in duckdb/community-extensions since #2037 (v0.9.2). This update bumps
+# it to v0.15.0 — see the PR description for what changed since v0.14.1.
 
 extension:
   name: salesforce
-  description: Read-only access to Salesforce orgs as DuckDB SQL tables over the official REST and Bulk APIs — OAuth refresh-token or JWT-bearer auth (credentials from inline options, environment variables, or an SFDX auth URL), native ATTACH, projection + predicate pushdown, COUNT pushdown, explicit server-side aggregates with GROUP BY, lazy/auto/Bulk transports with PK chunking (Bulk blob/base64 compatibility guard), a per-job API quota governor, parent + grandparent relationship STRUCT columns with diagnostics, queryAll (archived + deleted), Tooling-API fast schema, and metadata helpers (manual cache refresh, picklist values, record types).
-  version: 0.14.1
+  description: Read-only access to Salesforce orgs as DuckDB SQL tables over the official REST and Bulk APIs — OAuth refresh-token or JWT-bearer auth (credentials from inline options, environment variables, or an SFDX auth URL), native ATTACH, projection + predicate pushdown, COUNT pushdown, explicit server-side aggregates with GROUP BY, lazy/auto/Bulk transports with PK chunking (Bulk blob/base64 compatibility guard), a per-job API quota governor, parent + grandparent relationship STRUCT columns with diagnostics, queryAll (archived + deleted), Tooling-API fast schema, and metadata helpers (manual cache refresh, picklist values, record types). Requires DuckDB v1.5.4 or newer.
+  version: 0.15.0
   language: C++
   build: cmake
   license: MIT
@@ -27,7 +22,8 @@ extension:
 repo:
   github: flozer/duckdb-salesforce
   # community-extensions CI checks out exactly this ref to build + sign.
-  ref: v0.14.1
+  # tag v0.15.0
+  ref: 819d86800e95772740197ac5e3b4ad9a48270aff
 
 docs:
   hello_world: |
@@ -55,4 +51,6 @@ docs:
     bearer, with credentials from inline options, environment variables, or an
     SFDX auth URL; credentials stay in memory and are never logged; TLS
     server-certificate verification is always on. Read-only: all mutating
-    catalog operations throw.
+    catalog operations throw. Built and tested against DuckDB v1.5.4 and
+    v1.5.5 (v1.5.2/v1.5.3 support was dropped in v0.15.0 — see
+    CHANGELOG.md). Full change history in this repo's CHANGELOG.md.

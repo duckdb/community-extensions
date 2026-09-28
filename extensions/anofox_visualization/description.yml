@@ -10,7 +10,7 @@ extension:
   requires_toolchains: rust
 repo:
   github: DataZooDE/anofox-visualization
-  ref: c9848dbc96350487e10b38986b4c7ea51dfce2b1
+  ref: d9aaf93fb80497c07e0586a1cccd3f2647dda964
 docs:
   hello_world: |
     -- One scalar plus convenience macros. Pass columns; get an SVG per group.

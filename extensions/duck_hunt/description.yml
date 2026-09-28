@@ -1,10 +1,10 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.10.0
+  version: 1.13.0
   language: C++
   build: cmake
-  license: MIT
+  license: Apache-2.0
   # Windows excluded: duckdb's vendored fmt (third_party/fmt) fails to compile on
   # the build runner's MSVC (stdext::checked_array_iterator removed). Upstream
   # issue, not duck_hunt code; no Windows artifact has ever been published for
@@ -15,8 +15,14 @@ extension:
 
 repo:
   github: teaguesterling/duck_hunt
-  andium: 22c142f3dee138566589783afb56a5e7f2858886
-  ref: 22c142f3dee138566589783afb56a5e7f2858886
+  andium: 68ca1c4676f706980a6503c19b789f5224596b4d
+  ref: 3cb555ef05078cf741a419a324e68bef7ce4c8b7
+  # ref_next == ref (deliberate): makes the prerelease leg actually BUILD+TEST
+  # v1.13.0 against DuckDB v2.0-cyanoptera. Without ref_next, test_against_latest
+  # is skipped -- a green that verified nothing on the v2.0 line. v1.13.0 carries
+  # the v2.0 fix (#69: return QueryResult base; v2.0 removed MaterializedQueryResult),
+  # so this validates the next line rather than skipping it.
+  ref_next: 3cb555ef05078cf741a419a324e68bef7ce4c8b7
 
 docs:
   readme: https://duck-hunt.readthedocs.io/

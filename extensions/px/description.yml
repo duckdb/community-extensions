@@ -1,0 +1,20 @@
+extension:
+  name: px
+  description: Extension for querying Px-files with DuckDB.
+  version: 0.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - toppyy
+
+repo:
+  github: toppyy/duckdb-px
+  ref: 5be93d58f438c48c492f9a9ce729eb61b9bbc025
+
+docs:
+  hello_world: |
+   FROM read_px('your_dataset.px');
+
+  extended_description: |
+    This extension provides the ability to query [Px-files](https://www.scb.se/en/services/statistical-programs-for-px-files/px-file-format/) with DuckDB.

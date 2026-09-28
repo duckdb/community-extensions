@@ -1,0 +1,34 @@
+extension:
+  name: huggingface
+  description: Discover, query, profile, and estimate the storage of Hugging Face datasets
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb-huggingface
+  ref: 3af098eab0955db299d6e494e4345f4ab0a6c498
+
+docs:
+  hello_world: |
+    INSTALL huggingface FROM community;
+    LOAD huggingface;
+
+    FROM hf_files(
+        'ibm/duorc',
+        config = 'ParaphraseRC',
+        split = 'train'
+    );
+  extended_description: |
+    The `huggingface` extension works with Parquet datasets hosted on the
+    Hugging Face Hub. It can discover Parquet files, scan records with
+    projection and filter pushdown, profile Parquet metadata, and estimate
+    external-blob storage from a bounded sample.
+
+    The extension uses `cache_httpfs` for cached access to `hf://` paths and
+    supports Hugging Face credentials through DuckDB's secret manager. Lance
+    datasets are not currently supported.

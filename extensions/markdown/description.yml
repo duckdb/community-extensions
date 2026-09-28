@@ -1,7 +1,7 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.5.1
+  version: 1.9.5
   language: C++
   build: cmake
   license: MIT
@@ -10,10 +10,15 @@ extension:
   vcpkg_commit: bffcbb75f71553824aa948a7e7b4f798662a6fa7
 repo:
   github: teaguesterling/duckdb_markdown
-  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; the
-  # v1.5.1 structured-inline change ships on the v1.5.x track via ref.
+  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; every
+  # change since ships on the v1.5.x track via ref, which is a v1.5.4 tree.
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
-  ref: refs/tags/v1.5.1
+  ref: 437e204507c83e90a8b9a499007a9b2433ae6a31
+  # ref_next is what makes the PRERELEASE leg actually build against DuckDB
+  # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
+  # the PR passes green having verified nothing on that line. Same commit as
+  # ref: this tag builds on both.
+  ref_next: 437e204507c83e90a8b9a499007a9b2433ae6a31
 docs:
   hello_world: |
     -- Load the extension
@@ -104,4 +109,4 @@ docs:
 
     Real-world benchmark: Processing 287 Markdown files (2,699 sections, 1,137 code blocks, 1,174 links) in 603ms.
 
-    Full test suite with 1190 passing assertions across 24 test files.
+    Full test suite with 1948 passing assertions across 54 test files.

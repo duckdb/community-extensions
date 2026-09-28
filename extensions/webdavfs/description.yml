@@ -1,7 +1,7 @@
 extension:
   name: webdavfs
   description: Allows reading and writing files over WebDAV protocol
-  version: '2026020501'
+  version: '2026091401'
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 repo:
   github: midwork-finds-jobs/duckdb-webdavfs
   andium: 359f4c05601798855c07954cf560a6e3beb6fc10
-  ref: 49d8be58834230f4466c6c75199e960c50e21a51
+  ref: 0259545780249ba6c9656b1cfca9a57168cfb63d
 
 docs:
   hello_world: |
@@ -52,4 +52,4 @@ docs:
 
     Hetzner Storage Boxes are a popular choice for WebDAV storage being one of the cheapest storage options available.
 
-    See: https://github.com/midwork-finds-jobs/webdavfs/blob/main/README.md for more examples and details.
+    See: https://github.com/midwork-finds-jobs/duckdb-webdavfs/blob/main/README.md for more examples and details.

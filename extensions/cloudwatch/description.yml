@@ -1,0 +1,50 @@
+extension:
+  name: cloudwatch
+  description: Read and write Amazon CloudWatch telemetry with OTLP-shaped SQL tables
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "cmake, openssl"
+  maintainers:
+    - smithclay
+
+repo:
+  github: smithclay/duckdb-cloudwatch
+  ref: d404b0169cd5e8abe13abcbaf6837745ecf31460
+
+docs:
+  hello_world: |
+    INSTALL aws;
+    LOAD aws;
+    LOAD cloudwatch;
+
+    CREATE SECRET (
+        TYPE aws,
+        PROVIDER credential_chain,
+        REGION 'us-east-1'
+    );
+
+    SELECT time_unix_nano, service_name, severity_text, body
+    FROM read_cloudwatch_logs(
+        '/aws/lambda/orders-api',
+        filter => 'ERROR',
+        start_time => '-1h'
+    );
+  extended_description: |
+    This extension reads Amazon CloudWatch Logs into the same flat OTLP log schema used by
+    duckdb-otlp and the sibling observability extensions. It also writes OTLP-shaped rows to
+    CloudWatch Logs, exposes CloudWatch alarms, reads AWS X-Ray service dependencies, and can attach
+    an AWS account as a read-only catalog.
+
+    Features:
+    - AWS credentials through DuckDB's aws and s3 secrets
+    - Streaming CloudWatch Logs pagination with retries and query cancellation
+    - send_cloudwatch_logs batching for existing log groups and streams
+    - Read-only logs, alerts, and service_map catalog schemas
+    - CloudWatch metrics queries through read_cloudwatch_metrics
+
+    Browser builds are excluded because SigV4 and the AWS credential providers require native
+    OpenSSL and filesystem or metadata access. For complete usage and IAM requirements, visit the
+    [extension repository](https://github.com/smithclay/duckdb-cloudwatch).

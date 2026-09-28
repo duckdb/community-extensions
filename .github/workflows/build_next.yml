@@ -15,9 +15,9 @@ on:
 
 jobs:
   test_against_latest:
-    if: false
     uses: ./.github/workflows/build.yml 
     with:
-      duckdb_version: 'main'
+      duckdb_version: 'v2.0-cyanoptera'
       ci_tools_version: 'main'
       deploy: 'false'
+      require_ref_next: true
