@@ -14,7 +14,7 @@ extension:
 repo:
   github: nozzle/duckdb-gatekeeper
   ref: c4b9b3cf2c71ac527fb3f8ae7310066384e397f1
-  ref_next: c4b9b3cf2c71ac527fb3f8ae7310066384e397f1
+  ref_next: d1af5bdb93348afe9ec5ed871fb83f43a3fd58cb
 
 docs:
   hello_world: |
