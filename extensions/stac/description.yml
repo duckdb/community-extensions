@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-stac
-  ref: 4a5eaa99c81cc393f3dabf9536795c43ede9c6a9
+  ref: 3d03c58655ce9ccd810ee80f6674a606a5c63c03
 
 docs:
   hello_world: |
