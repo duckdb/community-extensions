@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-object-storage
-  ref: ed06b778c68a567cc08ed9d70d9cb029813f57ac
+  ref: 57845cd6c768d3227ea37822d2a043cc250d519b
 
 docs:
   hello_world: |
