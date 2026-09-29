@@ -1,7 +1,7 @@
 extension:
   name: pgvfs
   description: DuckLake on PostgreSQL - a pgvfs:// filesystem storing data files as PostgreSQL rows, for one writer and many readers
-  version: 0.2.0-beta.1
+  version: 0.2.0-beta.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: adonm/pgvfs
-  ref: 0364b26e1df71bf1db5fe7eef1ffd4a2f93b398c
+  ref: 5e294c904f3048ff58f08675ad963a2ce317a10e
 
 docs:
   hello_world: |
