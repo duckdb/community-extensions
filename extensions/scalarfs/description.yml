@@ -11,7 +11,13 @@ repo:
   github: teaguesterling/duckdb_scalarfs
   andium: 68faa6c72054123a6c6521dd41c12f929431da50
   ref: 6fc4d68397c521e1fda56bd164ce4f2f3aabda5c
-  ref_next: 6fc4d68397c521e1fda56bd164ce4f2f3aabda5c
+  # ref_next omitted (skips the v2.0-cyanoptera prerelease leg). scalarfs is clean
+  # of family C (0 named_parameters) and builds against duckdb main, but v2.0-
+  # cyanoptera removed QueryResult::GetValue, which pathmacro_filesystem.cpp uses
+  # (cyanoptera build error at pathmacro_filesystem.cpp:147). That is a separate
+  # v2.0 fix, out of scope for the v1.5.6 restoration; the prerelease leg is
+  # deploy:false and never publishes. Restore ref_next once the v2.0 GetValue
+  # change is handled (after v2.0.0 tags).
 docs:
   hello_world: |
     LOAD scalarfs;
