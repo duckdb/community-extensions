@@ -12,11 +12,11 @@ extension:
 
 repo:
   github: dentiny/duckdb-distributed-execution
-  ref: 1cd71b1a7c1b96cdf1b27891b9b885e818b68c0a
+  ref: 55abc1542aa1fca5841289e56b92fc34baa0a597
 
 docs:
   hello_world: |
-    SELECT duckherder_start_local_server(8815); ATTACH DATABASE 'dh' (TYPE duckherder, server_host 'localhost', server_port 8815);
+    SELECT duckherder_start_local_server(8815); ATTACH DATABASE 'localhost:8815' AS dh (TYPE duckherder);
   extended_description: |
     This extension is built on storage extension, to execute query on remote server and transfer data back with arrow flight.
     For remote and distributed execution, there're two key components: driver and worker(s).
