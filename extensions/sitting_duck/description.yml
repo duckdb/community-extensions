@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.11.0
+  version: 1.15.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,7 +9,14 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: b8c06a843193a84065ae24cc95c6a4052f3c84ec
+  ref: fea334eb6e05dbe6b888ceffd23241a0bb9e9ba7
+  # ref_next omitted (skips the v2.0-cyanoptera prerelease leg). sitting_duck has
+  # broad family-C exposure (~161 sites: named_parameters declaration via
+  # GetSignature().WithTypedKwargs() + .at("literal") lookups that break on v2.0's
+  # explicit Identifier ctor), so it cannot build against cyanoptera until the
+  # family-C migration lands. Restore ref_next in a one-line PR post-migration
+  # (after v2.0.0 tags). The prerelease leg is deploy:false, so this does not
+  # affect the shipped v1.5.6 artifact.
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
