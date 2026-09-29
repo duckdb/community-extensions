@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.13.0
+  version: 1.13.1
   language: C++
   build: cmake
   license: Apache-2.0
@@ -16,13 +16,14 @@ extension:
 repo:
   github: teaguesterling/duck_hunt
   andium: 68ca1c4676f706980a6503c19b789f5224596b4d
-  ref: 3cb555ef05078cf741a419a324e68bef7ce4c8b7
-  # ref_next == ref (deliberate): makes the prerelease leg actually BUILD+TEST
-  # v1.13.0 against DuckDB v2.0-cyanoptera. Without ref_next, test_against_latest
-  # is skipped -- a green that verified nothing on the v2.0 line. v1.13.0 carries
-  # the v2.0 fix (#69: return QueryResult base; v2.0 removed MaterializedQueryResult),
-  # so this validates the next line rather than skipping it.
-  ref_next: 3cb555ef05078cf741a419a324e68bef7ce4c8b7
+  ref: bc6084e5b72379f06f3034dab8bcab4f931daf6b
+  # ref_next intentionally omitted (was == ref) to SKIP the v2.0-cyanoptera
+  # prerelease leg. cyanoptera removed TableFunction::named_parameters, which
+  # duck_hunt uses extensively (read-side key lookups + declaration), so v1.13.1
+  # cannot build there until the family-C migration lands. Omitting ref_next skips
+  # test_against_latest (per its own semantics) so the v1.5.6 stable artifact ships;
+  # the prerelease leg is deploy:false and never publishes anyway. Restore ref_next
+  # in a one-line PR once family C is migrated (wait for v2.0.0 to tag).
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
