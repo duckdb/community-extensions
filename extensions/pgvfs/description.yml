@@ -1,0 +1,26 @@
+extension:
+  name: pgvfs
+  description: DuckLake on PostgreSQL - a pgvfs:// filesystem storing data files as PostgreSQL rows, for one writer and many readers
+  version: 0.2.0-beta.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  requires_toolchains: "rust"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;linux_amd64_musl;linux_arm64_musl"
+  maintainers:
+    - adonm
+
+repo:
+  github: adonm/pgvfs
+  ref: ef2c4c8f5c7412d9c7d8508963a5cdb696cc0d55
+
+docs:
+  hello_world: |
+    CREATE SECRET (TYPE postgres, HOST 'db', USER 'lake', PASSWORD '...', DATABASE 'lake');
+    ATTACH 'ducklake:postgres:' AS lake (DATA_PATH 'pgvfs://lake/');
+    CREATE TABLE lake.t AS SELECT range AS i FROM range(1000);
+    SELECT count(*) FROM lake.t;
+  extended_description: |
+    pgvfs stores DuckLake's data files as rows in PostgreSQL, next to the DuckLake
+    catalog, so one PostgreSQL database is the whole lake. Readers need only SELECT
+    and can run on read replicas; one process writes. See https://pgvfs.adonm.dev.
