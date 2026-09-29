@@ -6,11 +6,11 @@ extension:
   build: cmake
   license: Apache-2.0
   maintainers:
-    - columnar-tech
+    - SamArch27, columnar-tech
 repo:
   github: columnar-tech/duckdb-adbc-client
-  andium: 4234c581082cfa435c78fbe78c7f8815fe8d9dd8  
-  ref: 42e2b1b6a42b0089bcfd3ba1c0057d557a05f924
+  andium: c30888194e57d78017cbde379abb117e82538fe6
+  ref: d4b19a7b3d291464eb54b2d50e185466234225d9
 docs:
   hello_world: |
     -- Install and load the ADBC extension
