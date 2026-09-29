@@ -6,7 +6,7 @@ extension:
   build: cmake
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
-  requires_toolchains: parser_tools
+  requires_toolchains: "parser_tools;rust"
   maintainers:
     - dentiny
 
