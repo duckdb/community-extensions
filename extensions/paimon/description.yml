@@ -1,7 +1,7 @@
 extension:
   name: paimon
   description: Query Apache Paimon tables directly from DuckDB
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: polardb/duckdb-paimon
-  andium: 543e43a91edf05ab796e67e19a3cb7240e52bcf6
-  ref: 5e89198235c8be6a402f2b02ef54f249914eee29
+  andium: a3ede9fc9b1a51f8de125e9ceff106533a71b236
+  ref: e49d491a103e30399d2d0cdc9c2f7efaf138d200
 
 docs:
   hello_world: |
