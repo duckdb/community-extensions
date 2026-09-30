@@ -13,7 +13,7 @@ extension:
 repo:
   github: dentiny/system_stats
   andium: d1933b1a67b89a48317102bc9cb008e152526afb
-  ref: f297785fdb42441a3e185a89e93bb47e811ab254
+  ref: 5d8b119d78f904b1cffa2f3b3adcbc443b5b58fe
 
 docs:
   hello_world: |
