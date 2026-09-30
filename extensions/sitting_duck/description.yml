@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.11.0
+  version: 1.15.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,7 +9,26 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: b8c06a843193a84065ae24cc95c6a4052f3c84ec
+  ref: 73fcc2f397c58ec1136b01431d8cc9174e19e96f
+  # ref_next restored: the family-C migration this descriptor was waiting on has
+  # landed. sitting_duck's ~161 named-parameter sites now go through a compat
+  # header that declares them via GetSignature().WithTypedKwargs() on v2.0 and the
+  # flat map on v1.5, so one source tree builds on both lines. ref and ref_next are
+  # deliberately the SAME commit.
+  #
+  # Evidence at this ref (73fcc2f): clean builds with 0 errors against v1.5.6 AND
+  # v2.0-cyanoptera, with `All tests passed` (7113 assertions / 133 cases) on each.
+  # Upstream CI run 36640699130 on sitting_duck main is green across all 9
+  # v2.0-cyanoptera legs (linux amd64+arm64, macOS x2, wasm x3, windows x2).
+  #
+  # Caveat for whoever reads a red prerelease leg here: sitting_duck's own v2.0
+  # canary runs skip_tests, because ast_select tests blow the batch timeout on that
+  # line via upstream duckdb/duckdb#26036 (css_selectors_multilang.test alone takes
+  # ~40 min on v2.0 vs seconds on v1.5.6). So the v2.0 signal we have proven in CI
+  # is COMPILE compat; the passing v2.0 test run was local. If this leg fails on a
+  # test timeout rather than a compile error, that is #26036, not a compat break --
+  # and it is deploy:false, so it does not affect the shipped v1.5.6 artifact.
+  ref_next: 73fcc2f397c58ec1136b01431d8cc9174e19e96f
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
