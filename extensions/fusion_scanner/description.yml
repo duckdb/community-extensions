@@ -1,7 +1,7 @@
 extension:
   name: fusion_scanner
   description: Query Oracle Fusion from DuckDB through BI Publisher, with SSO, an ATTACH-able catalog and cached metadata
-  version: 0.3.0
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: krokozyab/ofquack
-  ref: 8490c817869f4049b9372e9520cf081a4c80f5b4
+  ref: 6850e13b516756a3872714a0118dd380788ff7b9
 
 docs:
   hello_world: |
@@ -41,7 +41,8 @@ docs:
 
     That detour requires a report deployed on the Fusion side — `DM_ARB.xdm`
     and `RP_ARB.xdo`, taking a `p_sql` parameter. The extension cannot work
-    against a stock instance. See the repository for the catalog archives.
+    against a stock instance. The repository's README links the catalog
+    archives, which live in the ofjdbc repository.
 
     Read-only by construction: BI Publisher cannot write.
 
