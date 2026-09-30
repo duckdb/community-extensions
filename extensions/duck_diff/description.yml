@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: avaitla/duck_diff
-  ref: 9afb9a05ab3ab1b1cfbc27a8fdf2e81b157ed0b4
+  ref: 68ace706fe6196ae7fdb30ef0b30581c0434bd7d
 
 docs:
   hello_world: |
