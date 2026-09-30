@@ -21,7 +21,8 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  ref: v1.0.2
+  # v1.0.2 (immutable commit pin)
+  ref: 977447837d510d3e8ab36e2184541308309edc34
 
 docs:
   hello_world: |
