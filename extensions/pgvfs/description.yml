@@ -6,7 +6,7 @@ extension:
   build: cmake
   license: Apache-2.0
   requires_toolchains: "rust"
-  excluded_platforms: "osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
   opt_in_platforms: "linux_amd64_musl;linux_arm64_musl"
   maintainers:
     - adonm
