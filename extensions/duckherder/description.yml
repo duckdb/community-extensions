@@ -1,22 +1,22 @@
 extension:
   name: duckherder
   description: Run duckdb query on remote server
-  version: 0.0.9
+  version: 0.0.10
   language: C++
   build: cmake
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
-  requires_toolchains: parser_tools
+  requires_toolchains: "parser_tools;rust"
   maintainers:
     - dentiny
 
 repo:
   github: dentiny/duckdb-distributed-execution
-  ref: fd66d37016ae7447f68d09107dc00695cbd64f5c
+  ref: c254790685d4f11a8b5bc2b543b9ddb1c4dcb95a
 
 docs:
   hello_world: |
-    SELECT duckherder_start_local_server(8815); ATTACH DATABASE 'dh' (TYPE duckherder, server_host 'localhost', server_port 8815);
+    SELECT duckherder_start_local_server(8815); ATTACH DATABASE 'localhost:8815' AS dh (TYPE duckherder);
   extended_description: |
     This extension is built on storage extension, to execute query on remote server and transfer data back with arrow flight.
     For remote and distributed execution, there're two key components: driver and worker(s).
