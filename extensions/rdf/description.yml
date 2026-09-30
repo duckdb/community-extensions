@@ -1,7 +1,7 @@
 extension:
   name: rdf
   description: Read and write RDF, query using SPARQL
-  version: 2.8.2
+  version: 2.8.3
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: nonodename/duck_rdf
-  ref: 6e595d2527f3d7ec8e19ac49871ba4b47ff2cfb3
+  ref: de345a85c40ccb023d09509181a597ba99c28ffe
+  ref_next: 290b86c1366865442b3726305613e87eedc1224c
 
 docs:
   hello_world: |
@@ -81,6 +82,7 @@ docs:
     | `strict_parsing` | `true` | Set to `false` to allow malformed URIs |
     | `prefix_expansion` | `false` | Expand CURIE-form URIs to full URIs (Turtle/TriG only) |
     | `file_type` | auto-detected | Override format: `ttl`, `nt`, `nq`, `trig`, `rdf`/`xml` |
+    | `filename` | false | Add a 7th filename column |
 
     `pivot_rdf()` takes the same path/glob argument as read_rdf() and returns a pivoted table, 
     one column per predicate, at least one row per subject. (To operate on arbitrary file sizes 
@@ -131,6 +133,7 @@ docs:
     | `mapping` | Yes | — | Path to R2RML mapping file (`.ttl`) |
     | `rdf_format` | No | `ntriples` | Output format: `ntriples`, `turtle`, or `nquads` |
     | `ignore_non_fatal_errors` | No | `true` | Raise an exception on the first parse error when `false` |
+    | `ignore_case` | No | `false` | When true, all column and table names are lowercased before matching. |
 
     ### Validation Helpers
 
