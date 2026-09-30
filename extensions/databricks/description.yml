@@ -1,0 +1,46 @@
+extension:
+  name: databricks
+  description: Read and write Databricks tables directly from DuckDB.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  requires_toolchains: "vcpkg"
+  maintainers:
+    - redox
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+
+repo:
+  github: altertable-ai/duckdb-databricks
+  ref: 1f64b810cde2010fd9c35cb6f7b5f1067e1d99af
+
+docs:
+  hello_world: |
+    INSTALL databricks FROM community;
+    LOAD databricks;
+
+    CREATE SECRET dbx (
+        TYPE databricks,
+        HOST 'adb-123.azuredatabricks.net',
+        WAREHOUSE_ID 'abc123',
+        TOKEN 'dapi...'
+    );
+    ATTACH 'main' AS db (TYPE databricks, SECRET dbx, SCHEMA 'sales');
+
+    SELECT * FROM db.orders;
+
+    INSERT INTO db.orders
+    SELECT * FROM read_parquet('orders/*.parquet');
+  extended_description: |
+    The Databricks extension attaches one Unity Catalog catalog as a DuckDB
+    database. Tables are read and written with ordinary DuckDB SQL through the
+    SQL Statement Execution API. It does not read Delta files, and it does not
+    open a Thrift session. Filters, projections, `LIMIT`, and
+    `ORDER BY ... LIMIT` can be pushed down to the warehouse.
+
+    Features include:
+    - `ATTACH` support for a Databricks catalog, including secrets for a personal access token or a service principal
+    - reads from attached schemas and tables
+    - writes with `INSERT`, `COPY`, `CREATE TABLE AS`, `UPDATE`, `DELETE`, and `TRUNCATE`
+    - `databricks_query` and `databricks_execute` for Databricks SQL that DuckDB cannot express
