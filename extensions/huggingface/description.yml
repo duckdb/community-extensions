@@ -1,7 +1,7 @@
 extension:
   name: huggingface
   description: Discover, query, profile, and estimate the storage of Hugging Face datasets
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-huggingface
-  ref: 3af098eab0955db299d6e494e4345f4ab0a6c498
+  ref: a1e27e1ff779371e90b701c21a36c16fabbb31d3
 
 docs:
   hello_world: |
