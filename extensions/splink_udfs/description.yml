@@ -11,6 +11,7 @@ extension:
 repo:
   github: moj-analytical-services/splink_udfs
   ref: cf00056f887486d0aee0a853a764f9775aa40438
+  ref_next: 2ead762c7c554e377a72ef6a425f2da5cedace35
 
 docs:
   hello_world: |
