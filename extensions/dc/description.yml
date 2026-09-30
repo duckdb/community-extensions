@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: prasanthj/duckdb-dual-cognition
-  ref: 84d77e2d6b9b52e4f982f2f2cd6b7b58499a7c27
-  andium: 84d77e2d6b9b52e4f982f2f2cd6b7b58499a7c27
+  ref: 158494419be2003894f8907dd32e1d1e7b753274
+  andium: 158494419be2003894f8907dd32e1d1e7b753274
 
 docs:
   hello_world: |
