@@ -2,7 +2,7 @@ extension:
   name: duck_dggs
   description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v8.
   
-  version: 0.1.9 # x-release-please-version
+  version: 0.1.10 # x-release-please-version
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,13 @@ extension:
 
 repo:
   github: am2222/duckdb-dggs
-  ref: 998d9a9f749f427a31cb83a1f237fd11dc899579
+  ref: a034e0beec21b7e4764173b624ab7f1d69f12f87
+  # ref_next drives the upstream PRERELEASE leg (build_next.yml, DuckDB
+  # v2.0-cyanoptera), which runs with require_ref_next: true. Without this key
+  # the job resolves an empty ref, skips, and the PR passes green having built
+  # nothing against v2. Both refs are placeholders: release-please.yml stamps
+  # them with the release SHA on its way to community-extensions.
+  ref_next: a034e0beec21b7e4764173b624ab7f1d69f12f87
 
 docs:
   hello_world: |
