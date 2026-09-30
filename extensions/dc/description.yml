@@ -1,0 +1,77 @@
+extension:
+  name: dc
+  description: Compose fast bounded judgments, semantic resolution, and selective LLM reasoning with provenance
+  version: 0.2.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - prasanthj
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_amd64_rtools"
+  requires_toolchains: vcpkg
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+
+repo:
+  github: prasanthj/duckdb-dual-cognition
+  ref: 84d77e2d6b9b52e4f982f2f2cd6b7b58499a7c27
+  andium: 84d77e2d6b9b52e4f982f2f2cd6b7b58499a7c27
+
+docs:
+  hello_world: |
+    INSTALL dc FROM community;
+    LOAD dc;
+
+    CREATE SECRET cognition (
+      TYPE dc,
+      SYSTEM_ONE_PROVIDER 'typesafe',
+      SYSTEM_ONE_API_KEY 'ts-...',
+      SYSTEM_ONE_MODEL 'jev-1.13.0',
+      SYSTEM_TWO_PROVIDER 'openai',
+      SYSTEM_TWO_API_KEY 'sk-...',
+      SYSTEM_TWO_MODEL 'gpt-5.6-luna'
+    );
+
+    SELECT item,
+           result.choice AS category,
+           result.confidence
+    FROM (
+      SELECT item,
+             system_one_choice(
+               item,
+               'Classify the support request.',
+               '{"billing":"payments", "technical":"product failures", "security":"access and data risk"}'::JSON
+             ) AS result
+      FROM support_requests
+    );
+
+  extended_description: |
+    `dc` brings a two-stage AI enrichment pipeline into DuckDB SQL.
+
+    **System One** handles bounded, highly batchable judgments with
+    `system_one_choice`, `system_one_score`, `system_one_noul`, and the
+    relation-oriented `system_one_stream`. Semantic Resolution assigns foreign
+    keys from per-row candidates with `system_one_resolve` and
+    `system_one_resolve_stream`, including explicit `matched`, `ambiguous`, and
+    `no_match` outcomes. **System Two** handles generation, summarization, and
+    structured extraction with `system_two_generate`, `system_two_summarize`,
+    and `system_two_extract`.
+
+    The two paths compose through ordinary SQL. A query can classify every row
+    with System One, escalate only results below a confidence threshold to
+    System Two, and retain a single final column alongside the candidate,
+    confidence, threshold, escalation result, and selected source.
+
+    The native extension deduplicates equivalent work, batches rows, bounds
+    concurrent provider requests, validates responses, stops queued work and
+    aborts active client transfers when DuckDB interrupts a query, and offers
+    query-local coalescing plus optional per-connection TTL/LRU caches.
+    `dc_stats()` reports request, item, cache, retry, error, token, byte, and
+    latency metrics independently for both systems.
+
+    Provider credentials are stored through DuckDB's Secret Manager and are
+    redacted from `duckdb_secrets()`. Plain HTTP endpoints are rejected except
+    for loopback testing, and `SET enable_external_access = false` disables
+    provider calls.
+
+    Full SQL reference and runnable examples:
+    https://github.com/prasanthj/duckdb-dual-cognition
