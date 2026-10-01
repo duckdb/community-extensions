@@ -1,7 +1,7 @@
 extension:
   name: duckfn_quantstats
   description: Complete quantstats HTML tearsheets from SQL - one long table in, one full report per instrument out, benchmarks included
-  version: 0.1.0
+  version: 0.2.0
   language: Rust
   build: cargo
   license: MIT
@@ -11,16 +11,16 @@ extension:
 
 repo:
   github: shijianjs/duckfn-quantstats
-  ref: 2c2c1a47a15d2649d214a8bf1351c7be5426d6bb
+  ref: 826de25deb55c42d8b63ec22ea4a6bd49f6f3de4
 
 docs:
   hello_world: |
-    -- demo/prices.csv is a committed snapshot of daily closes for GOOGL, MSFT and the S&P 500 index (SPX)
-    CREATE TABLE prices AS
-    SELECT * FROM read_csv('https://raw.githubusercontent.com/shijianjs/duckfn-quantstats/main/demo/prices.csv');
-
-    -- 1. The whole table in one call: one report per instrument, opened in the system default browser
-    --    once it has been generated
+    -- One long table in, one full quantstats tearsheet per instrument out - and no GROUP BY anywhere.
+    -- prices.csv is a snapshot of daily closes for GOOGL, MSFT and the S&P 500 index (SPX); it is
+    -- committed to the repository and served at the URL below.
+    WITH prices AS (
+        SELECT * FROM read_csv('https://shijianjs.github.io/duckfn-quantstats/demo/prices.csv')
+    )
     SELECT (r).symbol, (r).strategy_title, length((r).html) AS html_bytes, (r).file_path
     FROM (
         SELECT unnest(qs_html_reports_by_prices(
@@ -31,8 +31,11 @@ docs:
         FROM prices
     );
 
-    -- 2. With a benchmark: SPX is just another symbol in the table (name it in the options),
-    --    and it gets no report of its own
+    -- With a benchmark: SPX is just another symbol of that table, named in the options. It is input
+    -- only and gets no report of its own.
+    WITH prices AS (
+        SELECT * FROM read_csv('https://shijianjs.github.io/duckfn-quantstats/demo/prices.csv')
+    )
     SELECT (r).symbol, (r).file_path
     FROM (
         SELECT unnest(qs_html_reports_by_prices(
@@ -67,8 +70,17 @@ docs:
     named STRUCT (`qs_html_report_options`, created at load time) evaluated **per row**, which is how
     each instrument gets its own `title` / `strategy_title` — build it out of the `symbol` column:
     `{'title': symbol, 'strategy_title': symbol, 'benchmark': ['SPX']}::qs_html_report_options`.
-    Other keys: `rf` (annualized risk-free rate), `periods_per_year`, `match_dates`, `output_dir` and
-    `open_in_browser`.
+    Other keys: `rf` (annualized risk-free rate), `periods_per_year`, `match_dates`, `lang`,
+    `output_dir` and `open_in_browser`.
+
+    With `lang` the report's own fixed texts (headings, metric names, chart titles, months, the
+    legend) come out in that language, each one carrying a short note the browser pops up from the
+    element it sits on. `en`, `zh-CN`, `ja`, `de`, `fr` and `es` are built in; `'en'` keeps the English
+    text and only adds notes, and leaving the key unset leaves the report untouched. The table lives in the running
+    DuckDB process: `qs_set_translation(lang, [{key, label, description}])` overwrites or deletes
+    entries (a NULL `label` deletes one, a NULL list deletes the language, a NULL `description` keeps the
+    existing note) and `qs_list_translations()` lists the whole table. Nothing is persisted — reloading
+    the extension restores the built-in data.
 
     With `output_dir` each report is also written through DuckDB's VFS — local disk, `s3://…` once
     `httpfs` is loaded, and the wasm build's file system all take the same path — under a name the
@@ -81,4 +93,5 @@ docs:
     C API in 1.5. On wasm, `output_dir` works and `open_in_browser` is ignored (there is no browser
     process to launch; the HTML string comes back to the host as it is).
 
-    Development notes, the full option table and the error paths: <https://github.com/shijianjs/duckfn-quantstats>.
+    The full option table, the error paths and the development notes:
+    <https://shijianjs.github.io/duckfn-quantstats/docs/intro>.
