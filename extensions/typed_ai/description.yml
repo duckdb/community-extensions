@@ -16,24 +16,28 @@ repo:
 
 docs:
   hello_world: |
-    -- Needs a TypeSafe API key in TYPESAFE_API_KEY, or: CREATE SECRET (TYPE typed_ai, PROVIDER 'jev', API_KEY '...');
-    CREATE TABLE tickets AS SELECT * FROM (VALUES
-      ('card declined again, I want my money back'),
-      ('how do I export a dashboard to PDF?')) t(body);
+    -- Audit a chatbot: did each answer stick to its source? Needs TYPESAFE_API_KEY, or a local model profile.
+    CREATE SECRET jev (TYPE typed_ai, PROVIDER 'jev', API_KEY getenv('TYPESAFE_API_KEY'));
+    -- No key? A free local model works too (weaker answers):
+    -- CREATE SECRET local (TYPE typed_ai, PROVIDER 'openai', MODEL 'gemma2:2b',
+    --   URL 'http://localhost:11434/v1/chat/completions', USD_PER_MTOK_IN 0, USD_PER_MTOK_OUT 0);
+    CREATE TABLE bot_answers AS SELECT * FROM (VALUES
+      ('Can I take photos?', 'Photography without flash is allowed in all galleries.', 'Yes, flash is fine everywhere.'),
+      ('How heavy is the meteorite?', 'The Ashford meteorite weighs 412 kilograms.', 'It weighs about 412 kg.')
+    ) t(question, source, answer);
+    CREATE TABLE topics AS SELECT * FROM (VALUES ('visiting rules'), ('science'), ('history')) t(name);
 
-    -- Keep the rows where the answer is yes
-    SELECT * FROM tickets WHERE typed_is(body, 'the customer wants a refund');
-
-    -- Pick one option, or score on a scale (0 = calm, 2 = furious)
-    SELECT body,
-           typed_pick(body, 'which team should handle this?', ['billing', 'technical', 'sales']) AS team,
-           typed_score(body, 'how angry is the customer?', ['calm', 'annoyed', 'furious']) AS anger
-    FROM tickets;
-
-    -- Price a query without calling anything, and see what has been spent
+    -- Price it first: no calls, no cost
     SET typed_dry_run = true;
-    SELECT typed_prob(body, 'mentions a competitor') FROM tickets;
-    SELECT dry_run_usd, spent_usd, budget_usd FROM typed_usage();
+    SELECT typed_prob(b, 'the answer is fully supported by the source') FROM bot_answers b;
+    SELECT dry_run_usd FROM typed_usage();
+    SET typed_dry_run = false;
+
+    -- The whole row goes in, so the model compares answer and source
+    SELECT answer, typed_prob(b, 'the answer is fully supported by the source') AS supported FROM bot_answers b;
+
+    -- Options can come from a table
+    SELECT question, typed_pick(question, 'what is the visitor asking about?', (SELECT list(name) FROM topics)) FROM bot_answers;
   extended_description: |
     `typed_ai` asks a model typed questions about rows and returns the model's own odds as probabilities.
     It works with [TypeSafe Jev](https://docs.typesafe.ai) and with any OpenAI-compatible server that returns
@@ -43,7 +47,7 @@ docs:
     | --- | --- |
     | `typed_is(input, statement [, threshold])` | `BOOLEAN`, for `WHERE` |
     | `typed_prob(input, statement)` | probability of yes, 0 to 1 |
-    | `typed_pick(input, question, options)` | the most likely option |
+    | `typed_pick(input, question, options)` | the option the model rates highest; options can come from a table |
     | `typed_score(input, question, levels)` | probability-weighted level |
     | `typed_ask(input, question_json)` | the full answer as JSON |
     | `typed_usage()` | spend, budget, requests, cache and breaker state |
@@ -52,6 +56,5 @@ docs:
     `typed_max_rows` or `typed_budget_usd`. `typed_dry_run` prices a query without calling anything. A job that
     stops partway keeps every answer it paid for, so running it again costs only the missing rows.
 
-    Row contents are sent to the provider named in the profile (a DuckDB secret), over https unless the
-    server is on localhost. Do not send data you may not share. HTTP goes through `httpfs`, which is loaded on
-    first use.
+    Every value you judge is sent to the provider named in your profile (a DuckDB secret), over https unless that
+    server runs on your own machine; keep private data on a local model. HTTP goes through `httpfs`, loaded on first use.
