@@ -1,7 +1,7 @@
 extension:
   name: firebird
-  description: Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
-  version: 1.0.1
+  description: The first Firebird extension in the DuckDB Community Extensions registry. Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
+  version: 1.0.2
   language: C++
   build: cmake
   license: MIT
@@ -21,7 +21,8 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  ref: v1.0.1
+  # v1.0.2 (immutable commit pin)
+  ref: 977447837d510d3e8ab36e2184541308309edc34
 
 docs:
   hello_world: |
@@ -90,6 +91,17 @@ docs:
       recommended partitions.
     - `firebird_pool_stats('fb')` — v0.6 connection-pool counters for one
       attached Firebird catalog.
+    - Metadata Bridge + diagnostics (v1.0.x): `firebird_foreign_keys`,
+      `firebird_indexes`, `firebird_generators`, `firebird_domains`,
+      `firebird_computed_columns`, `firebird_dependencies`,
+      `firebird_comments`, `firebird_explain_pushdown`,
+      `firebird_type_audit`, `firebird_health`,
+      `firebird_index_profile` — Firebird catalog and server
+      introspection without leaving DuckDB.
+    - Every `firebird_*` function is discoverable via
+      `duckdb_functions()` with real parameter names, a description,
+      a runnable example, and categories (v1.0.2), so SQL-connected
+      agents and tools can find and use them without reading the docs.
 
     ## Pushdown
 
