@@ -1,7 +1,7 @@
 extension:
   name: pgvfs
   description: DuckLake on PostgreSQL - a pgvfs:// filesystem storing data files as PostgreSQL rows, for one writer and many readers
-  version: 0.2.0-beta.2
+  version: 0.2.0-beta.3
   language: C++
   build: cmake
   license: Apache-2.0
@@ -13,15 +13,59 @@ extension:
 
 repo:
   github: adonm/pgvfs
-  ref: 5e294c904f3048ff58f08675ad963a2ce317a10e
+  ref: 29f834a99b53506d289e21181a256693d933af84
+  ref_next: 29f834a99b53506d289e21181a256693d933af84
 
 docs:
   hello_world: |
-    CREATE SECRET (TYPE postgres, HOST 'db', USER 'lake', PASSWORD '...', DATABASE 'lake');
+    -- One secret serves both the DuckLake catalog and the pgvfs data files.
+    CREATE SECRET (TYPE postgres, HOST 'db', DATABASE 'lake', USER 'lake', PASSWORD '...');
     ATTACH 'ducklake:postgres:' AS lake (DATA_PATH 'pgvfs://lake/');
-    CREATE TABLE lake.t AS SELECT range AS i FROM range(1000);
-    SELECT count(*) FROM lake.t;
+
+    -- Once per lake, before the first insert: small row groups and files for fast
+    -- lookups, zstd to keep PostgreSQL storage small (LZ4 reads faster, stores more).
+    CALL lake.set_option('parquet_compression', 'zstd');
+    CALL lake.set_option('parquet_version', 2);
+    CALL lake.set_option('parquet_row_group_size', 8192);
+    CALL lake.set_option('target_file_size', '64MB');
+
+    CREATE TABLE lake.events (site_id INTEGER, day DATE, value DOUBLE);
+    ALTER TABLE lake.events SET SORTED BY (site_id, day);
+    INSERT INTO lake.events
+        SELECT range % 1000, DATE '2026-01-01' + (range % 365)::INTEGER, random() FROM range(1000000);
+
+    -- Readers, in other processes: SELECT-only roles, read replicas welcome.
+    -- ATTACH 'ducklake:postgres:' AS lake (READ_ONLY);
+    SELECT count(*) FROM lake.events WHERE site_id = 42 AND day = DATE '2026-03-01';
+
+    -- Counters for one process: opens, reads, bytes, time in pgvfs.
+    SELECT pgvfs_stats()::JSON;
   extended_description: |
-    pgvfs stores DuckLake's data files as rows in PostgreSQL, next to the DuckLake
-    catalog, so one PostgreSQL database is the whole lake. Readers need only SELECT
-    and can run on read replicas; one process writes. See https://pgvfs.adonm.dev.
+    pgvfs is a DuckDB filesystem, `pgvfs://`, that stores DuckLake's Parquet data
+    files as rows in PostgreSQL. With the DuckLake catalog in the same database,
+    one PostgreSQL is the whole lake: one secret, one backup, one set of roles, and
+    no object store or gateway.
+
+    - **Many readers, one writer.** Readers need only `SELECT`, take no locks and
+      work on streaming read replicas. The first process to write holds the
+      writer lock; a second writer is refused.
+    - **Millisecond lookups.** Files are immutable, so DuckDB caches them without
+      revalidating, and reads are primary-key range queries straight into DuckDB's
+      buffers.
+    - **Plain PostgreSQL 11+**, including Amazon Aurora. No PostgreSQL extensions
+      or superuser. The first write installs pgvfs's schema.
+
+    It suits lakes that fit comfortably in one PostgreSQL, with many concurrent
+    readers doing lookups and dashboard-style queries. For scans over large lakes
+    in object storage, a plain DuckLake on S3 is the better fit.
+
+    Layout decides most of the read speed: set the lake options above before the
+    first insert, declare a sort order that matches your filters, and load big
+    tables in key-range batches. Credentials resolve like the `postgres`
+    extension's: the secret named by `SET pgvfs_secret`, else `$PGVFS_URL`, else
+    the default `postgres` secret. Remote servers need `SSLMODE 'require'`.
+
+    Documentation: [install](https://pgvfs.adonm.dev/install.html),
+    [loading data](https://pgvfs.adonm.dev/loading.html),
+    [how it works](https://pgvfs.adonm.dev/how-it-works.html) and
+    [performance](https://pgvfs.adonm.dev/performance.html).
