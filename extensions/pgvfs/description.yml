@@ -14,6 +14,7 @@ extension:
 repo:
   github: adonm/pgvfs
   ref: 29f834a99b53506d289e21181a256693d933af84
+  ref_next: 29f834a99b53506d289e21181a256693d933af84
 
 docs:
   hello_world: |
