@@ -1,7 +1,7 @@
 extension:
   name: duckfn_quantstats
   description: Complete quantstats HTML tearsheets from SQL - one long table in, one full report per instrument out, benchmarks included
-  version: 0.2.0
+  version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: shijianjs/duckfn-quantstats
-  ref: 826de25deb55c42d8b63ec22ea4a6bd49f6f3de4
+  ref: d6af371de1204cf2b25d298be494e9b59143a511
 
 docs:
   hello_world: |
@@ -82,16 +82,18 @@ docs:
     existing note) and `qs_list_translations()` lists the whole table. Nothing is persisted — reloading
     the extension restores the built-in data.
 
-    With `output_dir` each report is also written through DuckDB's VFS — local disk, `s3://…` once
-    `httpfs` is loaded, and the wasm build's file system all take the same path — under a name the
-    function generates (`<time>-<strategy>-<benchmark>-<random>.html`, nothing is ever overwritten), and
-    the path it actually wrote comes back in `file_path`. With `open_in_browser` the reports are handed
-    to the system default browser instead. Reports are a few hundred KB of HTML each (a dozen inline
+    With `output_dir` each report is also written to local disk — plain `std::fs`, not DuckDB's VFS, so
+    `s3://…` is not on the table — under a name the function generates
+    (`<time>-<strategy>-<benchmark>-<random>.html`, nothing is ever overwritten), and the path it
+    actually wrote comes back in `file_path`. With `open_in_browser` the reports are handed to the
+    system default browser instead. Reports are a few hundred KB of HTML each (a dozen inline
     SVGs), so a directory or a browser tab is friendlier than `unnest`-ing them into a terminal.
 
-    Requires **DuckDB 1.5 or newer**: the host file system used for `output_dir` only reached DuckDB's
-    C API in 1.5. On wasm, `output_dir` works and `open_in_browser` is ignored (there is no browser
-    process to launch; the HTML string comes back to the host as it is).
+    Requires **DuckDB 1.3 or newer**: the extension is built against DuckDB 1.5.5 headers but declares the
+    C API floor it needs (v1.2.0), so one binary loads into 1.3.2 through 1.5.6 alike. On wasm nothing
+    touches a file system — `output_dir` is accepted and ignored, so `file_path` comes back NULL — and
+    `open_in_browser` is ignored too (there is no browser process to launch; the HTML string comes back
+    to the host as it is).
 
     The full option table, the error paths and the development notes:
     <https://shijianjs.github.io/duckfn-quantstats/docs/intro>.
