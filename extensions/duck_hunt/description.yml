@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.13.1
+  version: 1.13.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -16,14 +16,15 @@ extension:
 repo:
   github: teaguesterling/duck_hunt
   andium: 68ca1c4676f706980a6503c19b789f5224596b4d
-  ref: bc6084e5b72379f06f3034dab8bcab4f931daf6b
-  # ref_next intentionally omitted (was == ref) to SKIP the v2.0-cyanoptera
-  # prerelease leg. cyanoptera removed TableFunction::named_parameters, which
-  # duck_hunt uses extensively (read-side key lookups + declaration), so v1.13.1
-  # cannot build there until the family-C migration lands. Omitting ref_next skips
-  # test_against_latest (per its own semantics) so the v1.5.6 stable artifact ships;
-  # the prerelease leg is deploy:false and never publishes anyway. Restore ref_next
-  # in a one-line PR once family C is migrated (wait for v2.0.0 to tag).
+  ref: 8c7b3b5b7c8d7e2decd066cfd9344fdc9c2fe27f
+  # ref_next == ref (deliberate): v1.13.2 (tag v1.13.2) completes the family-C
+  # migration (named_parameters -> FunctionSignature typed-kwargs shim), so the
+  # v2.0-cyanoptera prerelease leg now BUILDS AND TESTS on this exact commit
+  # instead of skipping vacuously. Previously ref_next was omitted because
+  # cyanoptera removed TableFunction::named_parameters (which duck_hunt used
+  # extensively) and the extension could not build there; that blocker is now
+  # resolved and verified by a real cyanoptera CI leg on this commit.
+  ref_next: 8c7b3b5b7c8d7e2decd066cfd9344fdc9c2fe27f
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
