@@ -14,8 +14,8 @@ extension:
 repo:
   github: teaguesterling/duckdb_yaml
   andium: 0bdc812c064fa7b85617f75680d9c1177263f741
-  ref: 046cb2ba243a6afa5b109346b932a47ced0cdbed
-  ref_next: 046cb2ba243a6afa5b109346b932a47ced0cdbed
+  ref: 84f5de21e39eab9994c691d1ed06ade04d9e02df
+  ref_next: 84f5de21e39eab9994c691d1ed06ade04d9e02df
 
 docs:
   hello_world: |
