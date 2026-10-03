@@ -1,0 +1,100 @@
+extension:
+  name: anofox_decide
+  description: Natural-language decisions on your data inside DuckDB — yes/no probabilities, one-of-N choices and ordinal scores with the answer sets written in the query, from hosted (TypeSafe Jev, Liquid AI D1), local-server and in-process ONNX decision models, plus calibration metrics
+  version: '2026.10.03'
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - sipemu
+    - jrosskopf
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl;osx_amd64"
+
+repo:
+  github: DataZooDE/anofox-decide
+  ref: 742d4bba4cf7d93d2b8d77baf3856f17918cefa0
+
+docs:
+  hello_world: |
+    -- Try the SQL with the built-in test model: no key, no network. It returns
+    -- constants (0.5, the first option), so it can never pass for a real answer.
+    SELECT decide_probability('The customer requests a refund.', 'A refund is requested.', model := 'stub') AS p;
+
+    -- Real answers: register a hosted model, opt in to remote calls, and ask.
+    -- (export LIQUID_API_KEY=... before starting DuckDB; a DuckDB secret overrides it)
+    SET anofox_decide_allow_remote = true;                 -- your text goes to the provider
+    SELECT decide_register_model('d1:free', 'liquid');
+    SET anofox_decide_model = 'd1:free';
+
+    SELECT id,
+           decide_probability(text, 'A refund is requested.')                                    AS p_refund,
+           decide_choice(text, 'Which team owns this?', ['billing', 'defect', 'other'])          AS team,
+           decide_score(text, 'How frustrated is the writer?', ['calm', 'frustrated', 'angry'])  AS frustration
+    FROM (VALUES (1, 'I was charged twice for my March invoice, please refund the extra 49 EUR.'),
+                 (2, 'The app crashes every time I open the export dialog on version 3.2.')) t(id, text);
+
+    -- Something not working? One row per check, with the fix for each problem.
+    SELECT * FROM decide_doctor();
+
+  extended_description: |
+    **anofox_decide** turns natural-language questions about text or structured data into SQL
+    functions. Ask a yes/no question, choose one of the options *you* define, or rate a text on an
+    ordered scale; purpose-built decision models answer with **calibrated probabilities**, so you
+    choose the threshold and can measure how good the answers are. No training, no prompt
+    engineering, no glue code: the questions and the answer sets are written in the query.
+
+    ### Three kinds of question
+    - **binary** — `decide_probability(state, 'A refund is requested.')` is the probability that a
+      statement holds; `decide_decision(state, question, 0.7)` applies an explicit threshold (never
+      guessed for you).
+    - **choice** — `decide_choice(state, 'Which team owns this?', ['billing','defect','other'])`
+      picks one option from a list you define at query time, with the probability of each.
+    - **score** — `decide_score(state, 'How frustrated is the writer?', ['calm','frustrated','angry'])`
+      rates a text on an ordered rubric of 2 to 10 levels and returns the expected level.
+
+    Several questions about the same text go in one request with `decide_many` (JSON) or
+    `decide_table` (one row per question: probability, choice, score, per-option distribution).
+
+    ### Pick the model that fits
+    One interface, several models, comparable in a single query:
+
+    - **Hosted:** TypeSafe **Jev** (`typesafe`) and Liquid AI **D1** (`liquid`). Calls send the text you
+      score to the provider, so they sit behind an explicit opt-in (`anofox_decide_allow_remote`),
+      off by default.
+    - **Local servers:** [strands-decider](https://github.com/strands-labs/strands-decider)
+      (`strands`, keyless, on loopback), Kev, or any System One compatible endpoint (`systemone`).
+    - **In-process and offline:** **Julia-1** and **Laya** on ONNX Runtime (`local`), exported once
+      with the bundled `tools/export_julia`.
+    - **`stub`:** a built-in test model that returns constants, so the SQL can be tried with no key.
+
+    API keys come from environment variables or DuckDB secrets
+    (`CREATE SECRET (TYPE anofox_decide, API_KEY '...', SCOPE 'api.liquid.ai')`); a secret always
+    overrides the environment, and a key is only ever sent to the host it was configured for. **The
+    extension ships no model weights.**
+
+    ### Built for many rows
+    Scalar calls over a table evaluate a chunk of rows together: identical requests are sent once, up
+    to `anofox_decide_max_concurrency` remote requests run at the same time (default 8 for hosted
+    providers), connections are reused, and a rate limit makes the query back off. On the real Liquid
+    D1 service, 8 tickets with three questions each took 176.7 s one at a time and 23.1 s this way.
+
+    ### Know how good it is
+    `decide_accuracy`, `decide_brier_score` and `decide_ece` aggregate over `(probability, label)`
+    pairs, so comparing models on your own labelled data is one query. A 200-ticket evaluation of every
+    supported model on public data is in the repository (`docs/EVALUATION.md`).
+
+    ### Errors that say what to do
+    Every error is `<function>: <what went wrong>. Fix: <what to run>` and echoes the value that
+    caused it. `decide_doctor()` checks the whole setup, and `decide_models()` shows which models can
+    be called right now and why not.
+
+    ### Surface
+    - `decide_probability` / `decide_decision` / `decide_choice` / `decide_score` — evaluate one question
+    - `decide_many` / `decide_table` — several questions about one text, as JSON or rows
+    - `decide_accuracy` / `decide_brier_score` / `decide_ece` — quality metrics (aggregates)
+    - `decide_register_model` / `decide_unregister_model` / `decide_models` / `decide_doctor` — models and diagnostics
+    - `SET anofox_decide_*` settings (default model, remote opt-in, concurrency, timeout, retries)
+
+    Every function is also available as `anofox_decide_*`. See the
+    [project repository](https://github.com/DataZooDE/anofox-decide) for the full SQL API, examples
+    and troubleshooting.
