@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-decide
-  ref: 742d4bba4cf7d93d2b8d77baf3856f17918cefa0
+  ref: 6a3b5cee3f8025f48ed003ffcf74bd7bddccd739
 
 docs:
   hello_world: |
@@ -78,10 +78,16 @@ docs:
     providers), connections are reused, and a rate limit makes the query back off. On the real Liquid
     D1 service, 8 tickets with three questions each took 176.7 s one at a time and 23.1 s this way.
 
-    ### Know how good it is
+    ### Know how good it is, and fix the cut-off
     `decide_accuracy`, `decide_brier_score` and `decide_ece` aggregate over `(probability, label)`
     pairs, so comparing models on your own labelled data is one query. A 200-ticket evaluation of every
     supported model on public data is in the repository (`docs/EVALUATION.md`).
+
+    Some models rank well but are wrong at the 0.5 cut-off. `decide_fit_calibration(p, outcome)` fits
+    Platt scaling to a labelled sample and returns a spec you register the model with
+    (`MAP {'calibration': 'platt:1.92,-0.72'}`); the ranking never changes, and choice and score answers
+    are untouched. `decide_choice_distribution` returns the probability of every option, so a
+    low-confidence answer can be left undecided in plain SQL.
 
     ### Errors that say what to do
     Every error is `<function>: <what went wrong>. Fix: <what to run>` and echoes the value that
@@ -89,9 +95,9 @@ docs:
     be called right now and why not.
 
     ### Surface
-    - `decide_probability` / `decide_decision` / `decide_choice` / `decide_score` — evaluate one question
+    - `decide_probability` / `decide_decision` / `decide_choice` / `decide_choice_distribution` / `decide_score` — evaluate one question
     - `decide_many` / `decide_table` — several questions about one text, as JSON or rows
-    - `decide_accuracy` / `decide_brier_score` / `decide_ece` — quality metrics (aggregates)
+    - `decide_accuracy` / `decide_brier_score` / `decide_ece` / `decide_fit_calibration` — quality metrics and calibration (aggregates)
     - `decide_register_model` / `decide_unregister_model` / `decide_models` / `decide_doctor` — models and diagnostics
     - `SET anofox_decide_*` settings (default model, remote opt-in, concurrency, timeout, retries)
 
