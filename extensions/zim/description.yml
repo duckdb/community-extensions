@@ -1,7 +1,7 @@
 extension:
   name: zim
   description: Read and write .zim (Kiwix / openZIM) archives directly in DuckDB via libzim, from local files or remote S3/HTTP — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more, with a zim:// filesystem, full-text search, and COPY TO for building archives from any query.
-  version: 0.9.2
+  version: 0.9.3
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -12,11 +12,16 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_zim
-  ref: 666266e6fb691159d6db1190085c65f8ea608b90
+  ref: aa7aea23e2623d259efad62225c3d7a3335e80da
   # ref_next: the community registry builds every descriptor carrying it against
   # the v2.0 line (build_next.yml, v2.0-cyanoptera). Same commit as ref: zim builds
   # and passes its full suite there as of v0.9.1.
-  ref_next: ce892d5515bcbe5993f2efbe0f22a302a4121e3c
+  # ref_next == ref (deliberate): v0.9.3 compiles on v2.0-cyanoptera, so the
+  # prerelease leg should build and test the SHIPPED release rather than skip it
+  # or validate something else. The previous pair was inverted -- ref_next pointed
+  # at ce892d5 (tag v0.9.1), OLDER than ref 666266e -- so the prerelease leg was
+  # validating code the stable line no longer shipped.
+  ref_next: aa7aea23e2623d259efad62225c3d7a3335e80da
 docs:
   hello_world: |
     -- Load the extension
