@@ -1,7 +1,7 @@
 extension:
   name: anofox_decide
   description: Natural-language decisions on your data inside DuckDB — yes/no probabilities, one-of-N choices and ordinal scores with the answer sets written in the query, from hosted (TypeSafe Jev, Liquid AI D1), local-server and in-process ONNX decision models, plus calibration metrics
-  version: '2026.10.03'
+  version: '2026.10.04'
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: DataZooDE/anofox-decide
-  ref: 742d4bba4cf7d93d2b8d77baf3856f17918cefa0
+  ref: 65d3743b4f5cfe62948f96440622d243f80ca55d
 
 docs:
   hello_world: |
@@ -52,25 +52,30 @@ docs:
     - **score** — `decide_score(state, 'How frustrated is the writer?', ['calm','frustrated','angry'])`
       rates a text on an ordered rubric of 2 to 10 levels and returns the expected level.
 
-    Several questions about the same text go in one request with `decide_many` (JSON) or
-    `decide_table` (one row per question: probability, choice, score, per-option distribution).
+    Several questions about the same text go in one request with `decide_many` (JSON), `decide_table`
+    (one row per question: probability, choice, score, per-option distribution) or `decide_answers`
+    (the same rows as a list you `unnest`, which scores a whole table concurrently).
 
     ### Pick the model that fits
     One interface, several models, comparable in a single query:
 
-    - **Hosted:** TypeSafe **Jev** (`typesafe`) and Liquid AI **D1** (`liquid`). Calls send the text you
+    - **Hosted:** TypeSafe **Jev** (`typesafe`), Liquid AI **D1** (`liquid`) and Cloudflare **Clef** /
+      **Clef-flash** (`cloudflare`, on Workers AI). Calls send the text you
       score to the provider, so they sit behind an explicit opt-in (`anofox_decide_allow_remote`),
       off by default.
     - **Local servers:** [strands-decider](https://github.com/strands-labs/strands-decider)
       (`strands`, keyless, on loopback), Kev, or any System One compatible endpoint (`systemone`).
-    - **In-process and offline:** **Julia-1** and **Laya** on ONNX Runtime (`local`), exported once
-      with the bundled `tools/export_julia`.
+    - **In-process and offline:** **Laya** (multilingual or typed-decisions) and **Julia-1** on ONNX Runtime
+      (`local`). `CALL decide_download('laya-multilingual')` fetches the upstream weights from Hugging
+      Face once (about 0.7 GB, pinned and SHA-256 verified); after that it runs inside DuckDB with no
+      Python and no network. Over-long text raises an error instead of being cut silently
+      (`decide_token_count` shows what fits).
     - **`stub`:** a built-in test model that returns constants, so the SQL can be tried with no key.
 
     API keys come from environment variables or DuckDB secrets
     (`CREATE SECRET (TYPE anofox_decide, API_KEY '...', SCOPE 'api.liquid.ai')`); a secret always
     overrides the environment, and a key is only ever sent to the host it was configured for. **The
-    extension ships no model weights.**
+    extension ships no model weights**: local models download the upstream files on request.
 
     ### Built for many rows
     Scalar calls over a table evaluate a chunk of rows together: identical requests are sent once, up
@@ -78,10 +83,16 @@ docs:
     providers), connections are reused, and a rate limit makes the query back off. On the real Liquid
     D1 service, 8 tickets with three questions each took 176.7 s one at a time and 23.1 s this way.
 
-    ### Know how good it is
+    ### Know how good it is, and fix the cut-off
     `decide_accuracy`, `decide_brier_score` and `decide_ece` aggregate over `(probability, label)`
     pairs, so comparing models on your own labelled data is one query. A 200-ticket evaluation of every
     supported model on public data is in the repository (`docs/EVALUATION.md`).
+
+    Some models rank well but are wrong at the 0.5 cut-off. `decide_fit_calibration(p, outcome)` fits
+    Platt scaling to a labelled sample and returns a spec you register the model with
+    (`MAP {'calibration': 'platt:1.92,-0.72'}`); the ranking never changes, and choice and score answers
+    are untouched. `decide_choice_distribution` returns the probability of every option, so a
+    low-confidence answer can be left undecided in plain SQL.
 
     ### Errors that say what to do
     Every error is `<function>: <what went wrong>. Fix: <what to run>` and echoes the value that
@@ -89,10 +100,11 @@ docs:
     be called right now and why not.
 
     ### Surface
-    - `decide_probability` / `decide_decision` / `decide_choice` / `decide_score` — evaluate one question
-    - `decide_many` / `decide_table` — several questions about one text, as JSON or rows
-    - `decide_accuracy` / `decide_brier_score` / `decide_ece` — quality metrics (aggregates)
+    - `decide_probability` / `decide_decision` / `decide_choice` / `decide_choice_distribution` / `decide_score` — evaluate one question
+    - `decide_many` / `decide_table` / `decide_answers` — several questions about one text, as JSON, rows, or a list to `unnest`
+    - `decide_accuracy` / `decide_brier_score` / `decide_ece` / `decide_fit_calibration` — quality metrics and calibration (aggregates)
     - `decide_register_model` / `decide_unregister_model` / `decide_models` / `decide_doctor` — models and diagnostics
+    - `decide_download` / `decide_token_count` — fetch a local model, count tokens for its window
     - `SET anofox_decide_*` settings (default model, remote opt-in, concurrency, timeout, retries)
 
     Every function is also available as `anofox_decide_*`. See the
