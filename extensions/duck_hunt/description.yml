@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.13.1
+  version: 1.13.3
   language: C++
   build: cmake
   license: Apache-2.0
@@ -16,14 +16,15 @@ extension:
 repo:
   github: teaguesterling/duck_hunt
   andium: 68ca1c4676f706980a6503c19b789f5224596b4d
-  ref: bc6084e5b72379f06f3034dab8bcab4f931daf6b
-  # ref_next intentionally omitted (was == ref) to SKIP the v2.0-cyanoptera
-  # prerelease leg. cyanoptera removed TableFunction::named_parameters, which
-  # duck_hunt uses extensively (read-side key lookups + declaration), so v1.13.1
-  # cannot build there until the family-C migration lands. Omitting ref_next skips
-  # test_against_latest (per its own semantics) so the v1.5.6 stable artifact ships;
-  # the prerelease leg is deploy:false and never publishes anyway. Restore ref_next
-  # in a one-line PR once family C is migrated (wait for v2.0.0 to tag).
+  ref: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
+  # ref_next == ref (deliberate): v1.13.3 (tag v1.13.3) completes the family-C
+  # migration (named_parameters -> FunctionSignature typed-kwargs shim) AND fixes
+  # missing-file tolerance on the v2.0/macOS build (a narrow catch(const
+  # IOException&) in the in-out read path that missed the open exception there,
+  # broadened to catch(const std::exception&)). The v2.0-cyanoptera prerelease leg
+  # now BUILDS AND TESTS on this exact commit instead of skipping vacuously; v1.13.2
+  # built but failed 3 missing-file tests on v2.0/macOS, which this ref fixes.
+  ref_next: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
