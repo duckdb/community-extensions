@@ -1,7 +1,7 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.13.2
+  version: 1.13.3
   language: C++
   build: cmake
   license: Apache-2.0
@@ -16,15 +16,15 @@ extension:
 repo:
   github: teaguesterling/duck_hunt
   andium: 68ca1c4676f706980a6503c19b789f5224596b4d
-  ref: 8c7b3b5b7c8d7e2decd066cfd9344fdc9c2fe27f
-  # ref_next == ref (deliberate): v1.13.2 (tag v1.13.2) completes the family-C
-  # migration (named_parameters -> FunctionSignature typed-kwargs shim), so the
-  # v2.0-cyanoptera prerelease leg now BUILDS AND TESTS on this exact commit
-  # instead of skipping vacuously. Previously ref_next was omitted because
-  # cyanoptera removed TableFunction::named_parameters (which duck_hunt used
-  # extensively) and the extension could not build there; that blocker is now
-  # resolved and verified by a real cyanoptera CI leg on this commit.
-  ref_next: 8c7b3b5b7c8d7e2decd066cfd9344fdc9c2fe27f
+  ref: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
+  # ref_next == ref (deliberate): v1.13.3 (tag v1.13.3) completes the family-C
+  # migration (named_parameters -> FunctionSignature typed-kwargs shim) AND fixes
+  # missing-file tolerance on the v2.0/macOS build (a narrow catch(const
+  # IOException&) in the in-out read path that missed the open exception there,
+  # broadened to catch(const std::exception&)). The v2.0-cyanoptera prerelease leg
+  # now BUILDS AND TESTS on this exact commit instead of skipping vacuously; v1.13.2
+  # built but failed 3 missing-file tests on v2.0/macOS, which this ref fixes.
+  ref_next: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
