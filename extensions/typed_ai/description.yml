@@ -1,6 +1,6 @@
 extension:
   name: typed_ai
-  description: Ask a model yes/no, pick-one and score questions about your rows, with real probabilities and spending capped by default
+  description: Use TypeSafe Jev (or another AI, even a free one on your laptop) to sort, filter and check the text in your tables. Get yes or no, pick one, or a rating, see how sure it is, and never spend more than your limit.
   version: 0.1.0
   language: C++
   build: cmake
@@ -16,45 +16,124 @@ repo:
 
 docs:
   hello_world: |
-    -- Audit a chatbot: did each answer stick to its source? Needs TYPESAFE_API_KEY, or a local model profile.
+    -- Sort a lost-and-found desk with TypeSafe Jev. The key comes from TYPESAFE_API_KEY.
     CREATE SECRET jev (TYPE typed_ai, PROVIDER 'jev', API_KEY getenv('TYPESAFE_API_KEY'));
-    -- No key? A free local model works too (weaker answers):
+
+    -- Other choices: run one of these in place of the line above. The rest stays the same.
+    -- A free local model (run `ollama pull gemma2:2b` first). Weaker answers; nothing leaves
+    -- your laptop.
     -- CREATE SECRET local (TYPE typed_ai, PROVIDER 'openai', MODEL 'gemma2:2b',
     --   URL 'http://localhost:11434/v1/chat/completions', USD_PER_MTOK_IN 0, USD_PER_MTOK_OUT 0);
-    CREATE TABLE bot_answers AS SELECT * FROM (VALUES
-      ('Can I take photos?', 'Photography without flash is allowed in all galleries.', 'Yes, flash is fine everywhere.'),
-      ('How heavy is the meteorite?', 'The Ashford meteorite weighs 412 kilograms.', 'It weighs about 412 kg.')
-    ) t(question, source, answer);
-    CREATE TABLE topics AS SELECT * FROM (VALUES ('visiting rules'), ('science'), ('history')) t(name);
+    -- OpenAI. In our October 2026 test it cost about 2.5 times as much as Jev and was less
+    -- accurate.
+    -- CREATE SECRET oai (TYPE typed_ai, PROVIDER 'openai', MODEL 'gpt-4o-mini',
+    --   API_KEY getenv('OPENAI_API_KEY'), USD_PER_MTOK_IN 0.15, USD_PER_MTOK_OUT 0.60);
 
-    -- Price it first: no calls, no cost
-    SET typed_dry_run = true;
-    SELECT typed_prob(b, 'the answer is fully supported by the source') FROM bot_answers b;
-    SELECT dry_run_usd FROM typed_usage();
-    SET typed_dry_run = false;
+    CREATE TABLE found AS FROM (VALUES
+      ('insulin pen in a blue case', 'waiting room'),
+      ('laptop with a school sticker', 'train to the airport'),
+      ('wedding ring wrapped in a napkin', 'cafe counter'),
+      ('box of live crickets labelled lizard food', 'train to Leeds'),
+      ('cello in a hard case', 'platform 3'),
+      ('half-eaten sandwich', 'train to Leeds'),
+      ('broken umbrella', 'platform 1')) t(item, place);
+    CREATE TABLE shelves AS FROM (VALUES ('medical'), ('electronics'), ('valuables'),
+      ('animals'), ('food and rubbish'), ('general')) t(name);
 
-    -- The whole row goes in, so the model compares answer and source
-    SELECT answer, typed_prob(b, 'the answer is fully supported by the source') AS supported FROM bot_answers b;
+    -- Odds from 0 to 1
+    SELECT item, typed_prob(item, 'the owner needs this back today') AS urgent
+    FROM found ORDER BY urgent DESC;
+    -- insulin pen in a blue case                  0.59
+    -- laptop with a school sticker                0.54
+    -- wedding ring wrapped in a napkin            0.54
+    -- half-eaten sandwich                         0.37
+    -- broken umbrella                             0.34
+    -- cello in a hard case                        0.31
+    -- box of live crickets labelled lizard food   0.30
 
-    -- Options can come from a table
-    SELECT question, typed_pick(question, 'what is the visitor asking about?', (SELECT list(name) FROM topics)) FROM bot_answers;
+    -- Pick a shelf; the options come from a table
+    SELECT item, typed_pick(item, 'which shelf?', (SELECT list(name) FROM shelves)) AS shelf
+    FROM found;
+    -- insulin pen in a blue case                  medical
+    -- laptop with a school sticker                electronics
+    -- wedding ring wrapped in a napkin            valuables
+    -- box of live crickets labelled lizard food   animals
+    -- cello in a hard case                        general
+    -- half-eaten sandwich                         food and rubbish
+    -- broken umbrella                             general
+
+    -- The whole row goes in, so the model sees where it was found
+    SELECT item FROM found f WHERE typed_is(f, 'it was left on a train');
+    -- laptop with a school sticker
+    -- box of live crickets labelled lizard food
+    -- half-eaten sandwich
+
+    -- What did that cost?
+    SELECT requests, printf('$%.5f', spent_usd) AS spent FROM typed_usage();
+    -- 3   $0.00009
   extended_description: |
-    `typed_ai` asks a model typed questions about rows and returns the model's own odds as probabilities.
-    It works with [TypeSafe Jev](https://docs.typesafe.ai) and with any OpenAI-compatible server that returns
-    `logprobs`, including a local Ollama or vLLM.
+    `typed_ai` lets you ask an AI simple questions about each row of a table, straight from SQL. It is built
+    for [TypeSafe Jev](https://docs.typesafe.ai), which in our tests (October 2026) gave the most accurate answers at
+    the lowest cost, since it answers many rows in one request. It also works with OpenAI, or with a free local AI on
+    your own computer through Ollama. New AI services work too, with no update needed, as long as they use
+    OpenAI's format and report how sure they are: point a secret at their web address.
 
-    | Function | Returns |
+    | Function | What you get back |
     | --- | --- |
-    | `typed_is(input, statement [, threshold])` | `BOOLEAN`, for `WHERE` |
-    | `typed_prob(input, statement)` | probability of yes, 0 to 1 |
-    | `typed_pick(input, question, options)` | the option the model rates highest; options can come from a table |
-    | `typed_score(input, question, levels)` | probability-weighted level |
-    | `typed_ask(input, question_json)` | the full answer as JSON |
-    | `typed_usage()` | spend, budget, requests, cache and breaker state |
+    | `typed_is(value, statement [, cutoff])` | true or false, for filtering with `WHERE` |
+    | `typed_prob(value, statement)` | how likely the statement is true, from 0 to 1 |
+    | `typed_pick(value, question, options)` | the best option; the options can come from a table |
+    | `typed_score(value, question, levels)` | a rating on your scale, e.g. 0 for the lowest level up to 3 |
+    | `typed_ask(value, question_json)` | the full answer, with the odds for every option |
+    | `typed_usage()` | what you have spent, your limit, and how many answers were reused for free |
 
-    Spending is capped from the first query: 1,000 rows per query and $1.00 per database until you raise
-    `typed_max_rows` or `typed_budget_usd`. `typed_dry_run` prices a query without calling anything. A job that
-    stops partway keeps every answer it paid for, so running it again costs only the missing rows.
+    `value` can be text, any other value, or a whole row.
 
-    Every value you judge is sent to the provider named in your profile (a DuckDB secret), over https unless that
-    server runs on your own machine; keep private data on a local model. HTTP goes through `httpfs`, loaded on first use.
+    Safe by default:
+
+    - At most 1,000 rows per query and $1.00 in total, until you raise `typed_max_rows` or `typed_budget_usd`.
+    - `SET typed_dry_run = true` shows what a query would cost without asking the AI anything.
+    - If a job stops partway, the answers you paid for are kept. Run it again and you pay only for the rest.
+
+    Each value you check is sent to the AI service you set up. For private data, use a local model, so nothing
+    leaves your computer.
+
+    #### Audit an AI agent
+
+    Did the agent do more than it was asked? The whole row goes in, so the model compares the request with the action.
+
+    ```sql
+    CREATE TABLE agent_log AS FROM (VALUES
+      ('book a table for 2 on Friday', 'booked a table for 2, Friday 7pm'),
+      ('cancel my gym membership', 'cancelled it and deleted all workout history'),
+      ('find a cheaper phone plan', 'listed 3 cheaper plans'),
+      ('reply to Sam that I am running late', 'replied to Sam and to everyone in the team chat'),
+      ('pay the electricity bill', 'paid the bill and set up autopay for 12 months'))
+      t(asked, did);
+
+    SELECT asked, typed_prob(a, 'the agent did more than the user asked for') AS overreach
+    FROM agent_log a ORDER BY overreach DESC;
+    -- reply to Sam that I am running late   0.95
+    -- pay the electricity bill              0.95
+    -- cancel my gym membership              0.93
+    -- book a table for 2 on Friday          0.60   (the agent chose 7pm on its own)
+    -- find a cheaper phone plan             0.19
+    ```
+
+    #### Find private data before sharing
+
+    Jev and a local model both name the kind of private data. To keep the notes on your machine, run
+    `SET typed_profile = 'local'` first; the yes/no odds are less reliable on a small local model.
+
+    ```sql
+    CREATE TABLE notes AS FROM (VALUES
+      (1, 'Customer liked the new blue colour, wants it in size 10.'),
+      (2, 'Call Priya back on 07700 900123 after 5pm.'),
+      (3, 'Said she is on chemo, so deliveries must be left at the door.'),
+      (4, 'Paid with a card ending 4417, asked for a refund next month.'),
+      (5, 'Asked if the store opens on bank holidays.')) t(id, note);
+
+    SELECT id, typed_pick(note, 'what private data does this note contain?',
+      ['none', 'contact details', 'health', 'money']) AS found FROM notes;
+    -- 1 none   2 contact details   3 health   4 money   5 none
+    ```
