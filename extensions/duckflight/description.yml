@@ -52,5 +52,5 @@ docs:
     and internal session/catalog helpers installed by the runtime. These support PostgreSQL
     queries and client metadata discovery; they are not additional server controls or a complete
     implementation of PostgreSQL functions. Their catalog comments describe each helper.
-    DuckDB 1.5.5 does not expose function-description setters through the table-function C API,
+    DuckDB 1.5.6 does not expose function-description setters through the table-function C API,
     so the five native server functions are documented above.
