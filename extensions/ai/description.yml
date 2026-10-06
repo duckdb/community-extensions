@@ -1,6 +1,6 @@
 extension:
   name: ai
-  description: "Call LLMs from SQL: classify, summarize, extract typed fields, embed text and ask questions about your tables, with Ollama, OpenAI, Claude, Gemini and more"
+  description: "Call LLMs from SQL to classify, summarize, extract typed fields, embed and search text, or query your tables, with local models or 35+ hosted APIs"
   version: 0.7.0
   language: C++
   build: cmake
@@ -15,64 +15,81 @@ repo:
 
 docs:
   hello_world: |
-    -- Free and local: install Ollama (https://ollama.com), then run `ollama pull qwen3.8:27b`
+    -- 1. Choose where the model runs.
+    --    Local: any model server on your machine, so data never leaves it. This example uses
+    --    Ollama with its default model (`ollama pull llama3.2`); llama.cpp, LM Studio and vLLM work too.
     SET duckdb_ai_provider = 'ollama';
-    SET duckdb_ai_model = 'qwen3.8:27b';
+    --    Hosted: put the key in the environment (OPENAI_API_KEY, ANTHROPIC_API_KEY, GEMINI_API_KEY, ...)
+    --    and pick the provider instead, for example: SET duckdb_ai_provider = 'anthropic';
 
+    -- 2. Run model functions over a table like any other SQL function.
     CREATE TABLE tickets AS SELECT * FROM (VALUES
-        (1, 'I was charged twice for the same invoice.'),
+        (1, 'I was charged twice for the same invoice. Please refund one of them.'),
         (2, 'The dashboard has been down for every user since 9am.')
     ) t(id, body);
 
-    -- A label and a summary for every row
+    -- A label, a yes/no check and a summary for every row
     SELECT id,
-           ai_classify(body, ['billing', 'outage', 'other']) AS category,
+           ai_classify(body, MAP {'billing': 'Charges, invoices and refunds',
+                                  'outage': 'Something is down for users',
+                                  'other': 'Anything else'}) AS category,
+           ai_filter(body, 'asks for a refund') AS wants_refund,
            ai_summarize(body) AS summary
     FROM tickets;
 
-    -- Typed fields from a JSON Schema, usable like any other column
+    -- Typed fields from a JSON Schema, returned as a STRUCT
     SELECT id, r.product_area, r.urgency
     FROM (SELECT id, ai_extract_record(body, '{"type": "object",
             "properties": {"product_area": {"type": "string"}, "urgency": {"type": "integer"}},
             "required": ["product_area", "urgency"]}') AS r
           FROM tickets);
 
-    -- Decision models return probabilities instead of text (`ollama pull nimble`)
-    SELECT id, ai_decide(body, {urgent: MAP {'true': 'Needs action now', 'false': 'Can wait'}},
-                         provider := 'ollama') AS decision
-    FROM tickets;
-
-    -- Hosted models read API keys from the environment (here OPENAI_API_KEY), never from SQL
-    SELECT ai_complete('Describe DuckDB in one sentence.', provider := 'openai', model := 'gpt-5.6-luna');
-
-    -- Calls, tokens, retries and estimated cost so far
+    -- 3. See what it cost: calls, tokens, failures and estimated spend (NULL for local models)
+    SELECT sum(calls) AS calls, sum(total_tokens) AS tokens, sum(failures) AS failures,
+           sum(estimated_cost_usd) AS estimated_usd
     FROM ai_usage_summary();
   extended_description: |
-    The `ai` extension calls large language models, embedding models and decision models from DuckDB SQL,
-    one row at a time or over whole tables.
+    The `ai` extension brings language models into DuckDB SQL. Point a function at a column and it calls
+    the model once per row, several rows at a time, and returns an ordinary DuckDB value (`VARCHAR`,
+    `BOOLEAN`, `DOUBLE`, a typed `STRUCT`, a `LIST` or an embedding) that you can filter, join, aggregate
+    and save like any other column.
 
     **What you can do**
 
-    - Enrich rows: `ai_classify`, `ai_summarize`, `ai_translate`, `ai_filter`, `ai_score`, `ai_redact`, `ai_complete`.
-    - Get typed results instead of text: `ai_extract_record` returns a `STRUCT` from a JSON Schema,
-      `ai_complete_json` validates JSON, and `ai_decide` returns calibrated probabilities from decision models
-      (TypeSafe Jev, Cloudflare Clef, Perplexity, Ollama).
-    - Search by meaning: `ai_embed`, `ai_similarity`, `ai_rerank`, and chunking with `ai_generate_chunks` and `ai_prep_search`.
+    - Label and rewrite text: `ai_classify`, `ai_classify_labels`, `ai_sentiment`, `ai_summarize`,
+      `ai_translate`, `ai_fix_grammar`, `ai_redact`, `ai_complete`.
+    - Get typed answers instead of free text: `ai_extract_record` returns a `STRUCT` from a JSON Schema
+      (pydantic schemas work), `ai_filter` a `BOOLEAN`, `ai_score` a `DOUBLE` from 0 to 1, and
+      `ai_complete_json` validated JSON.
+    - Ask several typed questions per row with decision models: `ai_decide` returns probabilities and
+      confidences from TypeSafe Jev, Cloudflare Clef, Perplexity or a local decision model.
+    - Search by meaning: `ai_embed`, `ai_similarity` and `ai_rerank`, with `ai_generate_chunks` and
+      `ai_prep_search` to split long documents.
     - Summarize groups with the `ai_agg` and `ai_summarize_agg` aggregates.
-    - Ask questions about your tables: `ai_sql` returns a validated read-only `SELECT`, and `ai_query_data` runs it.
+    - Ask questions about your data: `ai_sql` writes a validated read-only `SELECT` from your schema, and
+      `ai_query_data` runs it.
 
-    **Providers**
+    **Any model, local or hosted**
 
-    Local models through Ollama, llama.cpp or any OpenAI-compatible server, and hosted models from OpenAI,
-    Anthropic, Google Gemini, Azure OpenAI, Amazon Bedrock, Google Vertex AI, Databricks, Snowflake Cortex,
-    OpenRouter, Mistral, DeepSeek and more than 20 others. One SQL interface works across all of them.
+    Local model servers keep data on your machine: Ollama, llama.cpp, LM Studio, vLLM or any
+    OpenAI-compatible endpoint. Hosted APIs include OpenAI, Anthropic, Google Gemini and Vertex AI, Azure
+    OpenAI, Amazon Bedrock, Mistral, DeepSeek, Groq, Together, OpenRouter, Databricks and Snowflake Cortex,
+    among more than 35 providers. Switching is one setting; the SQL stays the same. Replies are read the way
+    small models write them, so a label in markdown or followed by an explanation still counts.
 
-    **Built for production and for agents**
+    **Safe to run on real tables**
 
-    - Row-level error capture with `ai_try_complete`, retries with backoff, rate and concurrency limits,
-      an opt-in response cache, and usage and cost tracking with `ai_usage()`.
-    - API keys come only from environment variables or `TYPE duckdb_ai` secrets. Loading the extension makes no
-      network calls, `allowed_hosts` restricts where data can go, and `ai_completion_request_json` previews a
-      request without sending it.
-    - Documentation: https://leonardovida.github.io/duckdb-ai/. Agents can read the full docs as plain text from
-      https://leonardovida.github.io/duckdb-ai/llms-full.txt.
+    - API keys come only from environment variables or `TYPE duckdb_ai` secrets, never from SQL arguments.
+      Loading the extension makes no network calls, and `allowed_hosts` limits where data can be sent.
+    - `ai_completion_request_json` shows a request without sending it. `ai_usage()` and
+      `ai_usage_summary()` track calls, tokens, failures and estimated cost.
+    - Per-row error handling (`on_error := 'null'`, `ai_try_complete`), retries with backoff, rate and
+      concurrency limits, and an opt-in response cache keep long batch runs predictable.
+
+    **Learn more**
+
+    - Documentation: https://leonardovida.github.io/duckdb-ai/docs
+    - Function reference: https://leonardovida.github.io/duckdb-ai/docs/functions
+    - Cookbooks for ticket triage, semantic search, resumable batch runs and cost tracking:
+      https://leonardovida.github.io/duckdb-ai/docs/cookbooks
+    - For agents, the full docs as one text file: https://leonardovida.github.io/duckdb-ai/llms-full.txt
