@@ -1,0 +1,35 @@
+extension:
+  name: oxedi
+  description: Read X12 EDI 835 remittance files as tables, losslessly, with the findings as a table
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw;windows_amd64_rtools"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - javillegasna
+
+repo:
+  github: javillegasna/oxedi
+  ref: ba12b84057a60b0eb23a542875250b06c7dbae10
+
+docs:
+  hello_world: |
+    INSTALL oxedi FROM community;
+    LOAD oxedi;
+
+    -- Claims of one file, of several files, or of a glob
+    FROM read_835('remittance.835');
+    FROM read_835(['a.835', 'b.835'], filename := true);
+    FROM read_835('remits/*.835', table_name := 'services');
+
+    -- Findings of the parse (also for files that are not valid 835)
+    FROM read_835('remits/*.835', table_name := 'diagnostics', ignore_errors := true);
+
+    -- Text columns are VARCHAR; binary := true keeps the raw bytes
+    FROM read_835('remittance.835', binary := true);
+
+    -- Export to Parquet
+    COPY (SELECT * FROM read_835('remits/*.835', table_name := 'claims'))
+      TO 'claims.parquet';
