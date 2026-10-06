@@ -1,7 +1,7 @@
 extension:
   name: ai
-  description: AI functions for SQL — completions, classification, extraction, embeddings, and read-only SQL generation across local and hosted model providers
-  version: 0.6.0
+  description: "Call LLMs from SQL: classify, summarize, extract typed fields, embed text and ask questions about your tables, with Ollama, OpenAI, Claude, Gemini and more"
+  version: 0.7.0
   language: C++
   build: cmake
   license: MIT
@@ -11,37 +11,68 @@ extension:
 
 repo:
   github: leonardovida/duckdb-ai
-  ref: 44020c8a1e869aa1614827c4f6ac865c1ce9b804
+  ref: 3f9125bbfbe8b19c6ffb22cb0f424014b23e1d5e
 
 docs:
   hello_world: |
-    -- Use a free local model via Ollama (https://ollama.com)
+    -- Free and local: install Ollama (https://ollama.com), then run `ollama pull qwen3.8:27b`
     SET duckdb_ai_provider = 'ollama';
-    SET duckdb_ai_model = 'gemma4:e4b';
+    SET duckdb_ai_model = 'qwen3.8:27b';
 
-    SELECT ai_summarize('DuckDB is an analytical database built for fast local queries.');
+    CREATE TABLE tickets AS SELECT * FROM (VALUES
+        (1, 'I was charged twice for the same invoice.'),
+        (2, 'The dashboard has been down for every user since 9am.')
+    ) t(id, body);
 
-    -- Or a hosted provider, with the key kept in a DuckDB secret
-    CREATE SECRET openai_ai (TYPE duckdb_ai, AI_PROVIDER 'openai', API_KEY '...', MODEL 'gpt-4o-mini');
-    SELECT ai_classify('invoice overdue', 'billing, support', secret := 'openai_ai');
+    -- A label and a summary for every row
+    SELECT id,
+           ai_classify(body, ['billing', 'outage', 'other']) AS category,
+           ai_summarize(body) AS summary
+    FROM tickets;
+
+    -- Typed fields from a JSON Schema, usable like any other column
+    SELECT id, r.product_area, r.urgency
+    FROM (SELECT id, ai_extract_record(body, '{"type": "object",
+            "properties": {"product_area": {"type": "string"}, "urgency": {"type": "integer"}},
+            "required": ["product_area", "urgency"]}') AS r
+          FROM tickets);
+
+    -- Decision models return probabilities instead of text (`ollama pull nimble`)
+    SELECT id, ai_decide(body, {urgent: MAP {'true': 'Needs action now', 'false': 'Can wait'}},
+                         provider := 'ollama') AS decision
+    FROM tickets;
+
+    -- Hosted models read API keys from the environment (here OPENAI_API_KEY), never from SQL
+    SELECT ai_complete('Describe DuckDB in one sentence.', provider := 'openai', model := 'gpt-5.6-luna');
+
+    -- Calls, tokens, retries and estimated cost so far
+    FROM ai_usage_summary();
   extended_description: |
-    The ai extension adds model-backed analytical functions to SQL: completions
-    (`ai_complete`), text tasks (`ai_summarize`, `ai_classify`, `ai_extract`,
-    `ai_translate`, `ai_redact`, `ai_filter`), structured output validated
-    against a JSON Schema (`ai_complete_json`, `ai_complete_record`,
-    `ai_extract_record`), embeddings and similarity (`ai_embed`,
-    `ai_similarity`, `ai_rerank`), aggregates (`ai_agg`, `ai_summarize_agg`),
-    and a SQL assistant that only returns parser-validated read-only `SELECT`
-    statements (`ai_sql`, `ai_query_data`).
+    The `ai` extension calls large language models, embedding models and decision models from DuckDB SQL,
+    one row at a time or over whole tables.
 
-    It supports local Ollama, llama.cpp, and OpenAI-compatible servers as well as OpenAI,
-    Azure OpenAI, Anthropic, Gemini, Mistral, DeepSeek, OpenRouter, Databricks,
-    Snowflake Cortex, and Z.ai. Credentials come from environment variables or
-    DuckDB `TYPE duckdb_ai` secrets — never SQL arguments. The runtime includes
-    concurrency/rate controls, retries with backoff, opt-in response and
-    provider-side prompt caching, batched embedding requests, a network egress
-    allowlist, and local usage/cost tracking via `ai_usage()`.
+    **What you can do**
 
-    The extension performs no network calls at load time; providers are only
-    contacted when an `ai_*` function that needs one is executed. Full docs:
-    https://github.com/leonardovida/duckdb-ai
+    - Enrich rows: `ai_classify`, `ai_summarize`, `ai_translate`, `ai_filter`, `ai_score`, `ai_redact`, `ai_complete`.
+    - Get typed results instead of text: `ai_extract_record` returns a `STRUCT` from a JSON Schema,
+      `ai_complete_json` validates JSON, and `ai_decide` returns calibrated probabilities from decision models
+      (TypeSafe Jev, Cloudflare Clef, Perplexity, Ollama).
+    - Search by meaning: `ai_embed`, `ai_similarity`, `ai_rerank`, and chunking with `ai_generate_chunks` and `ai_prep_search`.
+    - Summarize groups with the `ai_agg` and `ai_summarize_agg` aggregates.
+    - Ask questions about your tables: `ai_sql` returns a validated read-only `SELECT`, and `ai_query_data` runs it.
+
+    **Providers**
+
+    Local models through Ollama, llama.cpp or any OpenAI-compatible server, and hosted models from OpenAI,
+    Anthropic, Google Gemini, Azure OpenAI, Amazon Bedrock, Google Vertex AI, Databricks, Snowflake Cortex,
+    OpenRouter, Mistral, DeepSeek and more than 20 others. One SQL interface works across all of them.
+
+    **Built for production and for agents**
+
+    - Row-level error capture with `ai_try_complete`, retries with backoff, rate and concurrency limits,
+      an opt-in response cache, and usage and cost tracking with `ai_usage()`.
+    - API keys come only from environment variables or `TYPE duckdb_ai` secrets. Loading the extension makes no
+      network calls, `allowed_hosts` restricts where data can go, and `ai_completion_request_json` previews a
+      request without sending it.
+    - Documentation: https://leonardovida.github.io/duckdb-ai/. Agents can read the full docs as plain text from
+      https://leonardovida.github.io/duckdb-ai/llms-full.txt.
