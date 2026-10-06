@@ -1,7 +1,7 @@
 extension:
   name: oxedi
   description: Read X12 EDI 835 remittance files as tables, losslessly, with the findings as a table
-  version: 0.1.1
+  version: 0.1.2
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: javillegasna/oxedi
-  ref: 9f34a1f366aa14fc1f9543782a12f79da31fd807
+  ref: 8ea661af8003663c145b519f94f6e72348c398bd
 
 docs:
   hello_world: |
