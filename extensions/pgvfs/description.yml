@@ -1,7 +1,7 @@
 extension:
   name: pgvfs
   description: DuckLake on PostgreSQL - a pgvfs:// filesystem storing data files as PostgreSQL rows, for one writer and many readers
-  version: 0.2.0-beta.3
+  version: 0.2.0-beta.5
   language: C++
   build: cmake
   license: Apache-2.0
@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: adonm/pgvfs
-  ref: 29f834a99b53506d289e21181a256693d933af84
-  ref_next: 29f834a99b53506d289e21181a256693d933af84
+  ref: 3dc35ce44db810cb6d9bb580216880e26be87d1e
+  ref_next: 3dc35ce44db810cb6d9bb580216880e26be87d1e
 
 docs:
   hello_world: |
@@ -54,6 +54,11 @@ docs:
       buffers.
     - **Plain PostgreSQL 11+**, including Amazon Aurora. No PostgreSQL extensions
       or superuser. The first write installs pgvfs's schema.
+    - **Full-text search.** Tantivy indexes built and searched from SQL
+      (`tantivy_index`, `tantivy_search`, `tantivy_count`, `tantivy_aggregate`,
+      `tantivy_merge`, and fts-style macros): OpenSearch-style queries, sorting,
+      highlights, exclusion of deleted rows, splits per DuckLake commit, on pgvfs
+      or any DuckDB filesystem.
 
     It suits lakes that fit comfortably in one PostgreSQL, with many concurrent
     readers doing lookups and dashboard-style queries. For scans over large lakes
@@ -67,5 +72,7 @@ docs:
 
     Documentation: [install](https://pgvfs.adonm.dev/install.html),
     [loading data](https://pgvfs.adonm.dev/loading.html),
+    [full-text search](https://pgvfs.adonm.dev/search.html),
+    [vector search](https://pgvfs.adonm.dev/vectors.html),
     [how it works](https://pgvfs.adonm.dev/how-it-works.html) and
     [performance](https://pgvfs.adonm.dev/performance.html).
