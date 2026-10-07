@@ -1,0 +1,56 @@
+extension:
+  name: duckfn_statrs
+  description: Statistical functions from the Rust statrs crate - 34 aggregates and 509 scalars covering every statrs module
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - shijianjs
+
+repo:
+  github: shijianjs/duckfn-statrs
+  ref: 19cc9b83328d373d894ebb15bb043e8f4b1bf76c
+
+docs:
+  hello_world: |
+    -- Summary statistics are aggregates over a DOUBLE column
+    SELECT sr_mean(x) FROM (VALUES (1.0), (2.0), (3.0)) t(x);
+    -- 2.0
+
+    SELECT g, sr_median(x) FROM (VALUES (1, 3.0), (1, 1.0), (1, NULL), (2, 10.0)) t(g, x) GROUP BY g ORDER BY g;
+    -- 1  |  2.0
+    -- 2  |  10.0
+
+    -- Distribution functions are scalars, evaluated row by row
+    SELECT sr_normal_quantile(0.975, 0.0, 1.0);
+    -- 1.9599639845400538
+  extended_description: |
+    Wraps the Rust statrs crate as DuckDB functions - currently 34 aggregates and 509 scalars,
+    covering every statrs module: statistics (means, order statistics incl. percentile / ranks,
+    variance families, covariance of two row-paired columns), distribution (20 continuous and 8
+    discrete univariate incl. Categorical, 4 multivariate over LIST vectors and row-major
+    flattened matrices, Empirical as aggregates, plus rand-integration sampling for all of them
+    incl. statrs' BinomialAlgorithm sampler), density (kde_pdf / knn_pdf via the kde feature),
+    function (erf / gamma / beta families, factorials, harmonic numbers, logistic / logit,
+    nine kernels selected by name, polynomial evaluation), generate (waveform and log-spaced
+    sequences) and stats_tests
+    (t-test, skewtest, Anderson-Darling, two-sample KS, Mann-Whitney U, chi-square, one-way ANOVA,
+    Fisher's exact - returning [statistic, p-value]). Integer slots (binomial n, pmf x, sample k)
+    are UBIGINT/BIGINT arguments - a non-integer literal does not bind.
+
+    Constants follow statrs: the mathematical ones plus its own floating-point precision
+    thresholds with sr_almost_eq, so a query can reuse statrs' notion of "close enough" instead
+    of hard-coding an epsilon.
+
+    NULL semantics follow statrs and propagate to the SQL side: a NULL row never enters an
+    aggregate; whatever statrs cannot define (empty group, sample variance of one value, an
+    out-of-range tau, negatives in the geometric / harmonic means) comes back as NULL, never as a
+    NAN value. A parameter that is present but invalid (std_dev <= 0, a probability outside [0, 1],
+    a non-integer where statrs wants one) fails the query.
+
+    Requires **DuckDB 1.3 or newer**: the extension is built against DuckDB 1.5.6 headers but
+    declares the C API floor it needs (v1.2.0), so one binary loads into 1.3.2 through 1.5.6 alike.
+    Development notes and the full function table live in the repository:
+    <https://github.com/shijianjs/duckfn-statrs>.
