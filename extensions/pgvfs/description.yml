@@ -1,7 +1,8 @@
+# Draft submission for duckdb/community-extensions (extensions/pgvfs/description.yml).
 extension:
   name: pgvfs
-  description: DuckLake on PostgreSQL - a pgvfs:// filesystem storing data files as PostgreSQL rows, for one writer and many readers
-  version: 0.2.0-beta.3
+  description: DuckLake on PostgreSQL - a pgvfs:// filesystem storing data files as PostgreSQL rows, for many writers and readers
+  version: 0.2.0-beta.6
   language: C++
   build: cmake
   license: Apache-2.0
@@ -13,8 +14,8 @@ extension:
 
 repo:
   github: adonm/pgvfs
-  ref: 29f834a99b53506d289e21181a256693d933af84
-  ref_next: 29f834a99b53506d289e21181a256693d933af84
+  ref: 5c9cf7fc1f9fc6839bde3ba19d7bef3f0bcbc365
+  ref_next: 5c9cf7fc1f9fc6839bde3ba19d7bef3f0bcbc365
 
 docs:
   hello_world: |
@@ -36,7 +37,7 @@ docs:
 
     -- Readers, in other processes: SELECT-only roles, read replicas welcome.
     -- ATTACH 'ducklake:postgres:' AS lake (READ_ONLY);
-    SELECT count(*) FROM lake.events WHERE site_id = 42 AND day = DATE '2026-03-01';
+    SELECT count(*) FROM lake.events WHERE site_id = 42 AND day = DATE '2026-02-12';
 
     -- Counters for one process: opens, reads, bytes, time in pgvfs.
     SELECT pgvfs_stats()::JSON;
@@ -46,14 +47,19 @@ docs:
     one PostgreSQL is the whole lake: one secret, one backup, one set of roles, and
     no object store or gateway.
 
-    - **Many readers, one writer.** Readers need only `SELECT`, take no locks and
-      work on streaming read replicas. The first process to write holds the
-      writer lock; a second writer is refused.
-    - **Millisecond lookups.** Files are immutable, so DuckDB caches them without
+    - **Many writers and readers.** Readers need only `SELECT`, take no locks and
+      work on streaming read replicas. Any process whose PostgreSQL role can write
+      may write, with no lock between writers; roles decide who writes.
+    - **Fast lookups.** Files are immutable, so DuckDB caches them without
       revalidating, and reads are primary-key range queries straight into DuckDB's
       buffers.
-    - **Plain PostgreSQL 11+**, including Amazon Aurora. No PostgreSQL extensions
+    - **Plain PostgreSQL 14+**, including Amazon Aurora. No PostgreSQL extensions
       or superuser. The first write installs pgvfs's schema.
+    - **Full-text search.** Tantivy indexes built and searched from SQL
+      (`tantivy_index`, `tantivy_search`, `tantivy_count`, `tantivy_aggregate`,
+      `tantivy_merge`, and fts-style macros): OpenSearch-style queries, sorting,
+      highlights, exclusion of deleted rows, splits per DuckLake commit, on pgvfs
+      or any DuckDB filesystem.
 
     It suits lakes that fit comfortably in one PostgreSQL, with many concurrent
     readers doing lookups and dashboard-style queries. For scans over large lakes
@@ -61,11 +67,14 @@ docs:
 
     Layout decides most of the read speed: set the lake options above before the
     first insert, declare a sort order that matches your filters, and load big
-    tables in key-range batches. Credentials resolve like the `postgres`
-    extension's: the secret named by `SET pgvfs_secret`, else `$PGVFS_URL`, else
-    the default `postgres` secret. Remote servers need `SSLMODE 'require'`.
+    tables in key-range batches. Credentials resolve per path: a `postgres` secret
+    named `pgvfs_<volume>`, else the one named by `SET pgvfs_secret`, else
+    `$PGVFS_URL`, else the default `postgres` secret. Remote servers need
+    `SSLMODE 'require'`.
 
     Documentation: [install](https://pgvfs.adonm.dev/install.html),
     [loading data](https://pgvfs.adonm.dev/loading.html),
+    [full-text search](https://pgvfs.adonm.dev/search.html),
+    [vector search](https://pgvfs.adonm.dev/vectors.html),
     [how it works](https://pgvfs.adonm.dev/how-it-works.html) and
     [performance](https://pgvfs.adonm.dev/performance.html).
