@@ -228,7 +228,7 @@ docs:
     ### Model Management Functions
 
     - `whisper_list_models()` - Lists all available models and download status
-    - `whisper_download_model(model_name)` - Returns download instructions
+    - `whisper_download_model(model_name)` - Downloads a model into the model directory
 
     ### Utility Functions
 
