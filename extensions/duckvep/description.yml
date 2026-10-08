@@ -45,7 +45,9 @@ docs:
     conditional peptide is not evidence of biological recoding competence.
     Unsupported phase, overlap, reference and capacity contexts fail explicitly.
 
-    This entry uses the stable C API v1 build, qualified on DuckDB 1.5.x. The
+    This entry uses the stable C API v1 build, qualified on DuckDB 1.5.x.
+    DuckDB 1.4.5 LTS cannot bind every model-builder query in the SQL suite;
+    use the qualified 1.5.x runtime for the complete documented API. The
     stable-v2 preview host is a separate workflow, not the default community
     artifact. Runtime memory is budgeted, native kernels allocate no memory,
     and model/workspace ownership is explicit.
