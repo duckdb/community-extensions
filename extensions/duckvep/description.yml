@@ -1,0 +1,64 @@
+extension:
+  name: duckvep
+  description: Reference-aware variant consequences, HGVS and bounded haplotype prediction as native SQL relations
+  version: 0.1.0
+  language: C
+  build: CMake
+  license: GPL-2.0-or-later
+  requires_toolchains: "python3"
+  excluded_platforms: "windows_amd64;windows_arm64"
+  opt_in_platforms: "windows_amd64_mingw"
+  maintainers:
+    - sounkou-bioinfo
+
+repo:
+  github: RGenomicsETL/DuckVEP
+  ref: cd04b5db10eef346ab6068ac077dc105fc17cd12
+
+  # The Windows build uses the qualified MinGW toolchain rather than MSVC.
+  # Windows ARM package qualification does not establish an MSVC extension build.
+
+docs:
+  hello_world: |
+    -- Inspect supported Sequence Ontology consequences and their impact classes.
+    SELECT consequence, impact, severity_rank
+    FROM duckvep_so_terms()
+    ORDER BY severity_rank
+    LIMIT 10;
+  extended_description: |
+    DuckVEP provides native, reference-aware variant consequence annotation and
+    bounded transcript haplotype prediction through DuckDB relations. Its
+    consequence policy targets Ensembl VEP 116; documented oracle comparisons
+    distinguish exact agreement, named policy differences and unsupported inputs.
+
+    The extension loads validated transcript/exon/CDS models, classifies coding
+    and noncoding variants, renders supported DNA/protein HGVS, and exposes
+    original contributors, carrier identity and prediction status. Models can
+    be built from Ensembl data with the SQL builders or loaded from authenticated
+    DuckVEP snapshots. Reference/model data are supplied separately; installing
+    or loading the extension does not download a genome or annotation model.
+
+    Haplotype facilities include strict observed-phase replay, bounded biallelic
+    diploid phase alternatives, complete equal-length exonic noncoding/UTR
+    replay, and separate conditional peptide pairs for supported typed curation
+    programmes. A hypothetical phase assignment is not observed cis, and a
+    conditional peptide is not evidence of biological recoding competence.
+    Unsupported phase, overlap, reference and capacity contexts fail explicitly.
+
+    This entry uses the stable C API v1 build, qualified on DuckDB 1.5.x. The
+    stable-v2 preview host is a separate workflow, not the default community
+    artifact. Runtime memory is budgeted, native kernels allocate no memory,
+    and model/workspace ownership is explicit.
+
+    LOAD registers native functions without creating SQL macros or tables.
+    Builder functions return SQL for the caller to execute. The stable-v1
+    query-taking API uses an internal connection to the same database, so its
+    input relations must be committed and permanent rather than caller TEMP or
+    uncommitted tables.
+
+    - [Function catalogue and executable examples](https://github.com/RGenomicsETL/DuckVEP/blob/main/docs/functions.md)
+    - [Haplotype contract and supported profiles](https://github.com/RGenomicsETL/DuckVEP/blob/main/design/duckvep_haplotype_contract.md)
+    - [Documentation and measured conformance](https://rgenomicsetl.github.io/DuckVEP/)
+
+    This is research software, not a clinical diagnostic system. A consequence
+    prediction is not a classification of pathogenicity.
