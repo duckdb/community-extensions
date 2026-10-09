@@ -65,4 +65,4 @@ extension:
 repo:
   andium: 040dbecd552e6b373fb1bb4582935d243693978e
   github: quackscience/duckdb-extension-cronjob
-  ref: 0571110d3d5f112e4fc92dff212c2f47096d773f
+  ref: a8982fb5d1520f307f92e197436abb84b41ac86d
