@@ -1,9 +1,5 @@
 docs:
-  extended_description: "## QuickJS DuckDB Extension\nThis extension provides an embedded\
-    \ QuickJS-NG engine for DuckDB. It allows executing JavaScript code directly within\
-    \ your SQL queries. \n> QuickJS-NG is a small, fast, and embeddable JavaScript\
-    \ engine that supports modern JavaScript features including ES2020.\n\nThis extension\
-    \ is experimental and potentially unstable. Do not use it in production."
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/quickjs/).
   hello_world: "-- Quack JS with QuickJS\n-- Scalar\nD SELECT quickjs('2+2');\n\u250C\
     \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
     \u2500\u2500\u2500\u2510\n\u2502 quickjs('2+2') \u2502\n\u2502    varchar    \
