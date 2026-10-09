@@ -76,6 +76,7 @@ extension:
   license: MIT
   maintainers:
   - lmangani
+  - rustyconover
   name: tsid
   version: '2025120401'
 repo:
