@@ -1,16 +1,5 @@
 docs:
-  extended_description: "<img src=\"https://github.com/user-attachments/assets/46a5c546-7e9b-42c7-87f4-bc8defe674e0\"\
-    \ width=250 />\n\n# DuckDB HTTP Server Extension\nThis extension transforms **DuckDB**\
-    \ instances into tiny multi-player **HTTP OLAP API** services.<br>\nSupports Authentication\
-    \ _(Basic Auth or X-Token)_ and includes the _play_ SQL user interface.\n\n###\
-    \ Features\n\n- Turn any [DuckDB](https://duckdb.org) instance into an **HTTP\
-    \ OLAP API** Server\n- Use the embedded **Web User Interface** to query and visualize\
-    \ data\n- Work with local and remote datasets including [MotherDuck](https://motherduck.com)\
-    \ \U0001F424\n- _100% Opensource, ready to use and extend by the Community!_\n\
-    \n> This extension is experimental and potentially unstable. Use at your own risk.\n\
-    \n> This DuckDB extension was created by Query.Farm, where we develop and maintain\
-    \ many extensions that expand DuckDB\u2019s capabilities by connecting it to new\
-    \ data sources, formats, and features."
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/httpserver/).
   hello_world: "-- Start a DuckDB HTTP API Server with parameters\nD SELECT httpserve_start('0.0.0.0',\
     \ 9999, 'user:pass');\n\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
     \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
