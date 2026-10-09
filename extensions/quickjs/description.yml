@@ -33,6 +33,7 @@ extension:
   license: MIT
   maintainers:
   - lmangani
+  - rustyconover
   name: quickjs
   version: '2025120401'
 repo:
