@@ -1,13 +1,12 @@
 # Submission file for https://github.com/duckdb/community-extensions
 #
-# Live in duckdb/community-extensions since #2037 (v0.9.2). This update jumps
-# from v0.18.0 straight to v0.19.0 — see the PR description for what the
-# intermediate releases delivered.
+# Live in duckdb/community-extensions since #2037 (v0.9.2). This update bumps
+# from v0.18.0 straight to v0.19.1 — v0.19.0 was never submitted separately.
 
 extension:
   name: salesforce
   description: Read-only access to Salesforce orgs as DuckDB SQL tables over the official REST and Bulk APIs — OAuth refresh-token or JWT-bearer auth (credentials from inline options, environment variables, or an SFDX auth URL), native ATTACH, projection + predicate pushdown, COUNT pushdown, explicit server-side aggregates with GROUP BY, lazy/auto/Bulk transports with PK chunking (Bulk blob/base64 compatibility guard), a per-job API quota governor, parent + grandparent relationship STRUCT columns with diagnostics, queryAll (archived + deleted), Tooling-API fast schema, and metadata helpers (manual cache refresh, picklist values, record types). Requires DuckDB v1.5.4 or newer.
-  version: 0.19.0
+  version: 0.19.1
   language: C++
   build: cmake
   license: MIT
@@ -64,7 +63,12 @@ docs:
     base object from the official reportTypeMetadata when the first category
     is unambiguous. Built and tested against DuckDB v1.5.4, v1.5.5 and
     v1.5.6 (v1.5.2/v1.5.3 support was dropped in v0.15.0 — see CHANGELOG.md).
-    Full change history in this repo's CHANGELOG.md.
+    Full change history in this repo's CHANGELOG.md. Since v0.19.1,
+    salesforce_deleted_ids paginates its queryAll sweep (v0.19.0 truncated at
+    exactly 2,000 ids) and uses the Replication API getDeleted() as the
+    default source for ANY window width (the 15-minute cap was an incorrect
+    assumption; latestDateCovered resume + boundary dedup), covering objects
+    with no IsDeleted field (e.g. User).
     Since v0.19.0, salesforce_deleted_ids(catalog, object, since, until)
     surfaces the ids deleted in the org within a window (Replication API
     getDeleted for exact deletion timestamps; a queryAll IsDeleted scan as
