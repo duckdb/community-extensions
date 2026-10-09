@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_a5.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/a5/).
 extension:
   build: cmake
   description: Hierarchical pentagonial indexing for geospatial data that is equal-area
