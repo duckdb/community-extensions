@@ -59,6 +59,7 @@ extension:
   license: MIT
   maintainers:
   - lmangani
+  - rustyconover
   name: cronjob
   version: '2025120401'
 repo:
