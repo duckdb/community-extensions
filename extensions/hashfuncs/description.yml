@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_hashfuncs.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/hashfuncs/).
 extension:
   build: cmake
   description: Non-cryptographic hash functions, xxHash, rapidhash and Murmurhash3
