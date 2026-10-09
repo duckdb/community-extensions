@@ -26,6 +26,7 @@ extension:
   maintainers:
   - lmangani
   - gigapi
+  - rustyconover
   name: redis
   version: '2025120401'
 repo:
