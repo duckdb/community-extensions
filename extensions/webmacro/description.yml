@@ -74,6 +74,7 @@ extension:
   license: MIT
   maintainers:
   - lmangani
+  - rustyconover
   name: webmacro
   version: '2025120401'
 repo:
