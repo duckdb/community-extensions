@@ -29,7 +29,7 @@ docs:
     );
 
     -- Discover descriptions, parameter names and examples
-    SELECT function_name, description, parameter_names, examples
+    SELECT function_name, description, parameters, examples
     FROM duckdb_functions()
     WHERE function_name IN ('plotly_new_html', 'scatter_chart_html');
 
