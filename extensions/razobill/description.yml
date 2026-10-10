@@ -1,0 +1,38 @@
+extension:
+  name: razobill
+  description: High-performance lossless log parsing, analytical database compaction, and information-theoretic semantic accounting.
+  version: 1.0.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - 4t1a
+
+repo:
+  github: 4t1a/razobill
+  ref: v1.0.0
+
+docs:
+  hello_world: |
+    -- Install and load the Razobill extension
+    INSTALL razobill FROM community;
+    LOAD razobill;
+
+    -- Zero-allocation lossless log parsing
+    SELECT razobill_parse('2026-10-10 12:00:00 [INFO] Worker 42 finished job in 150ms') AS parsed;
+
+    -- Extract lossless template form and dynamic variable tokens
+    SELECT razobill_template('User 1042 authenticated') AS template,
+           razobill_decompose('User 1042 authenticated') AS components;
+
+    -- Information-theoretic semantic entropy of log streams
+    SELECT razobill_entropy(msg) AS stream_entropy
+    FROM (VALUES
+      ('Worker 1 failed with timeout'),
+      ('Worker 2 failed with timeout'),
+      ('Worker 3 finished normally')
+    ) AS logs(msg);
+
+  extended_description: |
+    Razobill is a high-performance C++20 log parsing and analytical database compaction engine grounded in "Latitude and Doubt" (M. M. Atta, 2026).
+    It provides exact byte-for-byte lossless log reconstruction while reducing raw log storage by 45%+ in DuckDB.
