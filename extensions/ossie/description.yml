@@ -15,6 +15,7 @@ extension:
 repo:
   github: iqea-ai/duckdb-ossie
   ref: 48523ab83287f1b62fb7eac05840b200b782c320
+  ref_next: d180aa0e3e7c62796b960f5389202ecfd3efbbec
 
 docs:
   hello_world: |
@@ -63,10 +64,9 @@ docs:
     the *query* those definitions go into -- the joins, the GROUP BY, and the grain -- because
     those depend on the question being asked, and the file does not know the question.
 
-    **Every other shipped Ossie implementation is a converter**, translating definitions into some
-    vendor's semantic layer so that vendor's engine can run them. This one executes the query
-    itself. It is the first Ossie implementation that answers a question rather than translating
-    one, and it needs no infrastructure: a model file, your tables, and a single binary.
+    **The converters in apache/ossie translate** definitions into some vendor's semantic layer so
+    that vendor's engine can run them. This one executes the query itself, and it needs no
+    infrastructure: a model file, your tables, and a single binary.
 
     **Functions**
 
@@ -98,8 +98,10 @@ docs:
     expressions, which this extension does not execute.
     Generated SQL is diffed against hand-written TPC-DS equivalents with symmetric EXCEPT over
     dsdgen(sf = 0.01) data, so correctness is measured against the numbers rather than against our
-    own output. That currently covers total_sales and books_sales. The remaining metrics are
-    exercised by golden-SQL, grain or vocabulary tests, none of which can catch a wrong number.
+    own output. That covers total_sales and books_sales against hand-written SQL, and total_sales,
+    total_profit and a computed customer field against the same model written in OSSIE_SQL_2026.
+    The remaining metrics are exercised by golden-SQL, grain or vocabulary tests, none of which can
+    catch a wrong number.
 
     Models use the flat document shape of Ossie 0.2.0.dev0, with expressions in OSSIE_SQL_2026 (the
     spec's own expression language) or ANSI_SQL. Current limits are documented rather than hidden:
