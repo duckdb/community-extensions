@@ -1,7 +1,7 @@
 extension:
   name: miniplot
   description: Interactive chart visualization for DuckDB - faster than pandas with Plotly-like charts
-  version: 0.0.3
+  version: 0.0.4
   language: C++
   build: cmake
   license: MIT
@@ -10,10 +10,29 @@ extension:
 
 repo:
   github: nkwork9999/miniplot
-  ref: f5030419abf8716b9f922b0427e9e92887ff0269
+  ref: 60763272df9b7f2171044ac76c2e26e7a562ad39
 
 docs:
   hello_world: |
+    -- Arbitrary Plotly traces, layout and configuration as JSON
+    SELECT plotly_new_html(
+        '[{"x":[1,2],"y":[3,5],"type":"scatter","name":"Series A"}]',
+        '{"title":"Custom Plotly chart","showlegend":true}',
+        '{"displayModeBar":false}'
+    );
+
+    -- Date values on a scatter axis; return HTML without opening a browser
+    SELECT scatter_chart_html(
+        [DATE '2026-01-01', DATE '2026-01-02'],
+        [10.0, 20.0],
+        'Daily measurements'
+    );
+
+    -- Discover descriptions, parameter names and examples
+    SELECT function_name, description, parameter_names, examples
+    FROM duckdb_functions()
+    WHERE function_name IN ('plotly_new_html', 'scatter_chart_html');
+
     -- Bar chart (opens in browser)
     SELECT bar_chart(
         ['Q1', 'Q2', 'Q3', 'Q4'],
