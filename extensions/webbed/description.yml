@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.9.4
+  version: 2.10.0
   language: C++
   build: cmake
   license: MIT
@@ -17,15 +17,22 @@ repo:
   andium: ddda30f11352138b2451657419640370d1612137
   # andium (DuckDB v1.4.5 track) left at its prior commit; v2.9.3 ships on the
   # v1.5.x track via ref and is verified against DuckDB v2.0-cyanoptera as well.
-  ref: 171603404298b69398a7d90b0086bb71c3bee975
+  ref: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
   # ref_next is what makes the PRERELEASE leg actually build against DuckDB
   # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
   # the PR passes green having verified nothing on that line. Same commit as
-  # ref: v2.9.4 (tag v2.9.4) adds SAX huge-file streaming (XML_PARSE_HUGE),
-  # described parse errors, and out-of-sample VARCHAR widening; it builds green
-  # on both the v1.5.6 and v2.0-cyanoptera lines (verified by the cyanoptera CI
-  # leg on this exact commit).
-  ref_next: 171603404298b69398a7d90b0086bb71c3bee975
+  # ref: v2.10.0 (tag v2.10.0) adds xml_extract_text_each for positionally
+  # aligned extraction, documents record_element as the better answer for most of
+  # those cases, and documents a SAX limitation where the column set comes
+  # strictly from the first sample_size records. Builds green on both the v1.5.6
+  # and v2.0-cyanoptera lines -- nine next-line legs success on this exact commit,
+  # measured rather than assumed.
+  #
+  # A STALE ref_next is worse than an absent one: it validates the PREVIOUS
+  # release against the next line while reporting green, so it moves with ref on
+  # every release. v2.9.5 was tagged and built green but never registered, so it
+  # was never installable; v2.10.0 supersedes it.
+  ref_next: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
@@ -80,6 +87,7 @@ docs:
     - `xml_extract_text(xml, xpath)` - XPath-based text extraction
     - `xml_extract_elements(xml, xpath)` - Extract structured elements
     - `xml_extract_attributes(xml, xpath)` - Extract attributes as structs
+    - `xml_extract_text_each(xml, context_xpath, relative_xpath)` - One entry per context node, NULL where the relative path matches nothing, so parallel calls over sibling paths stay aligned for `unnest`
     - `xml_to_json(xml)` / `json_to_xml(json)` - Format conversions
     - `xml_stats(xml)` - Document statistics and analysis
     - `xml_validate_schema(xml, xsd)` - XSD schema validation
@@ -103,4 +111,4 @@ docs:
 
     See https://duckdb-webbed.readthedocs.io for comprehensive documentation and examples.
 
-    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 102 test suites with 3951 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
+    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 109 test suites with 4104 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
