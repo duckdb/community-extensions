@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: ff7c681ca14698d7ed6ec4a5d7a15fc40cefe834
+  ref: 6fa1b25d258e3684554b63af16d7b78b41509048
 
 docs:
   hello_world: |
@@ -65,9 +65,13 @@ docs:
     - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **130+ scalar SQL functions** for molecular property extraction, format conversion,
+    **145 scalar SQL functions (147 overloads)** for molecular property extraction, format conversion,
     structural comparison, fingerprinting, similarity search, drug-likeness /
     toxicophore filtering, and structure-based virtual screening.
+
+    Function descriptions, meaningful argument names, runnable examples and
+    categories are discoverable through `duckdb_functions()` for every overload.
+    Filter with `list_contains(categories, 'ducksmiles')` after loading the extension.
 
     **Descriptors (RDKit-faithful ports):**
     - 21 structural-profile functions: fragments, formal charge, hydrogen and
