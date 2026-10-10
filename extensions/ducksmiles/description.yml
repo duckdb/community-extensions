@@ -65,9 +65,13 @@ docs:
     - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **130+ scalar SQL functions** for molecular property extraction, format conversion,
+    **145 scalar SQL functions (147 overloads)** for molecular property extraction, format conversion,
     structural comparison, fingerprinting, similarity search, drug-likeness /
     toxicophore filtering, and structure-based virtual screening.
+
+    Function descriptions, meaningful argument names, runnable examples and
+    categories are discoverable through `duckdb_functions()` for every overload.
+    Filter with `list_contains(categories, 'ducksmiles')` after loading the extension.
 
     **Descriptors (RDKit-faithful ports):**
     - 21 structural-profile functions: fragments, formal charge, hydrogen and
