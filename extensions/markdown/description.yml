@@ -1,7 +1,7 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.9.7
+  version: 1.9.8
   language: C++
   build: cmake
   license: MIT
@@ -14,17 +14,17 @@ repo:
   # change since ships on the v1.5.x track via ref, which is a v1.5.6 tree as of
   # v1.9.7 (was v1.5.4 when this note was written, then v1.5.5).
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
-  ref: 4721b312e6ed93ed94b48ea151877ce804672f07
+  ref: 6fc7013de640191ea5248897df3b60a7bc07db67
   # ref_next is what makes the PRERELEASE leg actually build against DuckDB
   # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
   # the PR passes green having verified nothing on that line. A STALE ref_next is
   # worse than an absent one: it validates the PREVIOUS release against the next
   # line while reporting green, so it moves with ref on every release.
   #
-  # Same commit as ref, and this time measured rather than assumed: v1.9.7's
-  # next-line legs are green on linux_amd64, wasm_eh and windows_amd64 against
-  # v2.0-cyanoptera.
-  ref_next: 4721b312e6ed93ed94b48ea151877ce804672f07
+  # Same commit as ref, and measured rather than assumed: v1.9.8's next-line legs
+  # are green on all eight arches against v2.0-cyanoptera (linux_amd64/arm64,
+  # osx_amd64/arm64, windows_amd64 + mingw, wasm_mvp/eh/threads).
+  ref_next: 6fc7013de640191ea5248897df3b60a7bc07db67
 docs:
   hello_world: |
     -- Load the extension
@@ -115,4 +115,4 @@ docs:
 
     Real-world benchmark: Processing 287 Markdown files (2,699 sections, 1,137 code blocks, 1,174 links) in 603ms.
 
-    Full test suite with 2013 passing assertions across 58 test files.
+    Full test suite with 2058 passing assertions across 60 test files.
