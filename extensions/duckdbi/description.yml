@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/DuckDBI
-  ref: 2dd9644909401af77b0f53f0d1401ad965def7aa
+  ref: f81ad2b9b7b67e15fe8ddbb5cb87b4a13c5b4288
 
 docs:
   hello_world: |
@@ -36,7 +36,9 @@ docs:
     - Interactive charts powered by Plotly.js (Bar, Line, Scatter, Area, 3D Scatter)
     - Drag-and-drop dashboard layout via Gridstack.js
     - PDF export with jsPDF and html2canvas
-    - Markdown text panels via Marked.js
+    - Markdown query-column previews on both routes, with HTML/link sanitization
+    - English, Simplified Chinese, and Japanese interface controls
+    - Markdown reports via Marked.js
 
     **Functions**:
     - `duckdbi_start(host, port)` - Start the HTTP server and open the dashboard UI
