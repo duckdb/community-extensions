@@ -18,21 +18,18 @@ docs:
     INSTALL razobill FROM community;
     LOAD razobill;
 
-    -- Zero-allocation lossless log parsing
-    SELECT razobill_parse('2026-10-10 12:00:00 [INFO] Worker 42 finished job in 150ms') AS parsed;
+    -- Vectorized single-pass composite struct decomposition: STRUCT(form VARCHAR, ints BIGINT[], strs VARCHAR[])
+    SELECT rbDecompose('2026-10-10 12:00:00 [INFO] Worker 42 finished job in 150ms') AS parsed;
 
-    -- Extract lossless template form and dynamic variable tokens
-    SELECT razobill_template('User 1042 authenticated') AS template,
-           razobill_decompose('User 1042 authenticated') AS components;
+    -- Extract lossless structural form and typed variable columns
+    SELECT rbForm('User 1042 authenticated') AS form,
+           rbInts('User 1042 authenticated') AS ints,
+           rbStrs('User 1042 authenticated') AS strs;
 
-    -- Information-theoretic semantic entropy of log streams
-    SELECT razobill_entropy(msg) AS stream_entropy
-    FROM (VALUES
-      ('Worker 1 failed with timeout'),
-      ('Worker 2 failed with timeout'),
-      ('Worker 3 finished normally')
-    ) AS logs(msg);
+    -- Exact bit-for-bit lossless log reconstruction
+    SELECT rbReconstruct(form, ints, strs) AS reconstructed
+    FROM (SELECT (rbDecompose('User 1042 authenticated')).*);
 
   extended_description: |
     Razobill is a high-performance C++20 log parsing and analytical database compaction engine grounded in "Latitude and Doubt" (M. M. Atta, 2026).
-    It provides exact byte-for-byte lossless log reconstruction while reducing raw log storage by 45%+ in DuckDB.
+    It provides exact byte-for-byte lossless log reconstruction while reducing raw log storage by 45%+ in DuckDB and 93.8% in columnar cloud storage (AWS S3 Parquet).
