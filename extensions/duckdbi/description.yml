@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/DuckDBI
-  ref: 59af05d91677f6a0404720b11cb31e7550f287f7
+  ref: f81ad2b9b7b67e15fe8ddbb5cb87b4a13c5b4288
 
 docs:
   hello_world: |
@@ -29,14 +29,16 @@ docs:
 
   extended_description: |
     DuckDBI turns DuckDB into a local BI server. The extension embeds a full single-page application
-    that serves an interactive dashboard builder directly from the DuckDB process.
+    with a simple SQL query and results screen. Advanced dashboards and reports are available at `/advanced`.
 
     **Core Features**:
     - SQL query editor with JSON result rendering
     - Interactive charts powered by Plotly.js (Bar, Line, Scatter, Area, 3D Scatter)
     - Drag-and-drop dashboard layout via Gridstack.js
     - PDF export with jsPDF and html2canvas
-    - Markdown text panels via Marked.js
+    - Markdown query-column previews on both routes, with HTML/link sanitization
+    - English, Simplified Chinese, and Japanese interface controls
+    - Markdown reports via Marked.js
 
     **Functions**:
     - `duckdbi_start(host, port)` - Start the HTTP server and open the dashboard UI
