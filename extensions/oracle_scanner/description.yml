@@ -14,3 +14,5 @@ repo:
   github: krokozyab/quack-oracle
   # The commit tagged v0.4.0, pinned by SHA so what is built cannot move.
   ref: d4aa50f9bf23ca44b44f0df48fb0065ba751f5be
+  # The DuckDB 2.0 port of v0.4.0 (branch duckdb-2.0-v0.4), built against v2.0-cyanoptera.
+  ref_next: 5ffbef1e789012650aea6d85026b7c6fca8cae1e
