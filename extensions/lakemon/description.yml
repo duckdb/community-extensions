@@ -1,0 +1,51 @@
+# Copy this file to duckdb/community-extensions as
+#   extensions/lakemon/description.yml
+# and set repo.ref to a commit SHA of paulosuzart/lakemon-duckdb-ext.
+# Official docs: https://duckdb.org/community_extensions/documentation
+#
+# The repository must be public before the community CI can clone it.
+
+extension:
+  name: lakemon
+  description: Smart DuckLake table maintain (adaptive rewrite + merge) and catalog-global expire/cleanup
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - paulosuzart
+
+repo:
+  github: paulosuzart/lakemon-duckdb-ext
+  # Replace with the commit SHA you want the community builder to compile.
+  ref: 7e9c66bc4dd20079bf1eb6b5e0a8878ca2524d07
+  # Optional: SHA compatible with DuckDB 2.x / upcoming stable.
+  # ref_next: REPLACE_WITH_2X_COMMIT_SHA
+
+docs:
+  hello_world: |
+    INSTALL ducklake;
+    LOAD ducklake;
+    INSTALL lakemon FROM community;
+    LOAD lakemon;
+
+    ATTACH 'ducklake:metadata.ducklake' AS lake (DATA_PATH 'data_files');
+
+    CALL lakemon_table_stats('lake');
+    CALL lakemon_maintain('lake');
+    CALL lakemon_maintain_global('lake');
+    CALL lakemon_maintain('lake', dry_run => true);
+    CALL lakemon_policy();
+
+  extended_description: |
+    lakemon orchestrates native DuckLake maintenance CALLs with a policy layer:
+
+    * Catalog SELECT inventory of data files and delete files
+    * Byte-weighted adaptive rewrite ladder (delete fraction DESC; one ducklake_rewrite_data_files CALL per byte-cut rung)
+    * Merge size bands (micro / small / medium) with per-tier target_file_size
+    * Table maintain (lakemon_maintain) vs catalog-global expire/cleanup (lakemon_maintain_global)
+    * Execute-by-default; pass dry_run => true to plan only
+    * One result row per step (ok / skip / error / planned)
+
+    Requires the core ducklake extension in the same session and an attached DuckLake catalog.
+    Compatible with DuckDB 1.5.* and DuckDB 2.x.
