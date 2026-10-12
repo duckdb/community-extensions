@@ -1,7 +1,7 @@
 extension:
   name: firebird
   description: The first Firebird extension in the DuckDB Community Extensions registry. Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
-  version: 1.2.0
+  version: 1.2.1
   language: C++
   build: cmake
   license: MIT
@@ -21,8 +21,8 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  # v1.2.0 (immutable commit pin)
-  ref: 371cfe2776b4782d955a8f18ad27af3c927c75a4
+  # v1.2.1 (immutable commit pin)
+  ref: 21b6d651389c022ab4420c096ba29094e45ebe52
 
 docs:
   hello_world: |
@@ -109,6 +109,9 @@ docs:
       DECIMAL(38,s); `firebird_dummy_packet_interval` keepalive with
       fetch-failure context; `bytes_read_estimate` in the telemetry and
       per catalog.
+    - Since v1.2.1, `none_encoding` / `none_pushdown` are also accepted
+      inside the connection string (URI query and key=value DSN forms),
+      with strict booleans and documented precedence.
     - Row estimate and scan advisories (v1.1.0): `firebird_profile_table`
       reports `estimated_rows` (cheap PK-range upper bound, or an opt-in
       exact `COUNT(*)` via `exact_row_count=true`) and structured
