@@ -18,7 +18,7 @@ extension:
 repo:
   github: paulosuzart/lakemon-duckdb-ext
   # Replace with the commit SHA you want the community builder to compile.
-  ref: 7e9c66bc4dd20079bf1eb6b5e0a8878ca2524d07
+  ref: dfb61b7d6413fb613ee14aa79714f5237cc3e9c6
   # Optional: SHA compatible with DuckDB 2.x / upcoming stable.
   # ref_next: REPLACE_WITH_2X_COMMIT_SHA
 
