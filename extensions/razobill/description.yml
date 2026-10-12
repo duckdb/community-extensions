@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: 4t1a/razobill
-  ref: v1.0.1
+  ref: 38cc9c2dc360b3e5aee1593cadfdf560e3b99c81
 
 docs:
   hello_world: |
