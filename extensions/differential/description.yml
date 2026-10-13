@@ -1,0 +1,54 @@
+extension:
+  name: differential
+  description: Versioned DuckDB databases - snapshots, time travel, branches, clones and S3 export over native storage
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  # POSIX file locking, fsync and mmap: no Windows or wasm builds.
+  excluded_platforms: "windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  # vcpkg commit providing AWS SDK 1.11.820, SQLite 3.53.2 and OpenSSL 3.6.3.
+  vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
+  maintainers:
+    - tobilg
+
+repo:
+  github: tobilg/duckdb-differential
+  ref: 80281620d0104c1e5ee88e98266b3e58715d9e0b
+
+docs:
+  hello_world: |
+    -- A database is created on first ATTACH
+    ATTACH 'differential:sales' AS sales;
+    CREATE TABLE sales.t AS SELECT 42 AS value;
+    CALL differential_create_snapshot('sales', name => 'baseline', message => 'initial load');
+    UPDATE sales.t SET value = 99;
+
+    -- Time travel, DuckLake style
+    SELECT value FROM sales.t AT (VERSION => 1);          -- 42
+    ATTACH 'differential:sales' AS old (SNAPSHOT_NAME 'baseline');
+    FROM sales.snapshots();
+
+    -- Branch from the snapshot and open an independent writable copy
+    CALL differential_create_branch('sales', 'dev', snapshot => 1);
+    ATTACH 'differential:sales' AS dev (BRANCH 'dev');
+    SELECT value FROM dev.t;                            -- 42
+  extended_description: |
+    `differential` stores ordinary DuckDB databases in a durable, content-addressed differential
+    store, so every version shares unchanged data. Native DuckDB SQL, transactions and
+    indexes are unchanged; the extension adds immutable snapshots with commit metadata,
+    `AT (VERSION/TIMESTAMP)` time travel, writable branches, independent clones, restore,
+    expiry with garbage collection, and incremental, content-addressed S3 export that any
+    host can attach read-only, including following a branch's latest snapshot through S3
+    branch heads. Several processes, and optionally several local users, can share one
+    repository.
+
+    The SQL surface follows DuckLake's conventions: `ATTACH 'differential:<db>'` options
+    (`BRANCH`, `SNAPSHOT_VERSION`, `SNAPSHOT_TIME`, `SNAPSHOT_NAME`, `DATA_PATH`),
+    `SET differential_*` settings and database-first `differential_*` functions.
+
+    Status: experimental. Linux and macOS only. Commits are durable at DuckDB's sync points;
+    exports are durable once complete. S3 is tested against MinIO and exercised on AWS;
+    power-loss behaviour is not yet verified. See the
+    [repository](https://github.com/tobilg/duckdb-differential) for the SQL reference, the
+    lifecycle guide and the storage format.
