@@ -9,8 +9,8 @@ extension:
     - 4t1a
 
 repo:
-  github: 4t1a/razobill
-  ref: ec101d452d793c1d1326aaa4178efeeeead0c5f1
+  github: razobill/razobill
+  ref: 8abed355d04eab37f014708b77c692766691bd41
 
 docs:
   hello_world: |
