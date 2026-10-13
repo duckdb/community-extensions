@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: alitrack/duckdb-hudi
-  ref: d2c195038fdaa3f39db4f1e6131370f4d615c154
+  ref: ea166bd3b7fc07bcaf3356880da73e864c5f05e9
 
 docs:
   hello_world: |
