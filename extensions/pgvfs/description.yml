@@ -1,8 +1,8 @@
 # Draft submission for duckdb/community-extensions (extensions/pgvfs/description.yml).
 extension:
   name: pgvfs
-  description: DuckLake on PostgreSQL - a pgvfs:// filesystem storing data files as PostgreSQL rows, for many writers and readers
-  version: 0.2.0-beta.6
+  description: DuckLake and DuckDB databases on PostgreSQL - pgvfs:// stores data files as PostgreSQL rows for many writers and readers; pgdb:// stores a DuckDB database for one writer and many readers
+  version: 0.3.0
   language: C++
   build: cmake
   license: Apache-2.0
@@ -14,8 +14,8 @@ extension:
 
 repo:
   github: adonm/pgvfs
-  ref: 5c9cf7fc1f9fc6839bde3ba19d7bef3f0bcbc365
-  ref_next: 5c9cf7fc1f9fc6839bde3ba19d7bef3f0bcbc365
+  ref: 236a4deaaa7f0b2dba38ea47a25d6d035f7f5950
+  ref_next: 236a4deaaa7f0b2dba38ea47a25d6d035f7f5950
 
 docs:
   hello_world: |
@@ -55,6 +55,10 @@ docs:
       buffers.
     - **Plain PostgreSQL 14+**, including Amazon Aurora. No PostgreSQL extensions
       or superuser. The first write installs pgvfs's schema.
+    - **Native DuckDB databases (experimental).** `ATTACH 'pgdb://lake/sales.duckdb'`
+      stores a whole DuckDB database, with indexes, keys and constraints, in the
+      same PostgreSQL: one writer, any number of readers (standbys too) that follow
+      new commits by themselves.
     - **Full-text search.** Tantivy indexes built and searched from SQL
       (`tantivy_index`, `tantivy_search`, `tantivy_count`, `tantivy_aggregate`,
       `tantivy_merge`, and fts-style macros): OpenSearch-style queries, sorting,
@@ -74,6 +78,7 @@ docs:
 
     Documentation: [install](https://pgvfs.adonm.dev/install.html),
     [loading data](https://pgvfs.adonm.dev/loading.html),
+    [databases](https://pgvfs.adonm.dev/databases.html),
     [full-text search](https://pgvfs.adonm.dev/search.html),
     [vector search](https://pgvfs.adonm.dev/vectors.html),
     [how it works](https://pgvfs.adonm.dev/how-it-works.html) and
