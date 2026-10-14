@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: razobill/razobill
-  ref: c2cfde3dc5f319369cac1699b1f1a87286c4e7ca
+  ref: 258b2dae9eb7b379e49c7dd59b58e72797825d19
 
 docs:
   hello_world: |
