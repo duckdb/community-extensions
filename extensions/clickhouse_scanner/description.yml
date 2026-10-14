@@ -14,6 +14,7 @@ extension:
 repo:
   github: altertable-ai/duckdb-clickhouse
   ref: bb11b7ce640de14b9f7565f588bfd3cd08c99266
+  ref_next: ce337c48c12d24630caeed151b79dc177d48eb86
 
 docs:
   hello_world: |
