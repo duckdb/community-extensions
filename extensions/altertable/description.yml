@@ -13,6 +13,7 @@ extension:
 repo:
   github: altertable-ai/duckdb-altertable
   ref: bcf258328c68bef3236bd196096cec0f9e576220
+  ref_next: 9cb3ab8034ba44a0f37436058af71f46f895b37f
 docs:
   hello_world: |
     INSTALL altertable FROM community;
