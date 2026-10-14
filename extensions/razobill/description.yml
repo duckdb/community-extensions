@@ -1,16 +1,17 @@
 extension:
   name: razobill
   description: High-performance lossless log parsing, analytical database compaction, and information-theoretic semantic accounting.
-  version: 1.0.1
+  version: 1.1.1
   language: C++
   build: cmake
   license: Apache-2.0
   maintainers:
     - 4t1a
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
 
 repo:
   github: razobill/razobill
-  ref: 8abed355d04eab37f014708b77c692766691bd41
+  ref: c2cfde3dc5f319369cac1699b1f1a87286c4e7ca
 
 docs:
   hello_world: |
@@ -18,17 +19,17 @@ docs:
     INSTALL razobill FROM community;
     LOAD razobill;
 
-    -- Vectorized single-pass composite struct decomposition: STRUCT(form VARCHAR, ints BIGINT[], strs VARCHAR[])
-    SELECT rbDecompose('2026-10-10 12:00:00 [INFO] Worker 42 finished job in 150ms') AS parsed;
+    -- Vectorized single-pass composite struct decomposition: STRUCT(template VARCHAR, ints BIGINT[], strs VARCHAR[])
+    SELECT RzSplit('2026-10-10 12:00:00 [INFO] Worker 42 finished job in 150ms') AS parsed;
 
-    -- Extract lossless structural form and typed variable columns
-    SELECT rbForm('User 1042 authenticated') AS form,
-           rbInts('User 1042 authenticated') AS ints,
-           rbStrs('User 1042 authenticated') AS strs;
+    -- Extract structural template and typed variable columns
+    SELECT RzTemplate('User 1042 authenticated') AS template,
+           RzInts('User 1042 authenticated') AS ints,
+           RzStrs('User 1042 authenticated') AS strs;
 
     -- Exact bit-for-bit lossless log reconstruction
-    SELECT rbReconstruct(form, ints, strs) AS reconstructed
-    FROM (SELECT (rbDecompose('User 1042 authenticated')).*);
+    SELECT RzJoin(d.template, d.ints, d.strs) AS reconstructed
+    FROM (SELECT RzSplit('User 1042 authenticated') AS d);
 
   extended_description: |
     Razobill is a high-performance C++20 log parsing and analytical database compaction engine grounded in "Latitude and Doubt" (M. M. Atta, 2026).
