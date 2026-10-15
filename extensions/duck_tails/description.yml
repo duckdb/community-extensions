@@ -11,7 +11,6 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duck_tails
-  variegata: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
   # ref and ref_next are deliberately the SAME commit (v1.8.0, f5f55ba). duck_tails
   # now builds from ONE source tree against both DuckDB lines: the v2.0 removal of
   # TableFunction::named_parameters is handled by named_parameter_compat.hpp, which
@@ -26,6 +25,7 @@ repo:
   # Upstream CI on main (run 37102404149) is green across all seven v2.0-cyanoptera
   # legs: linux amd64+arm64, osx amd64+arm64, windows_amd64 and windows_amd64_mingw.
   ref: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
+  ref_next: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
 
 docs:
   hello_world: |

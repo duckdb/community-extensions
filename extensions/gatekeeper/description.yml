@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: nozzle/duckdb-gatekeeper
-  variegata: c4b9b3cf2c71ac527fb3f8ae7310066384e397f1
-  ref: 1db098f8534f8df3e07a8ebf7eff366644b792a8
+  ref: c4b9b3cf2c71ac527fb3f8ae7310066384e397f1
+  ref_next: 1db098f8534f8df3e07a8ebf7eff366644b792a8
 
 docs:
   hello_world: |

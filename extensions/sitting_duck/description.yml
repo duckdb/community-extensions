@@ -9,6 +9,7 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
+  ref: 803b35b5e4b8cec4b464169d4135648ce8a74875
   # ref and ref_next are deliberately the SAME commit (v1.15.4). sitting_duck builds
   # from one source tree against both DuckDB lines: the v2.0 removal of
   # TableFunction::named_parameters goes through named_parameter_compat.hpp, which
@@ -33,8 +34,7 @@ repo:
   # failure on that leg is far more likely to be upstream drift than this change,
   # and it is deploy:false either way -- it cannot affect the shipped v1.5.6
   # artifact.
-  variegata: 803b35b5e4b8cec4b464169d4135648ce8a74875
-  ref: 803b35b5e4b8cec4b464169d4135648ce8a74875
+  ref_next: 803b35b5e4b8cec4b464169d4135648ce8a74875
 docs:
   hello_world: |
     -- Parse Python code and find function definitions

@@ -14,8 +14,8 @@ extension:
 
 repo:
   github: adonm/pgvfs
-  variegata: 5c9cf7fc1f9fc6839bde3ba19d7bef3f0bcbc365
   ref: 5c9cf7fc1f9fc6839bde3ba19d7bef3f0bcbc365
+  ref_next: 5c9cf7fc1f9fc6839bde3ba19d7bef3f0bcbc365
 
 docs:
   hello_world: |

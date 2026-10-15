@@ -15,6 +15,9 @@ extension:
 repo:
   github: teaguesterling/duckdb_webbed
   andium: ddda30f11352138b2451657419640370d1612137
+  # andium (DuckDB v1.4.5 track) left at its prior commit; v2.9.3 ships on the
+  # v1.5.x track via ref and is verified against DuckDB v2.0-cyanoptera as well.
+  ref: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
   # ref_next is what makes the PRERELEASE leg actually build against DuckDB
   # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
   # the PR passes green having verified nothing on that line. Same commit as
@@ -29,10 +32,7 @@ repo:
   # release against the next line while reporting green, so it moves with ref on
   # every release. v2.9.5 was tagged and built green but never registered, so it
   # was never installable; v2.10.0 supersedes it.
-  variegata: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
-  # andium (DuckDB v1.4.5 track) left at its prior commit; v2.9.3 ships on the
-  # v1.5.x track via ref and is verified against DuckDB v2.0-cyanoptera as well.
-  ref: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
+  ref_next: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
