@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: hfmsio/duckdb-typed-ai
+  variegata: d99fa461d5722e48136277ac788068e7fad6a1b9
   ref: d99fa461d5722e48136277ac788068e7fad6a1b9
-  ref_next: d99fa461d5722e48136277ac788068e7fad6a1b9
 
 docs:
   hello_world: |

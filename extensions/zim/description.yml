@@ -12,7 +12,6 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_zim
-  ref: aa7aea23e2623d259efad62225c3d7a3335e80da
   # ref_next: the community registry builds every descriptor carrying it against
   # the v2.0 line (build_next.yml, v2.0-cyanoptera). Same commit as ref: zim builds
   # and passes its full suite there as of v0.9.1.
@@ -21,7 +20,8 @@ repo:
   # or validate something else. The previous pair was inverted -- ref_next pointed
   # at ce892d5 (tag v0.9.1), OLDER than ref 666266e -- so the prerelease leg was
   # validating code the stable line no longer shipped.
-  ref_next: aa7aea23e2623d259efad62225c3d7a3335e80da
+  variegata: aa7aea23e2623d259efad62225c3d7a3335e80da
+  ref: aa7aea23e2623d259efad62225c3d7a3335e80da
 docs:
   hello_world: |
     -- Load the extension

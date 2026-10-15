@@ -14,8 +14,8 @@ extension:
 
 repo:
   github: iqea-ai/duckdb-ossie
-  ref: 48523ab83287f1b62fb7eac05840b200b782c320
-  ref_next: d180aa0e3e7c62796b960f5389202ecfd3efbbec
+  variegata: 48523ab83287f1b62fb7eac05840b200b782c320
+  ref: d180aa0e3e7c62796b960f5389202ecfd3efbbec
 
 docs:
   hello_world: |

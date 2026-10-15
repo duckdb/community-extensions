@@ -16,7 +16,6 @@ extension:
 repo:
   github: teaguesterling/duck_hunt
   andium: 68ca1c4676f706980a6503c19b789f5224596b4d
-  ref: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
   # ref_next == ref (deliberate): v1.13.3 (tag v1.13.3) completes the family-C
   # migration (named_parameters -> FunctionSignature typed-kwargs shim) AND fixes
   # missing-file tolerance on the v2.0/macOS build (a narrow catch(const
@@ -24,7 +23,8 @@ repo:
   # broadened to catch(const std::exception&)). The v2.0-cyanoptera prerelease leg
   # now BUILDS AND TESTS on this exact commit instead of skipping vacuously; v1.13.2
   # built but failed 3 missing-file tests on v2.0/macOS, which this ref fixes.
-  ref_next: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
+  variegata: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
+  ref: 60f840ae4d3420b41ad6a5013cf03f0f1d4072db
 
 docs:
   readme: https://duck-hunt.readthedocs.io/
