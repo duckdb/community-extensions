@@ -75,10 +75,10 @@ jobs:
       COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
       # Release 2025.12.12 for 1.5.5, else 2026.06.24
-      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT != '' && steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT || ((inputs.duckdb_version || 'b15358c371') == 'v1.5.6' && '84bab45d415d22042bd0b9081aea57f362da3f35' || 'cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3') }}
+      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT != '' && steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT || ((inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8') == 'v1.5.6' && '84bab45d415d22042bd0b9081aea57f362da3f35' || 'cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3') }}
     env:
-      DUCKDB_LATEST_STABLE: 'b15358c371'
-      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'b15358c371' }}
+      DUCKDB_LATEST_STABLE: 'b15358c371daf10dad799a43b6167f6ccdce84d8'
+      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -96,6 +96,7 @@ jobs:
         ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
         PIP_BREAK_SYSTEM_PACKAGES: 1
         COMMUNITY_EXTENSION_REQUIRE_REF_NEXT: ${{ inputs.require_ref_next }}
+        COMMUNITY_EXTENSION_REQUIRE_VARIEGATA: ${{ inputs.ci_tools_version == 'v1.5-variegata' }}
       run: |
         pip install pyyaml
         # scripts/build.py takes DUCKDB_VERSION from environment
@@ -108,7 +109,7 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v2.0-cyanoptera
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' && needs.prepare.outputs.COMMUNITY_EXTENSION_REF != '' && inputs.ci_tools_version != 'v1.5-variegata' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'b15358c371' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
       duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
@@ -156,7 +157,7 @@ jobs:
     uses: ./.github/workflows/generate_docs.yml
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
-      duckdb_version: ${{ inputs.duckdb_version || 'b15358c371' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
 
   archive:
     needs:
@@ -180,7 +181,7 @@ jobs:
     secrets: inherit
     with:
       deploy_latest: true
-      duckdb_version: ${{ inputs.duckdb_version || 'b15358c371' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
       duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
