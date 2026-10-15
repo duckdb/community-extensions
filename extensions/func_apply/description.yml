@@ -33,8 +33,8 @@ repo:
   # v0.3.3 (tag v0.3.3) completes the family-C named_parameter -> FunctionSignature
   # typed-kwargs port; verified by a real cyanoptera CI leg (build AND test on
   # v2.0) on this exact commit, plus a version-drift guard.
-  variegata: 3ba0d303de29032a83290c3961838a1ae883642b
-  ref: 3ba0d303de29032a83290c3961838a1ae883642b
+  variegata: 9f119877ef5c10ef84c8cc593ee98ee199be5302
+  ref: 9f119877ef5c10ef84c8cc593ee98ee199be5302
 docs:
   hello_world: |
     -- Load the extension
