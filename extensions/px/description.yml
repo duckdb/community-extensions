@@ -1,7 +1,7 @@
 extension:
   name: px
   description: Extension for querying Px-files with DuckDB.
-  version: 0.0.2
+  version: 0.0.3
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: toppyy/duckdb-px
-  ref: 5be93d58f438c48c492f9a9ce729eb61b9bbc025
+  ref: bc40da8093fc530768255dbc3ee49b6922172dd3
+  ref_next: 9d243f7bab5b25377bb9730c952743057cf868ec
 
 docs:
   hello_world: |
