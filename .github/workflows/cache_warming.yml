@@ -9,10 +9,10 @@ jobs:
   duckdb_ccache:
     if: ${{ github.repository == 'duckdb/community-extensions' || github.event_name != 'schedule' }}
     name: Warm CCache using DuckDB C++ extension template
-    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v2.0-cyanoptera
     with:
-      duckdb_version: 'b15358c371'
-      ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
+      duckdb_version: 'b15358c371daf10dad799a43b6167f6ccdce84d8'
+      ci_tools_version: 'v2.0-cyanoptera'
       extra_toolchains: ''
       extension_name: 'waddle'
       override_repository: 'duckdb/extension-template'
@@ -39,11 +39,11 @@ jobs:
 
   duckdb_vcpkg_cache:
     name: Warm VCPKG Binary Cache
-    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@main
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v2.0-cyanoptera
     needs: parse_dependency_list
     with:
-      duckdb_version: 'b15358c371'
-      ci_tools_version: 'main' # TODO: this should probably be same as duckdb_version?
+      duckdb_version: 'b15358c371daf10dad799a43b6167f6ccdce84d8'
+      ci_tools_version: 'v2.0-cyanoptera'
       extra_toolchains: ';rust;go;fortran;parser_tools;'
       extension_name: 'capi_quack'
       override_repository: 'duckdb/extension-template-c'
