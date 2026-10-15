@@ -9,11 +9,35 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
+  # THREE REFS, ONE COMMIT, AND THE KEYS NOW MEAN DIFFERENT THINGS THAN THEY DID
+  # WHEN THIS PR WAS OPENED. duckdb/community-extensions#3079 ("2.0 Release
+  # Prep") merged 2026-10-15T15:42Z and changed build.yml's default
+  # duckdb_version from the v1.5.6 tag to a pinned DuckDB commit,
+  # b15358c371daf10dad799a43b6167f6ccdce84d8 (duckdb/duckdb, 2026-10-09). Per
+  # scripts/build.py:42-54 the keys are now selected like this:
+  #
+  #   ref        -> the DEFAULT build, i.e. the 2.0 line today and v2.0.0 once
+  #                 it is tagged (DUCKDB_LATEST_STABLE is set to the same commit
+  #                 as the default, so the ref_next branch does not fire for it)
+  #   variegata  -> DuckDB v1.5.6 builds; absent, v1.5.6 silently falls back to
+  #                 `ref`, which is why it is stated explicitly here rather than
+  #                 left to the fallback
+  #   ref_next   -> a prerelease version that is neither v1.4.5, v1.5.6, nor the
+  #                 latest stable. build_next.yml's test_against_latest is
+  #                 currently `if: false`, so this is dormant; it is set so that
+  #                 prerelease validation builds+tests this release instead of
+  #                 printing "Skipping prerelease validation" when the job is
+  #                 re-enabled.
+  #
+  # All three are the same commit deliberately: v1.16.0 builds from ONE source
+  # tree against both DuckDB lines. The v2.0 removal of
+  # TableFunction::named_parameters goes through named_parameter_compat.hpp,
+  # which declares via GetSignature().WithTypedKwargs() on v2.0 and the flat map
+  # on v1.5. `variegata` is read by build.py:47 but no extension in the registry
+  # uses it yet (the migration is hours old); `andium`, the identical mechanism
+  # for the v1.4.5 track, is in use and is the proven precedent.
   ref: b49238e625ec6c8be1d4c4dca92f9af86964a5b0
-  # ref and ref_next are deliberately the SAME commit (v1.16.0). sitting_duck builds
-  # from one source tree against both DuckDB lines: the v2.0 removal of
-  # TableFunction::named_parameters goes through named_parameter_compat.hpp, which
-  # declares via GetSignature().WithTypedKwargs() on v2.0 and the flat map on v1.5.
+  variegata: b49238e625ec6c8be1d4c4dca92f9af86964a5b0
   #
   # v1.16.0 is a FEATURE release with OUTPUT CHANGES. New: ast_unparse_exact()
   # reconstructs a file's original bytes from its AST rows, byte-identically for
@@ -40,20 +64,45 @@ repo:
   # it `ORDER BY semantic_type` raised a Catalog Error, because the full-sort path
   # resolves the type alias by name and only the casts had been registered.
   #
-  # Evidence at this ref: builds 0 errors against the pinned v1.5.6 submodule
+  # EVIDENCE AT THIS REF, ON BOTH LINES. One CI run of this exact commit
+  # (teaguesterling/sitting_duck run 38566432103) builds it twice, once per line,
+  # and all 9 platforms are green on each:
+  #
+  #   v1.5.6 (ci-tools @v1.5-variegata)      linux_amd64, linux_arm64, osx_amd64,
+  #     -- TESTS RUN                         osx_arm64, windows_amd64,
+  #                                          windows_amd64_mingw, wasm_mvp,
+  #                                          wasm_eh, wasm_threads
+  #   v2.0-cyanoptera (ci-tools @main)       the same 9
+  #     -- TESTS SKIPPED, see below
+  #
+  # On the v1.5.6 line: builds 0 errors against the pinned v1.5.6 submodule
   # (069cc9f9b5b), full suite 9027 assertions / 156 cases / 0 failures and ZERO
   # skips with SITTING_DUCK_TEST_GRAMMAR_DIR set, conformance kit at its recorded
   # baseline (ok=189 FAIL=3 dirty=1 void=13 UNDECL=5 n/a=13 over 28 languages,
   # all 8 negative controls firing), and the byte-exact sweep reporting
-  # files=29 not_byte_exact=0 with its planted-fault control firing. The kit's 3
-  # FAILs are pre-existing and documented (sitting_duck#220).
+  # files=29 not_byte_exact=0 with its planted-fault control firing (29 = the
+  # 27-language corpus plus two fixtures that make byte-exactness non-trivial:
+  # CRLF with multi-byte UTF-8, and multi-byte UTF-8 with LF). The kit's 3 FAILs
+  # are pre-existing and documented (sitting_duck#220); they have since been
+  # fixed on main -- the kit now reads ok=192 FAIL=0 -- but that is AFTER this
+  # ref and is not what ships here.
   #
-  # Caveat for whoever reads a red prerelease leg: sitting_duck's own v2.0 canary
-  # runs skip_tests because ast_select tests blow the batch timeout there via
-  # upstream duckdb/duckdb#26036, so the canary proves COMPILE-compat on the next
-  # line, not test-compat. The v2.0 line also moves daily. A failure on that leg is
-  # far more likely to be upstream drift than this change, and it is deploy:false
-  # either way -- it cannot affect the shipped v1.5.6 artifact.
+  # WHAT THE v2.0 GREEN DOES AND DOES NOT MEAN -- this replaces an earlier,
+  # now-wrong caveat in this file. sitting_duck's v2.0 leg passes
+  # skip_tests: true, and in ci-tools @main that input is honoured inside
+  # scripts/ci_phase.py:795 rather than by an `if:` on the step -- so the step
+  # named "Test" RUNS, prints "Tests skipped by workflow input.", and reports
+  # SUCCESS having executed nothing. A green Test on that leg is therefore
+  # COMPILE-compat evidence only. Tests are skipped because ast_select blows the
+  # batch timeout on the 2.0 line via an upstream planner regression
+  # (duckdb/duckdb#26036, reported by us, reproduces on duckdb main too);
+  # sitting_duck tracks the measurement as bugs/040.
+  #
+  # The earlier version of this note said a failure on the next-line leg was
+  # "deploy:false either way -- it cannot affect the shipped v1.5.6 artifact".
+  # After #3079 that is no longer true: the 2.0 line is the DEFAULT build, not a
+  # prerelease canary, so `ref` is what gets built against it. v1.5.6 is the one
+  # now reached through an override, which is exactly why `variegata` is set.
   ref_next: b49238e625ec6c8be1d4c4dca92f9af86964a5b0
 docs:
   hello_world: |
