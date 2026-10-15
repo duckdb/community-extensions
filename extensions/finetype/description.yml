@@ -14,6 +14,7 @@ repo:
   github: meridian-online/finetype
   ref: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
   ref_next: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
+  variegata: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
 
 docs:
   hello_world: |
