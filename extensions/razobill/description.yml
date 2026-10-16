@@ -1,7 +1,7 @@
 extension:
   name: razobill
   description: High-performance lossless log parsing, analytical database compaction, and information-theoretic semantic accounting.
-  version: 1.1.1
+  version: 1.1.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: razobill/razobill
-  ref: 258b2da2481c4a79c01b2f1d89f282810d8b85cc
-  ref_next: 258b2da2481c4a79c01b2f1d89f282810d8b85cc
+  ref: v1.1.2
+  ref_next: v1.1.2
 
 docs:
   hello_world: |
@@ -23,10 +23,9 @@ docs:
     -- Vectorized single-pass composite struct decomposition: STRUCT(template VARCHAR, ints BIGINT[], strs VARCHAR[])
     SELECT RzSplit('2026-10-10 12:00:00 [INFO] Worker 42 finished job in 150ms') AS parsed;
 
-    -- Extract structural template and typed variable columns
+    -- Extract structural template and 64-bit partition hash
     SELECT RzTemplate('User 1042 authenticated') AS template,
-           RzInts('User 1042 authenticated') AS ints,
-           RzStrs('User 1042 authenticated') AS strs;
+           RzHash('User 1042 authenticated') AS template_hash;
 
     -- Exact bit-for-bit lossless log reconstruction
     SELECT RzJoin(d.template, d.ints, d.strs) AS reconstructed
