@@ -1,0 +1,54 @@
+extension:
+  name: fxmacrodata
+  description: Official macroeconomic, FX and central-bank data for 22 currencies as typed SQL tables, with the time each figure was published
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  # wasm: the HTTP client (ureq + rustls/ring) does not build for wasm32-emscripten.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - roberttidball
+
+repo:
+  github: fxmacrodata/duckdb-fxmacrodata
+  ref: 83a38ab5a9b30d91492d6e408cd3e5a94134a108
+
+docs:
+  hello_world: |
+    -- The latest print of every US indicator, with the instant each was published.
+    -- USD needs no API key.
+    SELECT indicator, val, unit, announced_at, source
+    FROM fxmacrodata_latest('USD')
+    WHERE val IS NOT NULL
+    ORDER BY announced_at DESC;
+
+    -- What is due next
+    SELECT release, announced_at, event_importance
+    FROM fxmacrodata_calendar('USD')
+    WHERE announced_at > now()
+    ORDER BY announced_at
+    LIMIT 5;
+
+    -- One indicator's published history
+    SELECT date, val, announced_at
+    FROM fxmacrodata_announcements('USD', 'inflation')
+    ORDER BY date DESC;
+  extended_description: |
+    Reads [FXMacroData](https://fxmacrodata.com/?utm_source=github&utm_medium=referral&utm_campaign=community-extensions&utm_content=docs),
+    which collects releases from official publishers (statistical agencies, central banks)
+    across 22 currencies and stamps every observation with the time it was published.
+
+    | Function | Returns |
+    | --- | --- |
+    | `fxmacrodata_latest(currency)` | The most recent print of every indicator for an economy |
+    | `fxmacrodata_announcements(currency, indicator)` | The published history of one indicator |
+    | `fxmacrodata_calendar(currency)` | Upcoming scheduled releases with publication times |
+
+    Columns are typed: `val` is `DOUBLE` and `announced_at` is `TIMESTAMP`, so figures can be
+    ordered, compared and aggregated without casting, and a missing figure stays `NULL`.
+
+    USD works without a key. For the other currencies and the full history window, set
+    `FXMACRODATA_API_KEY` in the environment; it is sent as an `X-API-Key` header, so it
+    never appears in a URL, a query plan or SQL history.

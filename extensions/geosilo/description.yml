@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://github.com/Query-farm/geosilo/blob/main/docs/README.md).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/geosilo/).
 extension:
   build: cmake
   description: Compact geometry encoding using delta-encoded coordinates. Achieves
@@ -11,4 +11,4 @@ extension:
   name: geosilo
 repo:
   github: Query-farm/geosilo
-  ref: d088741d5b3a2bd2a574da54930cae58e6a9d20c
+  ref: e6aaca0fc2784a35a967dd044761483a8b3bda86

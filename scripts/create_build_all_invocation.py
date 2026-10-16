@@ -4,7 +4,7 @@
 #
 # HOW TO USE
 #
-#   > python3 scripts/create_build_all_invocation.py --batch_size=5 --duckdb_tag=v1.4.1 --duckdb_version=b390a7c3760bd95926fe8aefde20d04b349b472e
+#   > python3 scripts/create_build_all_invocation.py --batch_size=5 --duckdb_tag=v2.0.0-alpha46057 --duckdb_version=b15358c371daf10dad799a43b6167f6ccdce84d8
 #
 
 import argparse

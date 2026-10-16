@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Angelerator/Sazgar
-  ref: c8b421e4aca658a34a4aab15549dab28b5df7b96
+  ref: 4259c083ee26f92bb36c8b5cfae1665f81999689
 
 docs:
   hello_world: |
@@ -340,7 +340,7 @@ docs:
     - **GitHub Repository:** [https://github.com/Angelerator/Sazgar](https://github.com/Angelerator/Sazgar)
     - **License:** MIT
     - **Language:** Pure Rust
-    - **DuckDB Version:** 1.5.3+
+    - **DuckDB Version:** 1.5.6+
 
     ---
 

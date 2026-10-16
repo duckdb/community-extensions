@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://github.com/Query-farm/events).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/events/).
 extension:
   build: cmake
   description: A extension that hooks into database events and sends JSON-formatted notifications to external programs.
