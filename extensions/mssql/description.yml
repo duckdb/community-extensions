@@ -1,7 +1,7 @@
 extension:
   name: mssql
   description: "Connect DuckDB to Microsoft SQL Server via native TDS (including TLS)."
-  version: "0.2.5"
+  version: "0.3.0"
   language: "C++"
   build: "cmake"
   licence: "MIT"
@@ -21,16 +21,19 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-extension"
-  # v0.2.5. A SHA rather than the tag name, at the maintainers' request:
-  # a tag can be moved, and this one was -- after v0.2.5 was tagged and before
-  # it was submitted here, to pick up a fix.
-  ref: d35b617c16587e02b4d6e62057ead8f84c1568bf
+  # DuckDB 2.0: the 0.3.0 release candidate (main of hugr-lab/mssql-extension,
+  # which tracks v2.0-cyanoptera). Moved to the v0.3.0 tag's commit on release
+  # day. A SHA rather than a tag name, at the maintainers' request: a tag can
+  # be moved.
+  ref: 2492c6686e99ca1bf0452f830d8d58017faa89ca
+  # DuckDB 1.5.6: v0.2.5, from the extension's duckdb-v1.5.5 branch.
+  variegata: d35b617c16587e02b4d6e62057ead8f84c1568bf
 
 docs:
   hello_world: |
     INSTALL mssql FROM community;
     LOAD mssql;
-    ATTACH 'Server=localhost,1433;Database=master;User Id=sa;Password=YourStrong!Passw0rd' AS ms (TYPE mssql);
+    ATTACH 'Server=localhost,1433;Database=master;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=yes' AS ms (TYPE mssql);
     SELECT * FROM ms.dbo.your_table LIMIT 5;
 
   extended_description: |
