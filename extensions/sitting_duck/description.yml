@@ -98,6 +98,30 @@ repo:
   # (duckdb/duckdb#26036, reported by us, reproduces on duckdb main too);
   # sitting_duck tracks the measurement as bugs/040.
   #
+  # HOW BAD, measured against THIS registry's default commit
+  # (b15358c371daf...) rather than against cyanoptera's tip -- one variable,
+  # same sitting_duck source, same machine, three runs each:
+  #
+  #                             v1.5.6      2.0 line      ratio
+  #   ast_select_from, mean     0.468 s     11.273 s      ~24x
+  #   EXPLAIN (plan only)       0.581 s     72.211 s     ~124x
+  #
+  # CPU-bound in both, and the cost is PLANNING, independent of input size and
+  # selector complexity. So on the 2.0 default this extension builds, loads and
+  # answers correctly, and its headline feature -- the CSS-like selector engine
+  # -- is ~24x slower per call. That is worth knowing before 2.0 becomes the
+  # default build target; it is an upstream planner regression, not a defect
+  # here, and it is why `variegata` above keeps a v1.5.6 artifact available.
+  #
+  # There IS now real test evidence on the 2.0 line, just not at this ref:
+  # sitting_duck's own repo added a non-shipping coverage leg on
+  # `duckdb_version: v2.0-cyanoptera` (branch form, no duckdb_tag), which runs
+  # the suite and reports 154 passed / 0 failed / 5 skipped. It found three
+  # genuine 2.0 breaks on its first run -- the deprecated lambda arrow (`->`),
+  # a warning on v1.5.6 and a hard Binder Error on 2.0. All three were in TEST
+  # files; the shipped SQL macros and the embedded header at this ref carry zero
+  # lambda-arrow uses, verified, so nothing a user executes is affected.
+  #
   # The earlier version of this note said a failure on the next-line leg was
   # "deploy:false either way -- it cannot affect the shipped v1.5.6 artifact".
   # After #3079 that is no longer true: the 2.0 line is the DEFAULT build, not a
