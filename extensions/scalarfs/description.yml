@@ -11,6 +11,11 @@ repo:
   github: teaguesterling/duckdb_scalarfs
   andium: 68faa6c72054123a6c6521dd41c12f929431da50
   ref: 6fc4d68397c521e1fda56bd164ce4f2f3aabda5c
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 6fc4d68397c521e1fda56bd164ce4f2f3aabda5c
   # ref_next omitted (skips the v2.0-cyanoptera prerelease leg). scalarfs is clean
   # of family C (0 named_parameters) and builds against duckdb main, but v2.0-
   # cyanoptera removed QueryResult::GetValue, which pathmacro_filesystem.cpp uses
