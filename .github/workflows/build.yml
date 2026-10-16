@@ -2,16 +2,16 @@ name: Community Extension Build
 on:
   pull_request:
     paths-ignore:
-      - '**'
-      - '!scripts/build.py'
-      - '!.github/workflows/build.yml'
-      - '!extensions/*/description.yml'
+      - "**"
+      - "!scripts/build.py"
+      - "!.github/workflows/build.yml"
+      - "!extensions/*/description.yml"
   push:
     paths-ignore:
-      - '**'
-      - '!scripts/build.py'
-      - '!.github/workflows/build.yml'
-      - '!extensions/*/description.yml'
+      - "**"
+      - "!scripts/build.py"
+      - "!.github/workflows/build.yml"
+      - "!extensions/*/description.yml"
   workflow_dispatch:
     inputs:
       extension_name:
@@ -19,6 +19,8 @@ on:
       duckdb_version:
         type: string
       ci_tools_version:
+        type: string
+      reduced_ci_mode:
         type: string
       duckdb_tag:
         type: string
@@ -39,6 +41,8 @@ on:
       duckdb_version:
         type: string
       ci_tools_version:
+        type: string
+      reduced_ci_mode:
         type: string
       duckdb_tag:
         type: string
@@ -81,27 +85,27 @@ jobs:
       DUCKDB_VERSION: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Get all changed description files
-      id: changed-files
-      uses: tj-actions/changed-files@v46
-      with:
-        files: |
-          extensions/*/description.yml
+      - name: Get all changed description files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            extensions/*/description.yml
 
-    - name: Parse description files
-      id: parse
-      env:
-        ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
-        PIP_BREAK_SYSTEM_PACKAGES: 1
-        COMMUNITY_EXTENSION_REQUIRE_REF_NEXT: ${{ inputs.require_ref_next }}
-      run: |
-        pip install pyyaml
-        # scripts/build.py takes DUCKDB_VERSION from environment
-        python scripts/build.py
-        cat env.sh >> $GITHUB_OUTPUT
-        echo `cat $GITHUB_OUTPUT`
+      - name: Parse description files
+        id: parse
+        env:
+          ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+          COMMUNITY_EXTENSION_REQUIRE_REF_NEXT: ${{ inputs.require_ref_next }}
+        run: |
+          pip install pyyaml
+          # scripts/build.py takes DUCKDB_VERSION from environment
+          python scripts/build.py
+          cat env.sh >> $GITHUB_OUTPUT
+          echo `cat $GITHUB_OUTPUT`
 
   build:
     needs: prepare
@@ -111,6 +115,8 @@ jobs:
       duckdb_version: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
       duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
+      reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
+      
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       test_config: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
@@ -159,6 +165,7 @@ jobs:
       duckdb_version: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
       duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
+      reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
