@@ -12,6 +12,11 @@ extension:
 repo:
   github: teaguesterling/plinking_duck
   ref: e2a474474ccefb73690f3a8298a11c9d81d6d9b3
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: e2a474474ccefb73690f3a8298a11c9d81d6d9b3
   # ref-only (ref_next omitted): since 0.9.2 the extension added the pfile writer,
   # read_howard_manifest + vendored yyjson, and the shared selection handler, and has
   # not been validated against DuckDB v2.0-cyanoptera, so the prerelease leg is skipped
