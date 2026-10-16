@@ -14,6 +14,12 @@ extension:
 repo:
   github: teaguesterling/duckdb_panduck
   ref: fbc56ed5c5d550a9dd601c617649a56625c89d19
+  # variegata: the v1.5.6 track, pinned at the commit that line is known to build.
+  # scripts/build.py sends a v1.5.6 build to this ref if present and to `ref`
+  # otherwise -- and unlike ref_next it has no skip branch, so once `ref` moves to
+  # a 2.0-only commit a v1.5.6 build would FAIL rather than be skipped. Set equal to
+  # `ref` while both lines still build; advance it only to a commit v1.5.6 can build.
+  variegata: fbc56ed5c5d550a9dd601c617649a56625c89d19
   # THE SAME COMMIT AS `ref`, measured rather than defaulted: panduck's own pipeline on this
   # commit built v2.0-cyanoptera green on every platform target, and DuckDB `main` as an
   # advisory canary. 0.5.0 needed a separate ref_next for a missing catalog.hpp include; that

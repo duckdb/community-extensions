@@ -13,6 +13,12 @@ extension:
 repo:
   github: teaguesterling/duckdb_zim
   ref: aa7aea23e2623d259efad62225c3d7a3335e80da
+  # variegata: the v1.5.6 track, pinned at the commit that line is known to build.
+  # scripts/build.py sends a v1.5.6 build to this ref if present and to `ref`
+  # otherwise -- and unlike ref_next it has no skip branch, so once `ref` moves to
+  # a 2.0-only commit a v1.5.6 build would FAIL rather than be skipped. Set equal to
+  # `ref` while both lines still build; advance it only to a commit v1.5.6 can build.
+  variegata: aa7aea23e2623d259efad62225c3d7a3335e80da
   # ref_next: the community registry builds every descriptor carrying it against
   # the v2.0 line (build_next.yml, v2.0-cyanoptera). Same commit as ref: zim builds
   # and passes its full suite there as of v0.9.1.

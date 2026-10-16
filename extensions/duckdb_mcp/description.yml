@@ -11,6 +11,12 @@ extension:
 repo:
   github: teaguesterling/duckdb_mcp
   ref: 6f9c4ba1d2f1040c2a4638dabcd66da630a763ad
+  # variegata: the v1.5.6 track, pinned at the commit that line is known to build.
+  # scripts/build.py sends a v1.5.6 build to this ref if present and to `ref`
+  # otherwise -- and unlike ref_next it has no skip branch, so once `ref` moves to
+  # a 2.0-only commit a v1.5.6 build would FAIL rather than be skipped. Set equal to
+  # `ref` while both lines still build; advance it only to a commit v1.5.6 can build.
+  variegata: 6f9c4ba1d2f1040c2a4638dabcd66da630a763ad
   # ref_next == ref (deliberate): v2.3.2 carries the DuckDB v2.0 fix (#91: reach the
   # result collection through a compat shim; v2.0 changed MaterializedQueryResult access).
   # Setting ref_next == ref makes test_against_latest build+test the SHIPPED release on

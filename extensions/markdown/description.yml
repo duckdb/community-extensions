@@ -15,6 +15,12 @@ repo:
   # v1.9.7 (was v1.5.4 when this note was written, then v1.5.5).
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
   ref: 6fc7013de640191ea5248897df3b60a7bc07db67
+  # variegata: the v1.5.6 track, pinned at the commit that line is known to build.
+  # scripts/build.py sends a v1.5.6 build to this ref if present and to `ref`
+  # otherwise -- and unlike ref_next it has no skip branch, so once `ref` moves to
+  # a 2.0-only commit a v1.5.6 build would FAIL rather than be skipped. Set equal to
+  # `ref` while both lines still build; advance it only to a commit v1.5.6 can build.
+  variegata: 6fc7013de640191ea5248897df3b60a7bc07db67
   # ref_next is what makes the PRERELEASE leg actually build against DuckDB
   # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
   # the PR passes green having verified nothing on that line. A STALE ref_next is
