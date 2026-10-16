@@ -1,7 +1,7 @@
 extension:
   name: plinking_duck
   description: Read and write PLINK 2 genomics file formats and run common genetic analyses directly in SQL
-  version: 0.14.0
+  version: 0.14.1
   language: C++
   build: cmake
   license: MIT
@@ -11,17 +11,18 @@ extension:
 
 repo:
   github: teaguesterling/plinking_duck
-  ref: e2a474474ccefb73690f3a8298a11c9d81d6d9b3
-  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
-  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
-  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
-  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
-  variegata: e2a474474ccefb73690f3a8298a11c9d81d6d9b3
-  # ref-only (ref_next omitted): since 0.9.2 the extension added the pfile writer,
-  # read_howard_manifest + vendored yyjson, and the shared selection handler, and has
-  # not been validated against DuckDB v2.0-cyanoptera, so the prerelease leg is skipped
-  # for this bump rather than run without evidence. Restore ref_next == ref once v0.13.x
-  # is confirmed cyanoptera-green.
+  # Post-#3079 keys: ref = the default build (the DuckDB 2.0 line, v2.0.0 once tagged);
+  # variegata = the DuckDB v1.5.6 build (explicit, not left to fall back to ref);
+  # ref_next = the dormant prerelease slot (build_next test_against_latest is if:false).
+  # All three are the one v0.14.1 commit: a single source tree builds green on BOTH
+  # lines. v0.14.1 is the DuckDB v2.0-cyanoptera compatibility release — the pinned
+  # cyanoptera CI leg built clean (linux amd64/arm64, osx amd64/arm64) and the full
+  # unittest suite passes on both cyanoptera and the v1.5.6 ship line; the named-
+  # parameter rework goes through named_parameter_compat.hpp (GetSignature().
+  # WithTypedKwargs() on v2.0, the flat map on v1.5), same mechanism as the fleet.
+  ref: 9e36cda0c04e7b6cb7baae540f648fd1e4151353
+  variegata: 9e36cda0c04e7b6cb7baae540f648fd1e4151353
+  ref_next: 9e36cda0c04e7b6cb7baae540f648fd1e4151353
 
 docs:
   hello_world: |
