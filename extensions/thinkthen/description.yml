@@ -1,0 +1,27 @@
+extension:
+  name: thinkthen
+  description: Typed questions about text in SQL, including decisions, labels, scores, ranking, finding text and relations.
+  version: '0.2.0'
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - imaurer
+  requires_toolchains: rust
+  # Current DuckDB bridge requires POSIX signals/pipes and Linux/macOS errno.
+  # Emscripten CI also supplies Rust 1.86.0; this bridge requires 1.95.0.
+  excluded_platforms: "windows_amd64;windows_amd64_mingw;windows_arm64;wasm_mvp;wasm_eh;wasm_threads"
+  # Optional musl targets remain unqualified and are not enabled.
+
+repo:
+  github: botassembly/thinkthen
+  ref: d5b1598c7efb293c1dc1e64b87298b4d5badb813
+
+docs:
+  hello_world: |
+    -- Preview a request without a key or a model call.
+    SELECT (thinkthen_plan('asks for a refund', '{"7":"Refund me please."}', '{}')).records;
+  extended_description: |
+    ThinkThen asks typed questions about text from DuckDB through the shared Rust engine. SQL functions return decisions, labels, scores and structured results. Existing replay, cache, cancellation and request limits remain available.
+
+    The preview above plans a request. A hosted call sends the question and text to the selected backend. Read the backend setup and data-handling documentation before sending sensitive text. See https://github.com/botassembly/thinkthen/tree/main/databases/duckdb for the SQL API and setup.
