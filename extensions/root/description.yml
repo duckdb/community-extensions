@@ -1,0 +1,30 @@
+extension:
+  name: root
+  description: Query CERN ROOT files directly using DuckDB SQL.
+  version: 3.10.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - LordVitiate
+  excluded_platforms: "linux_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64;osx_arm64;windows_amd64;windows_arm64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  test_config: '{"test_env_variables":{"ROOT4DUCKDB_ROOT_CONFIG":"/duckdb_build_dir/.deps/community-root/bin/root-config","LD_LIBRARY_PATH":"/duckdb_build_dir/.deps/community-root/lib"}}'
+
+repo:
+  github: LordVitiate/root4duckdb
+  ref: bf55e4cd5491d9cc69e1d569009748ce457fe679
+
+docs:
+  extended_description: |
+    ROOT4DuckDB enables direct SQL queries over CERN ROOT files
+    without converting them to another data format.
+
+    The extension provides ROOT file scanning, nested object access,
+    dataset indexing, and Apache Iceberg integration.
+
+    Currently supported platform: Linux x86_64.
+
+    A compatible installation of CERN ROOT 6.40.04 is required
+    at runtime.
+
+    Source code: https://github.com/LordVitiate/root4duckdb
