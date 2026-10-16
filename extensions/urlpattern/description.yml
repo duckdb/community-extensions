@@ -13,6 +13,11 @@ extension:
 repo:
   github: teaguesterling/duckdb_urlpattern
   ref: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
   # ref_next == ref (deliberate): make test_against_latest build+test this release
   # against DuckDB v2.0-cyanoptera instead of skipping the prerelease leg.
   ref_next: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
