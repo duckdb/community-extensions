@@ -1,7 +1,7 @@
 extension:
   name: stac
   description: DuckDB extension for reading data from SpatioTemporal Asset Catalogs (STAC) using SQL.
-  version: 0.3.0
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,13 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-stac
-  ref: e7bd5a1ea81f4e9b0f3cc59ec8c3773febc4fc12
+  ref: 457789202863483a7e32505a4b8e3c0b1c0fed09
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 457789202863483a7e32505a4b8e3c0b1c0fed09
+  # ref_next omitted (skips the v2.0-cyanoptera prerelease leg).
 
 docs:
   hello_world: |
