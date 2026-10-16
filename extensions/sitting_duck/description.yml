@@ -10,6 +10,11 @@ extension:
 repo:
   github: teaguesterling/sitting_duck
   ref: 803b35b5e4b8cec4b464169d4135648ce8a74875
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 803b35b5e4b8cec4b464169d4135648ce8a74875
   # ref and ref_next are deliberately the SAME commit (v1.15.4). sitting_duck builds
   # from one source tree against both DuckDB lines: the v2.0 removal of
   # TableFunction::named_parameters goes through named_parameter_compat.hpp, which
