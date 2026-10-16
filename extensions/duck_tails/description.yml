@@ -25,6 +25,11 @@ repo:
   # Upstream CI on main (run 37102404149) is green across all seven v2.0-cyanoptera
   # legs: linux amd64+arm64, osx amd64+arm64, windows_amd64 and windows_amd64_mingw.
   ref: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
   ref_next: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
 
 docs:
