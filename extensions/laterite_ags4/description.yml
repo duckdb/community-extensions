@@ -32,6 +32,8 @@ repo:
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
   ref: 6f878ec7dd2aacad3cca7e605a6020db1b0ef819
+  # DuckDB 2.0: the v2.0-cyanoptera branch (niko86/laterite-duckdb#69).
+  ref_next: 5a62f788def21bb2acb0dedcaa3a315cfac9804f
 
 docs:
   hello_world: |
