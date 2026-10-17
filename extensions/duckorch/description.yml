@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/duck-orch
-  ref: 710c9da06db289d65723345c4e0f197f9156b605
+  ref: 6e66d78a4b0f994994c5d108f260d92529587e41
 
 docs:
   hello_world: |
