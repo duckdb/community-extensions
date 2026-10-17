@@ -1,7 +1,7 @@
 extension:
   name: plinking_duck
   description: Read and write PLINK 2 genomics file formats and run common genetic analyses directly in SQL
-  version: 0.14.1
+  version: 0.14.2
   language: C++
   build: cmake
   license: MIT
@@ -14,15 +14,15 @@ repo:
   # Post-#3079 keys: ref = the default build (the DuckDB 2.0 line, v2.0.0 once tagged);
   # variegata = the DuckDB v1.5.6 build (explicit, not left to fall back to ref);
   # ref_next = the dormant prerelease slot (build_next test_against_latest is if:false).
-  # All three are the one v0.14.1 commit: a single source tree builds green on BOTH
-  # lines. v0.14.1 is the DuckDB v2.0-cyanoptera compatibility release — the pinned
+  # All three are the one v0.14.2 commit: a single source tree builds green on BOTH
+  # lines. v0.14.2 is the DuckDB v2.0-cyanoptera compatibility release (and renames the howard catalog to pfile_catalog) — the pinned
   # cyanoptera CI leg built clean (linux amd64/arm64, osx amd64/arm64) and the full
   # unittest suite passes on both cyanoptera and the v1.5.6 ship line; the named-
   # parameter rework goes through named_parameter_compat.hpp (GetSignature().
   # WithTypedKwargs() on v2.0, the flat map on v1.5), same mechanism as the fleet.
-  ref: 9e36cda0c04e7b6cb7baae540f648fd1e4151353
-  variegata: 9e36cda0c04e7b6cb7baae540f648fd1e4151353
-  ref_next: 9e36cda0c04e7b6cb7baae540f648fd1e4151353
+  ref: 7a34f3ab8d76534aaebed0aaa88e8ef27099f4e6
+  variegata: 7a34f3ab8d76534aaebed0aaa88e8ef27099f4e6
+  ref_next: 7a34f3ab8d76534aaebed0aaa88e8ef27099f4e6
 
 docs:
   hello_world: |
