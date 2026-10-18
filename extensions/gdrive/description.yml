@@ -1,6 +1,6 @@
 extension:
   name: gdrive
-  version: 2026.10.16
+  version: 2026.10.17
   description: Query files in Google Drive directly with a gdrive:// filesystem
   language: C++
   build: cmake
@@ -17,7 +17,10 @@ extension:
 
 repo:
   github: DataZooDE/duckdb-gdrive
-  ref: 4de42e49ad2a02554abcb119f49f795c520bcd2f
+  ref: fccfa442d03f33a1bd4238b4b3d20204fad6ef60
+  # ref builds against DuckDB 2.0, variegata against v1.5.6; one commit
+  # serves both (and v1.4.5 via the ref fallback).
+  variegata: fccfa442d03f33a1bd4238b4b3d20204fad6ef60
 
 docs:
   hello_world: |
