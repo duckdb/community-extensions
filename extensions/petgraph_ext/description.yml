@@ -13,6 +13,7 @@ extension:
 repo:
   github: alitrack/duckdb_petgraph
   ref: refs/tags/v0.5.1
+  ref_next: 75aadaf3fc97f55f41baf46fb045c0a5160c3650
 
 docs:
   hello_world: |
