@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: djouallah/delta_export
-  ref: f4a45194ec2dc66eb8cb1aa89d1edede507c9d52
+  ref: d3875f616befdbf2d9a35940daa80115c13fa733
 
 docs:
   hello_world: |
