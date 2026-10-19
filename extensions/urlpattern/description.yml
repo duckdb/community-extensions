@@ -1,7 +1,7 @@
 extension:
   name: urlpattern
   description: WHATWG URLPattern API for matching and extracting components from URLs using pattern syntax
-  version: 0.4.2
+  version: 0.4.3
   language: C++
   build: cmake
   license: MIT
@@ -12,15 +12,30 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_urlpattern
-  ref: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
+  # v0.4.3 (tag v0.4.3, released 2026-10-16). THIS IS THE COMMIT THAT BUILDS ON 2.0.
+  # v0.4.2 does not: `ScalarFunction::varargs` is private on the 2.0 line, so
+  # duckdb_compat.hpp:221 fails with "class duckdb::ScalarFunction has no member named
+  # 'varargs'" (measured -- registry run 38928186555, four FAILED objects). v0.4.3
+  # replaces that field write with a GetSignature()/AddKwargs path selected by an
+  # `if constexpr` probe, so one source builds both lines.
+  #
+  # The registry `ref` pins the last RELEASE, not main. The fix therefore could not
+  # reach this PR by landing upstream -- only by moving ref to a release containing it.
+  ref: 0e14b580454ea92ff0120bdbac9ab836c407bd1b
   # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
   # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
   # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
   # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
-  variegata: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
+  # Moved with ref. v0.4.3 keeps a v1.5 `else` branch in CompatSetVarArgs and
+  # CompatSetKwargs that writes the public `varargs` field, and its comments record a
+  # v1.5 build that was measured and fixed during development. Holding variegata at
+  # v0.4.2 would ship v0.4.2 code under the 0.4.3 label on this track. urlpattern's own
+  # pipeline has no v1.5 leg, so THIS BUILD IS THE VERIFICATION: if the v1.5.6 leg
+  # fails, retreat variegata to 0b7dae3e and say so rather than leaving it red.
+  variegata: 0e14b580454ea92ff0120bdbac9ab836c407bd1b
   # ref_next == ref (deliberate): make test_against_latest build+test this release
   # against DuckDB v2.0-cyanoptera instead of skipping the prerelease leg.
-  ref_next: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
+  ref_next: 0e14b580454ea92ff0120bdbac9ab836c407bd1b
   andium: bc9864b9fad37bffe15f7499fc5b9021e970eaf8
   # andium (DuckDB v1.4.5 track) left at the pre-v1.5-variegata commit;
   # v0.4.1 targets the v1.5.x line and ships on that track via ref.
