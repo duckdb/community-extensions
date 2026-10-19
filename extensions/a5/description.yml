@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 6266499b7b2cb8d827450dc5626725ba9449fd18
   github: query-farm/a5
-  ref: 6e663452c09f3b53b719a9b10eab917a86064f4f
+  ref: e8d7bffb83e7bfdb528f9ca78e5a3c71ba467660
+  variegata: 6e663452c09f3b53b719a9b10eab917a86064f4f
