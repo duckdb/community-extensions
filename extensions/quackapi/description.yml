@@ -29,7 +29,7 @@ extension:
 repo:
   github: asubbarao/quackapi
   # Pin to the packaging commit SHA (set by release engineer; never a branch).
-  ref: 9da900bcaa1da48b64dbcab5cc3470c849b851a0
+  ref: c62eaef293d8063657c68465b662fb6717071c86
 
 docs:
   hello_world: |
