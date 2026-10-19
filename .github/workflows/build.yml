@@ -24,6 +24,8 @@ on:
         type: string
       duckdb_tag:
         type: string
+      duckdb_commit:
+        type: string
       deploy:
         type: string
       more_excluded:
@@ -45,6 +47,8 @@ on:
       reduced_ci_mode:
         type: string
       duckdb_tag:
+        type: string
+      duckdb_commit:
         type: string
       deploy:
         type: string
@@ -112,8 +116,10 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v2.0-cyanoptera
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' && needs.prepare.outputs.COMMUNITY_EXTENSION_REF != '' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
-      duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0-alpha46057' }}
+      # no tag currently for v2.0.0-alpha46057; re-add duckdb_tag and remove duckdb_commit when bumping to official 2.0
+      # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
+      duckdb_commit: ${{ inputs.duckdb_commit || 'b15358c371daf10dad799a43b6167f6ccdce84d8' }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
       reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
       

@@ -6,6 +6,8 @@ on:
         type: string
       duckdb_tag:
         type: string
+      duckdb_commit:
+        type: string
       ci_tools_version:
         type: string
       deploy:
