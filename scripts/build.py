@@ -43,6 +43,9 @@ with open('env.sh', 'w+') as hdl:
 	if os.environ['DUCKDB_VERSION'] == 'v1.4.5':
 		if 'andium' in desc['repo']:
 			extension_ref = desc['repo']['andium']
+	elif os.environ['DUCKDB_VERSION'] == 'v1.5.6':
+		if 'variegata' in desc['repo']:
+			extension_ref = desc['repo']['variegata']
 	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
 		if desc['repo'].get('ref_next'):
 			extension_ref = desc['repo']['ref_next']
