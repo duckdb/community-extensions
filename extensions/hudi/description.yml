@@ -1,7 +1,7 @@
 extension:
   name: hudi
   description: Query Apache Hudi COW and MOR tables directly in DuckDB — full scans, time-travel (as_of), incremental windows, and table metadata — powered by the Rust hudi-rs kernel.
-  version: 0.2.1
+  version: 0.2.2
   language: Rust
   build: cmake
   license: MIT
@@ -13,6 +13,7 @@ extension:
 repo:
   github: alitrack/duckdb-hudi
   ref: ea166bd3b7fc07bcaf3356880da73e864c5f05e9
+  ref_next: ae57dbf54dad2a3faadcfe74e489cb7498aec18e
 
 docs:
   hello_world: |
