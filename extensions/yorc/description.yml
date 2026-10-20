@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: mgbilby/yorc-duckdb
-  ref: 3d6b4e555fe0e7b0c91f21e5b42198144e54b94d
+  ref: ae21659ac72b04bf81e621a933a2c2a5bb95f7f9
 
 docs:
   hello_world: |
