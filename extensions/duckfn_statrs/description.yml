@@ -12,6 +12,7 @@ extension:
 repo:
   github: shijianjs/duckfn-statrs
   ref: 19cc9b83328d373d894ebb15bb043e8f4b1bf76c
+  ref_next: e485353d030e7de3dd62eae9b7cd791a2b4d9411
 
 docs:
   hello_world: |
