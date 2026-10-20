@@ -12,6 +12,8 @@ fi
 DUCKDB_BINARY="$1 -init /dev/null"
 
 curl -s https://community-extensions.duckdb.org/downloads-last-week.json -o build/downloads-last-week.json
+curl -s https://endoflife.date/api/duckdb.json -o build/duckdb-eol.json
+curl -s https://raw.githubusercontent.com/duckdb/extension-ci-tools/main/config/distribution_matrix.json -o build/distribution_matrix.json
 
 platform=$($DUCKDB_BINARY -csv -c "PRAGMA platform" | tail -n1)
 version_raw=$($DUCKDB_BINARY -csv -c "PRAGMA version" | tail -n1)
@@ -45,6 +47,10 @@ do
 
       mkdir -p $DOCS/$extension
       mkdir -p $DOCS/../screenshot
+
+      # Computed before $extension may be rewritten to an alias' canonical name below,
+      # since binaries are published under the name used to install the extension
+      COMPATIBILITY_MATRIX=$(python3 scripts/compatibility_matrix.py $extension build/duckdb-eol.json build/distribution_matrix.json)
       
       $DUCKDB_BINARY post.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})','{% raw %}\\1{% endraw %}', 'g');"
       $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_no_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || examples.list_transform(lambda x: x.jekyll_format_function()).list_reduce(lambda x, y : x || ', ' || y) || ']' END AS examples FROM (FROM (SELECT function_name, function_type, description, comment, examples FROM functions ORDER BY function_name, function_type) EXCEPT (SELECT function_name, function_type, description, comment, examples FROM pre.functions ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"
@@ -141,6 +147,11 @@ do
 
       echo "layout: community_extension_doc" >> $EXTENSION_README
       echo "---" >> $EXTENSION_README
+
+      echo "### Compatibility Matrix" >> $EXTENSION_README
+      echo "" >> $EXTENSION_README
+      echo "$COMPATIBILITY_MATRIX" >> $EXTENSION_README
+      echo "" >> $EXTENSION_README
 
       cat layout/default.md >> $EXTENSION_README
 
