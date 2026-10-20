@@ -1,7 +1,7 @@
 extension:
   name: dns
   description: The DNS Extension enables DNS lookups and reverse DNS lookups from within DuckDB
-  version: 0.4.5
+  version: 0.4.7
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-dns
-  ref: c30ce05c92665e5a90aa9511c5b09563f80299fa
+  ref: e8b36f403df2399b27b8d9c3a9e0126b6c038c36
 
 docs:
   hello_world: |
@@ -38,14 +38,15 @@ docs:
     │ docusign=1b0a6754-49b1-4db5-8540-d2c12664b289                                                 │
     └───────────────────────────────────────────────────────────────────────────────────────────────┘
 
-    -- Performs a reverse DNS lookup to resolve an IP address to its hostname.
-    D SELECT reverse_dns_lookup('8.8.8.8') as hostname;
-    ┌────────────┐
-    │  hostname  │
-    │  varchar   │
-    ├────────────┤
-    │ dns.google │
-    └────────────┘
+    -- Performs a reverse DNS lookup to resolve an IPv4 or IPv6 address to its hostname.
+    D SELECT ip, reverse_dns_lookup(ip) as hostname FROM (VALUES ('8.8.8.8'), ('2606:4700:4700::1111')) AS ips(ip);
+    ┌──────────────────────┬─────────────────┐
+    │          ip          │    hostname     │
+    │       varchar        │     varchar     │
+    ├──────────────────────┼─────────────────┤
+    │ 8.8.8.8              │ dns.google      │
+    │ 2606:4700:4700::1111 │ one.one.one.one │
+    └──────────────────────┴─────────────────┘
 
     -- Returns all TXT records for a hostname as a table.
     D SELECT * FROM corey('lastweekinaws.com') order by txt_record ASC;
@@ -152,16 +153,19 @@ docs:
 
     ### `reverse_dns_lookup(ip_address)`
 
-    Performs a reverse DNS lookup to resolve an IPv4 address to a hostname.
+    Performs a reverse DNS lookup to resolve an IPv4 or IPv6 address to a hostname.
 
     **Parameters:**
-    - `ip_address` (VARCHAR): The IPv4 address to resolve (must be valid IPv4 format)
+    - `ip_address` (VARCHAR): The IPv4 or IPv6 address to resolve. IPv4-mapped IPv6 addresses (e.g. `::ffff:8.8.8.8`) are looked up as their IPv4 address.
 
     **Returns:** VARCHAR - The resolved hostname, or NULL on error
 
     **Example:**
     ```sql
     SELECT reverse_dns_lookup('8.8.8.8');
+    -- Returns: dns.google
+
+    SELECT reverse_dns_lookup('2001:4860:4860::8888');
     -- Returns: dns.google
     ```
 

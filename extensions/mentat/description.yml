@@ -1,7 +1,7 @@
 extension:
   name: mentat
   description: Datomic-compatible Datalog query engine as a DuckDB extension
-  version: 1.10.3
+  version: 1.11.0
   language: Rust
   build: cargo
   license: Apache-2.0
@@ -11,24 +11,30 @@ extension:
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
 repo:
   github: gburd/mentat
-  ref: a835c85ed564579512c6c9555bf1c86bce62eb2d
+  ref: 89288a08fca229ca8643bdd1811df957c144328c
 docs:
   hello_world: |
     LOAD mentat;
-    -- transact a schema + data into an embedded mentat store, then query it:
-    SELECT edn_t('/tmp/demo.mentat',
+    -- Transact a schema and data into the mentat store 'default'. Its datoms are
+    -- DuckDB tables (schema `mentat`) in the database you have open.
+    SELECT edn_t('default',
       '[{:db/ident :person/name :db/valueType :db.type/string :db/cardinality :db.cardinality/one}]');
-    SELECT edn_t('/tmp/demo.mentat', '[{:person/name "Alice"} {:person/name "Bob"}]');
-    SELECT * FROM edn_q('/tmp/demo.mentat',
+    SELECT edn_t('default', '[{:person/name "Alice"} {:person/name "Bob"}]');
+    -- Datalog: a table function, so the rows join against your own tables.
+    SELECT * FROM edn_q('default',
       '[:find ?e ?name :where [?e :person/name ?name]]', '{}');
-    SELECT * FROM edn_q('/tmp/demo.mentat',
+    SELECT * FROM edn_q('default',
       '[:find ?e . :in ?name :where [?e :person/name ?name]]', '{"inputs": ["Alice"]}');
+    -- The datoms are plain DuckDB rows.
+    SELECT count(*) FROM mentat.datoms;
   extended_description: |
     mentat is a Datomic-compatible database: an EDN/Datalog front-end over an
-    entity-attribute-value store with history. This extension embeds the mentat
-    SQLite store and exposes it to DuckDB as `edn_t` (transact), `edn_q`
+    entity-attribute-value store with history. This extension stores mentat's
+    datoms in DuckDB: each mentat store is a schema of ordinary tables in the
+    database the extension is loaded into, so the data persists with that
+    database and plain SQL can read it. It exposes `edn_t` (transact), `edn_q`
     (Datalog query table function, with :in inputs and asOf/since), `edn_pull`
     (pull pattern -> JSON) and `edn_eval` (sandboxed mino script), so Datalog
     query results can be joined against native DuckDB tables. The same engine is also
-    available as an embedded Rust library, a CLI, and a PostgreSQL extension
-    (`pg_mentat`). Source: https://codeberg.org/gregburd/mentat
+    available as an embedded Rust library and CLI (on SQLite) and a PostgreSQL
+    extension (`pg_mentat`). Source: https://codeberg.org/gregburd/mentat

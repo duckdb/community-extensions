@@ -1,13 +1,16 @@
 # Submission file for https://github.com/duckdb/community-extensions
 #
-# Live in duckdb/community-extensions since #2037 (v0.9.2). This update jumps
-# from v0.15.1 straight to v0.18.0 — see the PR description for what changed
-# in between (v0.16.0, v0.17.0, v0.17.1, v0.18.0).
+# This update bumps salesforce from v0.19.1 to v0.19.2 (own-repo release
+# 2026-10-14: tag v0.19.2, commit 2c96c1916c6067d979f578c1b73d7872457425d3,
+# Release published with signed assets). Deltas: version + repo.ref bumped;
+# extended_description gains the v0.19.2 sentence (latest_date_covered
+# column, read_only ATTACH option, plan-time Id validation,
+# sf_timeout_read_s). Function count unchanged (28, all self-documented).
 
 extension:
   name: salesforce
   description: Read-only access to Salesforce orgs as DuckDB SQL tables over the official REST and Bulk APIs — OAuth refresh-token or JWT-bearer auth (credentials from inline options, environment variables, or an SFDX auth URL), native ATTACH, projection + predicate pushdown, COUNT pushdown, explicit server-side aggregates with GROUP BY, lazy/auto/Bulk transports with PK chunking (Bulk blob/base64 compatibility guard), a per-job API quota governor, parent + grandparent relationship STRUCT columns with diagnostics, queryAll (archived + deleted), Tooling-API fast schema, and metadata helpers (manual cache refresh, picklist values, record types). Requires DuckDB v1.5.4 or newer.
-  version: 0.18.0
+  version: 0.19.2
   language: C++
   build: cmake
   license: MIT
@@ -23,8 +26,8 @@ extension:
 repo:
   github: flozer/duckdb-salesforce
   # community-extensions CI checks out exactly this ref to build + sign.
-  # tag v0.18.0
-  ref: 6a03b024e62f4e98781267786a5d46800edea8f8
+  # PLACEHOLDER - pin to the v0.19.2 tag commit before submitting.
+  ref: 2c96c1916c6067d979f578c1b73d7872457425d3
 
 docs:
   hello_world: |
@@ -65,3 +68,25 @@ docs:
     is unambiguous. Built and tested against DuckDB v1.5.4, v1.5.5 and
     v1.5.6 (v1.5.2/v1.5.3 support was dropped in v0.15.0 — see CHANGELOG.md).
     Full change history in this repo's CHANGELOG.md.
+    Since v0.19.2, salesforce_deleted_ids returns latest_date_covered (the
+    getDeleted coverage frontier, for wide-window sweep checkpoints), the
+    read_only ATTACH option is accepted as a documented no-op (the catalog is
+    read-only by design), Id literals in =/!=/IN filters are validated at
+    plan time (15/18 alphanumeric chars; clear error instead of Salesforce's
+    generic INVALID_QUERY_FILTER_OPERATOR), and the per-attempt HTTP read
+    timeout is tunable via sf_timeout_read_s (default 60s, cap 3600s).
+    Since v0.19.1,
+    salesforce_deleted_ids paginates its queryAll sweep (v0.19.0 truncated at
+    exactly 2,000 ids) and uses the Replication API getDeleted() as the
+    default source for ANY window width (the 15-minute cap was an incorrect
+    assumption; latestDateCovered resume + boundary dedup), covering objects
+    with no IsDeleted field (e.g. User).
+    Since v0.19.0, salesforce_deleted_ids(catalog, object, since, until)
+    surfaces the ids deleted in the org within a window (Replication API
+    getDeleted for exact deletion timestamps; a queryAll IsDeleted scan as
+    fallback for wider windows), salesforce_bulk_resume(catalog, job_id)
+    re-streams the results of an existing Bulk query job (recovery without
+    re-running it), salesforce_scan(catalog, object, filter, ...) scans an
+    sObject directly with per-call overrides, transient HTTP failures retry
+    with tunable sf_retry_max/sf_retry_backoff_ms, and well-known Salesforce
+    errorCodes surface with embedded remedy hints.

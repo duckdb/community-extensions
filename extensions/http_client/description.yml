@@ -1,6 +1,5 @@
 docs:
-  extended_description: The HTTP Client Extension is experimental, use at your own
-    risk!
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/http_client/).
   hello_world: "-- GET Request Example w/ JSON Parsing\nWITH __input AS (\n  SELECT\n\
     \    http_get(\n        'https://httpbin.org/delay/0',\n        headers => MAP\
     \ {\n          'accept': 'application/json',\n        },\n        params => MAP\
