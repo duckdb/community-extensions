@@ -1,7 +1,7 @@
 extension:
   name: panduck
   description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
-  version: 0.6.0
+  version: 0.6.2
   language: C++
   build: cmake
   license: MIT
@@ -13,20 +13,25 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: a144d41b61bc853a2a5616f99aebe8f0b2bba377
+  ref: fbc56ed5c5d550a9dd601c617649a56625c89d19
   # THE SAME COMMIT AS `ref`, measured rather than defaulted: panduck's own pipeline on this
-  # commit built v2.0-cyanoptera green on all nine platform targets, and DuckDB `main` as an
+  # commit built v2.0-cyanoptera green on every platform target, and DuckDB `main` as an
   # advisory canary. 0.5.0 needed a separate ref_next for a missing catalog.hpp include; that
-  # fix has been in every tag since. RE-MEASURED for 0.6.0 on this exact commit: the
-  # v2.0 line is green on all nine targets (linux amd64/arm64, osx amd64/arm64, windows
-  # amd64 + mingw, wasm mvp/eh/threads), and the `main` canary green on the same nine.
+  # fix has been in every tag since. RE-MEASURED for 0.6.2 on this exact commit (run
+  # 38436336002): 45 jobs green, 1 skipped, with all THREE lines at 10/10 -- the default
+  # stable line, the v2.0 "next" line, and the `main` canary -- across the nine platform
+  # targets, which are linux amd64/arm64, osx amd64/arm64, windows amd64 + mingw and wasm
+  # mvp/eh/threads. The single skip is `Code Quality Check / Tidy Check`, which skipped for
+  # 0.6.0 and 0.6.1 too. Note that the v2.0 and canary jobs do NOT run on pull requests --
+  # they skip there and only fire on main -- so this measurement is from the post-merge run,
+  # not the PR's, and it was re-run for THIS commit rather than carried over from 0.6.1.
   #
   # ref_next STAYS SET even when it equals ref: without it scripts/build.py prints "Skipping
   # prerelease validation" and test_against_latest never runs -- a green that means "did not
   # look". panduck v0.2.0 merged that way, and the job has since caught two real defects.
   # A STALE ref_next is worse than an absent one: it validates the PREVIOUS release
   # against the next line while reporting green, so it moves with ref every release.
-  ref_next: a144d41b61bc853a2a5616f99aebe8f0b2bba377
+  ref_next: fbc56ed5c5d550a9dd601c617649a56625c89d19
 docs:
   hello_world: |
     LOAD panduck;

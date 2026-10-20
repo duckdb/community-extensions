@@ -1,7 +1,7 @@
 extension:
   name: databricks
   description: Read and write Databricks tables directly from DuckDB.
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: altertable-ai/duckdb-databricks
-  ref: 1f64b810cde2010fd9c35cb6f7b5f1067e1d99af
+  ref: 272162459a35364c0cb5639b2bc035bb8591d826
 
 docs:
   hello_world: |

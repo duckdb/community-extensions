@@ -1,0 +1,62 @@
+extension:
+  name: hudi
+  description: Query Apache Hudi COW and MOR tables directly in DuckDB — full scans, time-travel (as_of), incremental windows, and table metadata — powered by the Rust hudi-rs kernel.
+  version: 0.2.1
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw;windows_amd64_rtools"
+  requires_toolchains: "rust"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-hudi
+  ref: ea166bd3b7fc07bcaf3356880da73e864c5f05e9
+
+docs:
+  hello_world: |
+    -- Read a Hudi COW table
+    INSTALL hudi FROM community;
+    LOAD hudi;
+    SELECT * FROM read_hudi('/path/to/hudi_table')
+    WHERE dt = '2026-01-01';
+
+    -- Time-travel to the latest commit <= an instant
+    SELECT * FROM read_hudi('/path/to/hudi_table', as_of => '20260101000000000');
+
+    -- Incremental read of changes in (start, "end"]
+    -- ("end" is a reserved word, so quote it as a named parameter)
+    SELECT * FROM read_hudi('/path/to/hudi_table',
+        start => '20260101000000000', "end" => '20260102000000000');
+
+    -- Table metadata: type, latest commit, file counts
+    SELECT hudi_info('/path/to/hudi_table');
+
+  extended_description: |
+    ## duckdb-hudi
+
+    DuckDB extension that reads [Apache Hudi](https://hudi.apache.org/) tables
+    (COW and MOR) using the [hudi-rs](https://crates.io/crates/hudi) Rust kernel.
+    Source: https://github.com/alitrack/duckdb-hudi
+
+    ### Install
+    ```sql
+    INSTALL hudi FROM community;
+    LOAD hudi;
+    ```
+
+    ### Features
+    - Full scan of COW and MOR Hudi tables
+    - Time-travel via `as_of` (query a table at a specific instant)
+    - Incremental reads (new/changed records since a checkpoint)
+    - Table schema + metadata queries
+    - Parallel scanning
+
+    ### Build note
+    The extension is built from the DuckDB C-API Rust template and its `hudi`
+    dependency pulls in the Lance crate, which runs `prost-build` at compile
+    time. Building therefore requires `protoc` to be available (this extension
+    declares `requires_toolchains: rust`; the protobuf compiler is the one
+    toolchain not yet in the default community build environment — see the PR
+    description for the resolution).

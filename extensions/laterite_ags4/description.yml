@@ -1,11 +1,11 @@
 extension:
   name: laterite_ags4
   description: Read AGS4 geotechnical data files as typed, UUID-keyed tables directly from SQL — born-typed columns, deterministic content-addressed keys that join across groups by construction, and an embedded AGS dictionary. A read-only SQL surface. Local, http(s):// and s3:// (with httpfs).
-  version: 0.11.0
+  version: 0.15.0
   language: Rust
   build: cargo
   license: MIT
-  # wasm is BUILT for all three variants (wasm_mvp / wasm_eh / wasm_threads). The
+  # wasm is BUILT for wasm_mvp and wasm_eh (wasm_threads is excluded, below). The
   # C-API extension (official duckdb-rs crate) compiles to a
   # wasm32-unknown-emscripten staticlib example (src/wasm_lib.rs) that
   # extension-ci-tools emcc-links as an emscripten SIDE_MODULE. Building on the
@@ -16,10 +16,13 @@ extension:
   # filesystem; browser SQL-over-AGS is also served by the dedicated
   # `laterite-ags4-wasm` package.
   #
-  # wasm_threads is enabled now the bulk-memory-opt blocker is gone on every
-  # variant (mvp + eh landed in the initial 0.7.0 cut; threads links clean on the
-  # same duckdb-crate path). linux_amd64_musl stays excluded (untested).
-  excluded_platforms: "linux_amd64_musl"
+  # wasm_threads is excluded (#50): it links, but does not LOAD. Every
+  # wasm_threads extension build gets a non-shared memory (DuckDB's own core
+  # extensions too; duckdb/extension-ci-tools#391), which duckdb-wasm's threads
+  # runtime (shared memory) refuses. For this Rust extension a fix would also
+  # need +atomics std, i.e. nightly build-std, not stable Rust.
+  # linux_amd64_musl stays excluded (untested).
+  excluded_platforms: "linux_amd64_musl;wasm_threads"
   requires_toolchains: "rust"
   maintainers:
     - niko86
@@ -28,7 +31,7 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: bae75a0daf8d026e282f5892ef535e32ed828d74
+  ref: 6f878ec7dd2aacad3cca7e605a6020db1b0ef819
 
 docs:
   hello_world: |
