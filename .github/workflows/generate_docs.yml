@@ -2,28 +2,19 @@ name: Community Extension Generate Docs
 on:
   workflow_dispatch:
     inputs:
+      # optionally generate docs for only one extension, installed from the community repository
       extension_name:
-        description: 'Only generate docs for this extension (leave empty for all extensions)'
         type: string
+      # if set, the extension is installed from this run's build artifact instead of the community repository
       duckdb_version:
-        description: 'Only used when install_from is artifact'
         type: string
-      install_from:
-        description: 'Where to get the extension when extension_name is set'
-        type: choice
-        options:
-          - community
-          - artifact
-        default: community
   workflow_call:
     inputs:
       extension_name:
         type: string
+      # if set, the extension is installed from this run's build artifact instead of the community repository
       duckdb_version:
         type: string
-      install_from:
-        type: string
-        default: artifact
 
 env:
   GH_TOKEN: ${{ github.token }}
@@ -49,20 +40,20 @@ jobs:
 
     # Artifacts only exist within the run that built them, so this is for use via workflow_call
     - uses: actions/download-artifact@v4
-      if: ${{ inputs.extension_name != '' && inputs.install_from == 'artifact' }}
+      if: ${{ inputs.extension_name != '' && inputs.duckdb_version != '' }}
       with:
         name: ${{ inputs.extension_name }}-${{ inputs.duckdb_version}}-extension-linux_amd64
         path: build/downloaded
 
     - name: Install downloaded extension
-      if: ${{ inputs.extension_name != '' && inputs.install_from == 'artifact' }}
+      if: ${{ inputs.extension_name != '' && inputs.duckdb_version != '' }}
       env:
         NAME: ${{ inputs.extension_name }} 
       run: |
         ./duckdb -unsigned -c "SET extension_directory = 'build/extension_dir'; FORCE INSTALL 'build/downloaded/$NAME.duckdb_extension';"
 
     - name: Install extension from community repository
-      if: ${{ inputs.extension_name != '' && inputs.install_from == 'community' }}
+      if: ${{ inputs.extension_name != '' && inputs.duckdb_version == '' }}
       env:
         NAME: ${{ inputs.extension_name }}
       run: |
