@@ -1,0 +1,62 @@
+extension:
+  name: improv
+  description: Improv's spreadsheet formula language (674 functions) and multidimensional models (categories, measures, formulas over them) on DuckDB tables
+  version: 0.9.0
+  language: Rust
+  build: cargo
+  license: MIT OR Apache-2.0
+  maintainers:
+    - gburd
+  requires_toolchains: "rust;python3"
+  # Not yet built or tested for musl, mingw or wasm (the engine's timely /
+  # differential-dataflow stack has not been tried there).
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+repo:
+  # Their CI clones from GitHub, so this is the mirror, not Codeberg.
+  github: gburd/improv
+  # A commit SHA, filled in once that commit is qualified on every platform
+  # (.github/workflows/duckdb.yml).
+  ref: 874a031ffc83edbdc5736b8b54c6bc1b3964b28b
+docs:
+  hello_world: |
+    LOAD improv;
+    -- Any of Improv's 674 built-in functions, on named inputs.
+    SELECT improv_calc('ROUND(PMT(rate/12, n, -pv), 2)',
+                       json_object('rate', 0.06, 'n', 360, 'pv', 200000));  -- 1199.1
+    SELECT improv_calc_text('1/0');                                          -- #DIV/0!
+    SELECT name, signature FROM improv_functions(query := 'pmt');
+    -- A multidimensional model over a table: one row per computed cell.
+    CREATE TABLE sales AS SELECT * FROM (VALUES
+      (2024, 'WidgetA', 10, 100), (2024, 'WidgetB', 20, 50),
+      (2025, 'WidgetA', 11, 120), (2025, 'WidgetB', 20, 40)) t(year, product, price, qty);
+    SELECT * FROM improv('sales', '
+      category Time = year
+      category Product = product
+      input Price = price
+      input Quantity = qty sum
+      Revenue = Price * Quantity
+      Share = Revenue / SUM(Revenue OVER Product)
+      Growth = Revenue - PREV(Revenue, Time, 1, 0)');
+  extended_description: |
+    Improv is a multidimensional spreadsheet in the Lotus Improv / Quantrix
+    tradition: data lives in categories (Time, Product, Region) instead of
+    cell addresses, and formulas name measures (`Revenue = Price *
+    Quantity`), so one formula covers every cell it applies to.
+
+    This extension brings its formula engine to DuckDB:
+
+    - `improv_calc(formula [, inputs])` evaluates a scalar Improv formula
+      (math, statistics, financial, text, dates, engineering, `IF`, `LET`,
+      `LAMBDA`; aggregations over categories need a model) on named inputs
+      passed as a JSON object. An error value is NULL; `improv_calc_text`
+      returns any type and renders errors (`#DIV/0!`).
+    - `improv_functions([query := ...])` lists the functions with their
+      signatures and descriptions.
+    - `improv(source, model)` reads a table or a SELECT, builds a model from
+      a short spec (categories from columns, inputs from columns with an
+      optional sum/avg/min/max/count, derived measures as formulas, with
+      aggregations across categories and PREV/NEXT along them) and returns
+      one row per computed cell, ready to join.
+
+    The same engine runs Improv's desktop GUI, terminal UI, CLI and its
+    PostgreSQL extension (pg_improv). Source: https://codeberg.org/gregburd/improv
