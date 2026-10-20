@@ -6,10 +6,9 @@ A cell is marked as supported if the extension binary exists in the community re
 and as unsupported if requesting it returns a 404. Any other outcome (e.g. rate limiting by
 the CDN) is retried, and shown as unknown if it keeps failing, rather than reported as unsupported.
 
-Usage: python3 scripts/compatibility_matrix.py extension_name duckdb_eol.json distribution_matrix.json
+Usage: python3 scripts/compatibility_matrix.py extension_name duckdb_eol.json
 
-  duckdb_eol.json:          https://endoflife.date/api/duckdb.json
-  distribution_matrix.json: https://raw.githubusercontent.com/duckdb/extension-ci-tools/main/config/distribution_matrix.json
+  duckdb_eol.json: https://endoflife.date/api/duckdb.json
 """
 
 import datetime
@@ -28,19 +27,15 @@ MAX_PARALLEL_REQUESTS = 16
 # Requests that fail with anything other than a 404 are retried with exponential backoff
 RETRIES = 4
 
-PLATFORM_NAMES = {
+# Platforms shown in the matrix, in display order
+PLATFORMS = {
     "linux_amd64": "Linux AMD64",
     "linux_arm64": "Linux ARM64",
-    "linux_amd64_musl": "Linux AMD64 (musl)",
-    "linux_arm64_musl": "Linux ARM64 (musl)",
     "osx_amd64": "macOS AMD64",
     "osx_arm64": "macOS ARM64",
     "windows_amd64": "Windows AMD64",
     "windows_arm64": "Windows ARM64",
-    "windows_amd64_mingw": "Windows AMD64 (MinGW)",
-    "wasm_mvp": "WebAssembly (MVP)",
-    "wasm_eh": "WebAssembly (EH)",
-    "wasm_threads": "WebAssembly (threads)",
+    "wasm_eh": "WebAssembly",
 }
 
 
@@ -63,12 +58,6 @@ def supported_versions(eol_path):
         for p in range(max(0, patch - PATCHES_PER_CYCLE + 1), patch + 1):
             versions.append(f"{major}.{minor}.{p}")
     return sorted(versions, key=version_key)
-
-
-def platforms(matrix_path):
-    with open(matrix_path) as f:
-        matrix = json.load(f)
-    return [entry["duckdb_arch"] for group in matrix.values() for entry in group["include"]]
 
 
 def is_available(extension, version, platform):
@@ -94,13 +83,12 @@ def is_available(extension, version, platform):
 
 
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 3:
         sys.exit(__doc__)
-    extension, eol_path, matrix_path = sys.argv[1:]
+    extension, eol_path = sys.argv[1:]
 
     versions = supported_versions(eol_path)
-    archs = platforms(matrix_path)
-    cells = [(platform, version) for platform in archs for version in versions]
+    cells = [(platform, version) for platform in PLATFORMS for version in versions]
     with ThreadPoolExecutor(max_workers=MAX_PARALLEL_REQUESTS) as pool:
         results = pool.map(lambda c: is_available(extension, c[1], c[0]), cells)
     available = dict(zip(cells, results))
@@ -118,8 +106,7 @@ def main():
     print()
     print("| Platform | " + " | ".join(versions) + " |")
     print("| :--- | " + " | ".join(":---:" for _ in versions) + " |")
-    for platform in archs:
-        name = PLATFORM_NAMES.get(platform, platform)
+    for platform, name in PLATFORMS.items():
         marks = [{True: "✅", False: "❌", None: "❓"}[available[(platform, version)]] for version in versions]
         print(f"| {name} | " + " | ".join(marks) + " |")
 
