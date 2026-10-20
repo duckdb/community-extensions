@@ -1,8 +1,8 @@
 extension:
   name: duck_dggs
-  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v8.
+  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v9.
   
-  version: 0.1.10 # x-release-please-version
+  version: 0.1.11 # x-release-please-version
   language: C++
   build: cmake
   license: MIT
@@ -11,13 +11,12 @@ extension:
 
 repo:
   github: am2222/duckdb-dggs
-  ref: a034e0beec21b7e4764173b624ab7f1d69f12f87
-  # ref_next drives the upstream PRERELEASE leg (build_next.yml, DuckDB
-  # v2.0-cyanoptera), which runs with require_ref_next: true. Without this key
-  # the job resolves an empty ref, skips, and the PR passes green having built
-  # nothing against v2. Both refs are placeholders: release-please.yml stamps
+  # community-extensions builds `ref` against DuckDB v2.0 and `variegata`
+  # against v1.5.6 (duckdb/community-extensions#3081); `ref_next` no longer
+  # triggers a build. Both refs are placeholders: release-please.yml stamps
   # them with the release SHA on its way to community-extensions.
-  ref_next: a034e0beec21b7e4764173b624ab7f1d69f12f87
+  ref: b6a45d0d6225ed21a7537e79332083e7c99a2a93
+  variegata: b6a45d0d6225ed21a7537e79332083e7c99a2a93
 
 docs:
   hello_world: |
@@ -62,7 +61,7 @@ docs:
     -- → 362
   extended_description: |
     `duck_dggs` transforms geographic coordinates (as `GEOMETRY` POINT) to and from DGGS cell
-    identifiers across multiple coordinate reference frames, powered by [DGGRID v8](https://github.com/sahrk/DGGRID).
+    identifiers across multiple coordinate reference frames, powered by [DGGRID v9](https://github.com/sahrk/DGGRID).
 
     Full documentation: **https://am2222.github.io/duckdb-dggs/**
 
@@ -121,6 +120,16 @@ docs:
     - `seqnum_parent` — parent cell at res-1
     - `seqnum_all_parents` — all touching parent cells at res-1
     - `seqnum_children` — child cells at res+1
+    - `seqnum_index_parent` / `seqnum_index_children` — parent and children in the
+      grid's hierarchical indexing system (Z3 / ZOrder / Z7); unlike the spatial
+      functions these form a strict tree
+    - `seqnum_k_ring` — the cell plus every cell within k neighbor steps
+
+    **Coverage & geodesy:**
+
+    - `polygon_to_seqnums` — every cell whose centre lies inside a POLYGON / MULTIPOLYGON
+    - `seqnum_cell_area_km` — true spherical area of one cell (vs the grid average)
+    - `geo_distance_km` / `geo_azimuth_deg` — great-circle distance and bearing between points
 
     **Hierarchical index conversions:**
 
