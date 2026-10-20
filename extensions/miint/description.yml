@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: the-miint/duckdb-miint
-  ref: 62ae79a03b5d9bddc96c423539e58a9fb15820fd
+  ref: 5fbea2ab2bcd6888741d3752293293cc4202121e
   variegata: 10f0fde06d091bc78939223dea928f4374d4fdea
 
 docs:
