@@ -10,7 +10,8 @@ extension:
 repo:
   github: columnar-tech/duckdb-adbc-client
   andium: c30888194e57d78017cbde379abb117e82538fe6
-  ref: d4b19a7b3d291464eb54b2d50e185466234225d9
+  variegata: d4b19a7b3d291464eb54b2d50e185466234225d9
+  ref: b1b13c05d7354ce83342c9bae242d25152144ec6
 docs:
   hello_world: |
     -- Install and load the ADBC extension
