@@ -21,11 +21,9 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-extension"
-  # DuckDB 2.0: the 0.3.0 release candidate (main of hugr-lab/mssql-extension,
-  # which tracks v2.0-cyanoptera). Moved to the v0.3.0 tag's commit on release
-  # day. A SHA rather than a tag name, at the maintainers' request: a tag can
-  # be moved.
-  ref: 2492c6686e99ca1bf0452f830d8d58017faa89ca
+  # DuckDB 2.0: v0.3.0 (the commit tag v0.3.0 points at). A SHA rather than the
+  # tag name, at the maintainers' request: a tag can be moved.
+  ref: bfd347ffa89dc520eb0fb82c857b3c7af12673dc
   # DuckDB 1.5.6: v0.2.5, from the extension's duckdb-v1.5.5 branch.
   variegata: d35b617c16587e02b4d6e62057ead8f84c1568bf
 
@@ -42,28 +40,28 @@ docs:
     Attach a server as a DuckDB catalog and query, join, and bulk-load it
     alongside your local data.
 
-    Documentation: https://hugr-lab.github.io/mssql-extension/
+    Documentation: https://hugr-lab.com/docs/mssql-extension/
 
-    **Reading.** Attached tables come with schema/table catalog integration,
-    lazy metadata cache, projection / filter / ORDER BY pushdown, and a
-    columnar batch-decoded result path. Reading UTF-8-collated columns skips
-    UTF-16 transcoding entirely (TDS UTF8SUPPORT).
+    **Reading.** Attached tables come with schema/table catalog integration
+    and a lazily loaded metadata cache. A SELECT the extension can write in
+    T-SQL — joins, aggregates, GROUP BY, window functions, ORDER BY / LIMIT,
+    subqueries, CTEs — runs on SQL Server as one statement (EXPLAIN shows it);
+    the rest streams through projection and filter pushdown and a columnar,
+    batch-decoded result path.
 
-    **Writing.** COPY TO and CTAS ship over the BCP bulk-load protocol with a
-    columnar encoder and up to 8 parallel bulk sessions — about 6× faster
-    out of the box than 0.2.2 on a wide 38M-row table, and ~9× with sized
-    string targets (`MSSQL_VARCHAR(n)` / `MSSQL_NVARCHAR(n)` annotations or
-    `mssql_default_string_length`). Heap and clustered-columnstore targets
-    (rowgroups land compressed directly), TABLOCK decided from the target's
-    actual shape. INSERT with RETURNING, UPDATE/DELETE, transactions with
-    connection pinning.
+    **Writing.** COPY TO, CTAS and large INSERTs ship over the BCP bulk-load
+    protocol with up to 8 parallel sessions. UPDATE, DELETE, INSERT … SELECT
+    and MERGE run on the server as one statement when they can be written in
+    T-SQL, and through a session staging table otherwise — no primary key
+    required, RETURNING supported. DuckDB transactions map to SQL Server
+    transactions on one pinned connection.
 
-    **Authentication.** SQL logins, Azure Entra ID (Service Principal, CLI,
-    Device Code), Kerberos on POSIX (kinit/keytab), Windows SSPI, TLS,
-    DuckDB secrets.
+    **Authentication and security.** SQL logins, Azure Entra ID (Service
+    Principal, CLI, Device Code), Kerberos on POSIX, Windows SSPI, DuckDB
+    secrets; TLS with the server certificate verified by default.
 
     **Operations.** Per-catalog connection pooling, eager ATTACH-time
     credential validation, named-instance resolution via SQL Server Browser,
-    custom Application Name, XML type support.
+    custom Application Name.
 
     Issues and feature requests: https://github.com/hugr-lab/mssql-extension
