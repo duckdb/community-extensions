@@ -1,0 +1,46 @@
+extension:
+  name: oxedi
+  description: Read X12 EDI 835 remittance files as tables, losslessly, and write tables back into an 835
+  version: 0.2.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw;windows_amd64_rtools"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - javillegasna
+
+repo:
+  github: javillegasna/oxedi
+  ref: f0f0cb92e4356e15fe0f5d89300d8825983b4d2c
+
+docs:
+  hello_world: |
+    INSTALL oxedi FROM community;
+    LOAD oxedi;
+
+    -- Claims of one file, of several files, or of a glob
+    FROM read_835('remittance.835');
+    FROM read_835(['a.835', 'b.835'], filename := true);
+    FROM read_835('remits/*.835', table_name := 'services');
+
+    -- Findings of the parse (also for files that are not valid 835)
+    FROM read_835('remits/*.835', table_name := 'diagnostics', ignore_errors := true);
+
+    -- Text columns are VARCHAR; binary := true keeps the raw bytes
+    FROM read_835('remittance.835', binary := true);
+
+    -- Export to Parquet
+    COPY (SELECT * FROM read_835('remits/*.835', table_name := 'claims'))
+      TO 'claims.parquet';
+
+    -- Write tables back into an 835: one STRUCT column, a list of rows per table
+    COPY (SELECT {
+        'payments':             (SELECT list(t ORDER BY t."row") FROM read_835('remittance.835', table_name := 'payments') t),
+        'claims':               (SELECT list(t ORDER BY t."row") FROM read_835('remittance.835', table_name := 'claims') t),
+        'services':             (SELECT list(t ORDER BY t."row") FROM read_835('remittance.835', table_name := 'services') t),
+        'adjustments':          (SELECT list(t ORDER BY t."row") FROM read_835('remittance.835', table_name := 'adjustments') t),
+        'provider_adjustments': (SELECT list(t ORDER BY t."row") FROM read_835('remittance.835', table_name := 'provider_adjustments') t)
+      })
+      TO 'out.835' (FORMAT edi835, sender_id 'ACMEPAYER', receiver_id 'SUNRISECLINIC',
+                    date DATE '2024-01-10', time TIME '09:00');

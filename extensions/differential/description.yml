@@ -1,0 +1,186 @@
+extension:
+  name: differential
+  description: Versioned DuckDB databases - snapshots, time travel, branches, clones and S3 export over native storage
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  # POSIX file locking, fsync and mmap: no Windows or wasm builds.
+  excluded_platforms: "windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  # vcpkg commit providing AWS SDK 1.11.820, SQLite 3.53.2 and OpenSSL 3.6.3.
+  vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
+  maintainers:
+    - tobilg
+
+repo:
+  github: tobilg/duckdb-differential
+  ref: 80281620d0104c1e5ee88e98266b3e58715d9e0b
+
+docs:
+  hello_world: |
+    -- Run in order in one DuckDB session, using fresh demo paths and database names.
+    -- Replace the absolute paths below; the S3 section also needs an existing bucket
+    -- and AWS credentials (environment variables, a profile, SSO or an instance role).
+    INSTALL differential FROM community;
+    LOAD differential;
+    SET differential_repository = '/absolute/path/differential-demo/repository';
+
+    -- LOCAL STORAGE: create, snapshot, read history, branch, clone, restore and clean up.
+    -- TYPE differential secrets hold storage defaults, never credentials.
+    CREATE SECRET local_storage (
+        TYPE differential,
+        DATA_PATH '/absolute/path/differential-demo/local-data'
+    );
+    ATTACH 'differential:sales' AS sales (SECRET local_storage);
+    CREATE TABLE sales.orders (id INTEGER PRIMARY KEY, amount INTEGER);
+    INSERT INTO sales.orders VALUES (1, 10), (2, 20);
+    CALL differential_create_snapshot('sales', name => 'baseline',
+        message => 'initial load', request_id => 'sales-baseline'); -- snapshot 1
+    INSERT INTO sales.orders VALUES (3, 30);
+    CALL differential_create_snapshot('sales', name => 'three-orders'); -- snapshot 2
+
+    SELECT sum(amount) FROM sales.orders;                       -- 60
+    SELECT sum(amount) FROM sales.orders AT (VERSION => 1);     -- 30
+    ATTACH 'differential:sales' AS sales_history (SNAPSHOT_NAME 'baseline');
+    SELECT count(*) FROM sales_history.orders;                  -- 2
+    SELECT snapshot_id, snapshot_name FROM sales.snapshots();
+    DETACH sales_history;
+
+    -- A branch shares the database identity; a clone is an independent database.
+    CALL differential_create_branch('sales', 'dev', snapshot => 1);
+    ATTACH 'differential:sales' AS sales_dev (BRANCH 'dev');
+    INSERT INTO sales_dev.orders VALUES (4, 40);
+    CALL differential_create_snapshot('sales_dev', message => 'dev order'); -- snapshot 3
+    SELECT sum(amount) FROM sales_dev.orders;                   -- 70
+    DETACH sales_dev;
+    CALL differential_clone_database('sales', 'sales_copy', snapshot => 1);
+    ATTACH 'differential:sales_copy' AS sales_copy;
+    SELECT sum(amount) FROM sales_copy.orders;                  -- 30
+    DETACH sales_copy;
+
+    -- Restore requires a detached branch and preserves its previous contents.
+    -- DETACH also releases the hidden reader pins taken by AT queries.
+    DETACH sales;
+    CALL differential_restore('sales', 1);                      -- restored snapshot 4
+    ATTACH 'differential:sales' AS sales;
+    SELECT sum(amount) FROM sales.orders;                       -- 30
+    DETACH sales;
+    CALL differential_drop_branch('sales', 'dev');
+    CALL differential_expire_snapshots('sales', versions => [2, 3], dry_run => true);
+    CALL differential_expire_snapshots('sales', versions => [2, 3]);
+    CALL differential_cleanup_old_files(cleanup_all => true);
+    CALL differential_delete_orphaned_files(dry_run => true);
+    CALL differential_compact();
+    -- The main branch, baseline snapshot and independent clone remain usable.
+
+    -- S3 STORAGE: credentials, exports, history, remote reads and recovery.
+    -- Replace the bucket/prefix and region. The bucket must already exist.
+    INSTALL httpfs;
+    LOAD httpfs;
+    INSTALL aws;
+    LOAD aws;
+    -- TYPE s3 supplies credentials by matching SCOPE; these secrets are session-scoped.
+    -- REFRESH auto keeps temporary credentials current through the credential chain.
+    CREATE SECRET s3_auth (
+        TYPE s3,
+        PROVIDER credential_chain,
+        REFRESH auto,
+        REGION 'us-east-1',
+        SCOPE 's3://my-bucket/differential-demo/'
+    );
+    CREATE SECRET s3_storage (
+        TYPE differential,
+        DATA_PATH 's3://my-bucket/differential-demo/'
+    );
+    ATTACH 'differential:archive' AS archive (SECRET s3_storage);
+    CREATE TABLE archive.events (id INTEGER PRIMARY KEY, payload VARCHAR);
+    INSERT INTO archive.events VALUES (1, 'one'), (2, 'two');
+    SELECT snapshot_id, export_state, export_locator
+    FROM differential_create_snapshot('archive', name => 'baseline',
+        request_id => 'archive-baseline');                     -- snapshot 1, complete
+    -- Save the immutable export URI for recovery later in this session.
+    SET VARIABLE baseline_export = (
+        SELECT 's3://my-bucket/differential-demo/' || export_locator
+        FROM differential_snapshots('archive') WHERE snapshot_id = 1
+    );
+
+    -- Subsequent exports share unchanged data. Deferred exports can be retried safely.
+    INSERT INTO archive.events VALUES (3, 'three');
+    CALL differential_create_snapshot('archive', name => 'three-events',
+        export_mode => 'deferred');                            -- snapshot 2, pending
+    CALL differential_retry_export('archive', 2);              -- snapshot 2, complete
+    SELECT snapshot_id, export_state FROM archive.snapshots();
+    SELECT count(*) FROM archive.events AT (VERSION => 1);     -- 2
+
+    -- Any host with the same scoped S3 credentials can open this branch head read-only.
+    -- It sees the latest exported snapshot at ATTACH time; reattach to refresh it.
+    ATTACH 'differential:s3://my-bucket/differential-demo/heads/archive/main' AS archive_latest;
+    SELECT count(*) FROM archive_latest.events;                 -- 3
+    DETACH archive_latest;
+    SELECT database_name, branch_name, snapshot_id
+    FROM differential_remote_heads('s3://my-bucket/differential-demo/');
+    DETACH archive;
+
+    -- Evict only an export-complete snapshot. Historical reads then fetch its data from S3.
+    CALL differential_evict_snapshots('archive', versions => [1]);
+    CALL differential_cleanup_old_files(cleanup_all => true);
+    ATTACH 'differential:archive' AS archive_history (SNAPSHOT_VERSION 1);
+    SELECT count(*) FROM archive_history.events;                -- 2
+    DETACH archive_history;
+
+    -- Recover the saved immutable export into a new writable LOCAL database.
+    -- The named differential secret chooses its destination; s3_auth reads the source.
+    CALL differential_recover_export(getvariable('baseline_export'), 'archive_recovered',
+        secret => 'local_storage');
+    ATTACH 'differential:archive_recovered' AS archive_recovered;
+    SELECT count(*) FROM archive_recovered.events;              -- 2
+    INSERT INTO archive_recovered.events VALUES (9, 'recovered locally');
+    DETACH archive_recovered;
+
+    -- Branch/clone/restore work with S3 too; evicted data is rehydrated when needed.
+    -- Branches and clones inherit the source's S3 data path.
+    CALL differential_create_branch('archive', 'dev', snapshot => 1);
+    ATTACH 'differential:archive' AS archive_dev (BRANCH 'dev');
+    INSERT INTO archive_dev.events VALUES (4, 'dev');
+    CALL differential_create_snapshot('archive_dev');           -- snapshot 3, complete
+    DETACH archive_dev;
+    CALL differential_clone_database('archive', 'archive_copy', snapshot => 1);
+    ATTACH 'differential:archive_copy' AS archive_copy;
+    SELECT count(*) FROM archive_copy.events;                   -- 2
+    DETACH archive_copy;
+    CALL differential_restore('archive', 1);                    -- snapshot 4, complete
+    ATTACH 'differential:archive' AS archive;
+    SELECT count(*) FROM archive.events;                        -- 2
+    DETACH archive;
+
+    CALL differential_drop_branch('archive', 'dev');
+    CALL differential_expire_snapshots('archive', versions => [2, 3], dry_run => true);
+    CALL differential_expire_snapshots('archive', versions => [2, 3]);
+    CALL differential_cleanup_old_files(cleanup_all => true);
+    CALL differential_compact();
+    -- Expiry and garbage collection reclaim unreferenced LOCAL data, not S3 objects.
+    -- Existing immutable S3 exports remain readable; the main branch and clone remain.
+    SELECT database_name, data_path FROM differential_databases();
+    SELECT kind, state FROM differential_operations();
+    DROP SECRET s3_storage;
+    DROP SECRET s3_auth;
+    DROP SECRET local_storage;
+  extended_description: |
+    `differential` stores ordinary DuckDB databases in a durable, content-addressed differential
+    store, so every version shares unchanged data. Native DuckDB SQL, transactions and
+    indexes are unchanged; the extension adds immutable snapshots with commit metadata,
+    `AT (VERSION/TIMESTAMP)` time travel, writable branches, independent clones, restore,
+    expiry with garbage collection, and incremental, content-addressed S3 export that any
+    host can attach read-only, including following a branch's latest snapshot through S3
+    branch heads. Several processes, and optionally several local users, can share one
+    repository.
+
+    The SQL surface follows DuckLake's conventions: `ATTACH 'differential:<db>'` options
+    (`BRANCH`, `SNAPSHOT_VERSION`, `SNAPSHOT_TIME`, `SNAPSHOT_NAME`, `DATA_PATH`),
+    `SET differential_*` settings and database-first `differential_*` functions.
+
+    Status: experimental. Linux and macOS only. Commits are durable at DuckDB's sync points;
+    exports are durable once complete. S3 is tested against MinIO and exercised on AWS;
+    power-loss behaviour is not yet verified. See the
+    [repository](https://github.com/tobilg/duckdb-differential) for the SQL reference, the
+    lifecycle guide and the storage format.
