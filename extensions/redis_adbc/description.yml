@@ -11,7 +11,8 @@ extension:
 
 repo:
   github: alberttwong/redis-adbc-driver
-  ref: 298c67ce025d316f38699002e1fe3571e8abb46c
+  # The community registry's ref field targets DuckDB 2.0.
+  ref: a08573bdc40c07bca5bc3ccf9cee1e59cbc6490c
 
 docs:
   hello_world: |
@@ -21,6 +22,8 @@ docs:
         'SELECT 42 AS answer'
     );
   extended_description: |
+    This submission targets DuckDB 2.0 through the registry's repo.ref field.
+
     `redis_adbc_scan(uri, sql)` streams one SELECT from Redis into DuckDB using
     the Redis ADBC driver's SQL engine and Arrow batches. The driver and Go
     runtime are embedded: no separate driver library, manifest, driver manager,
@@ -38,5 +41,5 @@ docs:
     separately registered redis command-client extension.
 
     Native Linux and macOS are supported build targets; macOS requires 12+.
-    See the [extension guide](https://github.com/alberttwong/redis-adbc-driver/blob/298c67ce025d316f38699002e1fe3571e8abb46c/duckdb-extension/README.md)
+    See the [extension guide](https://github.com/alberttwong/redis-adbc-driver/blob/a08573bdc40c07bca5bc3ccf9cee1e59cbc6490c/duckdb-extension/README.md)
     for build instructions, prerequisites, limitations and verification.
