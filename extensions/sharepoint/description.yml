@@ -1,6 +1,6 @@
 extension:
   name: sharepoint
-  version: 2026.10.17
+  version: 2026.10.18
   description: Query files in SharePoint / OneDrive directly with a sharepoint:// filesystem
   language: C++
   build: cmake
@@ -16,12 +16,12 @@ extension:
 
 repo:
   github: DataZooDE/duckdb-sharepoint
-  ref: 181338145c782d1b37232aab7e3327ac7cf1ac5b
+  ref: 88ce9519e20838b37df80dc1e09d6150cc61fe85
   # ref builds against DuckDB 2.0, variegata against v1.5.6 and andium against
   # v1.4.5 (community-extensions scripts/build.py); a missing key falls back to
   # ref. One commit serves all three lines (duckdb-compat), so at release all
   # are the same tagged SHA.
-  variegata: 181338145c782d1b37232aab7e3327ac7cf1ac5b
+  variegata: 88ce9519e20838b37df80dc1e09d6150cc61fe85
 
 docs:
   hello_world: |
