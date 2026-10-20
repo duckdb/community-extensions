@@ -5,18 +5,33 @@
 set -eo pipefail
 
 if [ $# -lt 1 ]; then
-    echo "Usage: ./scripts/generate_md.sh path_to_duckdb_binary"
+    echo "Usage: ./scripts/generate_md.sh path_to_duckdb_binary [path_to_duckdb_binary...]"
+    echo "Pass the same binaries, in the same order (newest DuckDB version first), as to fetch_extensions.sh"
     exit 1
 fi
 
-DUCKDB_BINARY="$1 -init /dev/null"
-
 curl -s https://community-extensions.duckdb.org/downloads-last-week.json -o build/downloads-last-week.json
-curl -s https://endoflife.date/api/duckdb.json -o build/duckdb-eol.json
+curl -sf https://raw.githubusercontent.com/duckdb/duckdb-web/main/_data/past_releases.csv -o build/duckdb-releases.csv
 
-platform=$($DUCKDB_BINARY -csv -c "PRAGMA platform" | tail -n1)
-version_raw=$($DUCKDB_BINARY -csv -c "PRAGMA version" | tail -n1)
-version=$(echo "$version_raw-,$version_raw" | cut -d '-' -f 2 | cut -d ',' -f 2)
+# Pair every installed extension with the binary of the DuckDB version it was installed for.
+# An extension installed for several versions is documented with the first (newest) one.
+EXTENSION_DIRS=()
+for binary in "$@"; do
+    platform=$($binary -init /dev/null -csv -c "PRAGMA platform" | tail -n1)
+    version_raw=$($binary -init /dev/null -csv -c "PRAGMA version" | tail -n1)
+    version=$(echo "$version_raw-,$version_raw" | cut -d '-' -f 2 | cut -d ',' -f 2)
+    EXTENSION_DIRS+=("build/extension_dir/$version/$platform")
+done
+EXTENSIONS_TO_DOCUMENT=()
+# Sorted by name, so the generated extensions list stays alphabetical
+for extension_full in $(ls "${EXTENSION_DIRS[@]}" 2>/dev/null | grep '\.duckdb_extension$' | sort -u); do
+    for i in "${!EXTENSION_DIRS[@]}"; do
+        if [ -e "${EXTENSION_DIRS[$i]}/$extension_full" ]; then
+            EXTENSIONS_TO_DOCUMENT+=("${@:$((i + 1)):1}|${EXTENSION_DIRS[$i]}/$extension_full")
+            break
+        fi
+    done
+done
 
 DOCS=build/docs
 
@@ -25,11 +40,13 @@ mkdir -p $DOCS
 
 EXTENSIONS_CSV=$DOCS/community_extensions.csv
 echo "name,repo,ref,description" > $EXTENSIONS_CSV
-for extension_file in build/extension_dir/$version/$platform/*.duckdb_extension;
+for entry in "${EXTENSIONS_TO_DOCUMENT[@]}";
 do
+    DUCKDB_BINARY="${entry%%|*} -init /dev/null"
+    extension_file="${entry#*|}"
     extension_full=$(basename -- $extension_file)
     extension="${extension_full%%.*}"
-    echo "Generating docs for $extension"
+    echo "Generating docs for $extension using ${entry%%|*}"
 
     {
       EXTENSION_SCREENSHOT=$DOCS/../screenshot/$extension.md
@@ -47,9 +64,9 @@ do
       mkdir -p $DOCS/$extension
       mkdir -p $DOCS/../screenshot
 
-      # Computed before $extension may be rewritten to an alias' canonical name below,
-      # since binaries are published under the name used to install the extension
-      COMPATIBILITY_MATRIX=$(python3 scripts/compatibility_matrix.py $extension build/duckdb-eol.json)
+      # Run before $extension is replaced by an alias' canonical name below, so the matrix
+      # reflects the binaries for the name this page tells users to INSTALL
+      COMPATIBILITY_MATRIX=$(python3 scripts/compatibility_matrix.py $extension build/duckdb-releases.csv)
       
       $DUCKDB_BINARY post.db -c "CREATE MACRO jekyll_format_function(f) AS f.regexp_replace('({{|}})','{% raw %}\\1{% endraw %}', 'g');"
       $DUCKDB_BINARY post.db -c "ATTACH 'pre.db'; CREATE OR REPLACE TABLE fun_no_overload AS SELECT function_name, function_type, split_part(description, chr(10), 1) as description, comment, CASE WHEN examples = [] THEN '' ELSE '[' || examples.list_transform(lambda x: x.jekyll_format_function()).list_reduce(lambda x, y : x || ', ' || y) || ']' END AS examples FROM (FROM (SELECT function_name, function_type, description, comment, examples FROM functions ORDER BY function_name, function_type) EXCEPT (SELECT function_name, function_type, description, comment, examples FROM pre.functions ORDER BY function_name, function_type)) GROUP BY ALL ORDER BY function_name, function_type;"

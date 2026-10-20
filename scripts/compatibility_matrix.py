@@ -6,13 +6,16 @@ A cell is marked as supported if the extension binary exists in the community re
 and as unsupported if requesting it returns a 404. Any other outcome (e.g. rate limiting by
 the CDN) is retried, and shown as unknown if it keeps failing, rather than reported as unsupported.
 
-Usage: python3 scripts/compatibility_matrix.py extension_name duckdb_eol.json
+Usage: python3 scripts/compatibility_matrix.py extension_name duckdb_releases.csv
+       python3 scripts/compatibility_matrix.py --versions duckdb_releases.csv
 
-  duckdb_eol.json: https://endoflife.date/api/duckdb.json
+  duckdb_releases.csv: https://raw.githubusercontent.com/duckdb/duckdb-web/main/_data/past_releases.csv
+
+With --versions, only the DuckDB versions shown in the matrix are printed, newest first, one per line.
 """
 
+import csv
 import datetime
-import json
 import sys
 import time
 import urllib.error
@@ -43,20 +46,23 @@ def version_key(version):
     return tuple(int(part) for part in version.split("."))
 
 
-def supported_versions(eol_path):
+def supported_versions(releases_path):
     """Return the most recent patch releases of all DuckDB versions that have not reached end-of-life."""
-    with open(eol_path) as f:
-        cycles = json.load(f)
+    with open(releases_path) as f:
+        releases = list(csv.DictReader(f))
+    # Patch releases per minor version, e.g. (1, 5) -> ["1.5.6", "1.5.5", ...]
+    cycles = {}
+    for release in releases:
+        cycles.setdefault(version_key(release["version_number"])[:2], []).append(release["version_number"])
+    # The end-of-life date of a minor version is set on its x.y.0 release
+    end_of_life = {version_key(r["version_number"])[:2]: r["end_of_life"] for r in releases if r["version_number"].endswith(".0")}
+    newest = max(cycles)
     today = datetime.date.today().isoformat()
     versions = []
-    for cycle in cycles:
-        eol = cycle.get("eol")
-        # endoflife.date uses either a date string or a boolean for 'eol'
-        if eol is True or (isinstance(eol, str) and eol <= today):
-            continue
-        major, minor, patch = version_key(cycle["latest"])
-        for p in range(max(0, patch - PATCHES_PER_CYCLE + 1), patch + 1):
-            versions.append(f"{major}.{minor}.{p}")
+    for cycle, patches in cycles.items():
+        # The newest minor version may not have an end-of-life date yet
+        if cycle == newest or end_of_life.get(cycle, "") > today:
+            versions += sorted(patches, key=version_key)[-PATCHES_PER_CYCLE:]
     return sorted(versions, key=version_key)
 
 
@@ -85,9 +91,12 @@ def is_available(extension, version, platform):
 def main():
     if len(sys.argv) != 3:
         sys.exit(__doc__)
-    extension, eol_path = sys.argv[1:]
+    extension, releases_path = sys.argv[1:]
 
-    versions = supported_versions(eol_path)
+    versions = supported_versions(releases_path)
+    if extension == "--versions":
+        print("\n".join(reversed(versions)))
+        return
     cells = [(platform, version) for platform in PLATFORMS for version in versions]
     with ThreadPoolExecutor(max_workers=MAX_PARALLEL_REQUESTS) as pool:
         results = pool.map(lambda c: is_available(extension, c[1], c[0]), cells)
@@ -96,7 +105,7 @@ def main():
     recent = "most recent patch release" if PATCHES_PER_CYCLE == 1 else f"{PATCHES_PER_CYCLE} most recent patch releases"
     print(
         "This table covers all DuckDB releases that have not reached "
-        "[end-of-life](https://endoflife.date/duckdb), including LTS releases, "
+        "[end-of-life](https://duckdb.org/release_calendar), including LTS releases, "
         f"and shows the {recent} of each. "
         "Older patch releases are not listed, but the extension may be available for them as well."
     )
