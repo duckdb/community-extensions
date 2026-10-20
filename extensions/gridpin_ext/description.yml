@@ -1,23 +1,24 @@
 extension:
   name: gridpin_ext
   description: Offline geocoding from a single country file — forward and reverse, no server, no network
-  version: 0.1.0
+  version: 0.4.0
   language: Rust
   build: cargo
   license: Apache-2.0
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;linux_amd64_musl"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
   requires_toolchains: "rust;python3"
   maintainers:
     - gridpin-reserve
 
 repo:
   github: gridpin/duckdb-gridpin
-  ref: cf94e5d3994e48fbf12b67a2b808cdde9bda428d
+  ref: 0f4e7e09393858c196bb7fb5cbcf8a6bbd97e391
+  ref_next: 225c3307cdc79177ba8ad71e9dd8cdb19b11c057
 
 docs:
   hello_world: |
     -- Country data files are free downloads: https://gridpin.dev
-    -- (France, Italy, the Netherlands and Serbia today; one file per country.)
+    -- (France, Italy, the Netherlands, Serbia, Germany, Spain and Brazil today; one file per country.)
     LOAD gridpin_ext;
 
     -- Point the extension at a downloaded sheet. One sheet is loaded at a time.
@@ -50,6 +51,9 @@ docs:
     | `gridpin_load_poi(path)` | optional points-of-interest layer, consulted after addresses |
     | `gridpin_reset()` | drop the loaded sheet so another country can be loaded |
 
+    Every function carries a description and parameter names, so SQL assistants and
+    AI agents can discover them through `duckdb_functions()`.
+
     A query issued before `gridpin_load` is a clear error rather than a crash, and an
     address with no match returns `{}` — an empty result is a documented contract, not a
     guess.
@@ -60,6 +64,8 @@ docs:
     [gridpin.dev](https://gridpin.dev) and in the [releases of the main
     repository](https://github.com/gridpin/gridpin/releases). Each sheet carries its own
     source licence (France comes from the national BAN registry under Licence Ouverte;
-    Italy, the Netherlands and Serbia are built from Overture). The engine itself is
+    Italy, the Netherlands, Serbia, Germany, Spain and Brazil are built from Overture,
+    with OpenAddresses, CartoCiudad and IBGE CNEFE sources where the country publishes
+    them). Germany covers 15 of 16 Länder (Bavaria is not covered). The engine itself is
     Apache-2.0 and lives at [gridpin/gridpin](https://github.com/gridpin/gridpin); this
     repository holds the extension crate only.

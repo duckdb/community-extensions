@@ -1,19 +1,21 @@
 extension:
   name: ossie
-  description: The Apache Ossie (incubating) reference implementation for DuckDB. Reads Ossie
+  description: The Apache Ossie (incubating) extension for DuckDB. Reads Ossie
     semantic model files in YAML or JSON and answers semantic queries against the tables in DuckDB,
     from a single binary, with no infrastructure. Also exposes the semantic layer via MCP.
-  version: 0.1.1
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
   maintainers:
+    - PradyunT
     - venkata-chikkam
     - iqea-ai
 
 repo:
   github: iqea-ai/duckdb-ossie
-  ref: 5180c67299ca14fde9d46806c7d35f9f53c2f1a9
+  ref: 48523ab83287f1b62fb7eac05840b200b782c320
+  ref_next: d180aa0e3e7c62796b960f5389202ecfd3efbbec
 
 docs:
   hello_world: |
@@ -29,19 +31,18 @@ docs:
 
     COPY (SELECT '{
       "version": "0.2.0.dev0",
-      "semantic_model": [{
-        "name": "sales",
-        "datasets": [
-          {"name": "orders", "source": "memory.main.orders", "fields": [
-            {"name": "customer_id", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "customer_id"}]}},
-            {"name": "amount",      "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "amount"}]}}]},
-          {"name": "customers", "source": "memory.main.customers", "primary_key": ["customer_id"], "fields": [
-            {"name": "customer_id", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "customer_id"}]}},
-            {"name": "country",     "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "country"}]}}]}],
-        "relationships": [{"name": "orders_to_customers", "from": "orders", "to": "customers",
-                           "from_columns": ["customer_id"], "to_columns": ["customer_id"]}],
-        "metrics": [{"name": "revenue", "expression": {"dialects": [
-                     {"dialect": "ANSI_SQL", "expression": "SUM(orders.amount)"}]}}]}]}'
+      "name": "sales",
+      "datasets": [
+        {"name": "orders", "source": "memory.main.orders", "fields": [
+          {"name": "customer_id", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "customer_id"}]}},
+          {"name": "amount",      "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "amount"}]}}]},
+        {"name": "customers", "source": "memory.main.customers", "primary_key": ["customer_id"], "fields": [
+          {"name": "customer_id", "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "customer_id"}]}},
+          {"name": "country",     "expression": {"dialects": [{"dialect": "ANSI_SQL", "expression": "country"}]}}]}],
+      "relationships": [{"name": "orders_to_customers", "from": "orders", "to": "customers",
+                         "from_columns": ["customer_id"], "to_columns": ["customer_id"]}],
+      "metrics": [{"name": "revenue", "expression": {"dialects": [
+                   {"dialect": "ANSI_SQL", "expression": "SUM(orders.amount)"}]}}]}'
     ) TO 'sales_model.json' (FORMAT csv, HEADER false, QUOTE '');
 
     CALL ossie_load('sales_model.json');
@@ -63,10 +64,9 @@ docs:
     the *query* those definitions go into -- the joins, the GROUP BY, and the grain -- because
     those depend on the question being asked, and the file does not know the question.
 
-    **Every other shipped Ossie implementation is a converter**, translating definitions into some
-    vendor's semantic layer so that vendor's engine can run them. This one executes the query
-    itself. It is the first Ossie implementation that answers a question rather than translating
-    one, and it needs no infrastructure: a model file, your tables, and a single binary.
+    **The converters in apache/ossie translate** definitions into some vendor's semantic layer so
+    that vendor's engine can run them. This one executes the query itself, and it needs no
+    infrastructure: a model file, your tables, and a single binary.
 
     **Functions**
 
@@ -92,17 +92,21 @@ docs:
     **Conformance**
 
     Models are validated against the format's own `core-spec/ossie-schema.json`. The test suite
-    includes five models published by other Ossie implementers -- Databricks, GoodData, NVIDIA,
-    Omni and OrionBelt -- vendored verbatim from apache/ossie; four load and answer queries, and
-    the fifth carries only DATABRICKS expressions, which this extension does not execute.
+    includes six models vendored verbatim from apache/ossie: five published by other Ossie
+    implementers -- Databricks, GoodData, NVIDIA, Omni and OrionBelt -- and the spec's own TPC-DS
+    example. Five load and answer queries; the Databricks model carries only DATABRICKS
+    expressions, which this extension does not execute.
     Generated SQL is diffed against hand-written TPC-DS equivalents with symmetric EXCEPT over
     dsdgen(sf = 0.01) data, so correctness is measured against the numbers rather than against our
-    own output. That currently covers total_sales and books_sales. The remaining metrics are
-    exercised by golden-SQL, grain or vocabulary tests, none of which can catch a wrong number.
+    own output. That covers total_sales and books_sales against hand-written SQL, and total_sales,
+    total_profit and a computed customer field against the same model written in OSSIE_SQL_2026.
+    The remaining metrics are exercised by golden-SQL, grain or vocabulary tests, none of which can
+    catch a wrong number.
 
-    Current limits are documented rather than hidden: ANSI_SQL expressions only, one semantic model
-    per file, table-backed sources only, all joins emitted as INNER, and metrics spanning more than
-    one grain refused rather than answered wrongly. See docs/limitations.md.
+    Models use the flat document shape of Ossie 0.2.0.dev0, with expressions in OSSIE_SQL_2026 (the
+    spec's own expression language) or ANSI_SQL. Current limits are documented rather than hidden:
+    table-backed sources only, all joins emitted as INNER, and metrics that span more than one grain
+    or use a window function refused rather than answered wrongly. See docs/limitations.md.
 
     **Serving a model to an AI agent**
 
