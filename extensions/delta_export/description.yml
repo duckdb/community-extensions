@@ -1,7 +1,7 @@
 extension:
   name: delta_export
   description: Export DuckLake catalog tables to Delta Lake format
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: djouallah/delta_export
-  ref: cb5e3659c43216ed7789efb1a5eaaca8816710d0
+  ref: d3875f616befdbf2d9a35940daa80115c13fa733
 
 docs:
   hello_world: |
@@ -36,6 +36,11 @@ docs:
     This enables interoperability between DuckLake-managed data and any
     system that reads Delta Lake format, such as Apache Spark, Databricks,
     Microsoft Fabric, and other Delta-compatible engines.
+
+    Deletes, updates and MERGE are exported as Delta deletion vectors, so
+    no file rewrite is needed. Each export commits the next Delta version,
+    widened columns use the Delta typeWidening feature, and the Delta log
+    of a dropped table is removed.
 
     Works with both DuckDB and SQLite-backed DuckLake catalogs, and
     supports all storage backends including local filesystem and ABFSS.

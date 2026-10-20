@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: ff7c681ca14698d7ed6ec4a5d7a15fc40cefe834
+  ref: 2c76e900f75fe6cc8196aa7d44f2f9c36d848d2c
 
 docs:
   hello_world: |
@@ -65,9 +65,13 @@ docs:
     - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **130+ scalar SQL functions** for molecular property extraction, format conversion,
+    **149 scalar SQL functions (151 overloads)** for molecular property extraction, format conversion,
     structural comparison, fingerprinting, similarity search, drug-likeness /
     toxicophore filtering, and structure-based virtual screening.
+
+    Function descriptions, meaningful argument names, runnable examples and
+    categories are discoverable through `duckdb_functions()` for every overload.
+    Filter with `list_contains(categories, 'ducksmiles')` after loading the extension.
 
     **Descriptors (RDKit-faithful ports):**
     - 21 structural-profile functions: fragments, formal charge, hydrogen and
@@ -80,6 +84,15 @@ docs:
     - `qed()` - QED drug-likeness (Bickerton 2012), a port of RDKit `Chem.QED`.
     - Lipinski set: `num_h_donors()`, `num_h_acceptors()`, `num_rotatable_bonds()`,
       `fraction_csp3()`, `num_heteroatoms()`, and the full ring-count descriptor family.
+
+    **Mass context and native graphs:**
+    - `formula_exact_mass()` parses supported flat formulas strictly.
+    - `adduct_neutral_mass()` and `adduct_precursor_mz()` perform versioned
+      arithmetic for 29 explicit adduct labels, including signed electron corrections.
+    - `mol_graph_json()` exports a versioned native atom/bond graph in input
+      order with explicit hydrogen vertices, isotope, charge and raw stereo tokens.
+      This sidecar is not pretrained-model tensors or full RDKit sanitization.
+    - Unsupported or malformed inputs return NULL.
 
     **Fingerprints & similarity:**
     - `morgan_fp_bits()` (Morgan/ECFP-style, radius 2 / 2048-bit default) and
