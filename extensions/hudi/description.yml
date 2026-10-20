@@ -1,8 +1,8 @@
 extension:
   name: hudi
-  description: Query Apache Hudi COW and MOR tables directly in DuckDB — full scans, time-travel (as_of), incremental windows, and table metadata — powered by the Rust hudi-rs kernel.
-  version: 0.2.1
-  language: Rust
+  description: "Query Apache Hudi COW and MOR tables directly in DuckDB - full scans, time-travel (as_of), incremental windows, table metadata, and SQL filter pushdown into the Rust hudi-rs kernel (partition + file-slice pruning). 0.3.0 is a C++ in-tree extension wrapping the Rust kernel."
+  version: 0.3.0
+  language: C++
   build: cmake
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw;windows_amd64_rtools"
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: alitrack/duckdb-hudi
-  ref: ea166bd3b7fc07bcaf3356880da73e864c5f05e9
+  ref: refs/tags/v0.3.0
 
 docs:
   hello_world: |
@@ -25,38 +25,33 @@ docs:
     -- Time-travel to the latest commit <= an instant
     SELECT * FROM read_hudi('/path/to/hudi_table', as_of => '20260101000000000');
 
-    -- Incremental read of changes in (start, "end"]
-    -- ("end" is a reserved word, so quote it as a named parameter)
-    SELECT * FROM read_hudi('/path/to/hudi_table',
-        start => '20260101000000000', "end" => '20260102000000000');
-
-    -- Table metadata: type, latest commit, file counts
-    SELECT hudi_info('/path/to/hudi_table');
+    -- Incremental read of changes in (start, end]
+    -- (end is a reserved word, so quote it as a named parameter)
+    SELECT * FROM read_hudi('/path/to/hudi_table', start => '20260101000000000', "end" => '20260102000000000');
 
   extended_description: |
     ## duckdb-hudi
 
-    DuckDB extension that reads [Apache Hudi](https://hudi.apache.org/) tables
-    (COW and MOR) using the [hudi-rs](https://crates.io/crates/hudi) Rust kernel.
-    Source: https://github.com/alitrack/duckdb-hudi
+    DuckDB extension that reads Apache Hudi (COW and MOR) tables using the
+    hudi-rs Rust kernel. Source: https://github.com/alitrack/duckdb-hudi
 
     ### Install
-    ```sql
-    INSTALL hudi FROM community;
-    LOAD hudi;
-    ```
+        INSTALL hudi FROM community;
+        LOAD hudi;
 
     ### Features
     - Full scan of COW and MOR Hudi tables
-    - Time-travel via `as_of` (query a table at a specific instant)
+    - Time-travel via as_of (query a table at a specific instant)
     - Incremental reads (new/changed records since a checkpoint)
-    - Table schema + metadata queries
+    - Table schema + metadata queries (hudi_info / hudi_commits / hudi_mdt / hudi_stats)
     - Parallel scanning
+    - SQL filter pushdown: comparisons, IN, BETWEEN and AND chains push into
+      the hudi-rs kernel for partition + file-slice pruning
 
-    ### Build note
-    The extension is built from the DuckDB C-API Rust template and its `hudi`
-    dependency pulls in the Lance crate, which runs `prost-build` at compile
-    time. Building therefore requires `protoc` to be available (this extension
-    declares `requires_toolchains: rust`; the protobuf compiler is the one
-    toolchain not yet in the default community build environment — see the PR
-    description for the resolution).
+    ### 0.3.0 build model (read before building)
+    0.3.0 is a C++ in-tree extension wrapping the Rust kernel staticlib
+    (the C-ABI-only 0.2.x build is gone). It follows DuckDB minor versions:
+    master tracks the current 1.5.x line, and a v2.0 branch tracks 2.0.x.
+    The Rust tree still needs protoc at compile time (Lance pulls
+    prost-build); when neither PROTOC nor a system protoc is available the
+    CMake build bootstraps a pinned prebuilt protoc into third_party/protoc.
