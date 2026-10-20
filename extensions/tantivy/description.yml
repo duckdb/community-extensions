@@ -13,6 +13,7 @@ extension:
 repo:
   github: alitrack/duckdb-tantivy
   ref: a6b63f04351b8bd5f2ee979e0dc0a654d9620bdb
+  ref_next: a6b63f04351b8bd5f2ee979e0dc0a654d9620bdb
 
 docs:
   hello_world: |
