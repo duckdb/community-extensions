@@ -116,7 +116,7 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v2.0-cyanoptera
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' && needs.prepare.outputs.COMMUNITY_EXTENSION_REF != '' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0-alpha46057' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0' }}
       # no tag currently for v2.0.0-alpha46057; re-add duckdb_tag and remove duckdb_commit when bumping to official 2.0
       # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
       duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && 'd54cbbe3df17e8e5ce68312f483b4155836112aa' || '') }}
