@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: alberttwong/redis-adbc-driver
-  ref: bb8d304768cb15f764360f52da4d9238793a0500
+  ref: 298c67ce025d316f38699002e1fe3571e8abb46c
 
 docs:
   hello_world: |
@@ -38,5 +38,5 @@ docs:
     separately registered redis command-client extension.
 
     Native Linux and macOS are supported build targets; macOS requires 12+.
-    See the [extension guide](https://github.com/alberttwong/redis-adbc-driver/blob/bb8d304768cb15f764360f52da4d9238793a0500/duckdb-extension/README.md)
+    See the [extension guide](https://github.com/alberttwong/redis-adbc-driver/blob/298c67ce025d316f38699002e1fe3571e8abb46c/duckdb-extension/README.md)
     for build instructions, prerequisites, limitations and verification.
