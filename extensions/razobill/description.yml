@@ -1,0 +1,37 @@
+extension:
+  name: razobill
+  description: High-performance lossless log parsing, analytical database compaction, and information-theoretic semantic accounting.
+  version: 1.1.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - 4t1a
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+
+repo:
+  github: razobill/razobill
+  ref: 258b2da2481c4a79c01b2f1d89f282810d8b85cc
+  ref_next: 258b2da2481c4a79c01b2f1d89f282810d8b85cc
+
+docs:
+  hello_world: |
+    -- Install and load the Razobill extension
+    INSTALL razobill FROM community;
+    LOAD razobill;
+
+    -- Vectorized single-pass composite struct decomposition: STRUCT(template VARCHAR, ints BIGINT[], strs VARCHAR[])
+    SELECT RzSplit('2026-10-10 12:00:00 [INFO] Worker 42 finished job in 150ms') AS parsed;
+
+    -- Extract structural template and typed variable columns
+    SELECT RzTemplate('User 1042 authenticated') AS template,
+           RzInts('User 1042 authenticated') AS ints,
+           RzStrs('User 1042 authenticated') AS strs;
+
+    -- Exact bit-for-bit lossless log reconstruction
+    SELECT RzJoin(d.template, d.ints, d.strs) AS reconstructed
+    FROM (SELECT RzSplit('User 1042 authenticated') AS d);
+
+  extended_description: |
+    Razobill is a high-performance C++20 log parsing and analytical database compaction engine grounded in "Latitude and Doubt" (M. M. Atta, 2026).
+    It provides exact byte-for-byte lossless log reconstruction while reducing raw log storage by 45%+ in DuckDB and 93.8% in columnar cloud storage (AWS S3 Parquet).

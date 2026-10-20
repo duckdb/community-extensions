@@ -13,6 +13,7 @@ extension:
 repo:
   github: gridpin/duckdb-gridpin
   ref: 0f4e7e09393858c196bb7fb5cbcf8a6bbd97e391
+  ref_next: 225c3307cdc79177ba8ad71e9dd8cdb19b11c057
 
 docs:
   hello_world: |
