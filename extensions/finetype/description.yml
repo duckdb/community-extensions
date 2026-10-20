@@ -1,7 +1,7 @@
 extension:
   name: finetype
   description: Semantic type classification — detects 251 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.6.57
+  version: 0.6.62
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,9 @@ extension:
 
 repo:
   github: meridian-online/finetype
-  ref: c7662be0359d1e438fea399b133f5115aaa91b6d
+  ref: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
+  ref_next: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
+  variegata: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
 
 docs:
   hello_world: |
@@ -112,7 +114,7 @@ docs:
     SELECT * FROM ft_validate('people', getvariable('email_schema'));
     ```
 
-    ## Aggregate function
+    ## Aggregate functions
 
     ### `ft_profile(value VARCHAR[, header VARCHAR]) → STRUCT(type VARCHAR, confidence DOUBLE, duckdb_type VARCHAR)`
     Profile one column directly, as an **aggregate** over its values — useful when the column is in
@@ -132,7 +134,22 @@ docs:
     ```
 
     Because it is an aggregate, it cannot take `list(...)` — nesting one aggregate inside another is a
-    binder error. Use `ft_detail(values LIST)` below if you already hold the values as a list.
+    binder error. Pass the column itself, and use `GROUP BY` for one answer per group.
+
+    ### `ft_detail(value VARCHAR[, header VARCHAR]) → VARCHAR`
+    Explain the verdict `ft_profile` gives a column. An **aggregate** over the same sample as
+    `ft_profile`, so over the same rows its `type` is `ft_profile`'s. Returns JSON with the type,
+    confidence (0.0–1.0), the recommended DuckDB type, the number of values sampled, the rule that
+    decided the type when one fired, and the per-label vote map.
+
+    ```sql
+    SELECT ft_detail(email, 'email') FROM people;
+    -- {"type": "identity.person.email", "confidence": 0.592, "duckdb_type": "VARCHAR", "samples": 3,
+    --  "disambiguation": "header_hint_cross_domain:email", "votes": {...}}
+    ```
+
+    Since 0.6.61 `ft_detail` is an aggregate only: the per-value `ft_detail(value)` scalar and the
+    `ft_detail(list(...))` forms are retired. To classify one value, use `ft_infer`.
 
     ## Scalar functions
 
@@ -146,15 +163,6 @@ docs:
     SELECT ft_infer('https://example.com');  -- technology.internet.url
     SELECT ft_infer('2024-01-15');           -- datetime.date.iso
     SELECT ft_infer('true');                 -- representation.boolean.terms
-    ```
-
-    ### `ft_detail(value VARCHAR) → VARCHAR`
-    Classify with full detail. Returns JSON with the type, confidence (0.0–1.0), the recommended
-    DuckDB type, the number of samples seen, the disambiguation path, and the per-label vote map.
-
-    ```sql
-    SELECT ft_detail('192.168.1.1');
-    -- {"type": "technology.internet.ip_v4", "confidence": 0.829, "duckdb_type": "INET", ...}
     ```
 
     ### `ft_cast(value VARCHAR) → VARCHAR`
@@ -183,19 +191,19 @@ docs:
     ### `ft_version() → VARCHAR`
     Returns the extension version string.
 
-    > **Aliases.** The earlier un-prefixed scalar names (`finetype`, `finetype_detail`,
-    > `finetype_cast`, `finetype_unpack`, `finetype_validate`, `finetype_version`) remain registered as
-    > aliases of the `ft_` scalars, so existing code keeps working. New code should use the `ft_` names.
+    > **Names.** Every function carries the `ft_` prefix. The earlier un-prefixed names (`finetype`,
+    > `finetype_detail`, `finetype_cast`, …) were removed in 0.6.57; the migration table is in the
+    > FineType changelog.
 
     ## Type Taxonomy
 
-    244 types organized into 7 domains:
-    - **container**: JSON, XML, CSV, arrays, key-value (11 types)
-    - **datetime**: dates, times, timestamps, epochs, durations, offsets (86 types)
-    - **finance**: currencies, accounting, market identifiers, transactions (28 types)
+    251 types organized into 7 domains:
+    - **container**: JSON, XML, CSV, arrays, key-value (12 types)
+    - **datetime**: dates, times, timestamps, epochs, durations, offsets (89 types)
+    - **finance**: currencies, accounting, market identifiers, transactions (29 types)
     - **geography**: coordinates, locations, addresses, transportation (25 types)
-    - **identity**: names, emails, phones, payments, medical (33 types)
+    - **identity**: names, emails, phones, payments, medical (34 types)
     - **representation**: booleans, numbers, text, files, scientific (32 types)
-    - **technology**: URLs, IPs, UUIDs, versions, codes (29 types)
+    - **technology**: URLs, IPs, UUIDs, versions, codes (30 types)
 
     For more information, see the [FineType documentation](https://github.com/meridian-online/finetype).
