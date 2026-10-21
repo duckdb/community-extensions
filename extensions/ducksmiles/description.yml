@@ -5,13 +5,15 @@ extension:
   language: C++
   build: cmake
   requires_toolchains: rust
+  test_config: >-
+    {"test_env_variables":{"DUCKDB_TEST_ON_INIT":"LOAD '{BUILD_DIR}/extension/ducksmiles/ducksmiles.duckdb_extension';","T":"test/* --test-flags='--require ducksmiles --require json' --fail-require-skip"}}
   license: MIT
   maintainers:
     - nkwork9999
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 162b5996ff34b486b1ac08d5e963113e12dc86b8
+  ref: e9527cb0df864a17958268fc3b36123aef288e4f
 
 docs:
   hello_world: |
