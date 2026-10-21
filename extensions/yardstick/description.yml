@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: sidequery/yardstick
-  ref: d8a8d3281974da821c61cc37ea0037292b518086
+  ref: 6b5e9ead9dd69ee1f79323407c2469d5f1619481
   variegata: f19d73fa93f2601cfa81ca3ebad841dffcc5f609
 
 docs:
