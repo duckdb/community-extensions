@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: DataZooDE/anofox-decide
-  ref: 17bd194f51d9b8ef1a7763063cd176245f78091d
+  ref: c5b3a0d5f7944da8a6a6f170206ceb9fe6240c55
+  variegata: c5b3a0d5f7944da8a6a6f170206ceb9fe6240c55
 
 docs:
   hello_world: |
