@@ -1,0 +1,70 @@
+# Submit this file to https://github.com/duckdb/community-extensions as:
+#   extensions/duckboost/description.yml
+#
+# DuckDB community CI builds `repo.ref` against DuckDB 2.0.0 LTS
+# (duckdb_version=v2.0.0, duckdb_commit=d54cbbe…). duckboost is 2.0-only:
+# do not set `variegata` or `ref_next`.
+
+extension:
+  name: duckboost
+  description: SQL-native histogram GBDT in DuckDB with vendor dump import and plain-SQL export
+  version: 0.0.4
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - JavOrraca
+  # Default community builds are dependency-free CMake (native trainer + dump import).
+  # No extra toolchain: optional XGBoost/LightGBM trainers are custom-build flags only.
+
+repo:
+  github: JavOrraca/duckboost
+  # v0.0.4 release commit (tag v0.0.4). Raw SHA only — not a movable tag.
+  ref: b775ef43e175ba9d38e97da33ff164b70c573d3c
+
+docs:
+  # Mirrors the Getting Started penguins first-model loop. Uses a public raw URL so the
+  # community catalog runner does not need a repo checkout (requires httpfs autoload).
+  hello_world: |
+    LOAD duckboost;
+    CREATE TABLE penguins AS
+    SELECT
+      body_mass_g::DOUBLE AS body_mass_g,
+      [bill_length_mm, bill_depth_mm, flipper_length_mm, (sex = 'male')::DOUBLE] AS features
+    FROM read_csv(
+      'https://raw.githubusercontent.com/allisonhorst/palmerpenguins/master/inst/extdata/penguins.csv',
+      nullstr = 'NA'
+    )
+    WHERE body_mass_g IS NOT NULL
+      AND bill_length_mm IS NOT NULL
+      AND sex IS NOT NULL;
+    CREATE TABLE models AS
+    SELECT duckboost_train(
+      body_mass_g, features,
+      MAP {
+        'backend': 'native',
+        'n_estimators': '40',
+        'max_depth': '3',
+        'learning_rate': '0.15',
+        'feature_names': 'bill_length_mm,bill_depth_mm,flipper_length_mm,male'
+      }
+    ) AS model
+    FROM penguins;
+    SELECT
+      round(body_mass_g, 0) AS body_mass_g,
+      round(duckboost_predict(model, features), 0) AS pred_g
+    FROM models, penguins
+    ORDER BY body_mass_g
+    LIMIT 5;
+  extended_description: |
+    `duckboost` trains a dependency-free histogram GBDT inside DuckDB
+    (`backend = 'native'`, alias `'reference'`), evaluates and inspects models in SQL,
+    imports XGBoost / LightGBM / CatBoost dumps, and exports orbital-style SQL
+    (`duckboost_to_sql`) for inference without the extension.
+
+    The [Getting Started](https://javorraca.github.io/duckboost/getting-started.html) page
+    walks through the same Palmer penguins first model using the package CSV over HTTPS.
+
+    Default community binaries ship the native trainer plus dump import.
+    Optional in-process XGBoost / LightGBM training requires rebuilding with
+    `DUCKBOOST_WITH_XGBOOST` / `DUCKBOOST_WITH_LIGHTGBM`. CatBoost is import-only.
