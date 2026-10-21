@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 7989401b968382f8cd798f2db2053c7af13a349c
+  ref: 9860a74442178a68a1219ce9f9c8e28218611275
 
 docs:
   hello_world: |
