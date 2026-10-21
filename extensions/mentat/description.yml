@@ -12,6 +12,7 @@ extension:
 repo:
   github: gburd/mentat
   ref: b67bb3941ba58eb17e5dfce913399d9c1df7e023
+  variegata: b67bb3941ba58eb17e5dfce913399d9c1df7e023
 docs:
   hello_world: |
     LOAD mentat;
