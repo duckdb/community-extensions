@@ -1,7 +1,7 @@
 extension:
   name: trino_parity
   description: Native Trino-compatible scalar functions (trino_*) for the cases where DuckDB's built-ins diverge from Trino on Unicode and byte-level inputs — Trino's simple per-code-point case mapping, code-point reverse, Java-whitespace trim, NFC normalize, and raw-bytes xxhash64/sha512/hmac_sha256
-  version: 0.5.0
+  version: 0.5.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: brikk/duckdb-trino-parity-extension
-  ref: dbdb85c502f82ddecab0779df092a6d1817f0b5a
+  ref: b216dc13a9beb26c4b5a3c62e0aa6763bb42715f
+  variegata: dbdb85c502f82ddecab0779df092a6d1817f0b5a
 
 docs:
   hello_world: |
@@ -39,7 +40,12 @@ docs:
     specific cases where DuckDB's built-ins diverge from Trino's documented
     behaviour on Unicode and byte-level inputs.
 
-    Version 0.5.0 vendors ICU 76.1 / Unicode 16.0, fixing newer case mappings
+    Version 0.5.1 targets DuckDB 2.0.0 and retains the same ten-function API
+    and Unicode behavior as 0.5.0. The legacy v1.5.6 source is preserved in
+    the descriptor's `variegata` pin. No C API v2 migration or external ICU
+    runtime dependency is required.
+
+    The extension vendors ICU 76.1 / Unicode 16.0, fixing newer case mappings
     and NFC normalization data missing from the previous Unicode 13 snapshot.
     The compatibility target is Trino 483 on JDK 25. Matching version labels
     alone does not guarantee parity with other Trino/JDK combinations.
@@ -85,7 +91,9 @@ docs:
     unchanged. Validation against pinned OpenJDK 25 covers all 1,112,064 valid
     Unicode scalar values and 99,825 NFC conformance column checks, with zero
     mismatches. See the [Unicode 16 validation report](https://github.com/brikk/duckdb-trino-parity-extension/blob/main/docs/REPORT-unicode16-validation.md)
-    for provenance, commands, and the limits of that validation.
+    for provenance, commands, and the limits of that validation. These checks
+    also pass on final DuckDB 2.0.0; see the
+    [2.0 readiness report](https://github.com/brikk/duckdb-trino-parity-extension/blob/main/docs/REPORT-duckdb-2-readiness.md).
 
     Aligned Trino functions (e.g. `length`, `abs`, `year`, `substring`,
     `regexp_extract`) are intentionally NOT shipped — a caller emits them as
