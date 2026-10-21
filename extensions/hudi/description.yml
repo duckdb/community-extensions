@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: alitrack/duckdb-hudi
-  ref: 066fc6c637c5408b9dc2af9ca734e9701eea239b
-  variegata: cfc23ba5d8ae2d34d10afb19df03bc91d328f653
+  ref: 61f134c28956784b486cc815611b1b718bb95398
+  variegata: c15d5e6c4960ba429d804653da60834cff2fbfb8
 
 docs:
   hello_world: |
