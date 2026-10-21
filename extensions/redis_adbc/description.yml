@@ -1,0 +1,45 @@
+extension:
+  name: redis_adbc
+  description: Stream Redis SQL results through an embedded Arrow ADBC driver
+  version: '0.1.0'
+  language: C++ & Go
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - alberttwong
+  excluded_platforms: windows_amd64;windows_amd64_mingw;windows_amd64_rtools;windows_arm64;wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl
+
+repo:
+  github: alberttwong/redis-adbc-driver
+  # The community registry's ref field targets DuckDB 2.0.
+  ref: e3d138291944904299ca8d05a2cf51c5d7ea261b
+
+docs:
+  hello_world: |
+    -- Requires a reachable Redis server with Search (the Query Engine).
+    SELECT * FROM redis_adbc_scan(
+        'redis://localhost:6379/0',
+        'SELECT 42 AS answer'
+    );
+  extended_description: |
+    This submission targets DuckDB 2.0 through the registry's repo.ref field.
+
+    `redis_adbc_scan(uri, sql)` streams one SELECT from Redis into DuckDB using
+    the Redis ADBC driver's SQL engine and Arrow batches. The driver and Go
+    runtime are embedded: no separate driver library, manifest, driver manager,
+    or adbc_scanner installation is required.
+
+    Redis Search is required. Use `rediss://` for TLS. SQL over driver-managed
+    tables can use Search predicate and aggregate pushdown; surrounding DuckDB
+    queries can join and aggregate the streamed results locally. Existing HASH
+    collections need the driver's copy/adoption workflow to become SQL tables.
+
+    This is a read interface: scripts, DDL, DML and transaction commands are
+    rejected. It does not provide ATTACH catalogs, ingestion, or query parameter
+    binding. For those integration APIs, use the Redis driver through the
+    existing adbc_scanner extension. This extension is distinct from the
+    separately registered redis command-client extension.
+
+    Native Linux and macOS are supported build targets; macOS requires 12+.
+    See the [extension guide](https://github.com/alberttwong/redis-adbc-driver/blob/e3d138291944904299ca8d05a2cf51c5d7ea261b/duckdb-extension/README.md)
+    for build instructions, prerequisites, limitations and verification.
