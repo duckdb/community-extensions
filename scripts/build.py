@@ -46,6 +46,9 @@ with open('env.sh', 'w+') as hdl:
 	elif os.environ['DUCKDB_VERSION'] == 'v1.5.6':
 		if 'variegata' in desc['repo']:
 			extension_ref = desc['repo']['variegata']
+		elif os.environ.get('COMMUNITY_EXTENSION_REQUIRE_VARIEGATA') == 'true':
+			print("Skipping variegata build: repo.variegata is not defined")
+			extension_ref = None
 	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
 		if desc['repo'].get('ref_next'):
 			extension_ref = desc['repo']['ref_next']
