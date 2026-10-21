@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: altertable-ai/duckdb-timestral
-  ref: bac996717835e62c629d40852ad669072a56743b
+  ref: 3bab0a28ff9b8854dc624b6666e1fc0639076466
   variegata: 7d6486900113e4271f8e32324adf27776b63a02b
 
 docs:
@@ -27,21 +27,21 @@ docs:
 
     -- Forecast the next 24 hours of every store: median plus 21 quantiles per step.
     SELECT store, ts, forecast, q10, q90
-    FROM timestral_forecast_by('sales', 'store', 'ts', 'amount', 24);
+    FROM sales TIMESTRAL_FORECAST (amount PARTITION BY store ORDER BY ts HORIZON 24);
 
     -- The same with the aggregate, for full control over grouping.
-    SELECT store, unnest(timestral_forecast(ts, amount, 24), recursive := true)
+    SELECT store, unnest(timestral_forecast(amount ORDER BY ts HORIZON 24), recursive := true)
     FROM sales GROUP BY store;
   extended_description: |
     **timestral** runs [Mistral's Timestral](https://mistral.ai/news/timestral/) zero-shot forecasting models
     inside DuckDB. There is no training step, no Python and no GPU: the network runs on CPU through a statically
     linked ONNX Runtime, and a forecast is one SQL query.
 
-    - `timestral_forecast(ts, value, horizon [, options])` is an aggregate returning one entry per future step:
-      `ts`, `forecast` (the median) and the 21 quantiles `q01` to `q99`. `ts` can be TIMESTAMP, TIMESTAMPTZ,
-      DATE or an integer step. Missing values (NULL) and gaps are handled; the step is inferred, or passed as
-      `{'freq': INTERVAL '1 month'}`.
-    - `timestral_forecast_by(table, group_by, ts, value, horizon)` returns one row per group and step.
+    - `FROM t TIMESTRAL_FORECAST (value PARTITION BY ... ORDER BY time HORIZON n [EVERY step] [USING MODEL size]
+      [WITH HISTORY])` returns one row per series and future step: the time, `forecast` (the median) and the 21
+      quantiles `q01` to `q99`. The time can be TIMESTAMP, TIMESTAMPTZ, DATE or an integer step. Missing values
+      (NULL) and gaps are handled; the step is inferred, or passed as `EVERY INTERVAL '1 month'`.
+    - `timestral_forecast(value ORDER BY time HORIZON n ...)` is the aggregate behind it, one list per group.
     - `timestral_models()` lists the four model sizes (5M default, 28M, 123M, 209M) and whether they are cached.
       Set `timestral_model_path` to use a local file offline.
 
