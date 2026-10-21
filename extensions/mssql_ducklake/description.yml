@@ -19,9 +19,8 @@ extension:
 
 repo:
   github: "hugr-lab/mssql-ducklake"
-  # DuckDB 2.0: main of hugr-lab/mssql-ducklake on the v2.0-cyanoptera line, to be replaced by the
-  # v0.2.0 release commit once DuckDB v2.0.0 is out. A SHA rather than a tag name.
-  ref: "04b9dd65e5b587f128db0a214527d5adadb07a15"
+  # DuckDB 2.0: v0.2.0 (the commit tag v0.2.0 points at). A SHA rather than a tag name.
+  ref: "d4d7a40beafda896ada610faf0bd64bf5db642e8"
   # DuckDB 1.5.6: v0.1.2, the commit ref used to point at.
   variegata: "93a676d05098a6fc1289070adfbfcd96ee8c6dfc"
 
