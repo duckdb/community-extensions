@@ -6,7 +6,7 @@ extension:
   build: cmake
   requires_toolchains: rust
   test_config: >-
-    {"test_env_variables":{"DUCKDB_TEST_ON_INIT":"LOAD '{BUILD_DIR}/extension/ducksmiles/ducksmiles.duckdb_extension';","T":"test/* --test-flags='--require ducksmiles --require json' --fail-require-skip"}}
+    {"test_env_variables":{"DUCKDB_TEST_ON_INIT":"LOAD '{BUILD_DIR}/extension/ducksmiles/ducksmiles.duckdb_extension';","T":"\"test/*\" --test-flags='--require ducksmiles --require json' --fail-require-skip"}}
   license: MIT
   maintainers:
     - nkwork9999
