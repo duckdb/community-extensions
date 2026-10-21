@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: altertable-ai/duckdb-timestral
-  ref: 7d6486900113e4271f8e32324adf27776b63a02b
+  ref: bac996717835e62c629d40852ad669072a56743b
+  variegata: 7d6486900113e4271f8e32324adf27776b63a02b
 
 docs:
   hello_world: |
