@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: BorisBesky/fire_duck_ext
-  ref: 6641ec11aeb5e9757862294d1a86daec14ba0a47
+  ref: 89f1537c55ec894c7f2c79ca726d2f028f68fdca
 
 docs:
   hello_world: |
