@@ -13,4 +13,5 @@ extension:
 repo:
   andium: 3b2a5c1e23bb2cf608874f64dbf9469f5f945892
   github: query-farm/tributary
-  ref: cb1fb527ea29628b976a0b2b819bc0692d9d226b
+  ref: 820ca74ba108b8e0d7c8d7a1caf74f6340a49837
+  variegata: d7d89361c2802c032ba5af73aa65718f5a26804b
