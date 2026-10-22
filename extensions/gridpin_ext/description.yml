@@ -6,6 +6,7 @@ extension:
   build: cargo
   license: Apache-2.0
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  opt_in_platforms: "osx_amd64"
   requires_toolchains: "rust;python3"
   maintainers:
     - gridpin-reserve
@@ -69,3 +70,9 @@ docs:
     them). Germany covers 15 of 16 Länder (Bavaria is not covered). The engine itself is
     Apache-2.0 and lives at [gridpin/gridpin](https://github.com/gridpin/gridpin); this
     repository holds the extension crate only.
+
+    ### Licences
+
+    The extension statically links the Rust libraries listed in
+    [THIRDPARTY.yml](https://github.com/gridpin/duckdb-gridpin/blob/main/THIRDPARTY.yml),
+    which carries their licence texts.
