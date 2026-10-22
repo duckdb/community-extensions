@@ -1,7 +1,7 @@
 extension:
   name: qvd
   description: Read (streaming) and write Qlik QVD files
-  version: 1.0.4
+  version: 1.0.5
   language: Rust
   build: cmake          # community label; the actual build goes through the Rust C-API Makefile
   license: Apache-2.0
@@ -13,7 +13,8 @@ extension:
 
 repo:
   github: snouhaud/DuckDB-QVD-Extension
-  ref: 2d608d838e2826bf026a8433ef57b987505eb61a
+  variegata: f73a6afd34df398d346e3a3d04a57ed15c2137ae
+  ref: f73a6afd34df398d346e3a3d04a57ed15c2137ae
 
 docs:
   hello_world: |
