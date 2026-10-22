@@ -20,8 +20,8 @@ extension:
 # upstream git repository coordinates and tagged release reference
 repo:
   github: razobill/razobill
-  ref: c9320e82fab62c661a892a5ab8ee2f3a04c8f7ce
-  variegata: c9320e82fab62c661a892a5ab8ee2f3a04c8f7ce
+  ref: 55e2bd1d8aab484c6b997102c00d337dbc4d8807
+  variegata: 55e2bd1d8aab484c6b997102c00d337dbc4d8807
 
 # documentation and sql usage examples published on DuckDB community portal
 docs:
