@@ -1,50 +1,48 @@
 extension:
   name: nats_js
   description: Query NATS JetStream message streams directly with SQL
-  version: 0.2.1
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "linux_amd64_musl;windows_amd64_mingw"
+  excluded_platforms: "linux_amd64_musl;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - brannn
 
 repo:
   github: brannn/duckdb-nats-jetstream
-  ref: v0.2.1
+  ref: v0.3.0
+  variegata: 01ee2f89b6ea7daec6e57f72c7eb0367d0c08874
 
 docs:
   hello_world: |
-    -- Query messages from a NATS JetStream stream
+    -- Read messages from a stream (the server defaults to nats://localhost:4222)
     SELECT subject, seq, ts_nats, payload
-    FROM nats_scan('telemetry')
-    WHERE seq BETWEEN 1 AND 100;
+    FROM nats_scan('telemetry', start_seq := 1, end_seq := 100);
 
-    -- Extract JSON fields with dot notation
-    SELECT device_id, zone, kw
+    -- Filter subjects with NATS wildcards and extract JSON fields, including nested ones
+    SELECT seq, device_id, location_zone, kw
     FROM nats_scan('telemetry',
-        json_extract := ['device_id', 'zone', 'kw']
+        subject := 'telemetry.*.power.>',
+        json_extract := ['device_id', 'location.zone', 'kw']
     );
 
-    -- Extract Protocol Buffers fields with nested navigation
+    -- Extract Protocol Buffers fields with native types
     SELECT device_id, location_zone, metrics_kw
-    FROM nats_scan('telemetry',
+    FROM nats_scan('telemetry_proto',
         proto_file := 'telemetry.proto',
         proto_message := 'Telemetry',
         proto_extract := ['device_id', 'location.zone', 'metrics.kw']
     );
 
   extended_description: |
-    The NATS JetStream extension enables direct SQL querying of NATS JetStream message streams without establishing durable consumers.
-    
-    Features:
-    - Sequence-based range queries (start_seq, end_seq)
-    - Timestamp-based range queries with binary search (start_time, end_time)
-    - Subject filtering for targeted message retrieval
-    - JSON payload extraction with dot notation for nested fields
-    - Protocol Buffers support with runtime schema parsing and nested message navigation
-    
-    Perfect for ETL workflows, analytics, and ad-hoc querying of message streams.
-    
-    GitHub: https://github.com/brannn/duckdb-nats-jetstream
+    The nats_js extension reads the messages stored in NATS JetStream streams with SQL. It creates no consumers.
 
+    Features:
+    - Subject filters with NATS wildcards, applied by the server
+    - Sequence ranges (start_seq, end_seq) and time ranges (start_time, end_time)
+    - JSON field extraction with dot paths for nested fields
+    - Protocol Buffers decoding from a .proto file at query time, with native DuckDB types
+    - Streams with or without allow_direct
+
+    Documentation: https://github.com/brannn/duckdb-nats-jetstream
