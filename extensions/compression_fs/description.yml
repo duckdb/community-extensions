@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-compression-filesystem
-  ref: 9c3539d80a2028976fe0b507a729afae00589fa8
+  ref: d609652f36a258a77eb8a6d50ffbd9b0a161fcef
 
 docs:
   hello_world: |
