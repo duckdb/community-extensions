@@ -13,4 +13,5 @@ extension:
 repo:
   andium: 9ff14fb21b6cd07371070c758978043e115a2eb0
   github: query-farm/jsonata
-  ref: 61aac3c1ff4c8d484846a2e698cc63a8cc0e5c50
+  ref: 3c64d4ca993743128d117bd15a8be146a2344c2c
+  variegata: cbbd6d3b944e2d1e9e8790c8a10197108f6aa011
