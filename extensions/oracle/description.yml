@@ -1,0 +1,65 @@
+extension:
+  name: oracle
+  description: Comprehensive Oracle Database connector using lazy runtime OCI loading with catalog integration, filter/projection pushdown, flashback queries, and vectorized writes
+  version: 0.3.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64"
+  maintainers:
+    - cofin
+
+repo:
+  github: cofin/duckdb-oracle
+  ref: d502341d3c015bbf72fb516c9fc03f295b28fb38
+  variegata: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
+
+docs:
+  hello_world: |
+    -- Install and load the Oracle extension from Community Extensions
+    INSTALL oracle FROM community;
+    LOAD oracle;
+
+    -- Connect using standard credentials (host, port, service)
+    CREATE SECRET standard_db (
+        TYPE oracle,
+        HOST 'localhost',
+        PORT 1521,
+        SERVICE 'FREEPDB1',
+        USER 'scott',
+        PASSWORD 'tiger'
+    );
+    ATTACH '' AS ora (TYPE oracle, SECRET standard_db);
+
+    -- Or connect using an Oracle Wallet (Autonomous Database / mTLS / SEPS)
+    CREATE SECRET wallet_db (
+        TYPE oracle,
+        SERVICE 'myadb_high',
+        USER 'admin',
+        PASSWORD 'welcome123',
+        WALLET_PATH '/path/to/wallet'
+    );
+    ATTACH '' AS ora_wallet (TYPE oracle, SECRET wallet_db);
+
+    -- Direct query execution without attaching
+    SELECT * FROM oracle_query('ora', 'SELECT empno, ename, sal FROM hr.emp WHERE deptno = 10');
+
+    -- Native catalog queries with filter and projection pushdown
+    SELECT empno, ename, sal FROM ora.HR.EMP WHERE deptno = 10;
+  extended_description: |
+    The `oracle` extension connects DuckDB to Oracle Database instances using Oracle Call Interface (OCI) loaded dynamically at runtime (`libclntsh.so` / `libclntsh.dylib` / `oci.dll`).
+
+    **Supported Deployments and Database Engines:**
+    - **Oracle Autonomous Database (ADB)**: Autonomous Data Warehouse (ADW), Autonomous Transaction Processing (ATP), and Autonomous JSON Database (AJD) on Oracle Cloud Infrastructure (OCI) via regional mTLS wallets (`WALLET_PATH`) or TLS.
+    - **Cloud & Engineered Systems**: OCI Base Database Service, Exadata Cloud Service (ExaCS), Exadata Cloud@Customer (ExaCC), and on-premises Exadata Database Machine.
+    - **On-Premises & IaaS**: Oracle Database 19c, 21c, and 23ai (Enterprise Edition, Standard Edition 2, and Oracle Database Free / XE), as well as earlier releases (11.2.0.4, 12c, 18c) when paired with an interoperable Oracle Client (such as Instant Client 19c).
+
+    **Key Capabilities:**
+    - **Zero Load-Time Dependency**: `INSTALL oracle FROM community; LOAD oracle;` succeeds without Oracle Instant Client installed; client libraries (`libclntsh` 19c, 21c, or 23ai) are resolved dynamically when opening a connection.
+    - **Direct Queries & Catalog Integration**: Run ad-hoc queries via `oracle_query(...)` or mount schemas, tables, views, materialized views, and synonyms as native catalog entries via `ATTACH ... (TYPE oracle)` with lazy schema inspection.
+    - **Vector Search & AI Workloads**: Native support for Oracle 23ai `VECTOR` data types, converting between DuckDB native floating-point arrays/lists and Oracle vector embeddings for similarity search.
+    - **Spatial Data Integration**: Native mapping for `MDSYS.SDO_GEOMETRY`, converting spatial geometries to DuckDB `GEOMETRY` (WKB format with coordinate reference systems).
+    - **Pushdown & Optimizer Integration**: Pushes complex predicates, column projections, flashback queries (`AS OF SCN` / `AS OF TIMESTAMP`), and `ALL_TABLES.NUM_ROWS` cardinality estimates to Oracle.
+    - **Flexible Authentication**: Supports standard username/password, Oracle Cloud mTLS wallets (`WALLET_PATH`), Secure External Password Store (SEPS) wallets (`/@alias`), and TNS aliases.
+    - **Rich Data Types & Large Objects**: Full handling of `NUMBER`, `BINARY_FLOAT`, `BINARY_DOUBLE`, `DATE`, `TIMESTAMP`, `TIMESTAMP WITH TIME ZONE`, `INTERVAL`, `CLOB`, `BLOB`, `RAW`, and Oracle 21c/23ai native `JSON`.
+    - **Vectorized Array Writes**: High-throughput `INSERT INTO` and `COPY` via `OCIBindArrayOfStruct`.
