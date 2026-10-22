@@ -1,19 +1,22 @@
 extension:
   name: finetype
   description: Semantic type classification — detects 251 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.6.62
+  version: 0.6.63
   language: Rust
   build: cargo
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw"
+  # osx_amd64 became opt-in in the DuckDB 2.0 matrix, and is opted into so
+  # Intel Macs keep a build.
+  opt_in_platforms: "osx_amd64"
   requires_toolchains: "rust"
   maintainers:
     - hughcameron
 
 repo:
   github: meridian-online/finetype
-  ref: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
-  ref_next: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
+  ref: 80a8bc157d98897a1df0140cf2e35a314816fd52
+  ref_next: 80a8bc157d98897a1df0140cf2e35a314816fd52
   variegata: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
 
 docs:
@@ -134,13 +137,18 @@ docs:
     ```
 
     Because it is an aggregate, it cannot take `list(...)` — nesting one aggregate inside another is a
-    binder error. Pass the column itself, and use `GROUP BY` for one answer per group.
+    binder error. Pass the column itself, and use `GROUP BY` for one answer per group. `FILTER` and
+    `DISTINCT` work too. An aggregate-level `ORDER BY` inside the call
+    (`ft_profile(value ORDER BY value)`) works on DuckDB 2.0 and crashes DuckDB 1.5, a DuckDB bug fixed
+    in 2.0 and not backported.
 
     ### `ft_detail(value VARCHAR[, header VARCHAR]) → VARCHAR`
     Explain the verdict `ft_profile` gives a column. An **aggregate** over the same sample as
     `ft_profile`, so over the same rows its `type` is `ft_profile`'s. Returns JSON with the type,
     confidence (0.0–1.0), the recommended DuckDB type, the number of values sampled, the rule that
-    decided the type when one fired, and the per-label vote map.
+    decided the type when one fired, and the per-label vote map. It takes the same `GROUP BY`,
+    `FILTER`, `DISTINCT` and `ORDER BY` forms as `ft_profile`, with the same DuckDB 1.5 caveat on
+    `ORDER BY`.
 
     ```sql
     SELECT ft_detail(email, 'email') FROM people;
