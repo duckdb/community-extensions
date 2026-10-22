@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-query-condition-cache
-  ref: 48a8a50235ddf2c167ab644462a52ff82bcb5978
+  ref: b76bf9d38249bd90aff61278c38c24dbbd48d1af
 
 docs:
   hello_world: |
