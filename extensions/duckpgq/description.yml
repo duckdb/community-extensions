@@ -54,5 +54,6 @@ docs:
     It introduces visual graph pattern matching and a more concise syntax for path-finding.
     For more information, please see the [DuckPGQ documentation](https://duckpgq.org).
 
+    *Note:* Starting with DuckDB v2.0, you have to opt in to the DuckPGQ grammar after loading the extension by running `SET active_grammar_extensions = ['duckpgq'];`.
 
     *Disclaimer:* As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.
