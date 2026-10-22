@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: neuesql/atm_talib
-  ref: 93eac9bff33c616fe279e533c1142b3e1479af7c
+  ref: 2301cebee610b220da4a500aa65fed36fe04672a
 
 docs:
   hello_world: |
