@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: toppyy/duckdb-px
-  ref: 08f82d68cd5007fbaafed33bcb179b03ac1ce578
-  ref_next: 08f82d68cd5007fbaafed33bcb179b03ac1ce578
+  ref: 8656c63225234d78e854a3ec8d66f9defe4ed120
+  ref_next: 8656c63225234d78e854a3ec8d66f9defe4ed120
   variegata: bc40da8093fc530768255dbc3ee49b6922172dd3
 
 docs:
