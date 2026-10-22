@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-distributed-execution
-  ref: 4a7e71d923bdd9e6fe9ba37893c72a36ad910f2c
+  ref: f2053a1e80381e672c003a923151c952e27ebb45
 
 docs:
   hello_world: |
