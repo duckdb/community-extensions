@@ -12,7 +12,7 @@ extension:
 repo:
   github: dentiny/duckdb-table-inspector
   andium: 13b830f3ccee4b4be3058a8211ad2f566c1ef698
-  ref: 78a50d3b6ffffb96ebf50fece5d1f52b8d959930
+  ref: 13f6099bae7d0122c2f1297c1fb64bcee54b73cb
 
 docs:
   hello_world: |
