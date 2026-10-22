@@ -12,7 +12,7 @@ extension:
 repo:
   github: dentiny/duckdb-hedged-request
   andium: a94e1b63e9b1e6f94c6c7debbf1d49bc28f510f7
-  ref: 39fae9788b9dd6b3a400258b6e234c9a60d21bb6
+  ref: aee257c20a6f68f75fc3f106b620f18d7e53800c
 
 docs:
   hello_world: |
