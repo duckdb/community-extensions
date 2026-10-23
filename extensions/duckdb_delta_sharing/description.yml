@@ -11,6 +11,7 @@ extension:
 
 repo:
   github: prequel-co/DuckDB-Delta-Sharing
+  variegata: a40b7c829fc44e9b55850cbda948adb3d113691a
   ref: a40b7c829fc44e9b55850cbda948adb3d113691a
 
 docs:
