@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: LordVitiate/root4duckdb
-  ref: bf55e4cd5491d9cc69e1d569009748ce457fe679
+  ref: 8eb5786d72ecd880d5d8382f3c284ece7451721a
+  variegata: bf55e4cd5491d9cc69e1d569009748ce457fe679
 
 docs:
   extended_description: |
