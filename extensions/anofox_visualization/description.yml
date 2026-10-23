@@ -1,6 +1,6 @@
 extension:
   name: anofox_visualization
-  version: 2026.10.23
+  version: 2026.10.24
   description: Render charts and dashboards straight from SQL — the ggplot-rs grammar of graphics, emitted as SVG.
   language: C++
   build: cmake
@@ -11,8 +11,8 @@ extension:
   requires_toolchains: rust
 repo:
   github: DataZooDE/anofox-visualization
-  ref: 4d7ffdf3409dbe1ab9fd8eb8025a8537563c4ceb
-  variegata: 4d7ffdf3409dbe1ab9fd8eb8025a8537563c4ceb
+  ref: fa024cd5507e52db19e136d2e95418e6580fc453
+  variegata: fa024cd5507e52db19e136d2e95418e6580fc453
 docs:
   hello_world: |
     -- One scalar plus convenience macros. Pass columns; get an SVG per group.
