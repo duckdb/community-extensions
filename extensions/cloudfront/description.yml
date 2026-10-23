@@ -7,8 +7,6 @@ extension:
   maintainers:
     - onnimonni
   name: cloudfront
-  vcpkg_url: https://github.com/microsoft/vcpkg.git
-  vcpkg_commit: ce613c41372b23b1f51333815feb3edd87ef8a8b
   version: '2026102301'
 repo:
   github: midwork-finds-jobs/duckdb-cloudfront
