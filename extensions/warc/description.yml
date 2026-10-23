@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb_warc
-  ref: 7184683eec41abd8dbe34b8457c780cd80648cae
+  variegata: 7184683eec41abd8dbe34b8457c780cd80648cae
+  ref: 954cbe42e5fdb6f90d6e3ad20879fc36bcaeff3b
 
 docs:
   hello_world: |
