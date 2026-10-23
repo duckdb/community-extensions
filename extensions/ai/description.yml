@@ -11,7 +11,8 @@ extension:
 
 repo:
   github: leonardovida/duckdb-ai
-  ref: fc60af54167c4d15d32cb8086ab3b5ac532ec35c
+  ref: 2f0cab8321489c4c8663044a56160ab40dc47ff4
+  variegata: fc60af54167c4d15d32cb8086ab3b5ac532ec35c
 
 docs:
   hello_world: |
