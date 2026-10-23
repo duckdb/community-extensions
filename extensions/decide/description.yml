@@ -1,0 +1,33 @@
+extension:
+  name: decide
+  description: Filter, classify, and score text using OpenAI Decisions from SQL
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "osx_amd64;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - gzheng92
+repo:
+  github: gzheng92/duckdb-decide
+  # Validated DuckDB 2.0.0 source revision.
+  ref: 96a0e33fa9b52210af63c2f08bd21024bd2ae0ab
+docs:
+  hello_world: |
+    -- Requires OpenAI Decisions API access and a paid API key.
+    CREATE SECRET openai_decisions (TYPE decisions, API_KEY 'your-key');
+    SELECT decision_prob('The parcel arrived crushed.',
+                         'Does this report physical damage?') AS probability;
+  extended_description: |
+    `decide` integrates the OpenAI Decisions API with DuckDB SQL.
+    It provides boolean predicates, probabilities, categorical choices,
+    rubric scores, and explicit multi-question JSON answers.
+    Typed functions batch 20 rows per request by default; set
+    `decisions_batch_size = 1` for independent row evaluation.
+    Non-NULL inputs and instructions are sent to OpenAI and can incur API charges.
+    Credentials use DuckDB's `decisions` secret type or `OPENAI_API_KEY`.
+    No API key is required to build or run the offline tests.
+    The integration currently accepts text only and targets `gpt-6-luna`.
+    This is an independent integration with an upstream API in public beta.
+    See the [README](https://github.com/gzheng92/duckdb-decide#readme)
+    for function signatures, limits, refusal handling, and batching semantics.
