@@ -15,6 +15,7 @@ extension:
 repo:
   github: substrait-io/duckdb-substrait-extension
   ref: 2bed96fb06c7ae78528c79fc1c8a276ec064cf9a
+  variegata: 2bed96fb06c7ae78528c79fc1c8a276ec064cf9a
 
 docs:
   hello_world: |
