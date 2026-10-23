@@ -1,7 +1,7 @@
 extension:
   name: ducksmiles
   description: Cheminformatics and CPU numerical analytics for DuckDB - molecular formats, descriptors, fingerprints, similarity, regression, statistical inference, experimental design, time series, reliability and model evaluation from SQL
-  version: 0.6.0
+  version: 0.6.1
   language: C++
   build: cmake
   requires_toolchains: rust
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 442f54588d5882a3fc14f3f830c2d29d20701ace
+  ref: 46f357e7c6c2cd28dbf8a7d11dfe1c7f7c141dbc
 
 docs:
   hello_world: |
@@ -70,8 +70,8 @@ docs:
     - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **405 SQL overloads**, including the existing 151 molecular overloads and
-    254 CPU analytics functions. Molecular methods cover property extraction, format conversion,
+    **418 SQL overloads**, including the existing 151 molecular overloads and
+    267 CPU analytics functions. Molecular methods cover property extraction, format conversion,
     structural comparison, fingerprinting, similarity search, drug-likeness /
     toxicophore filtering, and structure-based virtual screening.
 
@@ -132,7 +132,7 @@ docs:
       `bedroc(alpha)` to measure how well a docked library enriches known actives.
 
     **CPU numerical analytics:**
-    - 254 functions for descriptive/inferential statistics, regression, mixed/latent
+    - 267 functions for descriptive/inferential statistics, regression, mixed/latent
       models, IRT/SEM, causal evaluation, experimental design, quality/reliability,
       time series, functional preprocessing, numeric text analysis and spatial models.
     - Numeric matrices and ordered parameter lists; versioned JSON results, reusable
@@ -141,6 +141,11 @@ docs:
     - Complete SQL examples, parameter contracts, validation evidence and remaining
       gaps are in the [README](https://github.com/nkwork9999/duckSMILES#cpu-analytics-complete-sql-api-reference).
       These are bounded partial method contracts; full JMP equivalence is not claimed.
+
+    The new bounded CPU methods include censored regression, estimated spatial
+    covariance, static SVG histograms/box plots and ordered categorical ML with
+    saved prediction. JMP default Lasso, sandwich inference and full plot options
+    remain explicitly incomplete in the source README.
 
     **Architecture:** Rust (core logic, zero external chemistry crates) + C++ (DuckDB
     integration via FFI).
