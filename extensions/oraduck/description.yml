@@ -1,7 +1,7 @@
 extension:
   name: oraduck
-  description: Fast COPY of query results into Oracle through the OCI Direct Path API
-  version: '0.3.0'
+  description: Read Oracle tables in parallel (ATTACH, oraduck_scan) and load query results into Oracle through the OCI Direct Path API
+  version: '0.4.0'
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: hugues31/oraduck
-  ref: 0790997bac7495fa53fd08698608252d52a34ba3
+  ref: 87d23f0664975ddca900ad39287d74634d554731
 
 install_notes: |
   **Oracle Instant Client** (Basic or Basic Light, version 19 or later) is required to talk to Oracle.
@@ -25,22 +25,36 @@ docs:
   hello_world: |
     CREATE SECRET oracle_test (TYPE oraduck, USER 'scott', PASSWORD 'tiger', DSN 'dbhost:1521/ORCLPDB1');
 
-    -- The target table must exist in Oracle; columns are matched by name
+    -- Read: attach the Oracle database (read-only); filters and columns are pushed to Oracle
+    ATTACH '' AS ora (TYPE oraduck, SECRET oracle_test);
+    SELECT * FROM ora.MY_SCHEMA.MY_TABLE WHERE part_date = DATE '2024-05-07';
+
+    -- Or read one table with the table function
+    SELECT count(*) FROM oraduck_scan('MY_SCHEMA.MY_TABLE', connection := 'oracle_test');
+
+    -- Write: the target table must exist in Oracle; columns are matched by name
     COPY (SELECT id, amount, operation_date, label FROM source)
     TO 'MY_SCHEMA.MY_TABLE' (FORMAT oraduck, CONNECTION 'oracle_test');
   extended_description: |
-    OraDuck loads the result of a DuckDB query into an existing Oracle table through the OCI Direct Path
-    API, the engine behind `sqlldr direct=true`: one Oracle session per DuckDB thread, native encodings
-    (NUMBER, DATE, TIMESTAMP, BINARY_FLOAT/DOUBLE) and no intermediate file.
+    OraDuck reads Oracle tables into DuckDB and loads DuckDB query results into Oracle, both through OCI
+    with one Oracle session per DuckDB thread and no intermediate file.
 
-    - `COPY ... TO 'SCHEMA.TABLE' (FORMAT oraduck, CONNECTION '<secret>')`, with an `oraduck` secret
-      (USER, PASSWORD, DSN in EZConnect form)
-    - all sessions commit together at the end; any error aborts the whole load
-    - on Oracle 19c, 1.2 to 3.2 times faster than a CSV export loaded by parallel direct path SQL*Loader,
-      and 6 to 500 times faster than loading with INSERT statements from DuckDB (quack-oracle,
-      duckdb-oracle), from 100k x 5 to 10M x 50 rows x columns
+    Reading:
+    - `ATTACH '' AS ora (TYPE oraduck, SECRET '<secret>')` exposes an Oracle database as a read-only
+      catalog (schemas are Oracle users; tables, views and synonyms); `oraduck_scan('SCHEMA.TABLE', …)`
+      reads one table or view
+    - projection and filter pushdown: only the selected columns are fetched, and `WHERE` conditions that
+      Oracle evaluates exactly like DuckDB run in Oracle, which prunes partitions
+    - parallel sessions over ROWID ranges (from DBA_EXTENTS or DBMS_PARALLEL_EXECUTE) or ORA_HASH(ROWID),
+      with a common `AS OF SCN` snapshot when the user may read the current SCN
+    - exact types: NUMBER(p,s) as integers or DECIMAL, DATE/TIMESTAMP, CLOB/BLOB read inline with
+      bounded memory, UTF-8 validated strings
 
-    The target table must exist. Parallel direct path loads cannot maintain indexes: an indexed table
-    needs `SKIP_INDEX_MAINTENANCE true` (like `sqlldr skip_index_maintenance=true`), which leaves its
-    indexes UNUSABLE until they are rebuilt.
-    Benchmark, type mapping and limitations: https://github.com/hugues31/oraduck
+    Writing:
+    - `COPY ... TO 'SCHEMA.TABLE' (FORMAT oraduck, CONNECTION '<secret>')` through the OCI Direct Path
+      API, the engine behind `sqlldr direct=true`; all sessions commit together, any error aborts the load
+    - on Oracle 19c, 1.2 to 3.2 times faster than a CSV export loaded by parallel direct path SQL*Loader
+    - indexed tables need `SKIP_INDEX_MAINTENANCE true`, which leaves their indexes UNUSABLE until rebuilt
+
+    Options, type mapping, recommended Oracle privileges, benchmarks and limitations:
+    https://github.com/hugues31/oraduck
