@@ -1,7 +1,7 @@
 extension:
   name: anofox_decide
   description: Natural-language decisions on your data inside DuckDB — yes/no probabilities, one-of-N choices and ordinal scores with the answer sets written in the query, from hosted (TypeSafe Jev, Liquid AI D1), local-server and in-process ONNX decision models, plus calibration metrics
-  version: '2026.10.14'
+  version: '2026.10.24'
   language: C++
   build: cmake
   license: MIT
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: DataZooDE/anofox-decide
-  ref: c5b3a0d5f7944da8a6a6f170206ceb9fe6240c55
-  variegata: c5b3a0d5f7944da8a6a6f170206ceb9fe6240c55
+  ref: e400623ed54cc91b32be6f9ec51f31f63cc2dc62
+  variegata: e400623ed54cc91b32be6f9ec51f31f63cc2dc62
 
 docs:
   hello_world: |
