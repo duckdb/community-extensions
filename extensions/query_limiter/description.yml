@@ -1,7 +1,7 @@
 extension:
   name: query_limiter
   description: Reject queries before physical execution when estimated table scans exceed a configured row budget
-  version: 0.1.2
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,8 @@ extension:
 
 repo:
   github: dentiny/duckdb-query-limiter
-  ref: 8febc919c9240343112b6a54468074fe48628ea1
+  variegata: 8febc919c9240343112b6a54468074fe48628ea1
+  ref: 739c7964074f2adce00cdf9dc130a109d0b01e6f
 
 docs:
   hello_world: |

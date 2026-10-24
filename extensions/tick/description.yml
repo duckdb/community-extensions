@@ -1,0 +1,52 @@
+extension:
+  name: tick
+  description: QuestDB's TICK interval syntax for time filters, e.g. WHERE ts IN '[2025-01]T09:30@America/New_York#workday;6h30m'
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - lstefano71
+
+repo:
+  github: lstefano71/duckdb-tick
+  ref: ae996e3c94111d4444041705c76eb641178fc605
+
+docs:
+  hello_world: |
+    -- plain TIMESTAMP values are read in the session TimeZone
+    SET TimeZone = 'UTC';
+
+    -- one row per minute of January 2025
+    CREATE TABLE trades AS
+    SELECT ts, random() AS price
+    FROM range(TIMESTAMP '2025-01-01', TIMESTAMP '2025-02-01', INTERVAL 1 MINUTE) t(ts);
+
+    -- NYSE trading hours on every workday of January (holidays aside)
+    SELECT count(*), min(ts), max(ts)
+    FROM trades
+    WHERE ts IN '[2025-01]T09:30@America/New_York#workday;6h30m';
+
+    -- the first hour of trading on the workdays of January 1st to 7th
+    SELECT count(*) FROM trades WHERE ts IN '2025-01-[01..07]T09:30@America/New_York#workday;1h';
+
+    -- the intervals a pattern expands to
+    SELECT * FROM tick_intervals('[2025-01]T09:30@America/New_York#workday;6h30m') LIMIT 3;
+  extended_description: |
+    The tick extension implements [QuestDB's TICK syntax](https://questdb.com/docs/query/operators/tick/)
+    (Temporal Interval Calendar Kit): one compact string describing many time windows, with date lists,
+    bracket expansion, ISO weeks, `$now`/`$today` arithmetic including business days, time zones,
+    day-of-week filters and durations:
+
+    ```sql
+    SELECT * FROM trades WHERE ts IN '$today - 5bd..$today - 1bd';        -- the last five business days
+    SELECT * FROM trades WHERE ts IN '$now - 1h..$now';                   -- the last hour
+    SELECT * FROM logs   WHERE ts IN '2024-[01,04,07,10]-[01..07]T02:00#Sun;6h';  -- first Sunday of each quarter
+    ```
+
+    `x IN '<pattern>'` becomes `tick_in(x, '<pattern>')` through a DuckDB 2.0 grammar extension that is
+    activated automatically by `LOAD tick` (for statements parsed after the `LOAD`). The pattern is expanded
+    once per query and the filter is pushed into scans: Parquet files and DuckDB tables skip row groups whose
+    min/max cannot match, and every scanner receives the overall time range as plain comparisons.
+    `tick_intervals(pattern)` lists the expanded intervals. Patterns follow the session `TimeZone`; see the
+    repository README for the differences from QuestDB.

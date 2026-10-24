@@ -1,7 +1,7 @@
 extension:
   name: ng_postcode
   description: Parse, validate, format, and group Nigeria's NIPOST digital postcode (NDAPS)
-  version: 0.1.0
+  version: 0.2.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: Adeniyikayodee/ng-postcode-duckdb
-  ref: c19a29e68a6a535e8d88800aa6d72195acc52642
+  ref: a584158edc26f40554ee5fb8a3290ff3eca1c90a
 
 docs:
   hello_world: |
