@@ -14,44 +14,20 @@ extension:
   vcpkg_commit: 68a1c387f660632f2f65cdb7e8cd093a08840e5d
 repo:
   github: teaguesterling/duckdb_webbed
-  andium: ddda30f11352138b2451657419640370d1612137
-  # andium (DuckDB v1.4.5 track) left at its prior commit; v2.9.3 ships on the
-  # v1.5.x track via ref and is verified against DuckDB v2.0-cyanoptera as well.
-  # THE DEFAULT BUILD. Since community-extensions #3079 the registry's build.yml
-  # defaults duckdb_version to a bare commit on the DuckDB 2.0 line
-  # (b15358c371da, tagged v2.0.0-alpha46057), and scripts/build.py:42-54 resolves
-  # that default to plain `ref` -- the v1.4.5/v1.5.6/ref_next branches are all
-  # skipped when duckdb_version equals DUCKDB_LATEST_STABLE. So `ref` is already
-  # the 2.0 pointer, today, not from the 21st.
-  #
-  # v2.11.0 (tag v2.11.0) is @bendrucker's XML correctness work -- DOM/SAX value
-  # parity, inference no longer dropping attributes or text, scalar XPath and
-  # HTML extraction fixes (#186/#187/#188) -- plus the v2.0 Identifier compat fix
-  # and his migration of this repo onto the registry's v2.0-default CI layout
-  # (#190), plus the TIMESTAMP zone-name fix the v2.0 coverage leg found (#194).
-  # Verified on this exact commit, BOTH lines, tests actually EXECUTED:
-  #   v1.5.6          All tests passed (4618 assertions in 127 test cases)
-  #                   on linux_amd64, osx_arm64, windows_amd64, windows_amd64_mingw
-  #   v2.0-cyanoptera ran tests: 127 passed, 0 skipped
-  # Counted, not inferred from colour, because this repo's v2.0 SHIPPING leg reports
-  # `ran tests: 0 passed, 127 skipped` and still goes green -- the upstream
-  # version-directory defect makes `require webbed` skip every file. A separate
-  # coverage leg pinned to the v2.0-cyanoptera BRANCH is the only honest v2.0 signal
-  # here, so "nine green platforms" must never be read as nine tested ones.
-  ref: 5bf1c8514695c8d984942c442a1f65a852020691
+  ref: 7dad6101607529d74c9d831b75675f460f3a4d4a
   # variegata: the v1.5.6 track. scripts/build.py:46-48 routes duckdb_version
   # v1.5.6 here. Same commit as ref deliberately -- this release builds and
   # passes on both lines, so v1.5.6 users get the correctness fixes rather than
   # staying frozen at v2.10.0. The registry no longer builds v1.5 automatically;
   # per the DuckDB team, a v1.5.6 build needs this field plus contacting them.
-  variegata: 5bf1c8514695c8d984942c442a1f65a852020691
+  variegata: 7dad6101607529d74c9d831b75675f460f3a4d4a
   # ref_next is now DORMANT: build_next.yml is `if: false`, and build.py's
   # ref_next branch is unreachable while the registry's duckdb_version equals its
   # DUCKDB_LATEST_STABLE. Kept and moved with ref anyway -- it costs nothing and
   # restores prerelease validation if that job is re-enabled. A STALE ref_next is
   # worse than an absent one: it validates the PREVIOUS release while reporting
   # green, so it must never lag ref.
-  ref_next: 5bf1c8514695c8d984942c442a1f65a852020691
+  ref_next: 7dad6101607529d74c9d831b75675f460f3a4d4a
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
