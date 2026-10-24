@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/duckgl # あなたのリポジトリ名に合わせて
-  ref: d1f447296645cc0b8a5b5c0dd524093dfdfb08e0
+  ref: 9af182c6bac10cb4dd970ae04afed43b28526475
 
 docs:
   hello_world: |
