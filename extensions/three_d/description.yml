@@ -1,7 +1,7 @@
 extension:
   name: three_d
   description: 3D solid processing for city models — enclosed volume, validation, distance, and measurement of polyhedral solids.
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,10 @@ extension:
 
 repo:
   github: cityjson/duckdb-3d
-  ref: 679ee0905cb75074e58d11c04fa690669441e6fd
+  # ref builds against DuckDB v2.0.0 (`main`, release v0.3.0); variegata builds
+  # against v1.5.6 (`v1.5-variegata`, release v0.3.0-duckdb1.5).
+  ref: c8e0f0c5ffd75fd3cb6461e17220fa74ae53cef4
+  variegata: 409029354fc63ed4ae6539eccf135b2b59f5e03f
 
 docs:
   hello_world: |
