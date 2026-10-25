@@ -1,7 +1,7 @@
 extension:
   name: duck_tails
   description: Smart Development Intelligence for DuckDB - Git-aware data analysis capabilities that allow querying git history, accessing files at any revision, and performing version-aware data analysis with SQL.
-  version: 1.8.0
+  version: 1.9.0
   language: C++
   build: cmake
   license: MIT
@@ -11,26 +11,19 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duck_tails
-  # ref and ref_next are deliberately the SAME commit (v1.8.0, f5f55ba). duck_tails
-  # now builds from ONE source tree against both DuckDB lines: the v2.0 removal of
-  # TableFunction::named_parameters is handled by named_parameter_compat.hpp, which
-  # declares via GetSignature().WithTypedKwargs() on v2.0 and the flat map on v1.5.
+  # ref, variegata and ref_next are the SAME commit (v1.9.0, 2b20b7d). duck_tails
+  # builds from ONE source tree against both DuckDB lines (named_parameter_compat.hpp
+  # covers the v2.0 TableFunction::named_parameters removal).
   #
-  # Evidence at this ref: clean builds with 0 errors against v1.5.6 AND against
-  # v2.0-cyanoptera, with `All tests passed` (1270 assertions / 71 cases) on EACH
-  # line, plus an explicit extension LOAD with every declared named parameter bound.
-  # That load check matters: Declare-vs-Extend ordering throws at LOAD time, not
-  # build time, so a build-only check cannot catch it.
-  #
-  # Upstream CI on main (run 37102404149) is green across all seven v2.0-cyanoptera
-  # legs: linux amd64+arm64, osx amd64+arm64, windows_amd64 and windows_amd64_mingw.
-  ref: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
+  # Evidence at this ref: local builds with 0 errors, `--require duck_tails`, all
+  # passing: v2.0.0 (d54cbbe3df) 1479 assertions / 74 cases; v1.5.6 1479 assertions / 74 cases.
+  ref: 2b20b7d21c864817538e347e82f70fed76598f4d
   # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
   # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
   # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
   # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
-  variegata: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
-  ref_next: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
+  variegata: 2b20b7d21c864817538e347e82f70fed76598f4d
+  ref_next: 2b20b7d21c864817538e347e82f70fed76598f4d
 
 docs:
   hello_world: |
@@ -41,12 +34,14 @@ docs:
     SELECT commit_hash, author_name, message, author_date
     FROM git_log() LIMIT 5;
 
-    -- Access files from git repository at specific revisions
+    -- Access files from git repository at specific revisions.
+    -- Both forms are valid and read the same file; ?ref= is the canonical form.
+    SELECT * FROM read_csv('git://data/sales.csv?ref=HEAD');
     SELECT * FROM read_csv('git://data/sales.csv@HEAD');
 
     -- Compare data between commits
-    SELECT COUNT(*) FROM read_csv('git://data/sales.csv@HEAD') AS current_count,
-           COUNT(*) FROM read_csv('git://data/sales.csv@HEAD~1') AS previous_count;
+    SELECT (SELECT count(*) FROM read_csv('git://data/sales.csv?ref=HEAD')) AS current_count,
+           (SELECT count(*) FROM read_csv('git://data/sales.csv?ref=HEAD~1')) AS previous_count;
 
     -- Analyze text differences
     SELECT * FROM read_git_diff('git://README.md@HEAD', 'git://README.md@HEAD~1');
