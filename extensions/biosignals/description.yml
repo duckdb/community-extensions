@@ -1,0 +1,43 @@
+extension:
+  name: biosignals
+  description: |
+    Reader utilities to import medical time series data into DuckDB as EDF(+)/BDF(+) files.
+  version: 0.0.01
+  language: C++
+  build: cmake
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  license: MIT
+  maintainers:
+    - nmontesg
+
+repo:
+  github: nmontesg/biosignals
+  ref: ed19763f5ecfdca9e645fe15a4c717a0b8db1f82
+
+docs:
+  hello_world: |
+    INSTALL biosignals FROM community;
+    LOAD biosignals;
+    FROM read_edf_global_header('path/to/edf_file.edf');
+
+  extended_description: |
+    The **biosignals** extension for DuckDB provides reader functions to import medical time series data directly into
+    DuckDB. This is suitable for storing and analyzing data in SQL that is typically stored in EDF(+) of BDF(+) files:
+
+    * Electrocardiography (ECG)
+    * Electroencephalography (EEG)
+    * Polysomnography (PSG Sleep studies)
+    * And many others
+
+    For full documentation and examples, see the project
+    [`README`](https://github.com/nmontesg/biosignals/blob/main/README.md).
+    
+    **Reader functions:**
+
+    * `read_edf_global_header()`: Import the global header information into a table, one row per file.
+    * `read_edf_signal_headers()`: Import the header information for each individual signals into a table, one row per
+    every file signal.
+    * `read_edf_signal()`: Import the time series data of EDF(+)/BDF(+) files into a table. Only non-annotation signals
+    are included.
+    * `read_edf_annotations()`: Import the annotation data of EDF(+)/BDF(+) files into a table, one row per TAL 
+    (time-stamped annotation list). Only annotation signals are included.
