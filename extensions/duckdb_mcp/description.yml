@@ -11,6 +11,7 @@ extension:
 repo:
   github: teaguesterling/duckdb_mcp
   ref: 6b2b1dc899e1b5834ed6ee2f574e309f445e23b1
+  variegata: 6f9c4ba1d2f1040c2a4638dabcd66da630a763ad
   # ref_next == ref (deliberate): v2.3.2 carries the DuckDB v2.0 fix (#91: reach the
   # result collection through a compat shim; v2.0 changed MaterializedQueryResult access).
   # Setting ref_next == ref makes test_against_latest build+test the SHIPPED release on
