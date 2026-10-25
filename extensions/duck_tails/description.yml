@@ -11,17 +11,15 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duck_tails
-  # ref and ref_next are deliberately the SAME commit (6591df2). duck_tails
+  # ref and ref_next are deliberately the SAME commit (v1.9.0, 2b20b7d). duck_tails
   # now builds from ONE source tree against both DuckDB lines: the v2.0 removal of
   # TableFunction::named_parameters is handled by named_parameter_compat.hpp, which
   # declares via GetSignature().WithTypedKwargs() on v2.0 and the flat map on v1.5.
   #
-  # Evidence at this ref (run 40224509226, which built the same tree), linux_amd64:
-  # v2.0.0 reports `ran tests: 73 passed, 0 skipped`, and v1.5.6 reports
-  # `All tests passed` (1360 assertions / 73 cases). The v1.5.6 leg is green on
-  # all six platforms.
-  ref: 6591df2f6d370d33b60ff035ee8332339585bc7b
-  ref_next: 6591df2f6d370d33b60ff035ee8332339585bc7b
+  # Evidence: clean local builds of this tree against v2.0.0 (d54cbbe3) and v1.5.6,
+  # each with `All tests passed (1479 assertions in 74 test cases)`.
+  ref: 2b20b7d21c864817538e347e82f70fed76598f4d
+  ref_next: 2b20b7d21c864817538e347e82f70fed76598f4d
 
 docs:
   hello_world: |
@@ -32,12 +30,14 @@ docs:
     SELECT commit_hash, author_name, message, author_date
     FROM git_log() LIMIT 5;
 
-    -- Access files from git repository at specific revisions
+    -- Access files from git repository at specific revisions.
+    -- Both forms are valid and read the same file; ?ref= is the canonical form.
+    SELECT * FROM read_csv('git://data/sales.csv?ref=HEAD');
     SELECT * FROM read_csv('git://data/sales.csv@HEAD');
 
     -- Compare data between commits
-    SELECT COUNT(*) FROM read_csv('git://data/sales.csv@HEAD') AS current_count,
-           COUNT(*) FROM read_csv('git://data/sales.csv@HEAD~1') AS previous_count;
+    SELECT (SELECT count(*) FROM read_csv('git://data/sales.csv?ref=HEAD')) AS current_count,
+           (SELECT count(*) FROM read_csv('git://data/sales.csv?ref=HEAD~1')) AS previous_count;
 
     -- Analyze text differences
     SELECT * FROM read_git_diff('git://README.md@HEAD', 'git://README.md@HEAD~1');
