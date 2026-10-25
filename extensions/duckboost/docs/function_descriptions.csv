@@ -16,6 +16,6 @@ duckboost_other,Collapse categorical values outside levels into a single other l
 duckboost_predict,Score one feature vector with a duckboost model,"","duckboost_predict(model, features)"
 duckboost_predict_proba,Class probabilities (or single-element list for regression),"","duckboost_predict_proba(model, features)"
 duckboost_score,Score every row of a table and append a prediction column,"","FROM duckboost_score(model, 'penguins', 'features')"
-duckboost_to_sql,Export a model as plain DuckDB SQL for inference without the extension,"","duckboost_to_sql(model, 'penguins', ['bill_length_mm','bill_depth_mm'])"
+duckboost_to_sql,Export a model as plain DuckDB SQL (DOUBLE literals) for inference without the extension,"","duckboost_to_sql(model, 'penguins', ['bill_length_mm','bill_depth_mm'])"
 duckboost_train,Train a histogram GBDT (native) or linked vendor trainer; returns model JSON,"","duckboost_train(y, features, MAP {'backend': 'native', 'n_estimators': '40'})"
 duckboost_vfold,Assign cross-validation fold ids by content-hash (optional strata),"","FROM duckboost_vfold('penguins', v := 5)"
