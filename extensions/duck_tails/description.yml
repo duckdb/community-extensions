@@ -1,7 +1,7 @@
 extension:
   name: duck_tails
   description: Smart Development Intelligence for DuckDB - Git-aware data analysis capabilities that allow querying git history, accessing files at any revision, and performing version-aware data analysis with SQL.
-  version: 1.8.0
+  version: 1.9.0
   language: C++
   build: cmake
   license: MIT
@@ -11,21 +11,17 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duck_tails
-  # ref and ref_next are deliberately the SAME commit (v1.8.0, f5f55ba). duck_tails
+  # ref and ref_next are deliberately the SAME commit (6591df2). duck_tails
   # now builds from ONE source tree against both DuckDB lines: the v2.0 removal of
   # TableFunction::named_parameters is handled by named_parameter_compat.hpp, which
   # declares via GetSignature().WithTypedKwargs() on v2.0 and the flat map on v1.5.
   #
-  # Evidence at this ref: clean builds with 0 errors against v1.5.6 AND against
-  # v2.0-cyanoptera, with `All tests passed` (1270 assertions / 71 cases) on EACH
-  # line, plus an explicit extension LOAD with every declared named parameter bound.
-  # That load check matters: Declare-vs-Extend ordering throws at LOAD time, not
-  # build time, so a build-only check cannot catch it.
-  #
-  # Upstream CI on main (run 37102404149) is green across all seven v2.0-cyanoptera
-  # legs: linux amd64+arm64, osx amd64+arm64, windows_amd64 and windows_amd64_mingw.
-  ref: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
-  ref_next: f5f55bac3afc63ef93bba8ce41c65a9dceefdac5
+  # Evidence at this ref (run 40224509226, which built the same tree), linux_amd64:
+  # v2.0.0 reports `ran tests: 73 passed, 0 skipped`, and v1.5.6 reports
+  # `All tests passed` (1360 assertions / 73 cases). The v1.5.6 leg is green on
+  # all six platforms.
+  ref: 6591df2f6d370d33b60ff035ee8332339585bc7b
+  ref_next: 6591df2f6d370d33b60ff035ee8332339585bc7b
 
 docs:
   hello_world: |
