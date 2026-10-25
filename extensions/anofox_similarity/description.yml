@@ -12,6 +12,7 @@ extension:
 repo:
   github: DataZooDE/anofox-similarity
   ref: 829a98ef7fbf4ddc2040d012efdc70daa705de30
+  variegata: 829a98ef7fbf4ddc2040d012efdc70daa705de30
 
 docs:
   hello_world: |
