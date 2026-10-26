@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: HynekBlaha/duckdb-azure-wasm
-  ref: 59e87d27e5fe767b6d6fba2d191a1df24b3940ed
+  ref: bdc30014bbc1dda50927052a078e03df284d9ab3
   variegata: 9f605cc01ef01fe120056f8a1c746dda0ad947bf
 
 docs:
