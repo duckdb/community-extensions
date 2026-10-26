@@ -1,7 +1,7 @@
 extension:
   name: improv
-  description: Improv's spreadsheet formula language (674 functions) and multidimensional models (categories, measures, formulas over them) on DuckDB tables
-  version: 0.9.0
+  description: Improv's spreadsheet formula language (681 functions) and multidimensional models (categories, measures, formulas over them) on DuckDB tables
+  version: 0.11.0
   language: Rust
   build: cargo
   license: MIT OR Apache-2.0
@@ -16,11 +16,11 @@ repo:
   github: gburd/improv
   # A commit SHA, filled in once that commit is qualified on every platform
   # (.github/workflows/duckdb.yml).
-  ref: 874a031ffc83edbdc5736b8b54c6bc1b3964b28b
+  ref: 19211d7c4e5d23f84de2f7707f1e41f71e54f4f9
 docs:
   hello_world: |
     LOAD improv;
-    -- Any of Improv's 674 built-in functions, on named inputs.
+    -- Any of Improv's 681 built-in functions, on named inputs.
     SELECT improv_calc('ROUND(PMT(rate/12, n, -pv), 2)',
                        json_object('rate', 0.06, 'n', 360, 'pv', 200000));  -- 1199.1
     SELECT improv_calc_text('1/0');                                          -- #DIV/0!
