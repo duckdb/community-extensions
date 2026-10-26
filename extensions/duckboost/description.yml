@@ -1,5 +1,8 @@
-# Submit this file to https://github.com/duckdb/community-extensions as:
+# Source of truth for https://github.com/duckdb/community-extensions
 #   extensions/duckboost/description.yml
+# Also ship docs/community_extensions_function_descriptions.csv as
+#   extensions/duckboost/docs/function_descriptions.csv
+# so the community “Added Functions” table is populated.
 #
 # DuckDB community CI builds `repo.ref` against DuckDB 2.0.0 LTS
 # (duckdb_version=v2.0.0, duckdb_commit=d54cbbe…). duckboost is 2.0-only:
@@ -8,7 +11,7 @@
 extension:
   name: duckboost
   description: SQL-native histogram GBDT in DuckDB with vendor dump import and plain-SQL export
-  version: 0.0.4
+  version: 0.0.5
   language: C++
   build: cmake
   license: MIT
@@ -19,8 +22,8 @@ extension:
 
 repo:
   github: JavOrraca/duckboost
-  # v0.0.4 release commit (tag v0.0.4). Raw SHA only — not a movable tag.
-  ref: b775ef43e175ba9d38e97da33ff164b70c573d3c
+  # v0.0.5 release commit (tag v0.0.5). Raw SHA only — not a movable tag.
+  ref: 0c9dc402641c7c6a25faee93e8aeb5bb70123a27
 
 docs:
   # Mirrors the Getting Started penguins first-model loop. Uses a public raw URL so the
