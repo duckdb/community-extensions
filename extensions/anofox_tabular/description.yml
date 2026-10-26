@@ -1,6 +1,6 @@
 extension:
   name: anofox_tabular
-  version: 2026.10.22
+  version: 2026.10.25
   description: A DuckDB extension for data quality, validation and anomaly detection in SQL - 18 data quality checks (volume, nulls, freshness, schema drift, regex and value-set compliance, duplicates, referential integrity, time-aware baselines) with a table-driven check-suite runner, column profiling and correlations including nested types, hash- and join-based table diffing, anomaly detection with Isolation Forest (categorical, Extended IF, SCiForest), DBSCAN and explainable OutlierTree, PII detection and masking (17 types including IBAN, credit cards, API keys and NER-based names, organizations and locations), email validation with DNS/SMTP checks, international address parsing (libpostal), phone number validation (libphonenumber), EU VAT validation (28 countries), and currency-aware money arithmetic.
   language: C++
   build: cmake
@@ -10,8 +10,8 @@ extension:
     - jrosskopf
 repo:
   github: DataZooDE/anofox-tabular
-  ref: 4a318b64f449962c3fda8af09b71b7f0ad2f26c0
-  variegata: 4a318b64f449962c3fda8af09b71b7f0ad2f26c0
+  ref: 844277a7ee1dc778f3ef5db14a0185083cb3ecaa
+  variegata: 844277a7ee1dc778f3ef5db14a0185083cb3ecaa
 docs:
   hello_world: |
     -- Validate contact data
