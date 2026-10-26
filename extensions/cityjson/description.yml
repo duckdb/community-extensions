@@ -10,10 +10,10 @@ extension:
 
 repo:
   github: cityjson/duckdb-cityjson
-  # ref builds against DuckDB v2.0.0 (`main`, release v0.5.0); variegata builds
-  # against v1.5.6 (`v1.5-variegata`, release v0.5.0-duckdb1.5).
-  ref: df6f0e1c07642191a05b1e576b44926597a7eec8
-  variegata: 8ff774648f815e25de08a0e0adb0f636dab91359
+  # ref builds against DuckDB v2.0.0 (tag on `main`); variegata builds
+  # against v1.5.6 (tag on `v1.5-variegata`).
+  ref: v0.5.0
+  variegata: v0.5.0-duckdb1.5
 
 docs:
   hello_world: |
