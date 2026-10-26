@@ -1,7 +1,7 @@
 extension:
   name: differential
   description: Versioned DuckDB databases - snapshots, time travel, branches, clones and S3 export over native storage
-  version: 0.1.0
+  version: 1.0.0
   language: C++
   build: cmake
   license: MIT
@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-differential
-  ref: 80281620d0104c1e5ee88e98266b3e58715d9e0b
+  ref: 844ae5fcb686b26ca401f27d03ccf4e77636fe58
 
 docs:
   hello_world: |
@@ -175,9 +175,21 @@ docs:
     branch heads. Several processes, and optionally several local users, can share one
     repository.
 
+    S3 databases can also:
+    - ship every commit to S3 continuously (`SHIP_WAL 'async' | 'sync'`), so another host can
+      recover the branch with `differential_recover_branch`;
+    - be followed by read-only replicas that move to each new commit on their own
+      (`FOLLOW true` on a branch head);
+    - be written by several hosts (`WRITERS 'shared'`), with optimistic, conflict-checked
+      publication through conditional S3 writes;
+    - have unreachable S3 data collected (`differential_cleanup_remote_files`).
+
     The SQL surface follows DuckLake's conventions: `ATTACH 'differential:<db>'` options
     (`BRANCH`, `SNAPSHOT_VERSION`, `SNAPSHOT_TIME`, `SNAPSHOT_NAME`, `DATA_PATH`),
     `SET differential_*` settings and database-first `differential_*` functions.
+
+    Built for DuckDB 2.0. Version 1.0.0 uses store format 2 and refuses repositories and
+    exports written by 0.1.0; there is no migration.
 
     Status: experimental. Linux and macOS only. Commits are durable at DuckDB's sync points;
     exports are durable once complete. S3 is tested against MinIO and exercised on AWS;

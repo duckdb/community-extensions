@@ -1,7 +1,7 @@
 extension:
   name: scalarfs
   description: A collection of virtual filesystems for working with scalars
-  version: 1.6.2
+  version: 1.7.0
   language: C++
   build: cmake
   license: MIT
@@ -10,14 +10,26 @@ extension:
 repo:
   github: teaguesterling/duckdb_scalarfs
   andium: 68faa6c72054123a6c6521dd41c12f929431da50
-  ref: 6fc4d68397c521e1fda56bd164ce4f2f3aabda5c
-  # ref_next omitted (skips the v2.0-cyanoptera prerelease leg). scalarfs is clean
-  # of family C (0 named_parameters) and builds against duckdb main, but v2.0-
-  # cyanoptera removed QueryResult::GetValue, which pathmacro_filesystem.cpp uses
-  # (cyanoptera build error at pathmacro_filesystem.cpp:147). That is a separate
-  # v2.0 fix, out of scope for the v1.5.6 restoration; the prerelease leg is
-  # deploy:false and never publishes. Restore ref_next once the v2.0 GetValue
-  # change is handled (after v2.0.0 tags).
+  # ref, variegata and ref_next are the SAME commit: the v1.7.0 tag (16a2637).
+  # One source tree builds both DuckDB lines.
+  #
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch. Advance
+  # it only to a commit that v1.5.6 can still build. This commit can (counts below).
+  #
+  # Evidence at this commit, with tests EXECUTED, not only compiled:
+  #   local, linux_amd64, DuckDB v2.0.0 (d54cbbe3) and v1.5.6:
+  #     All tests passed (1091 assertions in 29 test cases), on each line
+  #   upstream main run 40254809357, full matrix:
+  #     v1.5.6: All tests passed (1091 assertions in 29 test cases)
+  #     v2.0:   ran tests: 29 passed, 0 skipped
+  #   each on linux_amd64, osx_arm64, windows_amd64 and windows_amd64_mingw.
+  #
+  # A STALE ref_next is worse than an absent one: it validates the PREVIOUS release
+  # while reporting green, so it must never lag ref.
+  ref: 16a2637eaab656d3b94e7a25f612573f8e056769
+  variegata: 16a2637eaab656d3b94e7a25f612573f8e056769
+  ref_next: 16a2637eaab656d3b94e7a25f612573f8e056769
 docs:
   hello_world: |
     LOAD scalarfs;

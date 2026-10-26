@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: alitrack/duckdb-python
-  ref: refs/tags/v0.2.1
+  ref: 901a7bdbc3a1b7f760882eeb91b6716e4b136cc2
+  ref_next: 901a7bdbc3a1b7f760882eeb91b6716e4b136cc2
 
 docs:
   hello_world: |

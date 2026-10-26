@@ -1,0 +1,45 @@
+extension:
+  name: eviltransform
+  description: WGS84, GCJ02 and BD09 coordinate transformations and exact Jenks natural breaks
+  version: '0.1'
+  language: C++
+  build: CMake
+  license: MIT
+  requires_toolchains: python3
+  excluded_platforms: 'wasm_mvp;wasm_eh;wasm_threads'
+  maintainers:
+    - DeoLeung
+
+repo:
+  github: aiyou178/duck_eviltransform
+  ref: c77375d511e17f8bb9b0df46d610af912d367afa
+
+docs:
+  hello_world: |
+    INSTALL spatial;
+    LOAD spatial;
+    LOAD eviltransform;
+    SELECT ST_AsText(ST_EvilTransform(ST_Point(120, 30), 'WGS84', 'GCJ02'));
+    SELECT ST_JenksBins([1, 2, 3, 10, 11, 12], 2);
+  extended_description: |
+    Port of [pg_eviltransform](https://github.com/aiyou178/pg_eviltransform) to DuckDB.
+    Adds WGS84 / GCJ02 / BD09 transformations for points, lines, polygons,
+    multi-geometries and nested collections. Z/M ordinates are preserved by the
+    custom coordinate formulas. Standard projections, including geographic
+    CGCS2000 (EPSG:4490), delegate to the spatial extension.
+
+    Install and load `spatial` before loading `eviltransform`. The explicit
+    three-argument interface is `ST_EvilTransform(geometry, from_crs, to_crs)`;
+    coordinates use longitude/easting as X and latitude/northing as Y.
+    Custom CRS metadata is not attached to the output. The original approximate
+    GCJ02 inverse and rectangular China guard are retained.
+
+    `ST_JenksBins(values, breaks[, invert])` computes exact weighted Jenks
+    natural breaks from a list. `ST_JenksBinsAgg(value, breaks[, invert])` is
+    the streaming aggregate and supports parallel combine.
+
+    Uses the stable C extension ABI v1.2.0. Loading creates/replaces the
+    `ST_EvilTransform` macro in the database's main schema, so initialization
+    requires a writable database. WebAssembly is excluded from this release.
+    See the [README](https://github.com/aiyou178/duck_eviltransform#readme) for
+    aliases, NULL handling, accuracy and installation details.

@@ -1,0 +1,9 @@
+function,description,comment,example
+ng_postcode_parse,"Parse a Nigerian NIPOST postcode in any case or spacing into its 11-character compact form, or NULL if malformed","Returns VARCHAR. Rejects the old six-digit code.","SELECT ng_postcode_parse('ek 01 a03 fk 01'); -- EK01A03FK01"
+ng_postcode_prefix_parse,"Parse a postcode cut off after any segment into its compact prefix, or NULL","Returns VARCHAR.","SELECT ng_postcode_prefix_parse('ek-01-a03'); -- EK01A03"
+ng_postcode_format,"Format a code or prefix in the hyphenated style, or NULL if malformed","Returns VARCHAR.","SELECT ng_postcode_format('EK01A03FK01'); -- EK-01-A03-FK-01"
+ng_postcode_truncate,"Cut a code after a segment: state, lga, district, area or unit","Returns VARCHAR. NULL for an unknown segment.","SELECT ng_postcode_truncate('EK-01-A03-FK-01', 'district'); -- EK01A03"
+ng_postcode_parent,"Return the next coarser prefix of a code or prefix","Returns VARCHAR.","SELECT ng_postcode_parent('EK01A03FK01'); -- EK01A03FK"
+ng_postcode_within,"Whether a code lies inside a prefix","Returns BOOLEAN.","SELECT ng_postcode_within('EK-01-A03-FK-01', 'EK-01'); -- true"
+ng_postcode_compact,"Strip spaces and hyphens and uppercase, without validating","Returns VARCHAR.","SELECT ng_postcode_compact(' ek-01 a03 fk 01 '); -- EK01A03FK01"
+ng_postcode_version,"The extension version","Returns VARCHAR.","SELECT ng_postcode_version();"

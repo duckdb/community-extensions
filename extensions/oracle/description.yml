@@ -1,0 +1,58 @@
+extension:
+  name: oracle
+  description: Connect DuckDB directly to Oracle databases for reading and writing tables, with catalog integration, pushdown, spatial geometry, and vector support
+  version: 0.3.1
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64"
+  maintainers:
+    - cofin
+
+repo:
+  github: cofin/duckdb-oracle
+  ref: fa61951bdd3edf18bb6bf8e7169255d5ca6de635
+
+docs:
+  hello_world: |
+    INSTALL oracle FROM community;
+    LOAD oracle;
+
+    -- Connect with standard credentials
+    CREATE SECRET my_oracle (
+        TYPE oracle,
+        HOST 'localhost',
+        PORT 1521,
+        SERVICE 'FREEPDB1',
+        USER 'scott',
+        PASSWORD 'tiger'
+    );
+    ATTACH '' AS ora (TYPE oracle, SECRET my_oracle);
+
+    -- Or connect with an Oracle Wallet (Autonomous Database or TLS)
+    CREATE SECRET wallet_oracle (
+        TYPE oracle,
+        SERVICE 'myadb_high',
+        USER 'admin',
+        PASSWORD 'secret',
+        WALLET_PATH '/path/to/wallet'
+    );
+    ATTACH '' AS ora_cloud (TYPE oracle, SECRET wallet_oracle);
+
+    -- Query attached tables with filter and projection pushdown
+    SELECT empno, ename, sal
+    FROM ora.scott.emp
+    WHERE deptno = 10;
+
+    -- Or run direct Oracle SQL
+    SELECT * FROM oracle_query('ora', 'SELECT empno, ename FROM scott.emp WHERE sal > 2000');
+  extended_description: |
+    The `oracle` extension connects DuckDB directly to Oracle databases for reading and writing tables, views, materialized views, and synonyms.
+
+    Installing and loading the extension requires no Oracle libraries on the host. When opening a connection, the extension loads Oracle Instant Client (19c, 21c, or 23ai) on demand from `OCI_LIB_DIR`, `ORACLE_HOME`, or the system library path. It works with local, on-premises, cloud, and Oracle Autonomous Database instances, including connections authenticated with Oracle Wallets.
+
+    Key features:
+    - **Catalog attachment & direct SQL**: Attach an Oracle database via `ATTACH ... (TYPE oracle)` to query tables directly, or run raw SQL with `oracle_query` and `oracle_execute`.
+    - **Optimizer pushdown**: Pushes `WHERE` filters, column projections, table row-count estimates, and flashback queries (`AS OF SCN` and `AS OF TIMESTAMP`) down to Oracle.
+    - **Rich type mapping**: Maps Oracle numeric, temporal, `CLOB`/`BLOB`, `RAW`, `JSON`, 23ai `VECTOR` embeddings (`LIST(FLOAT)`), and `SDO_GEOMETRY` spatial geometries (`GEOMETRY`).
+    - **Batched reads & writes**: Uses array fetching for scans and array binding for `INSERT INTO` writes.

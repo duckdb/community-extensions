@@ -1,8 +1,8 @@
 extension:
   name: duck_dggs
-  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v8.
+  description: DuckDB extension for discrete global grid systems (DGGS) powered by DGGRID v9.1.
   
-  version: 0.1.10 # x-release-please-version
+  version: 0.2.0 # x-release-please-version
   language: C++
   build: cmake
   license: MIT
@@ -11,13 +11,11 @@ extension:
 
 repo:
   github: am2222/duckdb-dggs
-  ref: a034e0beec21b7e4764173b624ab7f1d69f12f87
-  # ref_next drives the upstream PRERELEASE leg (build_next.yml, DuckDB
-  # v2.0-cyanoptera), which runs with require_ref_next: true. Without this key
-  # the job resolves an empty ref, skips, and the PR passes green having built
-  # nothing against v2. Both refs are placeholders: release-please.yml stamps
-  # them with the release SHA on its way to community-extensions.
-  ref_next: a034e0beec21b7e4764173b624ab7f1d69f12f87
+  # community-extensions builds `ref` against DuckDB v2.0. It is a
+  # placeholder: release-please.yml stamps it with the release SHA on its way
+  # to community-extensions. There is no `variegata` ref: the extension no
+  # longer builds against DuckDB v1.5.
+  ref: 5a297119d34370c770905f983be3bc1787e89c10
 
 docs:
   hello_world: |
@@ -30,7 +28,7 @@ docs:
 
     -- Cell ID → cell centre point
     SELECT seqnum_to_geo(2380, 5);
-    -- → POINT (-0.9020481125846749 -1.2067949803565235e-09)
+    -- → POINT (-0.9020481122620776 1.4282740292403947e-09)
 
     -- Cell ID → cell boundary polygon (requires the spatial extension)
     LOAD spatial;
@@ -62,7 +60,7 @@ docs:
     -- → 362
   extended_description: |
     `duck_dggs` transforms geographic coordinates (as `GEOMETRY` POINT) to and from DGGS cell
-    identifiers across multiple coordinate reference frames, powered by [DGGRID v8](https://github.com/sahrk/DGGRID).
+    identifiers across multiple coordinate reference frames, powered by [DGGRID v9](https://github.com/sahrk/DGGRID).
 
     Full documentation: **https://am2222.github.io/duckdb-dggs/**
 
@@ -93,11 +91,17 @@ docs:
     | ISEA4D (diamonds) | `dggs_params('ISEA', 4, 'DIAMOND', 0.0, 58.28252559, 11.25)` |
     | FULLER4H | `dggs_params('FULLER', 4, 'HEXAGON', 0.0, 58.28252559, 11.25)` |
     | Mixed aperture | `dggs_params('ISEA', 3, 'HEXAGON', 0.0, 58.28252559, 11.25, true, '3437')` |
+    | IGEO7 (WGS84 lon/lat) | `dggs_preset('IGEO7v2')` |
+
+    Projections: `ISEA`, `IVEA`, `FULLER`, `GNOMONIC`. The optional 9th `datum` argument is
+    `'AUTHALIC_SPHERE'` (default) or `'WGS84'`, which maps geodetic lon/lat to and from the
+    authalic sphere the grid is built on.
 
     **Utility functions:**
 
     - `duck_dggs_version()` — extension version string
-    - `dggs_params(...)` — build a grid configuration (6-arg or 8-arg with aperture sequence)
+    - `dggs_params(...)` — build a grid configuration (6 args; 8 adds an aperture sequence, 9 the datum)
+    - `dggs_preset(name)` — the configuration of a DGGRID preset, e.g. `'IGEO7v2'`, `'ISEA4H'`, `'IVEA7HL'`
 
     **Grid statistics** (each has `res` and optional `params` overload):
 
@@ -121,6 +125,18 @@ docs:
     - `seqnum_parent` — parent cell at res-1
     - `seqnum_all_parents` — all touching parent cells at res-1
     - `seqnum_children` — child cells at res+1
+    - `seqnum_index_parent` / `seqnum_index_children` — parent and children in the
+      grid's hierarchical indexing system (Z3 / ZOrder / Z7); unlike the spatial
+      functions these form a strict tree
+    - `seqnum_to_index_string` / `index_string_to_seqnum` — the Z3 / ZOrder / Z7 index in its
+      text form (base cell + one digit per resolution)
+    - `seqnum_k_ring` — the cell plus every cell within k neighbor steps
+
+    **Coverage & geodesy:**
+
+    - `polygon_to_seqnums` — every cell whose centre lies inside a POLYGON / MULTIPOLYGON
+    - `seqnum_cell_area_km` — true spherical area of one cell (vs the grid average)
+    - `geo_distance_km` / `geo_azimuth_deg` — great-circle distance and bearing between points
 
     **Hierarchical index conversions:**
 

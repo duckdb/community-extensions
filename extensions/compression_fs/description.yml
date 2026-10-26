@@ -1,7 +1,7 @@
 extension:
   name: compression_fs
   description: Adds LZ4, Snappy, Brotli, Bzip2, and XZ file compression support
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -11,8 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-compression-filesystem
-  ref: f778e4c4973486686c217e3722ae1d65326ad197
-  ref_next: d1d7eb47e92d0a4d6501919e4b36853cfaa51ea0
+  ref: d609652f36a258a77eb8a6d50ffbd9b0a161fcef
 
 docs:
   hello_world: |

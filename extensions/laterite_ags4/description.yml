@@ -1,20 +1,25 @@
 extension:
   name: laterite_ags4
   description: Read AGS4 geotechnical data files as typed, UUID-keyed tables directly from SQL — born-typed columns, deterministic content-addressed keys that join across groups by construction, and an embedded AGS dictionary. A read-only SQL surface. Local, http(s):// and s3:// (with httpfs).
-  version: 0.15.0
+  version: 0.16.0
   language: Rust
   build: cargo
   license: MIT
   # wasm is BUILT for wasm_mvp and wasm_eh (wasm_threads is excluded, below). The
   # C-API extension (official duckdb-rs crate) compiles to a
   # wasm32-unknown-emscripten staticlib example (src/wasm_lib.rs) that
-  # extension-ci-tools emcc-links as an emscripten SIDE_MODULE. Building on the
-  # duckdb crate (MSRV 1.85) lets the community wasm image's rustc 1.86 be used,
-  # which does NOT emit the `--enable-bulk-memory-opt` flag that the image's older
-  # binaryen wasm-opt rejects — the flag quack-rs's rustc-1.87 floor forced, which
-  # had blocked wasm entirely. read_ags_text + the metadata functions need no
-  # filesystem; browser SQL-over-AGS is also served by the dedicated
-  # `laterite-ags4-wasm` package.
+  # extension-ci-tools emcc-links as an emscripten SIDE_MODULE. On DuckDB 1.5
+  # (the variegata build, below) the duckdb crate's MSRV of 1.85.1 lets the
+  # community v1.5 wasm image's rustc 1.86 be used, which does NOT emit the
+  # `--enable-bulk-memory-opt` flag that image's older binaryen wasm-opt rejects —
+  # the flag quack-rs's rustc-1.87 floor forced, which had blocked wasm entirely.
+  # On DuckDB 2.0 the image's own rustc is new enough for duckdb-rs 2.0. The path readers work in wasm too, through the
+  # host's filesystem (test/wasm gates read_ags); browser SQL-over-AGS is also
+  # served by the dedicated `laterite-ags4-wasm` package.
+  #
+  # Every build is stamped with the STABLE C API at v1.5.6 (the Makefile's
+  # TARGET_DUCKDB_VERSION): a floor, so one binary loads into DuckDB 1.5.6 and
+  # later rather than into exactly one release.
   #
   # wasm_threads is excluded (#50): it links, but does not LOAD. Every
   # wasm_threads extension build gets a non-shared memory (DuckDB's own core
@@ -31,7 +36,12 @@ repo:
   github: niko86/laterite-duckdb
   # Pin to the release commit SHA once the repo is pushed + tagged (community-
   # extensions pins a SHA, not a branch). Placeholder until then:
-  ref: 6f878ec7dd2aacad3cca7e605a6020db1b0ef819
+  ref: 56e6634a22e66ba0d8bd546f8412e7ae7042076b
+  # The DuckDB 1.5 build of the same release. `ref` builds for DuckDB 2.0, and
+  # its duckdb-rs 2.0 needs a newer rustc than the v1.5 pipeline's wasm image
+  # carries, so 1.5 builds from the `duckdb-1.5` branch: the same laterite engine
+  # on duckdb-rs 1.5. Move it with every release that ships to both.
+  variegata: 310118ba75bb8fc3df67e5ca5c51a9df6961afca
 
 docs:
   hello_world: |
@@ -57,7 +67,9 @@ docs:
     `laterite_ags4` reads [AGS4](https://www.ags.org.uk/) geotechnical & geoenvironmental
     data files as first-class DuckDB tables — no conversion step, no bundled engine.
 
-    Written in 🦀 Rust on DuckDB's C Extension API (zero C++).
+    Written in 🦀 Rust on DuckDB's C Extension API (zero C++). Part of the
+    [laterite](https://docs.laterite.dev/) toolkit and, like the rest of it,
+    **in beta** — see [what beta means](https://docs.laterite.dev/reference/support/).
 
     ### What it gives you
 
@@ -73,8 +85,8 @@ docs:
       repeat-/remote-query store.
     - **Local or remote** — reads go through DuckDB's virtual filesystem, so local paths,
       `http(s)://` and `s3://` (with `LOAD httpfs`) all work on one code path.
-    - **Native + wasm** — built for every community-extensions platform, DuckDB-WASM
-      included: the same reader for native and browser DuckDB.
+    - **Native + wasm** — built for the community-extensions native platforms and
+      DuckDB-WASM (`wasm_mvp`, `wasm_eh`): the same reader for native and browser DuckDB.
 
     ### Functions
 

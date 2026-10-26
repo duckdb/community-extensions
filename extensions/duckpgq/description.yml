@@ -11,11 +11,13 @@ extension:
 repo:
   github: cwida/duckpgq-extension
   andium: 42eea114b22fad93f04cb7edf50d2b0077e464fa
-  ref: 61f5d08270bef2c81fc4e5d9af32739e67adc2be
-  ref_next: 91433a8397642684fcfed0be52aca9c8b5078faa
+  variegata: 61f5d08270bef2c81fc4e5d9af32739e67adc2be
+  ref: 29ca668a2218810862bed794cc501add03a4149a
 
 docs:
   hello_world: |
+    SET active_grammar_extensions = ['duckpgq'];
+
     CREATE TABLE Person AS SELECT * FROM 'https://gist.githubusercontent.com/Dtenwolde/2b02aebbed3c9638a06fda8ee0088a36/raw/8c4dc551f7344b12eaff2d1438c9da08649d00ec/person-sf0.003.csv';
     CREATE TABLE Person_knows_person AS SELECT * FROM 'https://gist.githubusercontent.com/Dtenwolde/81c32c9002d4059c2c3073dbca155275/raw/8b440e810a48dcaa08c07086e493ec0e2ec6b3cb/person_knows_person-sf0.003.csv';
 
@@ -43,14 +45,15 @@ docs:
 
     FROM local_clustering_coefficient(snb, person, knows);
 
-    DROP PROPERTY GRAPH snb; 
+    DROP PROPERTY GRAPH snb;
 
   extended_description: >
     The DuckPGQ extension supports the SQL/PGQ syntax as part of the official SQL:2023 standard developed by ISO.
-    
-    
+
+
     It introduces visual graph pattern matching and a more concise syntax for path-finding.
     For more information, please see the [DuckPGQ documentation](https://duckpgq.org).
-    
+
+    *Note:* Starting with DuckDB v2.0, you have to opt in to the DuckPGQ grammar after loading the extension by running `SET active_grammar_extensions = ['duckpgq'];`.
 
     *Disclaimer:* As this extension is part of an ongoing research project by the Database Architectures group at CWI, some features may still be under development. We appreciate your understanding and patience as we continue to improve it.
