@@ -11,10 +11,10 @@ extension:
 
 repo:
   github: cityjson/duckdb-3d
-  # ref builds against DuckDB v2.0.0 (`main`, release v0.3.0); variegata builds
-  # against v1.5.6 (`v1.5-variegata`, release v0.3.0-duckdb1.5).
-  ref: c8e0f0c5ffd75fd3cb6461e17220fa74ae53cef4
-  variegata: 409029354fc63ed4ae6539eccf135b2b59f5e03f
+  # ref builds against DuckDB v2.0.0 (tag on `main`); variegata builds
+  # against v1.5.6 (tag on `v1.5-variegata`).
+  ref: v0.3.0
+  variegata: v0.3.0-duckdb1.5
 
 docs:
   hello_world: |
@@ -34,7 +34,8 @@ docs:
 
     -- Validate a solid before measuring it: ST_3DVolume requires a valid solid and
     -- raises rather than returning a plausible-looking wrong number.
-    SELECT ST_3DValidationReport(solid) AS report FROM buildings;
+    SELECT ST_3DValidationReport(ST_3DFromWKB(geometry_lod2_2, geometry_properties_lod2_2)) AS report
+    FROM buildings;
 
     -- 3D distance between two geometries (GEOM_3D, built from WKB with ST_Geom3DFromWKB).
     SELECT ST_3DDistance(ST_Geom3DFromWKB(a.wkb), ST_Geom3DFromWKB(b.wkb)) AS gap_m
@@ -56,27 +57,35 @@ docs:
     Function families (PostGIS-style names, a curated 3D subset). 3D operations use `ST_3D*`
     names so that `three_d` and DuckDB's `spatial` extension load together in any order; only
     the handful of names `spatial` does not define stay un-prefixed:
-    - Import / export: `ST_3DFromWKB`, `ST_3DTryFromWKB`, `ST_Geom3DFromWKB`, `ST_3DAsWKB`,
-      `ST_3DAsText`, `ST_3DAsGeoJSON`, `ST_3DAsBinary`
+    - Import / export: `ST_3DFromWKB`, `ST_3DTryFromWKB`, `ST_Geom3DFromWKB`,
+      `ST_3DGeomFromText`, `ST_3DAsWKB`, `ST_3DAsText`, `ST_3DAsGeoJSON`, `ST_3DAsBinary`
     - Introspection: `ST_3DBounds`, `ST_3DNumSolids`, `ST_3DNumShells`, `ST_3DNumFaces`,
       `ST_3DGeometryType`, `ST_3DDimension`, `ST_3DNumGeometries`, `ST_3DHasZ`, `ST_3DX`,
-      `ST_3DY`, `ST_3DZ`, `ST_3DZMin`, `ST_3DZMax`, `ST_NDims`, `ST_CoordDim`, `ST_IsPlanar`
-    - Validation: `ST_3DIsClosed`, `ST_3DIsManifold`, `ST_3DIsOriented`,
+      `ST_3DY`, `ST_3DZ`, `ST_3DXMin` … `ST_3DZMax`, `ST_3DEnvelope`, `ST_3DExtent` (aggregate),
+      `ST_NDims`, `ST_CoordDim`, `ST_IsPlanar`
+    - Faces and shells: `ST_3DFaces`, `ST_3DFaceN`, `ST_3DGeometryN`, `ST_3DExteriorShell`,
+      `ST_3DInteriorShellN`, `ST_3DNumInteriorShells`, `ST_3DFaceAreas`, `ST_3DFaceNormals`,
+      `ST_3DFaceSlopes`, `ST_3DFaceAzimuths`
+    - Validation: `ST_3DIsValid`, `ST_3DIsClosed`, `ST_3DIsManifold`, `ST_3DIsOriented`,
       `ST_3DValidationReport`
     - Measurement: `ST_3DVolume`, `ST_3DSurfaceArea` / `ST_3DArea`, `ST_3DFootprintArea`,
       `ST_3DPerimeter`, `ST_3DLength`
     - Distance: `ST_3DDistance`, `ST_3DDWithin`, `ST_3DMaxDistance`, `ST_3DDFullyWithin`,
-      `ST_3DIntersects`, `ST_3DClosestPoint`, `ST_3DShortestLine`
+      `ST_3DIntersects`, `ST_3DDisjoint`, `ST_3DClosestPoint`, `ST_3DShortestLine`
     - Transform / construct: `ST_3DTranslate`, `ST_3DScale`, `ST_3DRotateX`, `ST_3DRotateY`,
       `ST_3DRotateZ`, `ST_3DTransform`, `ST_Force3D`, `ST_3DConvexHull`, `ST_3DCentroid`,
-      `ST_3DExtrude`, `ST_MakeSolid`
+      `ST_3DExtrude`, `ST_MakeSolid`, `ST_3DFootprintHull`, `ST_3DPlaceImplicit` (implicit
+      geometries)
+    - CRS: `ST_3DCRS`, `ST_3DSRID`, `ST_3DSetCRS`; two-input functions refuse mixed CRSs
 
     Geometry is never silently repaired: validity is reported, and functions with a
     precondition raise instead of guessing. `ST_3DValidationReport` returns the counts
-    (open edges, non-manifold edges, degenerate faces, orientation errors) behind the verdict.
+    (open edges, non-manifold edges and vertices, degenerate faces, orientation errors,
+    disconnected shells, self-intersecting faces) behind the verdict. Every function works
+    under `TRY(...)`, and every parameter can be passed by name.
 
-    The single-argument constructors accept DuckDB's native `GEOMETRY` as well as a `BLOB` of
-    WKB, so a GeoParquet column can be passed straight to `ST_Geom3DFromWKB` without a cast.
+    The constructors accept DuckDB's native `GEOMETRY` as well as a `BLOB` of WKB, so a
+    GeoParquet column can be passed straight to `ST_Geom3DFromWKB` without a cast.
 
     It composes with the `cityjson` extension: read CityJSON / CityJSONSeq with
     `read_cityjson(..., lod => '...')` to get a per-LoD `geometry_lod*` column (WKB) alongside
