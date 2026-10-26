@@ -1,7 +1,7 @@
 extension:
   name: zim
   description: Read and write .zim (Kiwix / openZIM) archives directly in DuckDB via libzim, from local files or remote S3/HTTP — offline Wikipedia, WikiMed, Stack Exchange, iFixit, and more, with a zim:// filesystem, full-text search, and COPY TO for building archives from any query.
-  version: 0.9.3
+  version: 0.9.4
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -12,21 +12,21 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_zim
-  ref: aa7aea23e2623d259efad62225c3d7a3335e80da
+  ref: 8a80f14c611073e2c1f587d47120ab62883b2211
   # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
   # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
   # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
   # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
-  variegata: aa7aea23e2623d259efad62225c3d7a3335e80da
+  variegata: 8a80f14c611073e2c1f587d47120ab62883b2211
   # ref_next: the community registry builds every descriptor carrying it against
   # the v2.0 line (build_next.yml, v2.0-cyanoptera). Same commit as ref: zim builds
   # and passes its full suite there as of v0.9.1.
-  # ref_next == ref (deliberate): v0.9.3 compiles on v2.0-cyanoptera, so the
+  # ref_next == ref (deliberate): v0.9.4 compiles on v2.0-cyanoptera, so the
   # prerelease leg should build and test the SHIPPED release rather than skip it
   # or validate something else. The previous pair was inverted -- ref_next pointed
   # at ce892d5 (tag v0.9.1), OLDER than ref 666266e -- so the prerelease leg was
   # validating code the stable line no longer shipped.
-  ref_next: aa7aea23e2623d259efad62225c3d7a3335e80da
+  ref_next: 8a80f14c611073e2c1f587d47120ab62883b2211
 docs:
   hello_world: |
     -- Load the extension
