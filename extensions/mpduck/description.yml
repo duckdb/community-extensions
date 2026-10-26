@@ -1,7 +1,7 @@
 extension:
   name: mpduck
   description: Read and write FIS Prophet files (.rpt, .prn, .fac)
-  version: 0.0.2
+  version: 1.0.0
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,8 @@ extension:
 repo:
   github: MatthewMooreZA/mpduck
   andium: fca5bd23355a269e00d259607fb3f0d9505b7ca1
-  ref: b3952a8bd779940290e0e5aa70eb8961fbcfccee
+  ref: 162fb299afd7ff370dc56b2efc6ca1e200df9537
+  variegata: 162fb299afd7ff370dc56b2efc6ca1e200df9537
 
 docs:
   hello_world: |
@@ -29,6 +30,9 @@ docs:
     -- Use read_mpfile() explicitly for a single file or glob
     SELECT * FROM read_mpfile('model_points.rpt');
     SELECT * FROM read_mpfile('data/*.rpt');
+
+    -- Combine files whose columns or types differ
+    SELECT * FROM read_mpfile('data/*.rpt', union_by_name = true);
 
     -- Read multiple files or globs with read_mpfile()
     SELECT * FROM read_mpfile(['mp_2024.rpt', 'mp_2025.rpt']);
