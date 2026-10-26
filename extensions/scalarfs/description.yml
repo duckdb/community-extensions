@@ -1,7 +1,7 @@
 extension:
   name: scalarfs
   description: A collection of virtual filesystems for working with scalars
-  version: 1.6.3
+  version: 1.7.0
   language: C++
   build: cmake
   license: MIT
@@ -10,26 +10,26 @@ extension:
 repo:
   github: teaguesterling/duckdb_scalarfs
   andium: 68faa6c72054123a6c6521dd41c12f929431da50
-  ref: c5f66ec884e6070d7a9abd560ae24369b2e96d5e
-  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
-  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
-  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
-  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
-  variegata: c5f66ec884e6070d7a9abd560ae24369b2e96d5e
-  # ref_next RESTORED, on the condition the 1.6.2 comment set for it. It was omitted
-  # there deliberately: v2.0 removed QueryResult::GetValue and pathmacro_filesystem.cpp
-  # :147 used it, so the prerelease leg could only have gone red. v1.6.3 fixes exactly
-  # that -- the row is read through Fetch() + DataChunk::GetValue, which exist on BOTH
-  # lines, so it needs no version probe -- and the condition is now met.
+  # ref, variegata and ref_next are the SAME commit: the v1.7.0 tag (16a2637).
+  # One source tree builds both DuckDB lines.
   #
-  # Verified at this commit on the 2.0 line with tests EXECUTED, not merely compiled:
-  #   ran tests: 27 passed, 0 skipped
-  # on linux_amd64, windows_amd64, windows_amd64_mingw and osx_arm64, taken from the
-  # full-matrix push run on main rather than a reduced PR leg (a PR builds three arches).
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch. Advance
+  # it only to a commit that v1.5.6 can still build. This commit can (counts below).
+  #
+  # Evidence at this commit, with tests EXECUTED, not only compiled:
+  #   local, linux_amd64, DuckDB v2.0.0 (d54cbbe3) and v1.5.6:
+  #     All tests passed (1091 assertions in 29 test cases), on each line
+  #   upstream main run 40254809357, full matrix:
+  #     v1.5.6: All tests passed (1091 assertions in 29 test cases)
+  #     v2.0:   ran tests: 29 passed, 0 skipped
+  #   each on linux_amd64, osx_arm64, windows_amd64 and windows_amd64_mingw.
   #
   # A STALE ref_next is worse than an absent one: it validates the PREVIOUS release
   # while reporting green, so it must never lag ref.
-  ref_next: c5f66ec884e6070d7a9abd560ae24369b2e96d5e
+  ref: 16a2637eaab656d3b94e7a25f612573f8e056769
+  variegata: 16a2637eaab656d3b94e7a25f612573f8e056769
+  ref_next: 16a2637eaab656d3b94e7a25f612573f8e056769
 docs:
   hello_world: |
     LOAD scalarfs;
