@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: altertable-ai/duckdb-semantic_layer
-  ref: 18c8a98019905765314ec4c4c0a1b7d58dbf5069
+  ref: d03fcadc22627eae229e5a416d31289e3bc70873
   variegata: 1cea189f6d4f9e6af30c09ecb085883784cd04e0
 
 docs:
