@@ -1,7 +1,7 @@
 extension:
   name: azure_wasm
   description: Read Azure Blob / ADLS Gen2 (abfss/az/wasbs) over HTTPS+SAS, without the Azure SDK (Wasm-friendly)
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -14,7 +14,8 @@ extension:
 
 repo:
   github: HynekBlaha/duckdb-azure-wasm
-  ref: 9f605cc01ef01fe120056f8a1c746dda0ad947bf
+  ref: 59e87d27e5fe767b6d6fba2d191a1df24b3940ed
+  variegata: 9f605cc01ef01fe120056f8a1c746dda0ad947bf
 
 docs:
   hello_world: |
