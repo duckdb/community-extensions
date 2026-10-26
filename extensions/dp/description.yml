@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: alitrack/duckdb-dp
-  ref: v0.1.0
+  ref: 5ec9b7a679ed916268ee5873df43cbc6b1039891
 
 docs:
   hello_world: |
