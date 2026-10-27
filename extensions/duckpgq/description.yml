@@ -12,7 +12,7 @@ repo:
   github: cwida/duckpgq-extension
   andium: 42eea114b22fad93f04cb7edf50d2b0077e464fa
   variegata: 61f5d08270bef2c81fc4e5d9af32739e67adc2be
-  ref: 29ca668a2218810862bed794cc501add03a4149a
+  ref: 9c11bc192a071c9e44cef16cced90a22d7d7db2c
 
 docs:
   hello_world: |
