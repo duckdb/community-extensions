@@ -8,7 +8,6 @@ extension:
   maintainers:
     - neuesql
     - wuqunfei
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
 
 repo:
   github: neuesql/atm_talib
