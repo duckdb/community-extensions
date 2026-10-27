@@ -1,7 +1,7 @@
 extension:
   name: improv
   description: Improv's spreadsheet formula language (681 functions) and multidimensional models (categories, measures, formulas over them) on DuckDB tables
-  version: 0.11.0
+  version: 0.12.0
   language: Rust
   build: cargo
   license: MIT OR Apache-2.0
@@ -16,7 +16,7 @@ repo:
   github: gburd/improv
   # A commit SHA, filled in once that commit is qualified on every platform
   # (.github/workflows/duckdb.yml).
-  ref: 19211d7c4e5d23f84de2f7707f1e41f71e54f4f9
+  ref: a2a3eda493ec7a871461c95bcd15b1f7054db65d
 docs:
   hello_world: |
     LOAD improv;
