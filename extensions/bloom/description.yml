@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: YimingQiao/bloom
-  ref: 87c510b6b8eac8e4db15650ff00f1330e82e2733
+  ref: 584edac2e0de60583a248e617e54cdeb3ebf87e7
 
 docs:
   hello_world: |
@@ -19,7 +19,7 @@ docs:
     SELECT current_setting('enable_bloom'); -- true
   extended_description: |
     Bloom is an optimizer extension for analytical queries that join multiple
-    tables. It uses robust predicate transfer (RPT), combining sampling with
+    tables. It extends robust predicate transfer (RPT), combining sampling with
     execution feedback to reduce the data processed by joins. Loading Bloom
     enables the optimizer automatically; existing SQL and query results stay
     the same.
