@@ -1,19 +1,22 @@
 extension:
   name: finetype
   description: Semantic type classification — detects 251 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.6.62
+  version: 0.6.64
   language: Rust
   build: cargo
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw"
+  # osx_amd64 became opt-in in the DuckDB 2.0 matrix, and is opted into so
+  # Intel Macs keep a build.
+  opt_in_platforms: "osx_amd64"
   requires_toolchains: "rust"
   maintainers:
     - hughcameron
 
 repo:
   github: meridian-online/finetype
-  ref: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
-  ref_next: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
+  ref: 5c0dd5559607cc90747e0871913bc6318511cabd
+  ref_next: 5c0dd5559607cc90747e0871913bc6318511cabd
   variegata: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
 
 docs:
@@ -134,13 +137,18 @@ docs:
     ```
 
     Because it is an aggregate, it cannot take `list(...)` — nesting one aggregate inside another is a
-    binder error. Pass the column itself, and use `GROUP BY` for one answer per group.
+    binder error. Pass the column itself, and use `GROUP BY` for one answer per group. `FILTER` and
+    `DISTINCT` work too. An aggregate-level `ORDER BY` inside the call
+    (`ft_profile(value ORDER BY value)`) works on DuckDB 2.0 and crashes DuckDB 1.5, a DuckDB bug fixed
+    in 2.0 and not backported.
 
     ### `ft_detail(value VARCHAR[, header VARCHAR]) → VARCHAR`
     Explain the verdict `ft_profile` gives a column. An **aggregate** over the same sample as
     `ft_profile`, so over the same rows its `type` is `ft_profile`'s. Returns JSON with the type,
     confidence (0.0–1.0), the recommended DuckDB type, the number of values sampled, the rule that
-    decided the type when one fired, and the per-label vote map.
+    decided the type when one fired, and the per-label vote map. It takes the same `GROUP BY`,
+    `FILTER`, `DISTINCT` and `ORDER BY` forms as `ft_profile`, with the same DuckDB 1.5 caveat on
+    `ORDER BY`.
 
     ```sql
     SELECT ft_detail(email, 'email') FROM people;
@@ -173,15 +181,26 @@ docs:
     SELECT ft_cast('01/15/2024');  -- 2024-01-15 (US date → ISO)
     ```
 
-    ### `ft_validate_text(value VARCHAR, schema_json VARCHAR) → STRUCT(valid BOOLEAN, "constraint" VARCHAR, message VARCHAR)`
+    ### `ft_validate_text(value VARCHAR, schema_json VARCHAR) → STRUCT(valid BOOLEAN, "constraint" VARCHAR, message VARCHAR, grade VARCHAR, note VARCHAR)`
     Validate a single value against a JSON Schema fragment. Returns a struct: `valid` is `true` when
     the value conforms (with `constraint` and `message` `NULL`); on failure `valid` is `false` and
     `constraint` / `message` name the failing keyword and the reason. This is the per-cell engine the
     `ft_validate` table verb runs over every column.
 
+    `grade` is `conforms`, `noted` or `fails`. A `noted` value is valid but carries a `note`, such as
+    a non-canonical form (an uppercase UUID) or a withdrawn code, when the fragment declares the
+    `x-finetype-canonical` or `x-finetype-historic` extension. `valid` still means "not a failure".
+    The scalar applies the fragment's JSON Schema keywords and these extensions only; the checksum
+    checks `finetype validate` applies are not run here.
+
     ```sql
     SELECT ft_validate_text('not-an-email', '{"type":"string","pattern":"^[^@]+@[^@]+\\.[^@]+$"}');
-    -- {'valid': false, 'constraint': pattern, 'message': '"not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"'}
+    -- {'valid': false, 'constraint': pattern, 'message': '"not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"', 'grade': fails, 'note': NULL}
+
+    SELECT ft_validate_text('550E8400-E29B-41D4-A716-446655440000',
+      '{"type":"string","pattern":"^[0-9a-fA-F-]{36}$",
+        "x-finetype-canonical":{"kind":"non_canonical","name":"lowercase","pattern":"^[^A-F]*$"}}');
+    -- {'valid': true, 'constraint': NULL, 'message': NULL, 'grade': noted, 'note': 'non_canonical: lowercase'}
     ```
 
     ### `ft_unpack(json VARCHAR) → VARCHAR`

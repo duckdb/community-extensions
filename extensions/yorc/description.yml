@@ -1,7 +1,7 @@
 extension:
   name: yorc
   description: "Cultivate your research identity and networks: read and convert ORCID v3.0 researcher records, XML and JSON (API documents and the ORCID Public Data File dumps), as tables. An independent open-source project, not affiliated with, endorsed by or sponsored by ORCID, Inc.; no access to the ORCID Sandbox or the ORCID Member API, and no requests to ORCID."
-  version: 0.1.0
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: mgbilby/yorc-duckdb
-  ref: 9503817d699697c8f3c2ab1a09dfbb93579f68a4
+  ref: bf20534dedcc291003d0b092077b87aa77a37853
+  variegata: bf20534dedcc291003d0b092077b87aa77a37853
 
 docs:
   hello_world: |
@@ -120,7 +121,8 @@ docs:
     order, with progress reporting.
     `orcid_valid` and `orcid_normalize` check and canonicalise iDs (ISO 7064
     MOD 11-2; URL prefixes, missing hyphens and a lowercase check digit are
-    accepted). On DuckDB v2.0 the file readers become multi-file readers
-    (lists of paths, `filename` column, parallel across files).
+    accepted). On DuckDB v2.0 the file readers are multi-file readers (lists of
+    paths, `filename` and `file_index` columns, `union_by_name`,
+    `hive_partitioning`, parallel across files).
 
     Column reference: https://github.com/mgbilby/yorc-duckdb/blob/main/docs/REFERENCE.md

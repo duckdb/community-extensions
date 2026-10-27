@@ -12,7 +12,7 @@ extension:
 repo:
   github: alberttwong/redis-adbc-driver
   # The community registry's ref field targets DuckDB 2.0.
-  ref: e3d138291944904299ca8d05a2cf51c5d7ea261b
+  ref: 8f4c5f5763dbef7fa4f096b6da2d19218e6fb9d3
 
 docs:
   hello_world: |
@@ -41,5 +41,5 @@ docs:
     separately registered redis command-client extension.
 
     Native Linux and macOS are supported build targets; macOS requires 12+.
-    See the [extension guide](https://github.com/alberttwong/redis-adbc-driver/blob/e3d138291944904299ca8d05a2cf51c5d7ea261b/duckdb-extension/README.md)
+    See the [extension guide](https://github.com/alberttwong/redis-adbc-driver/blob/8f4c5f5763dbef7fa4f096b6da2d19218e6fb9d3/duckdb-extension/README.md)
     for build instructions, prerequisites, limitations and verification.

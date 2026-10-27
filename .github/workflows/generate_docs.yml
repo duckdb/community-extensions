@@ -28,7 +28,7 @@ jobs:
         repository: 'duckdb/community-extensions'
 
     # Sets up a CLI for every DuckDB version in the compatibility matrix, so that extensions which are
-    # not available for the newest version are still documented using the newest version they support
+    # not available for the newest version are still documented using the newest (supported) version they support
     - name: Set up DuckDB
       run: |
         curl -sf https://raw.githubusercontent.com/duckdb/duckdb-web/main/_data/past_releases.csv -o duckdb-releases.csv
@@ -36,14 +36,18 @@ jobs:
         for version in $(python3 scripts/compatibility_matrix.py --versions duckdb-releases.csv); do
           # e.g. a release listed in past_releases.csv before its CLI is published; skip it instead of failing
           mkdir -p duckdb_cli/v$version
-          if wget -q https://github.com/duckdb/duckdb/releases/download/v$version/duckdb_cli-linux-amd64.zip &&
-             unzip -q duckdb_cli-linux-amd64.zip -d duckdb_cli/v$version; then
+          # v2.0.0 and later ship duckdb-cli-linux-amd64.tar.gz, earlier releases duckdb_cli-linux-amd64.zip
+          RELEASE_URL=https://github.com/duckdb/duckdb/releases/download/v$version
+          if { wget -q $RELEASE_URL/duckdb-cli-linux-amd64.tar.gz &&
+               tar -xzf duckdb-cli-linux-amd64.tar.gz -C duckdb_cli/v$version; } ||
+             { wget -q $RELEASE_URL/duckdb_cli-linux-amd64.zip &&
+               unzip -q duckdb_cli-linux-amd64.zip -d duckdb_cli/v$version; }; then
             chmod +x duckdb_cli/v$version/duckdb
             DUCKDB_CLIS="$DUCKDB_CLIS ./duckdb_cli/v$version/duckdb"
           else
             echo "::warning::Could not download the DuckDB v$version CLI, extensions will not be documented using this version"
           fi
-          rm -f duckdb_cli-linux-amd64.zip
+          rm -f duckdb-cli-linux-amd64.tar.gz duckdb_cli-linux-amd64.zip
         done
         if [ -z "$DUCKDB_CLIS" ]; then
           echo "::error::Could not download any DuckDB CLI"

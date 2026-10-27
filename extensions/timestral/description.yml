@@ -1,0 +1,53 @@
+extension:
+  name: timestral
+  description: Zero-shot probabilistic time-series forecasting in SQL with Mistral's Timestral models, on CPU via ONNX Runtime
+  version: '0.1.0'
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "vcpkg"
+  maintainers:
+    - redox
+
+repo:
+  github: altertable-ai/duckdb-timestral
+  ref: 3bab0a28ff9b8854dc624b6666e1fc0639076466
+  variegata: 7d6486900113e4271f8e32324adf27776b63a02b
+
+docs:
+  hello_world: |
+    INSTALL timestral FROM community;
+    LOAD timestral;
+
+    -- Hourly series, one per store. The 5M model (~23 MB) is downloaded and cached on first use.
+    CREATE TABLE sales AS
+    SELECT g AS store, TIMESTAMP '2026-01-01' + INTERVAL (i) HOUR AS ts, 10 * g + sin(i / 6) AS amount
+    FROM range(3) a(g), range(500) b(i);
+
+    -- Forecast the next 24 hours of every store: median plus 21 quantiles per step.
+    SELECT store, ts, forecast, q10, q90
+    FROM sales TIMESTRAL_FORECAST (amount PARTITION BY store ORDER BY ts HORIZON 24);
+
+    -- The same with the aggregate, for full control over grouping.
+    SELECT store, unnest(timestral_forecast(amount ORDER BY ts HORIZON 24), recursive := true)
+    FROM sales GROUP BY store;
+  extended_description: |
+    **timestral** runs [Mistral's Timestral](https://mistral.ai/news/timestral/) zero-shot forecasting models
+    inside DuckDB. There is no training step, no Python and no GPU: the network runs on CPU through a statically
+    linked ONNX Runtime, and a forecast is one SQL query.
+
+    - `FROM t TIMESTRAL_FORECAST (value PARTITION BY ... ORDER BY time HORIZON n [EVERY step] [USING MODEL size]
+      [WITH HISTORY])` returns one row per series and future step: the time, `forecast` (the median) and the 21
+      quantiles `q01` to `q99`. The time can be TIMESTAMP, TIMESTAMPTZ, DATE or an integer step. Missing values
+      (NULL) and gaps are handled; the step is inferred, or passed as `EVERY INTERVAL '1 month'`.
+    - `timestral_forecast(value ORDER BY time HORIZON n ...)` is the aggregate behind it, one list per group.
+    - `timestral_models()` lists the four model sizes (5M default, 28M, 123M, 209M) and whether they are cached.
+      Set `timestral_model_path` to use a local file offline.
+
+    The forecasts match Mistral's reference PyTorch implementation to within 1e-6 of the series scale.
+
+    **Licence of the model weights.** The extension is MIT licensed. The Timestral weights it downloads are
+    Mistral AI's, under Mistral's Modified MIT licence, which **grants no rights to companies whose consolidated
+    monthly revenue exceeds $20 million**. Read the licence before using the models, and contact Mistral AI for a
+    commercial licence if it applies to you.

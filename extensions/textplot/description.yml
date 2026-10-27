@@ -14,4 +14,5 @@ extension:
 repo:
   andium: db7e2017352a63d43da4c9391321fb66f4d1e18b
   github: query-farm/textplot
-  ref: ea239eeb23dbdb75c252af93fbecc358207a5218
+  ref: e3b8772c5c5a15077f86e200f90b4999504a46d6
+  variegata: 6d3bd91ea6fd9c1df2947adf0f19b8d7cbab2571
