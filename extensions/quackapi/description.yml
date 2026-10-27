@@ -1,5 +1,6 @@
 # Community-extensions submission descriptor for the `quackapi` extension.
-# Keep in sync with /description.yml at the repository root.
+# Keep the root and packaging/description.yml copies identical.
+# Release candidate descriptor; editing this file does not publish the CDN package.
 #
 # Submit:
 #   1. Fork https://github.com/duckdb/community-extensions
@@ -15,7 +16,7 @@ extension:
     FastAPI-class HTTP framework inside DuckDB — CREATE ROUTE turns SQL into
     typed, validated endpoints; one process is DB + HTTP (+ PDF/renderer via
     companion extensions).
-  version: 0.1.4
+  version: 0.2.0
   language: C++
   build: cmake
   license: MIT
@@ -29,8 +30,8 @@ extension:
 repo:
   github: asubbarao/quackapi
   # Pin to the packaging commit SHA (set by release engineer; never a branch).
-  ref: afc31ea4e245b7306e1554da086015196e943e18
-  # DuckDB v1.5.6 builds read repo.variegata (scripts/build.py): exec routes + outbound timeouts, pre-2.0 API.
+  ref: ee3034ca12d3e4660c517a5639e33358fe9a564c
+  # Preserve the community registry's pre-2.0 compatibility build.
   variegata: 9da900bcaa1da48b64dbcab5cc3470c849b851a0
 
 docs:
@@ -58,7 +59,7 @@ docs:
 
     -- Serve (background threads; shell stays usable)
     -- Optional: static_dir for unrouted GETs; cors_origins for browser CORS
-    SELECT * FROM quackapi_serve(8000, static_dir := './static');
+    SELECT * FROM quackapi_serve(8000);
 
     -- curl http://127.0.0.1:8000/hello          → [{"msg":"world"}]
     -- curl http://127.0.0.1:8000/items/42       → [{"id":42}]
@@ -93,7 +94,7 @@ docs:
 
         CREATE [OR REPLACE] ROUTE <name> <METHOD> '<pattern>'
           [STATUS <n>] [REQUIRE <auth>] [GROUP <g>]
-          [BODY SCHEMA '<json-schema>']
+          [BODY SCHEMA '<json-schema>' | BODY TYPE '<duckdb-json-structure>']
           [PARAM <name> [<type>] [HEADER|COOKIE|QUERY …] [DEFAULT …] [GE|LE|…] …]
           AS <select>;
 
@@ -118,32 +119,48 @@ docs:
     - **Groups:** `CREATE GROUP … WITH (prefix=…, auth=…, tags=…)` — path prefix
       + auth inheritance (`quackapi_groups()`).
     - **Table API:** `CREATE API FOR TABLE t [AT '/path'] [KEY 'id']` → GET list
-      + GET by key only.
+      + GET by key only, with validated limit/offset and key ordering.
     - **Queue:** `CREATE QUEUE`, `quackapi_enqueue/dequeue/ack/nack`, table
       `quackapi_jobs` (broker-less; compose `cronjob` for workers).
-    - **SSE:** `CREATE STREAM … GET '/path' AS <select>` (`text/event-stream`;
-      WebSocket not supported on httplib).
+    - **Streams:** `CREATE STREAM … GET '/path' AS <select>` polls SQL as SSE.
+      `CREATE STREAM … WS` supports WebSocket push or replies per `$message`;
+      WebSockets do not apply REST auth/middleware.
     - **Policies:** `CREATE ROW ACCESS POLICY` / `CREATE MASKING POLICY` +
       `ALTER TABLE` bind; `quackapi_policies()`.
-    - **Inspect:** `quackapi_routes()`, `quackapi_servers()`,
-      `quackapi_http_util_name()`.
+    - **Inspect:** `quackapi_routes()` (including schedule and route upload limit),
+      `quackapi_servers()`, `quackapi_requests()`, `quackapi_http_pool()`.
+    - **POST / local SQL:** scalar and table `quackapi_post` / `quackapi_exec`
+      return receipts. POST preserves exact `body_blob` bytes; text `body` is
+      NULL for invalid UTF-8. Optional `timeout_ms` never extends the outer deadline.
+    - **Framework metadata:** `quack_from_routes(framework, path)` and
+      `quack_from_models(framework, path)` support fastapi, rails, express and gin.
+      They return AST-derived rows, not executable handler translations.
+    - **Composition:** native readers handle remote files; `http_request` handles
+      arbitrary GET responses; DuckDB `postgres` ATTACH handles PostgreSQL.
+      Legacy GET helpers, custom pg_dsn execution and Quack auth adapters are removed.
 
     ## Platforms & build
 
-    Targets **DuckDB v2.0** (`repo.ref`) and **v1.5.6** (`repo.variegata`). C++17; depends only on DuckDB-bundled **httplib**
+    Targets **DuckDB v2.0.0**. C++17; depends only on DuckDB-bundled **httplib**
     and **mbedtls** (no vcpkg, no libcurl). CI builds linux/macOS/windows_amd64;
     excludes wasm and Windows MinGW/rtools/arm64.
 
     ## Limits (honest)
 
     - DuckDB single-writer / file concurrency — not high-write multi-tenant OLTP.
-    - Serve `memory_limit` default is 256MB only when nothing is configured;
-      use `memory_limit := '4GB'` / `SET quackapi_memory_limit` (never clobbers
-      an operator `SET memory_limit`).
-    - Request body max 8 MiB; JWT **HS256 only** (no RS256/OIDC); table API is
-      read-only scaffold.
+    - Serve leaves DuckDB's memory limit unchanged unless `memory_limit` or
+      `quackapi_memory_limit` is supplied.
+    - Uploads default to 8 MiB. Server `max_request_bytes` sets the hard ceiling
+      (maximum 1 GiB); route `WITH (max_request_bytes = …)` opts into a larger
+      upload within it. Raising only the server ceiling leaves routes at 8 MiB.
+    - JWT is **HS256 only** (no RS256/OIDC); table API is read-only list/get
+      with validated pagination and key ordering.
+    - `cancel_on_disconnect := true` opts into route-query/plain-HTTP POST
+      cancellation. HTTPS remains backend-limited; remote jobs need their own
+      cancellation APIs. POST waits for a complete upstream response.
     - Route registry is instance-scoped (re-run DDL after reopen); queue jobs
       persist in `quackapi_jobs`.
 
     Full reference: https://github.com/asubbarao/quackapi  
-    Community page draft: https://github.com/asubbarao/quackapi/blob/main/docs/community-page.md
+    Migration notes: https://github.com/asubbarao/quackapi/blob/main/docs/MIGRATION.md
+    Community page source: https://github.com/asubbarao/quackapi/blob/main/docs/community-page.md
