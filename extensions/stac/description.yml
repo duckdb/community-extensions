@@ -4,6 +4,7 @@ extension:
   version: 0.4.0
   language: C++
   build: cmake
+  excluded_platforms: "windows_amd64_mingw"
   license: MIT
   maintainers:
     - ahuarte47
