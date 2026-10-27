@@ -1,0 +1,30 @@
+extension:
+  name: bloom
+  description: Accelerate multi-join queries with adaptive predicate transfer
+  version: 0.0.3
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - YimingQiao
+  excluded_platforms: "linux_amd64_musl;linux_arm64_musl;windows_arm64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: YimingQiao/bloom
+  ref: 87c510b6b8eac8e4db15650ff00f1330e82e2733
+
+docs:
+  hello_world: |
+    LOAD bloom;
+    SELECT current_setting('enable_bloom'); -- true
+  extended_description: |
+    Bloom is an optimizer extension for analytical queries that join multiple
+    tables. It uses robust predicate transfer (RPT), combining sampling with
+    execution feedback to reduce the data processed by joins. Loading Bloom
+    enables the optimizer automatically; existing SQL and query results stay
+    the same.
+
+    This release targets DuckDB v2.0.0. See the
+    [README](https://github.com/YimingQiao/bloom) for benchmarks and
+    [configuration and logging](https://github.com/YimingQiao/bloom/blob/main/docs/USAGE.md)
+    for usage details.
