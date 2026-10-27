@@ -30,7 +30,7 @@ extension:
 repo:
   github: asubbarao/quackapi
   # Pin to the packaging commit SHA (set by release engineer; never a branch).
-  ref: 672c442db04783ee70c4273daa52a419a36ee2b7
+  ref: d5c0e6784fda79930f952052302be89c16d6739c
   # Preserve the community registry's pre-2.0 compatibility build.
   variegata: 9da900bcaa1da48b64dbcab5cc3470c849b851a0
 
@@ -107,8 +107,12 @@ docs:
       `location` / `set_cookie` set response headers.
     - Native `VARIANT` objects, lists, scalars and nulls retain their JSON types.
       JSON rows are encoded once during fetch; Arrow IPC responses convert native
-      DuckDB result vectors directly. Both buffer the complete HTTP body and
-      enforce the configured response-byte cap.
+      DuckDB result vectors directly. `FORMAT PARQUET` returns a native Parquet
+      file using DuckDB 2.0 query submission/completion for COPY. These formats
+      buffer the complete HTTP body and enforce the configured response-byte cap.
+    - `PARAM ... VARIANT` preserves JSON body objects, lists, scalars and nulls;
+      text-wire values remain strings. `BODY TYPE` supports VARIANT leaves
+      alongside exact declared types.
     - `quackapi_serve([port], host := …, static_dir := …, cors_origins := …, memory_limit := …)`
       uses DuckDB's bundled httplib (background listener + workers).
     - Built-in OpenAPI: `GET /openapi.json`, `GET /docs`, `GET /redoc`.
@@ -133,9 +137,13 @@ docs:
       `ALTER TABLE` bind; `quackapi_policies()`.
     - **Inspect:** `quackapi_routes()` (including schedule and route upload limit),
       `quackapi_servers()`, `quackapi_requests()`, `quackapi_http_pool()`.
-    - **POST / local SQL:** scalar and table `quackapi_post` / `quackapi_exec`
+    - **POST / local SQL:** scalar and table `quackapi_post` / `quackapi_selfdispatch`
       return receipts. POST preserves exact `body_blob` bytes; text `body` is
       NULL for invalid UTF-8. Optional `timeout_ms` never extends the outer deadline.
+      `response_format := 'arrow'|'parquet'` decodes HTTP bytes directly into
+      `rows LIST<VARIANT>` and `columns LIST<STRUCT(name VARCHAR, type TYPE)>`.
+      Local self-dispatch captures these fields before JSON serialization.
+      Empty results preserve their native column types; no curl pipe is needed.
     - **Framework metadata:** `quack_from_routes(framework, path)` and
       `quack_from_models(framework, path)` support fastapi, rails, express and gin.
       They return AST-derived rows, not executable handler translations.
@@ -145,8 +153,9 @@ docs:
 
     ## Platforms & build
 
-    Targets **DuckDB v2.0.0**. C++17; depends only on DuckDB-bundled **httplib**
-    and **mbedtls** (no vcpkg, no libcurl). CI builds linux/macOS/windows_amd64;
+    Targets **DuckDB v2.0.0**. C++17; uses DuckDB-bundled **httplib** and
+    **mbedtls**, plus vendored **nanoarrow IPC** (no vcpkg, no libcurl, no
+    separately installed Arrow extension). CI builds linux/macOS/windows_amd64;
     excludes wasm and Windows MinGW/rtools/arm64.
 
     ## Limits (honest)
