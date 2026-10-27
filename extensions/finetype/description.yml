@@ -1,7 +1,7 @@
 extension:
   name: finetype
   description: Semantic type classification — detects 251 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.6.63
+  version: 0.6.64
   language: Rust
   build: cargo
   license: MIT
@@ -15,8 +15,8 @@ extension:
 
 repo:
   github: meridian-online/finetype
-  ref: 80a8bc157d98897a1df0140cf2e35a314816fd52
-  ref_next: 80a8bc157d98897a1df0140cf2e35a314816fd52
+  ref: 5c0dd5559607cc90747e0871913bc6318511cabd
+  ref_next: 5c0dd5559607cc90747e0871913bc6318511cabd
   variegata: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
 
 docs:
@@ -181,15 +181,26 @@ docs:
     SELECT ft_cast('01/15/2024');  -- 2024-01-15 (US date → ISO)
     ```
 
-    ### `ft_validate_text(value VARCHAR, schema_json VARCHAR) → STRUCT(valid BOOLEAN, "constraint" VARCHAR, message VARCHAR)`
+    ### `ft_validate_text(value VARCHAR, schema_json VARCHAR) → STRUCT(valid BOOLEAN, "constraint" VARCHAR, message VARCHAR, grade VARCHAR, note VARCHAR)`
     Validate a single value against a JSON Schema fragment. Returns a struct: `valid` is `true` when
     the value conforms (with `constraint` and `message` `NULL`); on failure `valid` is `false` and
     `constraint` / `message` name the failing keyword and the reason. This is the per-cell engine the
     `ft_validate` table verb runs over every column.
 
+    `grade` is `conforms`, `noted` or `fails`. A `noted` value is valid but carries a `note`, such as
+    a non-canonical form (an uppercase UUID) or a withdrawn code, when the fragment declares the
+    `x-finetype-canonical` or `x-finetype-historic` extension. `valid` still means "not a failure".
+    The scalar applies the fragment's JSON Schema keywords and these extensions only; the checksum
+    checks `finetype validate` applies are not run here.
+
     ```sql
     SELECT ft_validate_text('not-an-email', '{"type":"string","pattern":"^[^@]+@[^@]+\\.[^@]+$"}');
-    -- {'valid': false, 'constraint': pattern, 'message': '"not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"'}
+    -- {'valid': false, 'constraint': pattern, 'message': '"not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"', 'grade': fails, 'note': NULL}
+
+    SELECT ft_validate_text('550E8400-E29B-41D4-A716-446655440000',
+      '{"type":"string","pattern":"^[0-9a-fA-F-]{36}$",
+        "x-finetype-canonical":{"kind":"non_canonical","name":"lowercase","pattern":"^[^A-F]*$"}}');
+    -- {'valid': true, 'constraint': NULL, 'message': NULL, 'grade': noted, 'note': 'non_canonical: lowercase'}
     ```
 
     ### `ft_unpack(json VARCHAR) → VARCHAR`
