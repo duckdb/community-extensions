@@ -19,13 +19,39 @@ repo:
 
 docs:
   hello_world: |
+    -- Set your key in the shell before starting DuckDB:
+    --   export DO_MODEL_ACCESS_KEY='...'
+    -- or inside DuckDB: SET do_model_access_key = '...';
     LOAD docn;
-    -- Lists the available models, no key needed
-    FROM do_models();
-    -- The functions below need DO_MODEL_ACCESS_KEY set in the environment
-    SELECT do_decide('I was charged twice this month.', 'Is this about billing?');
-    SELECT do_prompt('Summarize in five words: I was charged twice this month.');
-    SELECT len(do_embed('hello'));
+
+    -- List the available models (no key needed)
+    SELECT name, type FROM do_models() LIMIT 5;
+
+    -- A few rows to work with
+    CREATE TABLE reviews AS
+        FROM (VALUES
+            ('The app crashes every time I upload a photo.'),
+            ('Fast delivery and great support, thank you!'),
+            ('I was charged twice this month.')
+        ) t(review);
+
+    -- Yes/no question per row: 0.97 means very likely yes
+    SELECT review, (do_decide(review, 'Is the customer happy?') ->> 'noul')::DOUBLE AS happy
+    FROM reviews;
+
+    -- Pick one label per row: bug, praise, billing
+    SELECT review, do_decide(review, 'What is this about?', 'choice', ['bug', 'billing', 'praise']) ->> 'choice' AS topic
+    FROM reviews;
+
+    -- Free text answer per row
+    SELECT review, do_prompt('Reply to this review in one sentence: ' || review) AS reply
+    FROM reviews;
+
+    -- Similarity search with embeddings
+    SELECT review
+    FROM reviews
+    ORDER BY list_cosine_similarity(do_embed(review), do_embed('billing issue')) DESC
+    LIMIT 1;
   extended_description: |
     The docn extension brings the DigitalOcean AI-Native Cloud to DuckDB. It exposes
     DigitalOcean services as SQL functions, starting with Serverless Inference:
