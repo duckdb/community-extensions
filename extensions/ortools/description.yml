@@ -12,9 +12,9 @@ extension:
 
 repo:
   github: prasanthj/duckdb-ortools
-  ref: 113285aa4a110e8a1a660a6c671e17b0bd211b96
-  variegata: 113285aa4a110e8a1a660a6c671e17b0bd211b96
-  andium: 113285aa4a110e8a1a660a6c671e17b0bd211b96
+  ref: c657da7900676c05dbc46b8eeb022ed70b182ad6
+  variegata: c657da7900676c05dbc46b8eeb022ed70b182ad6
+  andium: c657da7900676c05dbc46b8eeb022ed70b182ad6
 
 docs:
   hello_world: |
