@@ -1,7 +1,7 @@
 extension:
   name: mlpack
   description: Connecting duckdb to the mlpack C++ machine learning library 
-  version: 0.0.6
+  version: 0.0.7
   language: C++
   build: cmake
   license: MIT
@@ -13,8 +13,8 @@ extension:
 repo:
   github: eddelbuettel/duckdb-mlpack
   andium: 8437d78423e3cfc65f9226606908b301c2314710
-  ref: 312d1098fb51b40ed9a3c39dbdce1a7bdcf58c37
-  
+  ref: ed1891ddf415491a2c0c24009d7a7b9aed32bead
+
 docs:
   hello_world: |
     -- Perform adaBoost (using weak learner 'Perceptron' by default)

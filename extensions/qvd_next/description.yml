@@ -1,0 +1,52 @@
+extension:
+  name: qvd_next
+  description: Read (streaming) and write Qlik QVD files - next-generation build of qvd on the DuckDB C API v2
+  version: 0.1.0
+  language: Rust
+  build: cmake          # community label; the actual build goes through the Rust C-API Makefile
+  license: Apache-2.0
+  # WASM excluded (file-based reading, Read+Seek); mingw/rtools/musl excluded (ABI).
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - snouhaud
+
+repo:
+  github: snouhaud/DuckDB-QVD-Extension
+  ref: 9e371e8cd8c5ec655b6c52a4090e2c273a05218a
+
+docs:
+  hello_world: |
+    INSTALL qvd_next FROM community;
+    LOAD qvd_next;
+
+    -- Read (streaming, bounded memory)
+    SELECT * FROM read_qvd('sales.qvd');
+    SELECT * FROM read_qvd('data/*.qvd');         -- glob
+
+    -- Write: field names come from the query
+    COPY (SELECT * FROM sales) TO 'output.qvd' (FORMAT qvd);
+
+    -- Import: values are cast to the target table's column types
+    COPY sales FROM 'output.qvd' (FORMAT qvd);
+  extended_description: |
+    Next-generation build of the [`qvd`](https://github.com/duckdb/community-extensions/tree/main/extensions/qvd)
+    extension, on DuckDB's C API v2 (via the `duckdb-neo` crate). Same SQL surface
+    (`read_qvd`, `COPY ... (FORMAT qvd)`), plus:
+
+    - `COPY ... TO` keeps the query's column names (`FIELD_NAMES` becomes an
+      optional override);
+    - `COPY ... FROM` casts values to the target table's column types;
+    - `read_qvd(path)` is documented in `duckdb_functions()`.
+
+    Reading is streaming and projected (bounded memory; only the projected
+    columns' symbol tables are read and decoded), with native typing from the
+    Qlik tags, projection pushdown and multi-file glob. All I/O goes through
+    DuckDB's file system, so `s3://`, `https://`, etc. work once httpfs is
+    loaded (remote globs included). QVD headers are validated against the file
+    before reading, so corrupt files fail cleanly.
+
+    Trade-off: the C API v2 is not stable yet, so this build targets one exact
+    DuckDB version and is experimental. `qvd` (stable C ABI) remains the
+    conservative choice. Load only one of `qvd` / `qvd_next` per session: both
+    register `read_qvd` and `FORMAT qvd`.
