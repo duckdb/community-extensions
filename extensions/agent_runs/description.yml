@@ -1,0 +1,44 @@
+extension:
+  name: agent_runs
+  description: Import Harbor job metadata into DuckDB and multimodal agent trajectories into Lance datasets
+  version: 0.1.0
+  language: C++ & Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;osx_amd64"
+  requires_toolchains: rust
+  maintainers:
+    - dentiny
+
+repo:
+  github: dentiny/duckdb_agent_runs
+  ref: a1a5bd2d1ee4cb73d3a9ded1be5272bd0a8de0c2
+
+docs:
+  hello_world: |
+    INSTALL agent_runs FROM community;
+    LOAD agent_runs;
+
+    CALL ingest_agent_run(
+      '/path/to/harbor-job',
+      trajectory_destination := '/path/to/datasets'
+    );
+
+    SELECT job_name, result.stats.n_completed_trials
+    FROM agent_runs.jobs;
+
+  extended_description: |
+    One `ingest_agent_run` call imports a Harbor job into a queryable DuckDB
+    catalog and converts each trial's ATIF trajectory into a Lance dataset at
+    the chosen destination. Job and trial metadata are stored in
+    `agent_runs.jobs` and `agent_runs.trials`; the latter records each dataset's
+    URI. Multimodal ATIF content, including referenced image and audio files,
+    is embedded in the Lance datasets.
+
+    Open a file-backed DuckDB database to keep the metadata between sessions.
+    The extension initializes and upgrades its `agent_runs` schema on load.
+    Local paths and S3 prefixes are supported for Harbor jobs and Lance
+    destinations; configure DuckDB secrets for S3 access.
+
+    See the [README](https://github.com/dentiny/duckdb_agent_runs) for the
+    Harbor directory layout, query examples, and failure cleanup behavior.
