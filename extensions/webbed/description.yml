@@ -11,7 +11,6 @@ extension:
   # windows_amd64 MSVC runner in CI.
   maintainers:
     - teaguesterling
-  vcpkg_commit: 68a1c387f660632f2f65cdb7e8cd093a08840e5d
 repo:
   github: teaguesterling/duckdb_webbed
   ref: 7dad6101607529d74c9d831b75675f460f3a4d4a
