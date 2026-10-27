@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: YimingQiao/bloom
-  ref: 223cbe99a219a6a03f44cc8975beb6962a2101e9
+  ref: e81c0f02891a4bc9b962a8acf748312b3376c4e5
 
 docs:
   hello_world: |
