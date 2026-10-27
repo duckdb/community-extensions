@@ -1,0 +1,35 @@
+extension:
+  name: docn
+  description: DigitalOcean AI-Native Cloud services as SQL functions
+  version: 0.1.0
+  language: C/C++
+  build: CMake
+  license: MIT
+  requires_toolchains: "vcpkg;python3"
+  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
+  # Requests need libcurl, which is not available in the browser (Wasm) builds.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  opt_in_platforms: "osx_amd64;linux_amd64_musl;linux_arm64_musl;windows_arm64"
+  maintainers:
+    - MehulBatra
+
+repo:
+  github: digitalocean-labs/duckdb-do
+  ref: 02039868b47efa85a9fd0f14b38aac8f86cc92b3
+
+docs:
+  hello_world: |
+    LOAD docn;
+    -- Lists the available models, no key needed
+    FROM do_models();
+    -- The functions below need DO_MODEL_ACCESS_KEY set in the environment
+    SELECT do_decide('I was charged twice this month.', 'Is this about billing?');
+    SELECT do_prompt('Summarize in five words: I was charged twice this month.');
+    SELECT len(do_embed('hello'));
+  extended_description: |
+    The docn extension brings the DigitalOcean AI-Native Cloud to DuckDB. It exposes
+    DigitalOcean services as SQL functions, starting with Serverless Inference:
+    do_models lists the available models, do_decide answers closed questions
+    (yes/no, choice, score) about text, do_prompt sends prompts to chat models and
+    do_embed turns text into embedding vectors.
+    See https://github.com/digitalocean-labs/duckdb-do for documentation.
