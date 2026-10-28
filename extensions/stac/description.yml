@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: ahuarte47/duckdb-stac
-  ref: 38ed0a27829034cc122569e66666e15f892cc445
+  ref: ac3b2545ea19a74e61e2fd422d18315bfffaa2ce
   variegata: ee9694262e37d6865ae5889dda1fbe0e39752414
 
 docs:
