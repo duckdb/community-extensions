@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.12.2
+  version: 2.13.0
   language: C++
   build: cmake
   license: MIT
@@ -13,20 +13,20 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_webbed
-  ref: f8b542c3c230536a20804c65b63349c16ee4a4df
+  ref: 84819a583d3d7f8095fa29e4f1f8094ca7b67a86
   # variegata: the v1.5.6 track. scripts/build.py:46-48 routes duckdb_version
   # v1.5.6 here. Same commit as ref deliberately -- this release builds and
   # passes on both lines, so v1.5.6 users get the correctness fixes rather than
   # staying frozen at v2.10.0. The registry no longer builds v1.5 automatically;
   # per the DuckDB team, a v1.5.6 build needs this field plus contacting them.
-  variegata: f8b542c3c230536a20804c65b63349c16ee4a4df
+  variegata: 84819a583d3d7f8095fa29e4f1f8094ca7b67a86
   # ref_next is now DORMANT: build_next.yml is `if: false`, and build.py's
   # ref_next branch is unreachable while the registry's duckdb_version equals its
   # DUCKDB_LATEST_STABLE. Kept and moved with ref anyway -- it costs nothing and
   # restores prerelease validation if that job is re-enabled. A STALE ref_next is
   # worse than an absent one: it validates the PREVIOUS release while reporting
   # green, so it must never lag ref.
-  ref_next: f8b542c3c230536a20804c65b63349c16ee4a4df
+  ref_next: 84819a583d3d7f8095fa29e4f1f8094ca7b67a86
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
