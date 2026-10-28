@@ -1,0 +1,24 @@
+name: Community Extension with DuckDB on Variegata
+on:
+  pull_request:
+    paths-ignore:
+      - '**'
+      - '!scripts/build.py'
+      - '!.github/workflows/build_variegata.yml'
+      - '!extensions/*/description.yml'
+  push:
+    paths-ignore:
+      - '**'
+      - '!scripts/build.py'
+      - '!.github/workflows/build_variegata.yml'
+      - '!extensions/*/description.yml'
+
+jobs:
+  # Builds (and on main, deploys) the extension for v1.5.6 if its description.yml sets repo.variegata
+  build_variegata:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+    with:
+      duckdb_version: 'v1.5.6'
+      deploy: 'true'
+      require_variegata: true
