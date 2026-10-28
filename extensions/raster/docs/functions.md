@@ -927,7 +927,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| [`databand`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
+| [`datacube`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
 | `band` | INTEGER | The 0-based index of the band to read the value from. |
 | `col` | INTEGER | The pixel column index within the tile. |
 | `row` | INTEGER | The pixel row index within the tile. |
@@ -975,7 +975,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| [`databand`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
+| [`datacube`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
 | `band` | INTEGER | The 0-based index of the band to read the values from. |
 | `cols` | INTEGER[] | The array of pixel column indices within the tile. |
 | `rows` | INTEGER[] | The array of pixel row indices within the tile. |
@@ -1024,7 +1024,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| [`databand`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
+| [`datacube`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
 | `band` | INTEGER | The 0-based index of the band to read the value from. |
 | `x` | DOUBLE | The x coordinate in the same spatial reference system as the raster. |
 | `y` | DOUBLE | The y coordinate in the same spatial reference system as the raster. |
@@ -1086,7 +1086,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| [`databand`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
+| [`datacube`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
 | `band` | INTEGER | The 0-based index of the band to read the values from. |
 | `xs` | DOUBLE[] | The array of x-coordinates of the pixels within the tile. |
 | `ys` | DOUBLE[] | The array of y-coordinates of the pixels within the tile. |
