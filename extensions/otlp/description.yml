@@ -1,7 +1,7 @@
 extension:
   name: otlp
   description: Query OpenTelemetry traces, logs, and metrics with SQL — or stream live OTLP/HTTP into DuckDB, DuckLake, or Iceberg
-  version: 0.7.3
+  version: 0.8.0
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: smithclay/duckdb-otlp
-  ref: eb83de31ec7af563f1b7c716be606b62a5b63ce6
+  variegata: eb83de31ec7af563f1b7c716be606b62a5b63ce6
+  ref: 003e855441ee28f35116f0a2f8a73f744a3019da
 
 docs:
   hello_world: |

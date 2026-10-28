@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: nkwork9999/duckdb-midi
-  ref: b50ec402b5c522c3cd43c5d42a982a71e5a81998
+  ref: bd85cbe38388923ea1a9ebc597d81676e9287582
 
 docs:
   hello_world: |

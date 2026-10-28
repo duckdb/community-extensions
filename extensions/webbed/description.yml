@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.10.0
+  version: 2.12.0
   language: C++
   build: cmake
   license: MIT
@@ -14,25 +14,20 @@ extension:
   vcpkg_commit: 68a1c387f660632f2f65cdb7e8cd093a08840e5d
 repo:
   github: teaguesterling/duckdb_webbed
-  andium: ddda30f11352138b2451657419640370d1612137
-  # andium (DuckDB v1.4.5 track) left at its prior commit; v2.9.3 ships on the
-  # v1.5.x track via ref and is verified against DuckDB v2.0-cyanoptera as well.
-  ref: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
-  # ref_next is what makes the PRERELEASE leg actually build against DuckDB
-  # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
-  # the PR passes green having verified nothing on that line. Same commit as
-  # ref: v2.10.0 (tag v2.10.0) adds xml_extract_text_each for positionally
-  # aligned extraction, documents record_element as the better answer for most of
-  # those cases, and documents a SAX limitation where the column set comes
-  # strictly from the first sample_size records. Builds green on both the v1.5.6
-  # and v2.0-cyanoptera lines -- nine next-line legs success on this exact commit,
-  # measured rather than assumed.
-  #
-  # A STALE ref_next is worse than an absent one: it validates the PREVIOUS
-  # release against the next line while reporting green, so it moves with ref on
-  # every release. v2.9.5 was tagged and built green but never registered, so it
-  # was never installable; v2.10.0 supersedes it.
-  ref_next: acc5a33329e9b289ba6a68cccc858b78fb0b4caf
+  ref: 7dad6101607529d74c9d831b75675f460f3a4d4a
+  # variegata: the v1.5.6 track. scripts/build.py:46-48 routes duckdb_version
+  # v1.5.6 here. Same commit as ref deliberately -- this release builds and
+  # passes on both lines, so v1.5.6 users get the correctness fixes rather than
+  # staying frozen at v2.10.0. The registry no longer builds v1.5 automatically;
+  # per the DuckDB team, a v1.5.6 build needs this field plus contacting them.
+  variegata: 7dad6101607529d74c9d831b75675f460f3a4d4a
+  # ref_next is now DORMANT: build_next.yml is `if: false`, and build.py's
+  # ref_next branch is unreachable while the registry's duckdb_version equals its
+  # DUCKDB_LATEST_STABLE. Kept and moved with ref anyway -- it costs nothing and
+  # restores prerelease validation if that job is re-enabled. A STALE ref_next is
+  # worse than an absent one: it validates the PREVIOUS release while reporting
+  # green, so it must never lag ref.
+  ref_next: 7dad6101607529d74c9d831b75675f460f3a4d4a
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
