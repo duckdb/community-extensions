@@ -1,6 +1,6 @@
 extension:
   name: talib
-  description: "Technical Analysis Library (TA-Lib) functions for DuckDB -- 100+ indicators for financial market analysis"
+  description: "Technical Analysis Library (TA-Lib) functions for DuckDB -- 100+ indicators for financial market analysis."
   version: 0.1.1
   language: C++
   build: cmake
@@ -56,7 +56,7 @@ docs:
     FROM ohlc WHERE ticker = 'NVDA'
     ORDER BY date;
 
-    -- More examples, More Docs https://github.com/neuesql/atm_talib:
+    -- More examples:
     -- 📐 MACD with STRUCT output (needs ~35 bars to warm up — with only 20 days
     -- of history here every row is still NULL; add more history to see real values)
     SELECT t_macd(list(close ORDER BY date), 12, 26, 9) FROM ohlc WHERE ticker = 'NVDA';
@@ -90,3 +90,9 @@ docs:
     | **Performance** | ⚡ Fast — one pass over the full series, O(N) | 🐢 Slower — recomputes per window frame, ~O(N × window) |
     | **Ergonomics** | Requires `list(col ORDER BY date)` + `unnest` to rejoin rows | Natural SQL — plugs into `OVER (PARTITION BY … ORDER BY …)` |
     | **Best for** | Backtests, full-history feature generation, large datasets | Dashboards, ad-hoc queries, mixing indicators with row-level columns |
+
+    **Learn more**
+
+    - [README](https://github.com/neuesql/atm_talib/blob/main/README.md)
+    - [Function Reference](https://github.com/neuesql/atm_talib/blob/main/index.md)
+    - [SQL Cookbook](https://github.com/neuesql/atm_talib/blob/main/cookbook.md)
