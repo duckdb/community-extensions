@@ -1,6 +1,6 @@
 extension:
   name: talib
-  description: "Technical Analysis Library (TA-Lib) functions for DuckDB -- 100+ indicators for financial market analysis"
+  description: "Technical Analysis Library (TA-Lib) functions for DuckDB -- 100+ indicators for financial market analysis."
   version: 0.1.1
   language: C++
   build: cmake
@@ -8,7 +8,6 @@ extension:
   maintainers:
     - neuesql
     - wuqunfei
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
 
 repo:
   github: neuesql/atm_talib
@@ -16,20 +15,57 @@ repo:
 
 docs:
   hello_world: |
-    -- Scalar form: operate on a pre-collected list
-    SELECT t_sma([1.0, 2.0, 3.0, 4.0, 5.0], 3);
+    --  It uses NVDA's real daily OHLCV for 2026-01-01 → 2026-01-31 (20 trading days):
+    CREATE TABLE ohlc AS
+      SELECT * FROM (VALUES
+        ('NVDA', DATE '2026-01-02', 189.84, 192.93, 188.26, 188.85, 148240500),
+        ('NVDA', DATE '2026-01-05', 191.76, 193.63, 186.15, 188.12, 183529733),
+        ('NVDA', DATE '2026-01-06', 190.52, 192.17, 186.82, 187.24, 176862604),
+        ('NVDA', DATE '2026-01-07', 188.57, 191.37, 186.56, 189.11, 153543200),
+        ('NVDA', DATE '2026-01-08', 189.11, 189.55, 183.71, 185.04, 172457048),
+        ('NVDA', DATE '2026-01-09', 185.08, 186.34, 183.67, 184.86, 131327534),
+        ('NVDA', DATE '2026-01-12', 183.22, 187.12, 183.02, 184.94, 137968500),
+        ('NVDA', DATE '2026-01-13', 185.00, 188.11, 183.40, 185.81, 160128939),
+        ('NVDA', DATE '2026-01-14', 184.32, 184.46, 180.80, 183.14, 159586135),
+        ('NVDA', DATE '2026-01-15', 186.50, 189.70, 186.33, 187.05, 206188642),
+        ('NVDA', DATE '2026-01-16', 189.08, 190.44, 186.08, 186.23, 187967200),
+        ('NVDA', DATE '2026-01-20', 181.90, 182.38, 177.61, 178.07, 223345300),
+        ('NVDA', DATE '2026-01-21', 179.05, 185.38, 178.40, 183.32, 200381000),
+        ('NVDA', DATE '2026-01-22', 184.75, 186.17, 183.93, 184.84, 139636626),
+        ('NVDA', DATE '2026-01-23', 187.50, 189.60, 186.82, 187.67, 142748100),
+        ('NVDA', DATE '2026-01-26', 187.16, 189.12, 185.99, 186.47, 124799649),
+        ('NVDA', DATE '2026-01-27', 187.24, 190.00, 185.70, 188.52, 143711600),
+        ('NVDA', DATE '2026-01-28', 191.27, 192.35, 189.84, 191.52, 148552700),
+        ('NVDA', DATE '2026-01-29', 191.34, 193.48, 186.06, 192.51, 171764400),
+        ('NVDA', DATE '2026-01-30', 191.21, 194.49, 189.47, 191.13, 179489500)
+      ) AS t(ticker, date, open, high, low, close, volume);
 
-    -- Aggregate/window form: use OVER() for row-by-row SMA
-    SELECT date, close, ta_sma(close, 14) OVER (ORDER BY date ROWS BETWEEN 13 PRECEDING AND CURRENT ROW) AS sma_14 FROM ohlc;
+    -- Three ways to compute SMA(14) on ohlc:
+    -- 1️⃣ List form (shortest & fastest): whole-series, returns a LIST<DOUBLE>
+    SELECT t_sma(list(close ORDER BY date), 14)
+    FROM ohlc WHERE ticker = 'NVDA';
 
-    -- Multi-output indicators return structs (MACD, Bollinger Bands)
-    SELECT t_macd(list(close ORDER BY date), 12, 26, 9) FROM ohlc;
-    SELECT t_bbands(list(close ORDER BY date), 20, 2.0, 2.0, 0) FROM ohlc;
+    -- 2️⃣ Window, bounded frame (fast, one row per input): recommended for dashboards
+    SELECT date, close,
+      ta_sma(close, 14) OVER (ORDER BY date ROWS BETWEEN 13 PRECEDING AND CURRENT ROW) AS sma_14
+    FROM ohlc WHERE ticker = 'NVDA'
+    ORDER BY date;
 
-    -- Candlestick pattern recognition
-    SELECT t_cdldoji(list(open  ORDER BY date), list(high  ORDER BY date),
-                     list(low   ORDER BY date), list(close ORDER BY date))
-    FROM ohlc;
+    -- 3️⃣ Window, default frame (shortest SQL, but O(N²) — avoid on large tables)
+    SELECT date, close, ta_sma(close, 14) OVER (ORDER BY date) AS sma_14
+    FROM ohlc WHERE ticker = 'NVDA'
+    ORDER BY date;
+
+    -- More examples:
+    -- 📐 MACD with STRUCT output (needs ~35 bars to warm up — with only 20 days
+    -- of history here every row is still NULL; add more history to see real values)
+    SELECT t_macd(list(close ORDER BY date), 12, 26, 9) FROM ohlc WHERE ticker = 'NVDA';
+
+    -- 🕯️ Candlestick pattern detection — returns 0/1 per bar (no doji in this window)
+    SELECT t_cdldoji(list(open ORDER BY date), list(high ORDER BY date),
+                     list(low ORDER BY date), list(close ORDER BY date))
+    FROM ohlc WHERE ticker = 'NVDA';
+
   extended_description: |
     100+ TA-Lib indicators as native DuckDB functions: overlap studies
 
@@ -54,3 +90,9 @@ docs:
     | **Performance** | ⚡ Fast — one pass over the full series, O(N) | 🐢 Slower — recomputes per window frame, ~O(N × window) |
     | **Ergonomics** | Requires `list(col ORDER BY date)` + `unnest` to rejoin rows | Natural SQL — plugs into `OVER (PARTITION BY … ORDER BY …)` |
     | **Best for** | Backtests, full-history feature generation, large datasets | Dashboards, ad-hoc queries, mixing indicators with row-level columns |
+
+    **Learn more**
+
+    - [README](https://github.com/neuesql/atm_talib/blob/main/README.md)
+    - [Function Reference](https://github.com/neuesql/atm_talib/blob/main/index.md)
+    - [SQL Cookbook](https://github.com/neuesql/atm_talib/blob/main/cookbook.md)
