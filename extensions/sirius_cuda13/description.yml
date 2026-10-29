@@ -19,16 +19,16 @@ extension:
   extra_extension_config: >-
     set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
     duckdb_extension_load(sirius_cuda13
-      GIT_URL https://github.com/smvv/sirius
-      GIT_TAG a66186158ffafcc79646bed41e567092ff65d1b4
+      GIT_URL https://github.com/sirius-db/sirius
+      GIT_TAG 5350b8f951c32cb79f4b1971a48c5915f0a6908f
       SOURCE_DIR sirius-duckdb
       INCLUDE_DIR sirius-duckdb/src/include
       SUBMODULES "duckdb;cucascade;substrait")
 
 repo:
-  github: smvv/sirius
-  ref: a66186158ffafcc79646bed41e567092ff65d1b4
-  ref_next: a66186158ffafcc79646bed41e567092ff65d1b4
+  github: sirius-db/sirius
+  ref: 5350b8f951c32cb79f4b1971a48c5915f0a6908f
+  ref_next: 5350b8f951c32cb79f4b1971a48c5915f0a6908f
   build_github: duckdb/extension-template
   build_ref: fd1d3a78f95168640b1354e115b40d8abb5d5931
 
