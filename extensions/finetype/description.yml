@@ -1,7 +1,7 @@
 extension:
   name: finetype
   description: Semantic type classification — detects 251 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.6.64
+  version: 0.6.65
   language: Rust
   build: cargo
   license: MIT
@@ -15,8 +15,8 @@ extension:
 
 repo:
   github: meridian-online/finetype
-  ref: 5c0dd5559607cc90747e0871913bc6318511cabd
-  ref_next: 5c0dd5559607cc90747e0871913bc6318511cabd
+  ref: 0b08087d548294cff1bd26119493bab96abf2976
+  ref_next: 0b08087d548294cff1bd26119493bab96abf2976
   variegata: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
 
 docs:
@@ -190,8 +190,10 @@ docs:
     `grade` is `conforms`, `noted` or `fails`. A `noted` value is valid but carries a `note`, such as
     a non-canonical form (an uppercase UUID) or a withdrawn code, when the fragment declares the
     `x-finetype-canonical` or `x-finetype-historic` extension. `valid` still means "not a failure".
-    The scalar applies the fragment's JSON Schema keywords and these extensions only; the checksum
-    checks `finetype validate` applies are not run here.
+    The scalar applies the same per-value check as `finetype validate`: enum membership ignores
+    letter-case, and when the fragment's `x-finetype-label` names a type with a check digit (ISBN,
+    IBAN, NPI and others), a right-shape value with a bad check digit fails with constraint
+    `checksum`.
 
     ```sql
     SELECT ft_validate_text('not-an-email', '{"type":"string","pattern":"^[^@]+@[^@]+\\.[^@]+$"}');
@@ -201,6 +203,10 @@ docs:
       '{"type":"string","pattern":"^[0-9a-fA-F-]{36}$",
         "x-finetype-canonical":{"kind":"non_canonical","name":"lowercase","pattern":"^[^A-F]*$"}}');
     -- {'valid': true, 'constraint': NULL, 'message': NULL, 'grade': noted, 'note': 'non_canonical: lowercase'}
+
+    SELECT ft_validate_text('0306406153',
+      '{"type":"string","pattern":"^[0-9]{9}[0-9X]$","x-finetype-label":"identity.commerce.isbn"}');
+    -- {'valid': false, 'constraint': checksum, 'message': '"0306406153" fails its isbn check digit', 'grade': fails, 'note': NULL}
     ```
 
     ### `ft_unpack(json VARCHAR) → VARCHAR`
