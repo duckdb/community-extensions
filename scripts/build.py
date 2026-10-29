@@ -86,8 +86,9 @@ with open('env.sh', 'w+') as hdl:
 		escaped_config =test_config.replace("\n", "")
 		hdl.write(f"COMMUNITY_EXTENSION_TEST_CONFIG={escaped_config}\n")
 	if extra_extension_config:
-		escaped_config = extra_extension_config.replace("\n", " ")
-		hdl.write(f"COMMUNITY_EXTENSION_EXTRA_CONFIG={escaped_config}\n")
+		hdl.write("COMMUNITY_EXTENSION_EXTRA_CONFIG<<EOF\n")
+		hdl.write(f"{extra_extension_config.rstrip()}\n")
+		hdl.write("EOF\n")
 	if cuda_archs:
 		hdl.write(f"COMMUNITY_EXTENSION_CUDA_ARCHS={cuda_archs}\n")
 	if cuda_version:
