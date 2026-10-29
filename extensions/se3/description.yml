@@ -1,7 +1,7 @@
 extension:
   name: se3
-  description: Provides SE(3) rigid transformations (combinations of rotations and translations in 3D) as DuckDB scalar functions.
-  version: 0.3.2
+  description: Provides SE(3) rigid transformations, quaternion operations, and 3D/4D vector arithmetic as DuckDB scalar functions.
+  version: 1.0.1
   language: C++
   build: cmake
   license: MIT
@@ -11,22 +11,27 @@ extension:
     - jokasimr
 repo:
   github: jokasimr/se3
-  ref: v0.3.2
+  ref: 9b72c7eb6ef9d964cc33c44a65f16254f164d878
+  variegata: 501a3beaa7ca6e8662bcff0e95e03af33f11a8c3
 
 docs:
   hello_world: |
     SELECT se3_apply(
-        quat_from_axis_angle(
+        se3_from_axis_angle(
+            struct_pack(x:=1.0, y:=0.0, z:=0.0), -- translation
             struct_pack(x:=0.0, y:=0.0, z:=1.0), -- rotation axis (Z)
             pi()/2.0                             -- 90 degrees
         ),
         struct_pack(x:=1.0, y:=0.0, z:=0.0)      -- point
-    );                                           -- returns (0., 1., 0.)
+    );                                           -- {x: 0.0, y: 2.0, z: 0.0}
   extended_description: |
-    This extension provides SE(3) rigid transformations, implemented as DuckDB scalar functions.
+    This extension provides SE(3) rigid transformations, quaternion operations, and 3D/4D vector arithmetic, implemented as DuckDB scalar functions.
 
     Features:
-    - Sequences of rotations and translations can be combined to a 7 DOF struct that represents one combined translation then rotation. See `se3_compose`.
+    - Sequences of rotations and translations can be combined into a single rigid transformation with 6 degrees of freedom, stored as a 7-scalar struct: 3 translation components and a 4-component unit quaternion.
+    - Transformations translate then rotate. `se3_compose(W2, W1)` applies `W1` first, then `W2`.
     - Transformations can be efficiently applied to points in 3D without calling trigonometric functions. See `se3_apply()`.
+    - Quaternion construction from axis-angle, multiplication, conjugation, and squared norms.
+    - 3D/4D vector arithmetic, norms, normalization, dot products, angles and their trigonometric ratios, projection, and rejection; 3D cross products.
 
-    For full documentation see: https://github.com/jokasimr/se3.
+    For types, functions, and composition semantics, see the [API reference](https://github.com/jokasimr/se3/blob/main/API.md).
