@@ -70,11 +70,6 @@ with open('env.sh', 'w+') as hdl:
 	extra_extension_config = desc['extension'].get('extra_extension_config')
 	cuda_archs = desc['extension'].get('cuda_archs')
 	cuda_version = desc['extension'].get('cuda_version')
-	duckdb_repository = desc['extension'].get('duckdb_repository')
-	duckdb_commit = desc['extension'].get('duckdb_commit')
-	duckdb_tag = desc['extension'].get('duckdb_tag')
-	if duckdb_repository and '://' not in duckdb_repository and not duckdb_repository.startswith('git@'):
-		duckdb_repository = f"https://github.com/{duckdb_repository}.git"
 	if excluded_platforms:
 		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
 	if opt_in_platforms:
@@ -97,9 +92,3 @@ with open('env.sh', 'w+') as hdl:
 		hdl.write(f"COMMUNITY_EXTENSION_CUDA_ARCHS={cuda_archs}\n")
 	if cuda_version:
 		hdl.write(f"COMMUNITY_EXTENSION_CUDA_VERSION={cuda_version}\n")
-	if duckdb_repository:
-		hdl.write(f"COMMUNITY_EXTENSION_DUCKDB_REPOSITORY={duckdb_repository}\n")
-	if duckdb_commit:
-		hdl.write(f"COMMUNITY_EXTENSION_DUCKDB_COMMIT={duckdb_commit}\n")
-	if duckdb_tag:
-		hdl.write(f"COMMUNITY_EXTENSION_DUCKDB_TAG={duckdb_tag}\n")
