@@ -12,7 +12,7 @@ extension:
   cuda_archs: "80-real"
   cuda_version: "12"
   vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
-  extra_extension_config: >-
+  extra_extension_config: |-
     set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
     duckdb_extension_load(sirius_cuda12
       GIT_URL https://github.com/sirius-db/sirius
