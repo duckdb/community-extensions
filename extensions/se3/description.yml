@@ -23,7 +23,7 @@ docs:
             pi()/2.0                             -- 90 degrees
         ),
         struct_pack(x:=1.0, y:=0.0, z:=0.0)      -- point
-    );                                           -- approximately {x: 0.0, y: 2.0, z: 0.0}
+    );                                           -- {x: 0.0, y: 2.0, z: 0.0}
   extended_description: |
     This extension provides SE(3) rigid transformations, quaternion operations, and 3D/4D vector arithmetic, implemented as DuckDB scalar functions.
 
