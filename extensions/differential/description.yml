@@ -1,12 +1,12 @@
 extension:
   name: differential
   description: Versioned DuckDB databases - snapshots, time travel, branches, clones and S3 export over native storage
-  version: 1.0.0
+  version: 1.1.0
   language: C++
   build: cmake
   license: MIT
-  # POSIX file locking, fsync and mmap: no Windows or wasm builds.
-  excluded_platforms: "windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  # POSIX file locking, fsync and mmap: no Windows or wasm builds. Intel Macs are not supported.
+  excluded_platforms: "windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads;osx_amd64"
   # vcpkg commit providing AWS SDK 1.11.820, SQLite 3.53.2 and OpenSSL 3.6.3.
   vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
   maintainers:
@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: tobilg/duckdb-differential
-  ref: 844ae5fcb686b26ca401f27d03ccf4e77636fe58
+  ref: 43203569f46b3a7f0c3a88fa8b4c34a50052ceb0
 
 docs:
   hello_world: |
@@ -58,16 +58,27 @@ docs:
     SELECT sum(amount) FROM sales_copy.orders;                  -- 30
     DETACH sales_copy;
 
-    -- Restore requires a detached branch and preserves its previous contents.
+    -- Merge dev back into main: a three-way merge against their common ancestor
+    -- (snapshot 1). main added order 3 and dev added order 4, so nothing conflicts.
+    SELECT base_snapshot_id, ours_snapshot_id, theirs_snapshot_id, conflicts, validation_state
+    FROM differential_merge_branch_preview('sales', 'main', 'dev', validate => true); -- 1, 2, 3, 0, valid
+    -- Merging into an existing branch (destination = ours) needs it detached.
     -- DETACH also releases the hidden reader pins taken by AT queries.
     DETACH sales;
-    CALL differential_restore('sales', 1);                      -- restored snapshot 4
+    SELECT snapshot_id, merge_action FROM differential_merge_branch('sales', 'main', 'dev', 'main',
+        request_id => 'sales-merge-dev');                       -- snapshot 4, merged
+    ATTACH 'differential:sales' AS sales;
+    SELECT sum(amount) FROM sales.orders;                       -- 100
+    DETACH sales;
+
+    -- Restore also requires a detached branch and preserves its previous contents.
+    CALL differential_restore('sales', 1);                      -- restored snapshot 5
     ATTACH 'differential:sales' AS sales;
     SELECT sum(amount) FROM sales.orders;                       -- 30
     DETACH sales;
     CALL differential_drop_branch('sales', 'dev');
-    CALL differential_expire_snapshots('sales', versions => [2, 3], dry_run => true);
-    CALL differential_expire_snapshots('sales', versions => [2, 3]);
+    CALL differential_expire_snapshots('sales', versions => [2, 3, 4], dry_run => true);
+    CALL differential_expire_snapshots('sales', versions => [2, 3, 4]);
     CALL differential_cleanup_old_files(cleanup_all => true);
     CALL differential_delete_orphaned_files(dry_run => true);
     CALL differential_compact();
@@ -184,15 +195,34 @@ docs:
       publication through conditional S3 writes;
     - have unreachable S3 data collected (`differential_cleanup_remote_files`).
 
+    Branches can be merged in local and single-writer S3 databases: a three-way merge against
+    the best common ancestor that reconciles rows and cells by primary key (every table needs
+    one):
+    - `differential_merge_branch` merges one branch into another, either into a new branch or
+      into the existing `ours` branch (a merge snapshot, fast-forward or already up to date);
+      `differential_merge_snapshots` merges three explicit snapshots into a new branch;
+    - `differential_merge_branch_preview`, `differential_merge_snapshots_preview` and
+      `differential_merge_branch_preflight` report conflicts and readiness without writing;
+      the reviewed snapshot IDs can guard the merge (`expected_*_snapshot_id`);
+    - conflicts are resolved with explicit `resolution_tables`; `schema_mode` `'strict'`,
+      `'additive'` or `'catalog'` controls which schema changes merge;
+    - `differential_merge_ancestry` explains base selection, `differential_merge_status` shows
+      running merges, `differential_merge_requests` and `differential_merge_resolutions`
+      inspect durable, retryable requests, and `differential_abort_merge` abandons a pending one;
+    - `SET differential_merge_max_concurrent` limits concurrent merges per process.
+
+    Shared (`WRITERS 'shared'`) databases cannot be merged.
+
     The SQL surface follows DuckLake's conventions: `ATTACH 'differential:<db>'` options
     (`BRANCH`, `SNAPSHOT_VERSION`, `SNAPSHOT_TIME`, `SNAPSHOT_NAME`, `DATA_PATH`),
     `SET differential_*` settings and database-first `differential_*` functions.
 
-    Built for DuckDB 2.0. Version 1.0.0 uses store format 2 and refuses repositories and
-    exports written by 0.1.0; there is no migration.
+    Built for DuckDB 2.0. Store format 2 has been used since 1.0.0, which refuses repositories
+    and exports written by 0.1.0; there is no migration. 1.1.0 opens 1.0.0 repositories, but once
+    1.1.0 has written to a repository, downgrading to 1.0.0 is not supported.
 
-    Status: experimental. Linux and macOS only. Commits are durable at DuckDB's sync points;
-    exports are durable once complete. S3 is tested against MinIO and exercised on AWS;
-    power-loss behaviour is not yet verified. See the
+    Status: experimental. Linux (amd64, arm64) and macOS (Apple silicon) only. Commits are
+    durable at DuckDB's sync points; exports are durable once complete. S3 is tested against
+    MinIO and exercised on AWS; power-loss behaviour is not yet verified. See the
     [repository](https://github.com/tobilg/duckdb-differential) for the SQL reference, the
-    lifecycle guide and the storage format.
+    lifecycle guide, branch merging and the storage format.
