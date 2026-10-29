@@ -73,6 +73,8 @@ with open('env.sh', 'w+') as hdl:
 	duckdb_repository = desc['extension'].get('duckdb_repository')
 	duckdb_commit = desc['extension'].get('duckdb_commit')
 	duckdb_tag = desc['extension'].get('duckdb_tag')
+	if duckdb_repository and '://' not in duckdb_repository and not duckdb_repository.startswith('git@'):
+		duckdb_repository = f"https://github.com/{duckdb_repository}.git"
 	if excluded_platforms:
 		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
 	if opt_in_platforms:
