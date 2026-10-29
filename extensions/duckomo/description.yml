@@ -1,0 +1,40 @@
+extension:
+  name: duckomo
+  description: Query Open-Meteo OM arrays with selective reads and geographic coordinates
+  version: 0.3.5-rc.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - blizhan
+  # Linux glibc and macOS, x86_64 and ARM64, have verified release artifacts.
+  excluded_platforms: "linux_amd64_musl;linux_arm64_musl;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: chorust/duckomo
+  ref: 55d66f3fbd3199d7471b8cd569c43cc91a8cec7e
+
+docs:
+  hello_world: |
+    LOAD duckomo;
+    SELECT DISTINCT function_name
+    FROM duckdb_functions()
+    WHERE function_name IN ('read_om', 'read_om_raw', 'read_om_regions', 'om_grid_info')
+    ORDER BY function_name;
+  extended_description: |
+    DuckOMO reads Float32 arrays in Open-Meteo OM v3 files as SQL tables.
+    It supports selective value reads, geographic coordinates, explicitly
+    declared semantic axes, polygon regions, and nearest-point sampling.
+    Local files need no HTTPFS dependency. HTTP(S) and S3 reads use DuckDB's
+    official httpfs extension: INSTALL httpfs; LOAD httpfs;
+
+    DuckDB 2.0.0 compatibility and release artifacts have been verified on
+    Linux glibc x86_64/ARM64 and macOS Intel/Apple Silicon. Separate source
+    compatibility checks also cover DuckDB 1.5.4, 1.5.5, and 1.5.6.
+
+    This source version is a prerelease. Async remote I/O remains experimental
+    and has not shown a consistent speedup. Experimental cross-batch prefetch
+    is disabled by default; some first local queries exceed the project's
+    performance target. Grid validation is limited to the documented objects
+    and domains; it does not establish support for every OM file or grid.
+    See https://github.com/chorust/duckomo for supported inputs and examples.
