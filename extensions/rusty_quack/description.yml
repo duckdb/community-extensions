@@ -15,10 +15,11 @@ repo:
   github: duckdb/extension-template-rs
   andium: 2381c7e1c5026f21c92b7ffe3ae7a6b1d8d177c0
   ref: e2492247ab8e8176aab7ab95ef1c9afa346f4938
+  variegata: abb7b2f3f954a47f90fc37a99cda3ce0618e6094
 
 docs:
   hello_world: |
-    FROM rusty_quack('world');
+    FROM rusty_quack(['world']);
   extended_description: |
     The quack extension is based on DuckDB's [Rust Extension Template](https://github.com/duckdb/extension-template-rs/), and it's a great starting point to get started building DuckDB extensions in Rust.
 
