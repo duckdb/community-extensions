@@ -724,6 +724,8 @@ Returns a new datacube of the same dimensions. No-data cells are preserved unles
 | `RT_CubePow` (`^`) | Returns a datacube with each cell raised to the power of the right-hand value. |
 | `RT_CubeMod` (`%`) | Returns a datacube with each cell equal to the remainder of dividing the left-hand cell by the right-hand value. |
 
+Functions provided above support an optional `r_nodata` parameter to specify the result no-data value. This allows users to control how no-data cells are handled in the output datacube. This is useful when performing operations where the result of a cell is coincident with no-data cells in the input datacubes but should not be treated as no-data in the output, so users will want to set a different nodata value to distinguish it from the input no-data cells.
+
 **Comparison** (result cells are 1 if true, 0 if false)
 
 | Function | Description |
@@ -734,6 +736,8 @@ Returns a new datacube of the same dimensions. No-data cells are preserved unles
 | `RT_CubeLessEqual` | Returns a datacube where each cell is 1 if left <= right, 0 otherwise. |
 | `RT_CubeGreater` | Returns a datacube where each cell is 1 if left > right, 0 otherwise. |
 | `RT_CubeGreaterEqual` | Returns a datacube where each cell is 1 if left >= right, 0 otherwise. |
+
+Functions provided above support an optional `r_nodata` parameter to specify the result no-data value. This allows users to control how no-data cells are handled in the output datacube. This is useful when performing operations where the result of a cell is coincident with no-data cells in the input datacubes but should not be treated as no-data in the output, so users will want to set a different nodata value to distinguish it from the input no-data cells.
 
 **Assignment / Utility**
 
@@ -752,6 +756,7 @@ The math operators (`+`, `-`, `*`, `/`, `^`, `%`) are also supported as aliases 
 
 ```sql
 RT_Cube<funcname> (databand_a DATACUBE, value_b [DATACUBE, double])
+RT_Cube<funcname> (databand_a DATACUBE, value_b [DATACUBE, double], r_nodata DOUBLE)
 ```
 
 #### Examples
@@ -790,7 +795,7 @@ Just to compute statistics for a specific band of a datacube:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The datacube column to compute statistics for. |
+| `datacube` | DATACUBE | The datacube column to compute statistics for. |
 | `band` | INTEGER | The 0-based index of the band to compute statistics for. |
 
 To compute statistics for a specific band of a datacube, but only for those valid (non-nodata)
@@ -798,7 +803,7 @@ cells that fall within a geometry (Zonal statistics):
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The datacube column to compute statistics for. |
+| `datacube` | DATACUBE | The datacube column to compute statistics for. |
 | `band` | INTEGER | The 0-based index of the band to compute statistics for. |
 | `tile_x` | INTEGER | The tile x coordinate of the tile. |
 | `tile_y` | INTEGER | The tile y coordinate of the tile. |
@@ -862,6 +867,7 @@ Just to compute statistics for a specific band of a raster:
 | --------- | -----| ----------- |
 | `filepath` | VARCHAR | The raster file path to compute statistics for. |
 | `band` | INTEGER | The 0-based index of the band to compute statistics for. |
+| [`approx_stats`] | BOOLEAN | Whether to calculate approximate statistics instead of accurate statistics, the default is false. |
 
 To compute statistics for a specific band of a datacube, but only for those valid (non-nodata)
 cells that fall within a geometry (Zonal statistics):
@@ -875,7 +881,7 @@ cells that fall within a geometry (Zonal statistics):
 #### Signature
 
 ```sql
-RT_Stats (filepath VARCHAR, band INTEGER)
+RT_Stats (filepath VARCHAR, band INTEGER, [approx_stats BOOLEAN DEFAULT false])
 RT_Stats (filepath VARCHAR, band INTEGER, geometry GEOMETRY)
 ```
 
@@ -970,8 +976,9 @@ SELECT
 ### RT_RasterValues
 
 Returns the values in a band of a datacube or filepath[s] at the specified array of pixel coordinates (column, row).
+The function accepts input coordinates in two different formats.
 
-The function accepts the following parameters:
+First version uses separate arrays for columns and rows:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
@@ -981,16 +988,30 @@ The function accepts the following parameters:
 | `rows` | INTEGER[] | The array of pixel row indices within the tile. |
 | `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
 
+The second version uses a single array of coordinate pairs:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| [`datacube`, `filepath`, `filepaths`] | [DATACUBE, VARCHAR, VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
+| `band` | INTEGER | The 0-based index of the band to read the value from. |
+| `pixels` | INTEGER[][2] | The array of coordinate pairs (column, row) within the tile. |
+| `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
+
 When first parameter is an array of file paths, the function generates a virtual raster that combines all the specified files as a mosaic,
 and then retrieves the values at the given coordinates.
 
 #### Signature
 
 ```sql
-RT_RasterValues ([databand DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
+RT_RasterValues ([datacube DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
                  band INTEGER,
                  cols INTEGER[],
                  rows INTEGER[],
+                 default_value DOUBLE)
+
+RT_RasterValues ([datacube DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
+                 band INTEGER,
+                 pixels INTEGER[][2],
                  default_value DOUBLE)
 ```
 
@@ -998,17 +1019,20 @@ RT_RasterValues ([databand DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
 
 ```sql
 SELECT
-    RT_RasterValues(databand_1, 0, [10, 11], [20, 21], -9999.0)
+    RT_RasterValues(databand_1, 0, [10, 11], [20, 21], -9999.0),
+    RT_RasterValues(databand_1, 0, [[10, 20], [11, 21]], -9999.0)
 FROM
     RT_Read('path/to/raster/file.tif')
 ;
 
 SELECT
-    RT_RasterValues('path/to/raster/file.tif', 0, [10, 11], [20, 21], -9999.0)
+    RT_RasterValues('path/to/raster/file.tif', 0, [10, 11], [20, 21], -9999.0),
+    RT_RasterValues('path/to/raster/file.tif', 0, [[10, 20], [11, 21]], -9999.0)
 ;
 
 SELECT
-    RT_RasterValues(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, [10, 11], [20, 21], -9999.0)
+    RT_RasterValues(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, [10, 11], [20, 21], -9999.0),
+    RT_RasterValues(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, [[10, 20], [11, 21]], -9999.0)
 ;
 ```
 
@@ -1042,14 +1066,14 @@ block size of tile in `x` and `y` directions.
 #### Signature
 
 ```sql
-RT_CoordValue ([datacube DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
+RT_CoordValue (datacube DATACUBE,
                band INTEGER,
                x DOUBLE,
                y DOUBLE,
                metadata JSON,
                default_value DOUBLE)
 
-RT_CoordValue ([datacube DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
+RT_CoordValue ([filepath VARCHAR, filepaths VARCHAR[]],
                band INTEGER,
                x DOUBLE,
                y DOUBLE,
@@ -1081,8 +1105,9 @@ SELECT
 ### RT_CoordValues
 
 Returns the values in a band of a datacube or filepath[s] at the specified array of world coordinates (x, y).
+The function accepts input coordinates in two different formats.
 
-The function accepts the following parameters:
+First version uses separate arrays for x and y coordinates:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
@@ -1093,23 +1118,44 @@ The function accepts the following parameters:
 | `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size (Only required for datacube input). |
 | `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
 
+The second version uses a single array of coordinate pairs:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| [`datacube`, `filepath`, `filepaths`] | [DATACUBE | VARCHAR | VARCHAR[]] | The input datacube column or the filepath[s] to the raster[s]. |
+| `band` | INTEGER | The 0-based index of the band to read the value from. |
+| `coords` | DOUBLE[][2] | The array of coordinate pairs (x, y) of the pixels within the tile. |
+| `metadata` | JSON | The metadata associated with the datacube. |
+| `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
+
 When first parameter is an array of file paths, the function generates a virtual raster that combines all the specified files as a mosaic,
 and then retrieves the values at the given coordinates.
 
 #### Signature
 
 ```sql
-RT_CoordValues ([datacube DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
+RT_CoordValues (datacube DATACUBE,
                 band INTEGER,
                 xs DOUBLE[],
                 ys DOUBLE[],
                 metadata JSON,
                 default_value DOUBLE)
 
-RT_CoordValues ([datacube DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
+RT_CoordValues (datacube DATACUBE,
+                band INTEGER,
+                coords DOUBLE[][2],
+                metadata JSON,
+                default_value DOUBLE)
+
+RT_CoordValues ([filepath VARCHAR, filepaths VARCHAR[]],
                 band INTEGER,
                 xs DOUBLE[],
                 ys DOUBLE[],
+                default_value DOUBLE)
+
+RT_CoordValues ([filepath VARCHAR, filepaths VARCHAR[]],
+                band INTEGER,
+                coords DOUBLE[][2],
                 default_value DOUBLE)
 ```
 
@@ -1117,17 +1163,20 @@ RT_CoordValues ([datacube DATACUBE, filepath VARCHAR, filepaths VARCHAR[]],
 
 ```sql
 SELECT
-    RT_CoordValues(databand_1, 0, [545600.0, 545601.0], [4724500.0, 4724501.0], metadata, -9999.0)
+    RT_CoordValues(databand_1, 0, [545600.0, 545601.0], [4724500.0, 4724501.0], metadata, -9999.0),
+    RT_CoordValues(databand_1, 0, [[545600.0, 4724500.0], [545601.0, 4724501.0]], metadata, -9999.0)
 FROM
     RT_Read('path/to/raster/file.tif')
 ;
 
 SELECT
-    RT_CoordValues('path/to/raster/file.tif', 0, [545600.0, 545601.0], [4724500.0, 4724501.0], -9999.0)
+    RT_CoordValues('path/to/raster/file.tif', 0, [545600.0, 545601.0], [4724500.0, 4724501.0], -9999.0),
+    RT_CoordValues('path/to/raster/file.tif', 0, [[545600.0, 4724500.0], [545601.0, 4724501.0]], -9999.0)
 ;
 
 SELECT
-    RT_CoordValues(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, [545600.0, 545601.0], [4724500.0, 4724501.0], -9999.0)
+    RT_CoordValues(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, [545600.0, 545601.0], [4724500.0, 4724501.0], -9999.0),
+    RT_CoordValues(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, [[545600.0, 4724500.0], [545601.0, 4724501.0]], -9999.0)
 ;
 ```
 
@@ -1141,7 +1190,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The datacube column to compute the envelope for. |
+| `datacube` | DATACUBE | The datacube column to compute the envelope for. |
 | `band` | INTEGER | The 0-based index of the band to compute the envelope for. |
 | `tile_x` | INTEGER | The tile x coordinate of the tile. |
 | `tile_y` | INTEGER | The tile y coordinate of the tile. |
@@ -1184,7 +1233,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The datacube column to polygonize. |
+| `datacube` | DATACUBE | The datacube column to polygonize. |
 | `band` | INTEGER | The 0-based index of the band to polygonize. |
 | `tile_x` | INTEGER | The tile x coordinate of the tile. |
 | `tile_y` | INTEGER | The tile y coordinate of the tile. |
@@ -1225,7 +1274,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| `datacube` | DATACUBE | The input datacube column. |
 | `tile_x` | INTEGER | The tile x coordinate of the tile. |
 | `tile_y` | INTEGER | The tile y coordinate of the tile. |
 | `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size. |
@@ -1276,7 +1325,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| `datacube` | DATACUBE | The input datacube column. |
 | `tile_x` | INTEGER | The tile x coordinate of the tile. |
 | `tile_y` | INTEGER | The tile y coordinate of the tile. |
 | `metadata` | JSON | Raster metadata providing the affine geotransform matrix and tile block size. |
@@ -1334,7 +1383,7 @@ Just to compute statistics for a specific band of a datacube:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The datacube column to compute statistics for. |
+| `datacube` | DATACUBE | The datacube column to compute statistics for. |
 | `band` | INTEGER | The 0-based index of the band to compute statistics for. |
 
 To compute statistics for a specific band of a datacube, but only for those valid (non-nodata)
@@ -1342,7 +1391,7 @@ cells that fall within a geometry (Zonal statistics):
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The datacube column to compute statistics for. |
+| `datacube` | DATACUBE | The datacube column to compute statistics for. |
 | `band` | INTEGER | The 0-based index of the band to compute statistics for. |
 | `tile_x` | INTEGER | The tile x coordinate of the tile. |
 | `tile_y` | INTEGER | The tile y coordinate of the tile. |
@@ -1401,7 +1450,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| `datacube` | DATACUBE | The input datacube column. |
 | `band` | INTEGER | The 0-based index of the band to read the value from. |
 | `col` | INTEGER | The pixel column index within the tile. |
 | `row` | INTEGER | The pixel row index within the tile. |
@@ -1453,7 +1502,7 @@ The function accepts the following parameters:
 
 | Parameter | Type | Description |
 | --------- | -----| ----------- |
-| `databand` | DATACUBE | The input datacube column. |
+| `datacube` | DATACUBE | The input datacube column. |
 | `band` | INTEGER | The 0-based index of the band to read the value from. |
 | `x` | DOUBLE | The world x coordinate. |
 | `y` | DOUBLE | The world y coordinate. |
