@@ -11,8 +11,8 @@ extension:
     - jokasimr
 repo:
   github: jokasimr/se3
-  ref: v1.0.1
-  variegata: v0.3.2
+  ref: 9b72c7eb6ef9d964cc33c44a65f16254f164d878
+  variegata: 501a3beaa7ca6e8662bcff0e95e03af33f11a8c3
 
 docs:
   hello_world: |
