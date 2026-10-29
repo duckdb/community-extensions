@@ -13,6 +13,9 @@ extension:
   cuda_archs: "80-real"
   cuda_version: "12"
   vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
+  duckdb_repository: smvv/duckdb
+  duckdb_commit: e4fbbe90ee49ce1bde5d1412de76c405e63f3fbf
+  duckdb_tag: v2.0.0
   extra_extension_config: >-
     set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
     duckdb_extension_load(sirius_cuda12
@@ -24,7 +27,7 @@ extension:
 
 repo:
   github: smvv/sirius
-  ref: ""
+  ref: a66186158ffafcc79646bed41e567092ff65d1b4
   ref_next: a66186158ffafcc79646bed41e567092ff65d1b4
   build_github: duckdb/extension-template
   build_ref: fd1d3a78f95168640b1354e115b40d8abb5d5931
