@@ -1,7 +1,7 @@
 extension:
   name: cityjson
-  description: Read, write, and query CityJSON, CityJSONSeq, FlatCityBuf, and CityParquet 3D city model files.
-  version: 0.4.0
+  description: Read, write, and query CityJSON, CityJSONSeq, FlatCityBuf, and CityParquet 3D city model files, with OBJ and glTF interchange.
+  version: 0.5.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,10 @@ extension:
 
 repo:
   github: cityjson/duckdb-cityjson
-  ref: a1455e1a0896160660f4646d240f2fb85be34617
+  # ref builds against DuckDB v2.0.0 (tag on `main`); variegata builds
+  # against v1.5.6 (tag on `v1.5-variegata`).
+  ref: v0.5.0
+  variegata: v0.5.0-duckdb1.5
 
 docs:
   hello_world: |
@@ -22,7 +25,7 @@ docs:
 
     -- Read a FlatCityBuf file, pushing a bounding box into its spatial index
     SELECT * FROM read_flatcitybuf('buildings.fcb',
-      min_x => 84000, min_y => 444000, max_x => 84500, max_y => 444500);
+      xmin => 84000, ymin => 444000, xmax => 84500, ymax => 444500);
 
     -- Extract geometries as WKB at a specific Level of Detail
     SELECT * FROM read_cityjson('buildings.city.json', lod=>'1.2');
@@ -42,7 +45,7 @@ docs:
     CREATE TABLE city.building AS SELECT * FROM read_cityjson('buildings.city.json');
     PRAGMA cityparquet_init('city');
     PRAGMA cityparquet_validate('city');
-    SELECT * FROM cityparquet_write('city', 'out/city');
+    SELECT * FROM cityparquet_write('city', 'city_package');
 
   extended_description: |
     The CityJSON extension provides table functions for reading and writing 3D city model files
@@ -56,7 +59,7 @@ docs:
     - `COPY ... TO` with formats `cityjson`, `cityjsonseq`, and `flatcitybuf` — write query results
 
     Appearance:
-    - `cityjson_materials`, `cityjson_textures`, `cityjson_geometry_templates` — sidecar readers
+    - `cityjson_materials`, `cityjson_textures`, `cityjson_implicit_geometries` — sidecar readers
     - Per-LoD `material_lod*` / `texture_lod*` reference columns, or `appearance := 'sidecar'`
       to normalise appearance into sidecar tables with global ids and inlined UV coordinates
 
@@ -66,6 +69,10 @@ docs:
     - `cityparquet_validate`, `cityparquet_reconcile`, `cityparquet_orphans`, `cityparquet_vacuum`
     - `cityparquet_delete` (with cascade) and `cityparquet_merge`
     - `cityjson_geoparquet_geo` — the GeoParquet `geo` and CityParquet `city` footer objects
+
+    Mesh interchange:
+    - `read_obj`, `obj_materials`, `obj_textures`, `obj_metadata` — read OBJ with its `.mtl` and textures
+    - `COPY ... TO` with formats `obj`, `gltf`, and `glb`
 
     Additional features:
     - Automatic schema inference from CityJSON attributes
