@@ -1,7 +1,7 @@
 extension:
   name: duckdb_delta_sharing
   description: The most efficient way to query Delta Lake tables directly from DuckDB via the Delta Sharing protocol.
-  version: 0.6.1
+  version: 0.7.2
   language: C++
   build: cmake
   license: Apache-2.0
@@ -11,7 +11,8 @@ extension:
 
 repo:
   github: prequel-co/DuckDB-Delta-Sharing
-  ref: a9ab9dd48160fa108861120bc1006b5d3546d0f3
+  variegata: a40b7c829fc44e9b55850cbda948adb3d113691a
+  ref: a40b7c829fc44e9b55850cbda948adb3d113691a
 
 docs:
   hello_world: |
