@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: robert-guangzhou/duckdb-nats-rw
-  ref: 9222b6736c2701e4250fb1fa325c0b2c75118808
+  ref: d92a60bce3201720c216887202b6aaf12844a65a
   requires_toolchains: rust
 
 docs:
