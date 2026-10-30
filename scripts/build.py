@@ -1,4 +1,6 @@
+import json
 import os
+import subprocess
 import sys
 import yaml
 # TODO: check prefix, needs to be in installation dir
@@ -35,6 +37,38 @@ if dir_name != extension_name:
 
 # todo check other stuff like build system etc.
 
+# returns the most recent commit to community-extensions relative to the current push / pull request
+def base_commit():
+	event_name = os.environ.get('GITHUB_EVENT_NAME')
+	if event_name == 'pull_request':
+		ref = os.environ.get('GITHUB_BASE_REF')
+	elif event_name == 'push':
+		with open(os.environ['GITHUB_EVENT_PATH']) as event:
+			ref = json.load(event).get('before')
+	else:
+		return None
+
+	if not ref or ref == '0' * 40:
+		return None
+	if subprocess.run(['git', 'fetch', '-q', '--depth', '1', 'origin', ref]).returncode != 0:
+		return None
+
+	return subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], capture_output=True, text=True).stdout.strip() or None
+
+def repo_field_changed(field):
+	base = base_commit()
+	print(f"Comparing repo.{field} against base commit: {base}")
+
+	if not base:
+		return True
+	base_desc = subprocess.run(['git', 'show', f'{base}:{desc_file}'], capture_output=True, text=True)
+	if base_desc.returncode != 0:
+		return True
+	base_value = ((yaml.safe_load(base_desc.stdout) or {}).get('repo') or {}).get(field)
+
+	field_changed = base_value is None or str(base_value) != str(desc['repo'].get(field))
+	return field_changed
+
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
 	if 'canonical_name' in desc.get('repo', {}):
@@ -46,6 +80,12 @@ with open('env.sh', 'w+') as hdl:
 	elif os.environ['DUCKDB_VERSION'] == 'v1.5.6':
 		if 'variegata' in desc['repo']:
 			extension_ref = desc['repo']['variegata']
+			if deploy and os.environ.get('COMMUNITY_EXTENSION_REQUIRE_VARIEGATA') == 'true' and not repo_field_changed('variegata'):
+				print(f"Skipping variegata build: repo.variegata is unchanged ({extension_ref})")
+				extension_ref = None
+		elif os.environ.get('COMMUNITY_EXTENSION_REQUIRE_VARIEGATA') == 'true':
+			print("Skipping variegata build: repo.variegata is not defined")
+			extension_ref = None
 	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
 		if desc['repo'].get('ref_next'):
 			extension_ref = desc['repo']['ref_next']
