@@ -66,7 +66,7 @@ def repo_field_changed(field):
 		return True
 	base_value = ((yaml.safe_load(base_desc.stdout) or {}).get('repo') or {}).get(field)
 
-	field_changed = base_value is not None and str(base_value) != str(desc['repo'].get(field))
+	field_changed = base_value is None or str(base_value) != str(desc['repo'].get(field))
 	return field_changed
 
 with open('env.sh', 'w+') as hdl:
