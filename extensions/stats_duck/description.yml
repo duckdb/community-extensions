@@ -14,6 +14,8 @@ extension:
 repo:
   github: KoliStat/the-stats-duck
   ref: 98aa4e305ddd426ba94a1aca0e835edd707e949f
+  variegata: 98aa4e305ddd426ba94a1aca0e835edd707e949f
+  andium: 98aa4e305ddd426ba94a1aca0e835edd707e949f
 
 docs:
   hello_world: |
