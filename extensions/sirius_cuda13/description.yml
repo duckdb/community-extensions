@@ -1,0 +1,52 @@
+extension:
+  name: sirius_cuda13
+  description: CUDA 13 backend selected by the Sirius core loader
+  version: 0.0.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - mbrobbel
+  requires_toolchains: cuda
+  excluded_platforms: "linux_amd64_musl;linux_arm64_musl;osx_amd64;osx_arm64;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  cuda_archs: "80-real"
+  cuda_version: "13"
+  test_config: '{"test_env_variables":{"VCPKG_CUDA_ARCHITECTURES":"80-real"}}'
+  use_merged_vcpkg_manifest: true
+  vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
+  extra_extension_config: |-
+    set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
+    # Older duckdb_extension_load versions split semicolon-separated SUBMODULES during argument parsing.
+    # TODO: Use duckdb_extension_load again after DuckDB 2.0.1.
+    register_external_extension(
+      sirius_cuda13
+      https://github.com/sirius-db/sirius
+      5350b8f951c32cb79f4b1971a48c5915f0a6908f
+      FALSE
+      FALSE
+      sirius-duckdb
+      sirius-duckdb/src/include
+      ""
+      FALSE
+      ""
+      "duckdb;cucascade;substrait"
+      "")
+
+repo:
+  github: sirius-db/sirius
+  ref: 5350b8f951c32cb79f4b1971a48c5915f0a6908f
+  ref_next: 5350b8f951c32cb79f4b1971a48c5915f0a6908f
+  build_github: duckdb/extension-template
+  build_ref: fd1d3a78f95168640b1354e115b40d8abb5d5931
+
+docs:
+  hello_world: |
+    LOAD sirius;
+  extended_description: |
+    `sirius_cuda13` is the CUDA 13 backend for Sirius. It is installed and
+    loaded automatically by the lightweight `sirius` core extension when the
+    NVIDIA driver reports CUDA 13 or newer compatibility.
+
+    Applications should load `sirius`, not this backend directly.
+  hardware_requirements: |
+    Linux on x86-64 or arm64 with an NVIDIA GPU and a driver supporting CUDA 13.
