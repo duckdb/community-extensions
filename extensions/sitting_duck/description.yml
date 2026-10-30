@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 28 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.16.0
+  version: 1.17.0
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,125 +9,94 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  # THREE REFS, ONE COMMIT, AND THE KEYS NOW MEAN DIFFERENT THINGS THAN THEY DID
-  # WHEN THIS PR WAS OPENED. duckdb/community-extensions#3079 ("2.0 Release
-  # Prep") merged 2026-10-15T15:42Z and changed build.yml's default
-  # duckdb_version from the v1.5.6 tag to a pinned DuckDB commit,
-  # b15358c371daf10dad799a43b6167f6ccdce84d8 (duckdb/duckdb, 2026-10-09). Per
-  # scripts/build.py:42-54 the keys are now selected like this:
+  # THREE KEYS, ONE COMMIT. Per scripts/build.py:42-54 they select like this:
   #
-  #   ref        -> the DEFAULT build, i.e. the 2.0 line today and v2.0.0 once
-  #                 it is tagged (DUCKDB_LATEST_STABLE is set to the same commit
-  #                 as the default, so the ref_next branch does not fire for it)
-  #   variegata  -> DuckDB v1.5.6 builds; absent, v1.5.6 silently falls back to
-  #                 `ref`, which is why it is stated explicitly here rather than
-  #                 left to the fallback
-  #   ref_next   -> a prerelease version that is neither v1.4.5, v1.5.6, nor the
-  #                 latest stable. build_next.yml's test_against_latest is
-  #                 currently `if: false`, so this is dormant; it is set so that
-  #                 prerelease validation builds+tests this release instead of
-  #                 printing "Skipping prerelease validation" when the job is
-  #                 re-enabled.
+  #   ref        -> the DEFAULT build, which is the 2.0 line (v2.0.0 today)
+  #   variegata  -> DuckDB v1.5.6 builds. Absent, v1.5.6 falls back to `ref`,
+  #                 so it is stated explicitly rather than left to the fallback
+  #   ref_next   -> a prerelease that is neither v1.4.5, v1.5.6 nor the latest
+  #                 stable. build_next.yml's test_against_latest is currently
+  #                 `if: false`, so this is dormant; it is set so prerelease
+  #                 validation builds this release instead of printing
+  #                 "Skipping prerelease validation" when that job returns.
   #
-  # All three are the same commit deliberately: v1.16.0 builds from ONE source
-  # tree against both DuckDB lines. The v2.0 removal of
-  # TableFunction::named_parameters goes through named_parameter_compat.hpp,
-  # which declares via GetSignature().WithTypedKwargs() on v2.0 and the flat map
-  # on v1.5. `variegata` is read by build.py:47 but no extension in the registry
-  # uses it yet (the migration is hours old); `andium`, the identical mechanism
-  # for the v1.4.5 track, is in use and is the proven precedent.
-  ref: b49238e625ec6c8be1d4c4dca92f9af86964a5b0
-  variegata: b49238e625ec6c8be1d4c4dca92f9af86964a5b0
+  # All three are the same commit deliberately: ONE source tree builds against
+  # both DuckDB lines. The v2.0 removal of TableFunction::named_parameters goes
+  # through named_parameter_compat.hpp, which declares via
+  # GetSignature().WithTypedKwargs() on v2.0 and the flat map on v1.5.
+  ref: cee95ef6eeb33aa6c25527769d3ebf97898aa994
+  variegata: cee95ef6eeb33aa6c25527769d3ebf97898aa994
   #
-  # v1.16.0 is a FEATURE release with OUTPUT CHANGES. New: ast_unparse_exact()
-  # reconstructs a file's original bytes from its AST rows, byte-identically for
-  # 27 of 27 tree-sitter languages (it refuses rather than normalising); a native
-  # COPY ... TO (FORMAT ast) writer; and YAML as a 28th language -- hence the
-  # description going 27 -> 28 above.
+  # v1.17.0 is a CORRECTNESS release with OUTPUT CHANGES, and no API removals.
+  # Full notes: docs/releases/v1.17.0.md in the extension repo.
   #
-  # READ THIS IF YOU PIN semantic_type VALUES. A family of classification bugs is
-  # fixed, and the raw semantic_type byte moves for specific node types: anonymous
-  # keyword tokens no longer inherit their construct's classification (one grammar
-  # type string can name two symbols), TypeScript type keywords are TYPE_PRIMITIVE
-  # rather than LITERAL_*, and keyword operators are classified against the
-  # convention spec/taxonomy/taxonomy.yaml already implied -- typeof is a type
-  # query, for-of's `of` is a loop keyword, a cast `as` is not a comparison.
-  # Structural counts (descendant_count / children_count / depth) also no longer
-  # wrap: they were stored through uint16/uint16/uint8 mirrors, so the O(1) subtree
-  # idiom returned 34 465 of 100 001 rows with no error above 65 536 nodes.
-  # Separately, `[semantic=X]` selectors now match the same nodes as the class
-  # `.X` -- they previously also returned syntax-only keyword tokens.
+  # FOUR NAME-BINDING FORMS NOW BIND, so ast_definitions() and the
+  # NAME_DEFINITION flag return MORE rows than v1.16.0 did for the same
+  # input: Python match/case captures (#279), comprehension targets, which
+  # are now scope boundaries (#278), destructuring assignment targets (#274),
+  # and for-loop and comprehension tuple targets, `for i, j in pairs` (#289).
+  # Go's `for k, v := range xs` deliberately still binds nothing, because `:=`
+  # binds while `=` reassigns (#277). Variadic parameters also appear in the
+  # `parameters` column for go, cpp and swift, where native extraction was
+  # declared but unreachable (#272). If you pin counts from ast_definitions(),
+  # re-measure.
   #
-  # One new DuckDB API call, checked against the stable line: #244 registers the
-  # SEMANTIC_TYPE logical type via ExtensionLoader::RegisterType, which exists on
-  # v1.5.6 (it was already using RegisterCastFunction on the same loader). Without
-  # it `ORDER BY semantic_type` raised a Catalog Error, because the full-sort path
-  # resolves the type alias by name and only the casts had been registered.
+  # SQL MACROS NOW CARRY DESCRIPTIONS in duckdb_functions() (#170): 58 of 97,
+  # including all 52 table macros, and 13 carry examples. duckdb_functions() is
+  # the only surface an agent connected to a database can read. The text is
+  # lifted from the banner comment above each macro, so it cannot drift from
+  # the macro. The remaining 39 scalar macros need a banner written beside
+  # them; that is content work, not a defect.
   #
-  # EVIDENCE AT THIS REF, ON BOTH LINES. One CI run of this exact commit
-  # (teaguesterling/sitting_duck run 38566432103) builds it twice, once per line,
-  # and all 9 platforms are green on each:
+  # EVIDENCE. The refs above are the v1.17.0 tag, which adds the release
+  # notes and nothing else: the diff from d297e858ac touches docs/ and
+  # mkdocs.yml only, so every measurement below describes the same binary.
+  # One run of d297e858ac on the extension repo's main, run 40626001782, is
+  # completed/success with no job outside success and skipped. It covers both
+  # lines:
   #
-  #   v1.5.6 (ci-tools @v1.5-variegata)      linux_amd64, linux_arm64, osx_amd64,
-  #     -- TESTS RUN                         osx_arm64, windows_amd64,
-  #                                          windows_amd64_mingw, wasm_mvp,
-  #                                          wasm_eh, wasm_threads
-  #   v2.0-cyanoptera (ci-tools @main)       the same 9
-  #     -- TESTS SKIPPED, see below
+  #   v1.5.6, ci-tools @v1.5-variegata -- 9 platforms build. The suite RUNS on
+  #     linux_amd64, osx_arm64, windows_amd64 and windows_amd64_mingw, each
+  #     reporting `All tests passed (5 skipped tests, 9027 assertions in 162
+  #     test cases)`. The other five legs are cross-compiled and run no suite.
+  #   2.0 line, ci-tools @main -- two separate legs, and they differ:
+  #     - the canary passes `duckdb_version: v2.0-cyanoptera` with
+  #       `skip_tests: true`, so its 8 green platforms are COMPILE evidence
+  #       only. A green "Test" step there executed nothing.
+  #     - a dedicated leg pinned to the v2.0.0 TAG, with no skip_tests and no
+  #       duckdb_tag, RUNS the suite on linux_amd64: `ran tests: 162 passed,
+  #       5 skipped`.
   #
-  # On the v1.5.6 line: builds 0 errors against the pinned v1.5.6 submodule
-  # (069cc9f9b5b), full suite 9027 assertions / 156 cases / 0 failures and ZERO
-  # skips with SITTING_DUCK_TEST_GRAMMAR_DIR set, conformance kit at its recorded
-  # baseline (ok=189 FAIL=3 dirty=1 void=13 UNDECL=5 n/a=13 over 28 languages,
-  # all 8 negative controls firing), and the byte-exact sweep reporting
-  # files=29 not_byte_exact=0 with its planted-fault control firing (29 = the
-  # 27-language corpus plus two fixtures that make byte-exactness non-trivial:
-  # CRLF with multi-byte UTF-8, and multi-byte UTF-8 with LF). The kit's 3 FAILs
-  # are pre-existing and documented (sitting_duck#220); they have since been
-  # fixed on main -- the kit now reads ok=192 FAIL=0 -- but that is AFTER this
-  # ref and is not what ships here.
+  # That second leg is new since the previous release, which had no 2.0 test
+  # evidence at its ref. 2.0 test coverage is linux_amd64 only; Windows, macOS
+  # and wasm on the 2.0 line are compile-checked, not tested.
   #
-  # WHAT THE v2.0 GREEN DOES AND DOES NOT MEAN -- this replaces an earlier,
-  # now-wrong caveat in this file. sitting_duck's v2.0 leg passes
-  # skip_tests: true, and in ci-tools @main that input is honoured inside
-  # scripts/ci_phase.py:795 rather than by an `if:` on the step -- so the step
-  # named "Test" RUNS, prints "Tests skipped by workflow input.", and reports
-  # SUCCESS having executed nothing. A green Test on that leg is therefore
-  # COMPILE-compat evidence only. Tests are skipped because ast_select blows the
-  # batch timeout on the 2.0 line via an upstream planner regression
-  # (duckdb/duckdb#26036, reported by us, reproduces on duckdb main too);
-  # sitting_duck tracks the measurement as bugs/040.
+  # ONE FIX WORTH NAMING, because it was invisible on Linux. The header
+  # generator read the .sql sources with the locale's encoding. On a Windows
+  # runner that is cp1252, which breaks the em-dash separator in a macro's
+  # banner comment, so one macro silently lost its description there and only
+  # there -- 57 of 58 documented macros, with no error on either side. The
+  # reads and the write are now pinned to UTF-8, and both decodings produce
+  # byte-identical headers.
   #
-  # HOW BAD, measured against THIS registry's default commit
-  # (b15358c371daf...) rather than against cyanoptera's tip -- one variable,
-  # same sitting_duck source, same machine, three runs each:
+  # STILL TRUE, AND THE REASON `variegata` IS SET: ast_select is 28x slower
+  # per call on the 2.0 line. Measured against this registry's own pinned
+  # commit, d54cbbe3df17, with one variable changed: 0.448 s per call on
+  # v1.5.6 against 12.537 s. The cost is planning, not execution. Under
+  # EXPLAIN ANALYZE every operator reports 0us on both lines. PREPARE does
+  # not amortize it either: on the 2.0 line each EXECUTE costs the full
+  # 12.6 s again, while v1.5.6 drops to 0.117 s. It is an upstream planner
+  # regression, duckdb/duckdb#26036.
   #
-  #                             v1.5.6      2.0 line      ratio
-  #   ast_select_from, mean     0.468 s     11.273 s      ~24x
-  #   EXPLAIN (plan only)       0.581 s     72.211 s     ~124x
+  # It no longer reproduces on duckdb main. Built against main at ed0443f18a
+  # with the same extension source, the call costs 1.192 s. That fix is on
+  # main only. It is not on the v2.0-cyanoptera branch and not in any
+  # release, so it does not reach this registry's 2.0 builds yet.
   #
-  # CPU-bound in both, and the cost is PLANNING, independent of input size and
-  # selector complexity. So on the 2.0 default this extension builds, loads and
-  # answers correctly, and its headline feature -- the CSS-like selector engine
-  # -- is ~24x slower per call. That is worth knowing before 2.0 becomes the
-  # default build target; it is an upstream planner regression, not a defect
-  # here, and it is why `variegata` above keeps a v1.5.6 artifact available.
-  #
-  # There IS now real test evidence on the 2.0 line, just not at this ref:
-  # sitting_duck's own repo added a non-shipping coverage leg on
-  # `duckdb_version: v2.0-cyanoptera` (branch form, no duckdb_tag), which runs
-  # the suite and reports 154 passed / 0 failed / 5 skipped. It found three
-  # genuine 2.0 breaks on its first run -- the deprecated lambda arrow (`->`),
-  # a warning on v1.5.6 and a hard Binder Error on 2.0. All three were in TEST
-  # files; the shipped SQL macros and the embedded header at this ref carry zero
-  # lambda-arrow uses, verified, so nothing a user executes is affected.
-  #
-  # The earlier version of this note said a failure on the next-line leg was
-  # "deploy:false either way -- it cannot affect the shipped v1.5.6 artifact".
-  # After #3079 that is no longer true: the 2.0 line is the DEFAULT build, not a
-  # prerelease canary, so `ref` is what gets built against it. v1.5.6 is the one
-  # now reached through an override, which is exactly why `variegata` is set.
-  ref_next: b49238e625ec6c8be1d4c4dca92f9af86964a5b0
+  # So on the 2.0 default this extension builds, loads and answers correctly,
+  # and its headline feature is much slower. `variegata` keeps a v1.5.6
+  # artifact available while that stands.
+  ref_next: cee95ef6eeb33aa6c25527769d3ebf97898aa994
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
