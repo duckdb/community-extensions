@@ -1,7 +1,7 @@
 extension:
   name: root
   description: Query CERN ROOT files directly using DuckDB SQL.
-  version: 3.10.0
+  version: 3.11.0
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: LordVitiate/root4duckdb
-  ref: compat/duckdb-2.0
+  ref: main
   variegata: bf55e4cd5491d9cc69e1d569009748ce457fe679
 
 docs:
