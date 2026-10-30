@@ -16,12 +16,20 @@ extension:
   vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
   extra_extension_config: |-
     set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
-    duckdb_extension_load(sirius_cuda12
-      GIT_URL https://github.com/sirius-db/sirius
-      GIT_TAG 5350b8f951c32cb79f4b1971a48c5915f0a6908f
-      SOURCE_DIR sirius-duckdb
-      INCLUDE_DIR sirius-duckdb/src/include
-      SUBMODULES "duckdb;cucascade;substrait")
+    # TODO: Use duckdb_extension_load again after DuckDB 2.0.1.
+    register_external_extension(
+      sirius_cuda12
+      https://github.com/sirius-db/sirius
+      5350b8f951c32cb79f4b1971a48c5915f0a6908f
+      FALSE
+      FALSE
+      sirius-duckdb
+      sirius-duckdb/src/include
+      ""
+      FALSE
+      ""
+      "duckdb;cucascade;substrait"
+      "")
 
 repo:
   github: sirius-db/sirius
