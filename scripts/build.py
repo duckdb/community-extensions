@@ -70,6 +70,7 @@ with open('env.sh', 'w+') as hdl:
 	extra_extension_config = desc['extension'].get('extra_extension_config')
 	cuda_archs = desc['extension'].get('cuda_archs')
 	cuda_version = desc['extension'].get('cuda_version')
+	use_merged_vcpkg_manifest = desc['extension'].get('use_merged_vcpkg_manifest')
 	if excluded_platforms:
 		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
 	if opt_in_platforms:
@@ -93,3 +94,5 @@ with open('env.sh', 'w+') as hdl:
 		hdl.write(f"COMMUNITY_EXTENSION_CUDA_ARCHS={cuda_archs}\n")
 	if cuda_version:
 		hdl.write(f"COMMUNITY_EXTENSION_CUDA_VERSION={cuda_version}\n")
+	if use_merged_vcpkg_manifest:
+		hdl.write("COMMUNITY_EXTENSION_USE_MERGED_VCPKG_MANIFEST=1\n")
