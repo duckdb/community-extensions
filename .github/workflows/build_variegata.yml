@@ -14,7 +14,6 @@ on:
       - '!extensions/*/description.yml'
 
 jobs:
-  # build (+ deploy on main) for v1.5.6 repo.variegata is set
   build_variegata:
     uses: ./.github/workflows/build.yml
     secrets: inherit

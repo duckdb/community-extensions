@@ -37,7 +37,7 @@ if dir_name != extension_name:
 
 # todo check other stuff like build system etc.
 
-# returns the most recent commit relative to the current push / pull request
+# returns the most recent commit to community-extensions relative to the current push / pull request
 def base_commit():
 	event_name = os.environ.get('GITHUB_EVENT_NAME')
 	if event_name == 'pull_request':
@@ -55,7 +55,6 @@ def base_commit():
 
 	return subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], capture_output=True, text=True).stdout.strip() or None
 
-# Checks if a repo field has been updated
 def repo_field_changed(field):
 	base = base_commit()
 	print(f"Comparing repo.{field} against base commit: {base}")
