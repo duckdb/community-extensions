@@ -16,6 +16,7 @@ extension:
   vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
   extra_extension_config: |-
     set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
+    # Older duckdb_extension_load versions split semicolon-separated SUBMODULES during argument parsing.
     # TODO: Use duckdb_extension_load again after DuckDB 2.0.1.
     register_external_extension(
       sirius_cuda13
