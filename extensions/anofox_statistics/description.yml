@@ -9,5 +9,5 @@ extension:
   requires_toolchains: rust
 repo:
   github: DataZooDE/anofox-statistics
-  ref: b3ccb0056b3771432be64e9e4961d4e649fbb8b7
-  variegata: b3ccb0056b3771432be64e9e4961d4e649fbb8b7
+  ref: 828f5762daf16308e6477676e9081b1cc6f120a3
+  variegata: 828f5762daf16308e6477676e9081b1cc6f120a3
