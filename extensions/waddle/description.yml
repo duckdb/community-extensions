@@ -1,6 +1,6 @@
 extension:
   name: waddle
-  description: Provides a hello world example demo
+  description: Provides a hello world example demo (TEMP)
   version: 0.0.2
   language: C++
   build: cmake
