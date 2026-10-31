@@ -1,7 +1,7 @@
 extension:
   name: ducksmiles
   description: Cheminformatics and CPU numerical analytics for DuckDB - molecular formats, descriptors, fingerprints, similarity, regression, statistical inference, experimental design, time series, reliability and model evaluation from SQL
-  version: 0.6.1
+  version: 0.6.4
   language: C++
   build: cmake
   requires_toolchains: rust
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 46f357e7c6c2cd28dbf8a7d11dfe1c7f7c141dbc
+  ref: 2d4a5201c71c15828c7be8e2fc7e1d8b12a0cb85
 
 docs:
   hello_world: |
@@ -70,8 +70,8 @@ docs:
     - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **418 SQL overloads**, including the existing 151 molecular overloads and
-    267 CPU analytics functions. Molecular methods cover property extraction, format conversion,
+    **435 SQL overloads**, including the 156 molecular overloads and
+    279 CPU analytics functions. Molecular methods cover property extraction, format conversion,
     structural comparison, fingerprinting, similarity search, drug-likeness /
     toxicophore filtering, and structure-based virtual screening.
 
@@ -92,6 +92,10 @@ docs:
       `fraction_csp3()`, `num_heteroatoms()`, and the full ring-count descriptor family.
 
     **Mass context and native graphs:**
+    - Isotope-labelled formula masses, average formula weights, composition JSON,
+      conservative CHNOFClBrI DBE and signed mass-error ppm calculations.
+    - MOL/SDF parsing preserves unnamed records, sparse V3000 IDs and double-precision
+      geometry; malformed block boundaries and bond references are rejected.
     - `formula_exact_mass()` parses supported flat formulas strictly.
     - `adduct_neutral_mass()` and `adduct_precursor_mz()` perform versioned
       arithmetic for 29 explicit adduct labels, including signed electron corrections.
