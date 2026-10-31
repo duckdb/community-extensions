@@ -1,6 +1,6 @@
 extension:
   name: root
-  description: Query CERN ROOT files directly using DuckDB SQL.
+  description: Query CERN ROOT TTrees, nested event objects and histograms directly with DuckDB SQL; optionally index datasets for selective reads.
   version: 3.11.0
   language: C++
   build: cmake
@@ -16,16 +16,169 @@ repo:
   variegata: bf55e4cd5491d9cc69e1d569009748ce457fe679
 
 docs:
+  hello_world: |
+    -- After publication in DuckDB Community Extensions:
+    INSTALL root FROM community;
+    LOAD root;
+
+    -- Explore a ROOT file without converting its event data.
+    SELECT * FROM read_root('/path/to/events.root');
+
+    -- Select an object or collection as a SQL relation.
+    -- Replace the paths and dictionary with those from your experiment.
+    SELECT entry_id, vecTrack_idx, chi2tot
+    FROM read_root(
+        '/path/to/events.root',
+        dictionary := '/path/to/libExperiment.so',
+        path_prefix := '/PaEvent/vecTrack'
+    )
+    LIMIT 10;
+
+    -- Read histogram bins using the same interface.
+    SELECT x_low, x_high, content, error
+    FROM read_root(
+        '/path/to/histograms.root',
+        path_prefix := '/analysis/mass/bins'
+    );
+
   extended_description: |
-    ROOT4DuckDB enables direct SQL queries over CERN ROOT files
-    without converting them to another data format.
+    ## What ROOT4DuckDB does
 
-    The extension provides ROOT file scanning, nested object access,
-    dataset indexing, and Apache Iceberg integration.
+    ROOT4DuckDB is a DuckDB extension for reading CERN ROOT data directly.
+    It exposes ROOT TTrees, reconstructed C++ objects, nested collections,
+    and histogram contents as SQL relations. The original ROOT files remain
+    the source of data: using the extension does not require converting
+    every file to another format or loading an entire experiment into a database.
 
-    Currently supported platform: Linux x86_64.
+    The focus is interactive scientific analysis. Researchers can select
+    the objects and quantities needed for a particular question, apply
+    filters and aggregations in SQL, and revise the selection without
+    building a new extraction program for every iteration. ROOT4DuckDB
+    complements ROOT-based reconstruction and existing analysis software;
+    it does not replace them.
 
-    A compatible installation of CERN ROOT 6.40.04 is required
-    at runtime.
+    ## Reading and exploring ROOT data
 
-    Source code: https://github.com/LordVitiate/root4duckdb
+    The main entry point, `read_root(...)`, can inspect a ROOT file,
+    select a logical path and return the selected content as a table.
+    A path identifies an object, collection or supported histogram view;
+    individual numeric members can then be selected as SQL columns.
+
+    For example, an experiment's collection of reconstructed tracks
+    can expose a relation with `entry_id`, `vecTrack_idx`, `chi2tot`
+    and other available members. Collection-index columns preserve the
+    position of nested elements within each event. For multiple ROOT
+    files, `source_id` and `source_path` identify the input file.
+
+    ```sql
+    SELECT entry_id, vecTrack_idx, chi2tot
+    FROM read_root(
+        '/data/events.root',
+        dictionary := '/data/libExperiment.so',
+        path_prefix := '/PaEvent/vecTrack'
+    )
+    WHERE entry_id >= 1000 AND entry_id < 2000;
+    ```
+
+    The paths and dictionary names above are illustrative. They depend
+    on the contents and C++ classes of the experiment's ROOT files.
+    Use `read_root('/data/events.root')` to discover top-level content,
+    and `root_describe(...)` to inspect the next level of an object schema.
+    Custom event classes typically require their matching ROOT dictionaries.
+
+    Direct input can be a single file, a local directory or glob,
+    an explicit file list or a manifest. Exact remote ROOT URLs are
+    supported when the installed ROOT I/O backend and credentials support
+    the corresponding protocol.
+
+    ## Histograms as SQL relations
+
+    `read_root(...)` also provides tabular views of supported ROOT
+    `TH1`, `TH2`, `TH3` and `TProfile` families. Histogram bins,
+    axes and metadata can be queried separately.
+
+    ```sql
+    SELECT x_low, x_high, content, error
+    FROM read_root(
+        '/data/histograms.root',
+        path_prefix := '/analysis/mass/bins'
+    )
+    ORDER BY x_low;
+    ```
+
+    Bin contents, uncertainties, edges and underflow/overflow
+    information are preserved in the relevant views.
+
+    ## Reading only what is needed
+
+    ROOT4DuckDB combines DuckDB's column selection and filtering with
+    ROOT-aware scheduling. It can avoid materializing unrequested fields,
+    restrict entry ranges and process independent files or entry ranges
+    in parallel. For supported serialized layouts it can decode selected
+    values directly from ROOT baskets; for other layouts it uses ROOT
+    object reconstruction. The default `reader_mode := 'auto'`
+    prioritizes correct results over forcing a particular fast path.
+
+    This is a selective-access design, not a claim that every ROOT query
+    is faster than an equivalent ROOT or C++ program. Performance depends
+    on the data layout, selection and storage environment.
+
+    ## Optional indexes and versioned metadata
+
+    For repeated or selective analysis of larger datasets,
+    `root_build_index(...)` and `root_build_dataset_index(...)` create
+    sidecar metadata without copying the original event payloads.
+    Metadata may include file and basket locations, entry ranges,
+    numeric statistics and Bloom filters.
+
+    `read_root_dataset(...)` uses those indexes to exclude irrelevant
+    files, baskets and entries before decoding selected values.
+    `root_dataset_stats(...)` returns stored dataset statistics without
+    reopening the event data.
+
+    For workflows needing versioned metadata, ROOT4DuckDB can publish
+    catalog information using Apache Iceberg with a SQLite-backed
+    catalog. `root_iceberg_catalog(...)` inspects the active metadata
+    snapshots. This versions the index and catalog metadata; it does not
+    convert the underlying ROOT event files into Iceberg tables.
+
+    ## A practical analysis workflow
+
+    A typical workflow is to inspect the ROOT schema, select the
+    reconstructed objects relevant to a physics question, express
+    selection and aggregation conditions in SQL, then optionally build
+    reusable indexes for repeated queries. The benefit is not limited
+    to the runtime of one query: changing an analytical condition need
+    not require rewriting and rebuilding the surrounding data-access
+    program.
+
+    The extension provides a computational and data-access layer.
+    Domain ontologies, formal definitions of physics objects and
+    relations, provenance-aware scientific workflows, and autonomous
+    analysis agents are possible areas of further research, **not**
+    features implemented by this extension today.
+
+    ## Requirements and current status
+
+    - **DuckDB:** the pinned source revision has been built with the
+      DuckDB 2.0.0 Community Extension CI tooling.
+    - **Platform:** Linux x86_64 is the currently supported platform
+      in the Community Extensions descriptor.
+    - **CERN ROOT:** a compatible ROOT 6.40.04 runtime must be available.
+      Experiment-specific objects may additionally require the correct
+      C++ dictionaries and compatible runtime libraries.
+    - **Validation:** the DuckDB 2.0.0 Linux AMD64 CI build passed the two
+      ROOT SQL smoke tests; Linux ARM64 compiled and packaged, but its
+      tests were skipped by upstream CI. These checks are not a claim
+      that all ROOT layouts and production workloads have been verified.
+    - **Maturity:** research prototype; test compatibility against the
+      intended ROOT files, dictionaries and deployment environment.
+
+    ## Further reading
+
+    - [Source and examples](https://github.com/LordVitiate/root4duckdb)
+    - [SQL interface](https://github.com/LordVitiate/root4duckdb/blob/main/docs/sql-interface.md)
+    - [ROOT reading pipeline](https://github.com/LordVitiate/root4duckdb/blob/main/docs/root-reading-pipeline.md)
+    - [Build instructions](https://github.com/LordVitiate/root4duckdb/blob/main/docs/building-from-source.md)
+    - [Measured multi-file scans](https://github.com/LordVitiate/root4duckdb/blob/main/docs/direct-multifile-scan.md)
+    - [DuckDB 2.0.0 CI result](https://github.com/LordVitiate/root4duckdb/actions/runs/41140218534)
