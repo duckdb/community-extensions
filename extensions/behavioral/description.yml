@@ -4,12 +4,12 @@
 extension:
   name: behavioral
   description: Behavioral analytics functions inspired by ClickHouse (sessionize, retention, window_funnel, window_funnel_events, sequence_match, sequence_count, sequence_match_events, sequence_next_node)
-  version: 0.10.1
+  version: 0.11.0
   language: Rust
   build: cargo
   license: MIT
   # The crate compiles for wasm32-unknown-emscripten since quack-rs 0.14.0
-  # (enforced by the wasm-check CI job); the wasm platforms stay excluded until
+  # (enforced by the cross-check CI job); the wasm platforms stay excluded until
   # an emscripten link + DuckDB-WASM load is verified end to end.
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
   requires_toolchains: "rust;python3"
@@ -18,21 +18,25 @@ extension:
 
 repo:
   github: tomtom215/duckdb-behavioral
-  ref: 0bac3b0fd7a253541650abd223cdc8f3ebe8ff67
+  ref: 69f96cb7d30a79f3634dcbeb899f25f093a287a1
 
 docs:
   hello_world: |
-    -- Session assignment with 30-minute timeout
-    SELECT ts, sessionize(ts, INTERVAL '30 minutes') OVER (ORDER BY ts) AS session_id
-    FROM events;
+    -- Funnel: how far did each user get through view -> cart -> buy within 1 hour?
+    SELECT user_id,
+           window_funnel(INTERVAL '1 hour', ts, e = 'view', e = 'cart', e = 'buy') AS furthest_step
+    FROM (VALUES (1, TIMESTAMP '2024-01-01 10:00', 'view'), (1, TIMESTAMP '2024-01-01 10:05', 'cart'),
+                 (1, TIMESTAMP '2024-01-01 10:20', 'buy'),  (2, TIMESTAMP '2024-01-01 11:00', 'view'),
+                 (2, TIMESTAMP '2024-01-01 15:00', 'cart')) t(user_id, ts, e)
+    GROUP BY user_id ORDER BY user_id;
 
-    -- Conversion funnel analysis
-    SELECT user_id, window_funnel(INTERVAL '1 hour', ts,
-        event = 'view', event = 'cart', event = 'purchase')
-    FROM events GROUP BY user_id;
+    -- Sessions: a new session after 30 minutes of inactivity
+    SELECT ts, sessionize(ts, INTERVAL '30 minutes') OVER (ORDER BY ts) AS session_id
+    FROM (VALUES (TIMESTAMP '2024-01-01 10:00'), (TIMESTAMP '2024-01-01 10:10'),
+                 (TIMESTAMP '2024-01-01 11:00')) t(ts);
   extended_description: |
     Behavioral analytics functions for DuckDB, following ClickHouse's parametric
-    behavioral functions (differentially tested against ClickHouse 26.9):
+    behavioral functions (differentially tested against ClickHouse 26.10):
 
     - **sessionize**: Session IDs over an ordered window, based on timestamp gaps
     - **retention**: Cohort retention analysis returning boolean arrays
@@ -50,8 +54,9 @@ docs:
     FFI layer.
 
     Known DuckDB limitation (duckdb/duckdb#26109, affects every C API
-    aggregate): do not call these functions with ORDER BY inside the call,
-    with OVER (), or over a frame written BETWEEN UNBOUNDED PRECEDING AND
-    UNBOUNDED FOLLOWING; DuckDB can crash. None is needed: the functions sort
-    by timestamp themselves, and OVER (PARTITION BY user_id) gives the
-    whole-partition value.
+    aggregate, fixed on DuckDB 2.0.0 only): on earlier releases, including
+    the 1.4.5 and 1.5.6 builds, do not call these functions with ORDER BY
+    inside the call, with OVER (), or over a frame written UNBOUNDED
+    PRECEDING AND UNBOUNDED FOLLOWING; DuckDB can crash. On 1.3.2 through
+    1.4.5, OVER (PARTITION BY x) without ORDER BY crashes too.
+    The functions sort by timestamp themselves, so none of these is needed.
