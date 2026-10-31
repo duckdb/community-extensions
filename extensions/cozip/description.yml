@@ -1,24 +1,38 @@
 extension:
   name: cozip
   description: Cloud-Optimized ZIP reader for DuckDB
-  version: 1.0.0
+  version: 3.0.0
   language: C++
   build: cmake
   license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - csaybar
+    - ryali93
 repo:
   github: asterisk-labs/cozip_reader
-  ref: afd930e59f33ba43ef23db8e8fec5a30ece451e9
+  ref: 911e26c23330238302f0d937cfcae6e7ba529140
 docs:
   hello_world: |
+    INSTALL cozip FROM community;
     LOAD cozip;
 
-    SELECT *
-    FROM read_cozip('https://huggingface.co/datasets/Major-TOM/Core-VIIRS-Nighttime-Light/resolve/main/2024/MAJORTOM-VIIRS-NTL_2024_median_000.zip')
+    SELECT name, "cozip:location"
+    FROM read_flat('https://data.source.coop/asterisk-labs/cozip-api-fixtures/data/cities.zip')
     LIMIT 10;
+
   extended_description: |
-    cozip replaces the Central Directory scan with a Parquet metadata file,
-    locatable through a compact binary index at byte 0 of the archive.
-    read_cozip(path) reads that Parquet directly. Works on local files and
-    remote URLs (HTTPS, S3, HuggingFace), on native and WebAssembly.
+    cozip puts an index at byte 0 of a ZIP archive, so a reader can locate a
+    file without scanning the Central Directory. This extension reads the
+    Flat profile (profile 1) from local files or remote storage, including
+    HTTPS, S3, GCS, Azure, and Hugging Face.
+
+    read_flat(path) returns the Flat-profile manifest: one row per entry with
+    name, offset, size and whatever columns the writer added.
+
+    The cozip:location column contains a GDAL /vsisubfile/ path for each stored
+    file. DuckDB readers can open those paths directly, fetching only the
+    needed byte ranges. The extension also accepts cozip-subfile:// paths.
+
+    Version 3.0 removes the TACO-specific read_taco and taco_* functions.
+    TACO ZIP ::location paths remain readable through the subfile filesystem.
