@@ -1,22 +1,21 @@
 extension:
   name: loki
   description: Query Grafana Loki from DuckDB in plain SQL, with label/time/line-filter pushdown into LogQL
-  version: 1.0.1
+  version: 2.0.0
   language: C++
   build: cmake
   license: MIT
   # cpp-httplib + OpenSSL do live HTTP(S) at scan time, which the WebAssembly
   # targets cannot do — exclude them rather than ship a binary that can't connect.
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
-  # Pin the vcpkg baseline the extension is tested against (currently also the
-  # community pipeline default) so openssl/cpp-httplib/yyjson resolve reproducibly.
-  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
   maintainers:
     - prochac
 
 repo:
   github: prochac/duckdb-loki
-  ref: v1.0.1
+  ref: v2.0.0
+  # DuckDB 1.5 uses the C++ API from before 2.0, so its builds come from the v1 line.
+  variegata: v1.2.0
 
 docs:
   hello_world: |
@@ -38,6 +37,11 @@ docs:
 
     -- Or send raw LogQL through untouched with loki_scan():
     SELECT * FROM loki_scan('{job="api"} |= `timeout`', secret := 'my_loki');
+
+    -- Or ATTACH the whole instance and reach logs by name. Loki requires a stream
+    -- selector, so always filter on at least one label column.
+    ATTACH 'my_loki' AS lk (TYPE loki);
+    SELECT timestamp, line FROM lk.public.logs WHERE job = 'api';
   extended_description: |
     `loki` turns a Grafana Loki instance into a first-class, queryable DuckDB data
     source, so you can join your logs against Parquet, CSV, Postgres, or anything
@@ -50,6 +54,11 @@ docs:
     - **`loki_scan(query := ...)`** — a raw-LogQL escape hatch for full control.
     - **`loki_labels()` / `loki_label_values()` / `loki_series()`** — label discovery
       helpers so the source is explorable and autocompletes well.
+    - **`ATTACH '...' AS lk (TYPE loki)`** — Loki as a read-only attached database:
+      `lk.<tenant>.logs` (plus `labels` and `series`) with the same pushdown, label
+      columns auto-discovered at attach time and refreshable via
+      `PRAGMA loki_refresh_labels`. Because Loki refuses a query without a stream
+      selector, a scan of `logs` must carry a `WHERE` on at least one label column.
 
     Connection and auth (bearer token, basic auth, `X-Scope-OrgID` tenant, or arbitrary
     headers) come from DuckDB's Secret Manager with per-call overrides. A
