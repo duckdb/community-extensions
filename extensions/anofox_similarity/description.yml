@@ -1,7 +1,7 @@
 extension:
   name: anofox_similarity
   version: 2026.10.31
-  description: Multi-modal product similarity search for manufacturing supply chain planning. Find similar materials by BOM component overlap (Jaccard), graph-structural similarity (Weisfeiler-Lehman kernel), text embeddings, and transactional patterns, with predecessor detection and cold-start analog matching for demand forecasting. Requirements coverage matching: direction-aware value checks with units (EN/DE), property trees from JSON, a traced coverage kernel with gap lists, catalogue classification with your own vectors, vocabulary review, evaluation, and MinHash/LSH recall.
+  description: "Multi-modal product similarity search for manufacturing supply chain planning. Find similar materials by BOM component overlap (Jaccard), graph-structural similarity (Weisfeiler-Lehman kernel), text embeddings, and transactional patterns, with predecessor detection and cold-start analog matching for demand forecasting. Requirements coverage matching: direction-aware value checks with units (EN/DE), property trees from JSON, a traced coverage kernel with gap lists, catalogue classification with your own vectors, vocabulary review, evaluation, and MinHash/LSH recall."
   language: C++
   build: cmake
   license: BSL 1.1
