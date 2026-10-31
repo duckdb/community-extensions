@@ -1,7 +1,7 @@
 extension:
   name: gridpin_ext
   description: Offline geocoding from a single country file — forward and reverse, no server, no network
-  version: 0.5.0
+  version: 0.6.0
   language: Rust
   build: cargo
   license: Apache-2.0
@@ -13,13 +13,13 @@ extension:
 
 repo:
   github: gridpin/duckdb-gridpin
-  variegata: 3f6b8e36c83066265340009babf356f40964aed3
-  ref: 3f6b8e36c83066265340009babf356f40964aed3
+  variegata: 08e4da6177acb5f6698697f996289d1de89d0a0b
+  ref: 08e4da6177acb5f6698697f996289d1de89d0a0b
 
 docs:
   hello_world: |
     -- Country data files are free downloads: https://gridpin.dev
-    -- (France, Italy, the Netherlands, Serbia, Germany, Spain and Brazil today; one file per country.)
+    -- (the United States, Canada, Germany, France, Italy, Spain, the Netherlands, Brazil and Serbia today; one file per country.)
     LOAD gridpin_ext;
 
     -- Point the extension at a downloaded sheet. One sheet is loaded at a time.
