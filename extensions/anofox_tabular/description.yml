@@ -1,17 +1,17 @@
 extension:
   name: anofox_tabular
-  version: 2026.10.25
-  description: A DuckDB extension for data quality, validation and anomaly detection in SQL - 18 data quality checks (volume, nulls, freshness, schema drift, regex and value-set compliance, duplicates, referential integrity, time-aware baselines) with a table-driven check-suite runner, column profiling and correlations including nested types, hash- and join-based table diffing, anomaly detection with Isolation Forest (categorical, Extended IF, SCiForest), DBSCAN and explainable OutlierTree, PII detection and masking (17 types including IBAN, credit cards, API keys and NER-based names, organizations and locations), email validation with DNS/SMTP checks, international address parsing (libpostal), phone number validation (libphonenumber), EU VAT validation (28 countries), and currency-aware money arithmetic.
+  version: 2026.10.31
+  description: A DuckDB extension for data quality, validation and anomaly detection in SQL - 17 data quality checks (volume, nulls, freshness, schema drift, regex and value-set compliance, duplicates, referential integrity, time-aware baselines) with a table-driven check-suite runner, column profiling and correlations including nested types, hash- and join-based table diffing, anomaly detection with Isolation Forest (categorical, Extended IF, SCiForest), DBSCAN and explainable OutlierTree, PII detection and masking (22 types including IBAN, credit cards, API keys and NER-based names, organizations and locations), email validation with DNS/SMTP checks, international address parsing (libpostal), phone number validation (libphonenumber), EU VAT validation (28 countries), and currency-aware money arithmetic.
   language: C++
   build: cmake
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;linux_arm64;linux_amd64_musl;" 
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;linux_arm64;linux_amd64_musl;osx_amd64;" 
   license: BSL 1.1
   maintainers:
     - jrosskopf
 repo:
   github: DataZooDE/anofox-tabular
-  ref: 844277a7ee1dc778f3ef5db14a0185083cb3ecaa
-  variegata: 844277a7ee1dc778f3ef5db14a0185083cb3ecaa
+  ref: c351deb46db940863fe3ff25d06889f1b5f55210
+  variegata: c351deb46db940863fe3ff25d06889f1b5f55210
 docs:
   hello_world: |
     -- Validate contact data
@@ -40,4 +40,4 @@ docs:
 
     Functions carry an `anofox_tab_` prefix and a short alias (`email_is_valid` for
     `anofox_tab_email_is_valid`). Documentation:
-    https://github.com/DataZooDE/anofox-tabular/blob/main/docs/API_REFERENCE.md
+    https://github.com/DataZooDE/anofox-tabular/blob/main/docs/README.md
