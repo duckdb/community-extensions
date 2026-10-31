@@ -12,6 +12,7 @@ extension:
 repo:
   github: cofin/duckdb-oracle
   ref: fa61951bdd3edf18bb6bf8e7169255d5ca6de635
+  variegata: 18bddb9be8a65c2b04f7f6f577cf38ddfdcf5c77
 
 docs:
   hello_world: |
