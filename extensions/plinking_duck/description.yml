@@ -22,15 +22,16 @@ repo:
   # (teaguesterling/plinking_duck#60). The DuckDB
   # v1.5.6 variant build was RETIRED this release.
   #
-  # So ref / ref_next advance to the v0.15.0 commit (41b4bf9) while variegata stays
+  # So ref / ref_next advance to the v0.15.0 commit (73daba0) while variegata stays
   # PINNED at the v0.14.2 commit (7a34f3ab) — the last commit that builds on v1.5.6.
   # variegata cannot advance (v0.15.0 uses v2.0-only APIs) and must not be dropped
   # (absent -> v1.5.6 falls back to ref -> builds the v2.0-only tree on v1.5.6 and
-  # fails). Net: v1.5.6 users keep v0.14.2; the 2.0 line gets v0.15.0. ref_next == ref,
-  # and 41b4bf9's cyanoptera legs are green (linux amd64/arm64, osx arm64).
-  ref: 41b4bf9e873bba80d393f8c35f7930fe892cfed6
+  # fails). Net: v1.5.6 users keep v0.14.2; the 2.0 line gets v0.15.0. ref_next == ref.
+  # 73daba0 is 41b4bf9 (cyanoptera-green: linux amd64/arm64, osx arm64) plus the
+  # pfile_catalog glob docs example and its regression test — no code change.
+  ref: 73daba06dd3ad4ab4d0a1a32b33bd18f6fa48db9
   variegata: 7a34f3ab8d76534aaebed0aaa88e8ef27099f4e6
-  ref_next: 41b4bf9e873bba80d393f8c35f7930fe892cfed6
+  ref_next: 73daba06dd3ad4ab4d0a1a32b33bd18f6fa48db9
 
 docs:
   hello_world: |
