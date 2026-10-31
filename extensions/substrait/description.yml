@@ -1,7 +1,7 @@
 extension:
   name: substrait
   description: Allows conversion execution of Substrait query plans
-  version: 1.5.5
+  version: 1.5.6
   language: C++
   build: cmake
   license: Apache-2.0
@@ -14,7 +14,8 @@ extension:
 
 repo:
   github: substrait-io/duckdb-substrait-extension
-  ref: 4ea63ddbd67c4e511fcf10c9ff63cd6185c389ea
+  ref: 2bed96fb06c7ae78528c79fc1c8a276ec064cf9a
+  variegata: 2bed96fb06c7ae78528c79fc1c8a276ec064cf9a
 
 docs:
   hello_world: |
