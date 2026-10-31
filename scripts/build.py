@@ -16,8 +16,8 @@ if len(desc_files) > 1:
 deploy = True
 
 if len(desc_files) == 0 or len(desc_files[0]) == 0:
-	print("No changed files, only quack will be built as a test")
-	desc_files = ['extensions/quack/description.yml']
+	print("No changed files, only waddle will be built as a test")
+	desc_files = ['extensions/waddle/description.yml']
 	deploy = False
 
 desc_file = desc_files[0]
@@ -40,13 +40,20 @@ with open('env.sh', 'w+') as hdl:
 	if 'canonical_name' in desc.get('repo', {}):
 		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
 	extension_ref = desc['repo']['ref']
-	if os.environ['DUCKDB_VERSION'] == 'v1.4.4':
+	if os.environ['DUCKDB_VERSION'] == 'v1.4.5':
 		if 'andium' in desc['repo']:
 			extension_ref = desc['repo']['andium']
+	elif os.environ['DUCKDB_VERSION'] == 'v1.5.6':
+		if 'variegata' in desc['repo']:
+			extension_ref = desc['repo']['variegata']
 	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
-		if 'ref_next' in desc['repo']:
+		if desc['repo'].get('ref_next'):
 			extension_ref = desc['repo']['ref_next']
-	hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
+		elif os.environ.get('COMMUNITY_EXTENSION_REQUIRE_REF_NEXT') == 'true':
+			print("Skipping prerelease validation: repo.ref_next is not defined")
+			extension_ref = None
+	if extension_ref:
+		hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
 	opt_in_platforms = desc['extension'].get('opt_in_platforms')

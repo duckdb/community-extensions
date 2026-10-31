@@ -1,18 +1,20 @@
 extension:
   name: h5db
   description: Read HDF5 datasets and attributes
-  version: 1.1.2
+  version: 1.4.0
   language: C++
   build: cmake
   license: MIT
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  opt_in_platforms: "osx_amd64"
   requires_toolchains: "vcpkg;python3"
   maintainers:
     - jokasimr
 repo:
   github: jokasimr/h5db
-  ref: v1.1.2
-  andium: v0.3.0
+  ref: 265ab57c5787f1477ae9ed818d42a82383e40dfa
+  variegata: 7de598959594ef86ccc838e64bf0e45fef315857
+  andium: e185e91cca551ef31d2c19b84866cc0f462d2363
 
 docs:
   hello_world: |
@@ -34,4 +36,4 @@ docs:
     - Remote reads over SFTP via a built-in SFTP client.
     - Globbing: Combine datasets from multiple files vertically (UNION ALL).
 
-    For full documentation, see: [https://github.com/jokasimr/h5db](https://github.com/jokasimr/h5db).
+    For full documentation, see the [h5db repository](https://github.com/jokasimr/h5db).

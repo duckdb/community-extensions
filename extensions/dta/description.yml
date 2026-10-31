@@ -1,0 +1,46 @@
+extension:
+  name: dta
+  description: Read and write Stata .dta files (formats 117-121, Stata 13-18) with full type mapping, value labels, and strL support.
+  version: 0.1.1
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - korenmiklos
+
+repo:
+  github: codedthinking/duckdb-dta
+  ref: 635637253f0954dbd091bfb0a87877ea8cab1787
+
+docs:
+  hello_world: |
+    INSTALL dta FROM community;
+    LOAD dta;
+
+    -- Read a Stata file
+    SELECT * FROM read_dta('auto.dta');
+
+    -- Or use automatic file format detection
+    SELECT * FROM 'auto.dta';
+
+    -- Read with value labels converted to DuckDB ENUMs
+    SELECT * FROM read_dta('auto.dta', value_labels=true);
+
+    -- Write a table to .dta format
+    COPY my_table TO 'output.dta' (FORMAT dta);
+
+  extended_description: |
+    The dta extension enables DuckDB to **read and write Stata .dta files** natively,
+    supporting formats 117 through 121 (Stata 13--18).
+
+    **Reading:**
+    - Reads all standard Stata types: byte, int, long, float, double, fixed-length strings, and strL
+    - Converts Stata date (%td) and datetime (%tc) formats to DuckDB DATE and TIMESTAMP
+    - Optionally maps Stata value labels to DuckDB ENUM types with `value_labels=true`
+    - Registers a replacement scan so `.dta` files work directly in FROM clauses
+
+    **Writing:**
+    - Writes DuckDB tables to format 119 (Stata 15) via `COPY ... TO ... (FORMAT dta)`
+    - Maps DuckDB types to appropriate Stata types, including DATE, TIMESTAMP, and ENUM
+    - Stores long strings as strL entries
+    - Preserves value labels from DuckDB ENUM columns

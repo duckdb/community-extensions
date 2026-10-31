@@ -1,4 +1,5 @@
 docs:
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/tsid/).
   hello_world: "-- Generate a new time-sortable ID (accepts an optional seed string)\n\
     D SELECT tsid();\n\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
     \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\
@@ -76,9 +77,11 @@ extension:
   license: MIT
   maintainers:
   - lmangani
+  - rustyconover
   name: tsid
   version: '2025120401'
 repo:
-  andium: d72eb53d09523d21f93be28016a85302c4319182
+  andium: e404bc8c0d0b204b2f58e0c954881bc0f7d4ec70
   github: quackscience/duckdb-extension-tsid
-  ref: 21457c7206e020f3d5f0deb3059d9ee255e312b1
+  ref: cd697d31c4e2aca2aaf42fca81fcb3f37000fd09
+  variegata: bd6d432b71cf69017654d8ddd28dd57c8e25f4f5

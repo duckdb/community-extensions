@@ -1,0 +1,68 @@
+extension:
+  name: "ducksassy"
+  description: "Approximate DNA, IUPAC and ASCII string matching with SIMD Sassy kernels, including CRISPR guide search"
+  version: "0.1.0"
+  language: "C & Rust"
+  build: "cmake"
+  license: "GPL-2.0-or-later"
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "windows_amd64;windows_arm64;wasm_threads"
+  maintainers:
+    - "sounkou-bioinfo"
+
+repo:
+  github: "RGenomicsETL/ducksassy"
+  ref: "5fbc30e91661ddbdd23c3200c5e402823eea9db6"
+
+docs:
+  hello_world: |
+    -- Load the extension
+    LOAD ducksassy;
+    
+    -- Find a DNA pattern with up to one edit, on both strands
+    SELECT unnest(sassy_matches('ACGTAGG', 'TTACGTTGGAA', 1), recursive := true);
+    
+    -- Fuzzy grep over text: one allowed edit, ASCII alphabet
+    SELECT * FROM sassy_grep('timeout', 'request timedout; retry timeout', 1);
+    
+    -- CRISPR guide with its NGG PAM against a sequence column
+    SELECT name, unnest(sassy_crispr_matches('ACGTNGG', seq, 1), recursive := true)
+    FROM (VALUES ('target', 'TTACGTAGGTT')) AS t(name, seq);
+  extended_description: |
+    Ducksassy brings [Sassy](https://github.com/RagnarGrootKoerkamp/sassy), a SIMD approximate string matcher by Rick Beeloo and Ragnar Groot Koerkamp, into DuckDB. Search DNA, IUPAC or ASCII text for patterns with up to k substitutions, insertions or deletions, and get every hit back as rows with edit cost, zero-based half-open coordinates, strand and CIGAR.
+    
+    Scalar functions search any sequence or text column, so pattern panels, guide libraries and targets compose with joins, filters and aggregates. CRISPR search applies Sassy's exact PAM endpoint filter and N-content limit. Packed BAM-style CIGAR operations are available in SAM forward-reference order.
+    
+    Pair it with the [duckhts](https://duckdb.org/community_extensions/extensions/duckhts) community extension to search FASTA, FASTQ and BAM records directly.
+    
+    [Full function reference](https://github.com/RGenomicsETL/ducksassy/blob/5fbc30e91661ddbdd23c3200c5e402823eea9db6/docs/functions.md) includes signatures, return types and examples.
+    
+    Functions included in this extension:
+    
+    ### Search
+    
+    - `sassy_matches`: Return every approximate match of one pattern in a text with at most k edits. `alphabet` is 'dna', 'iupac' or 'ascii'; `rc` also searches the reverse complement; `all_endpoints` reports every qualifying endpoint instead of Sassy's rightmost local minima; `cigar_format` is 'text', 'packed' or 'both'.
+    - `sassy_matches_many`: Search a panel of up to 4096 patterns in one text. Each hit carries the zero-based `pattern_idx` of the panel entry that produced it, so duplicate patterns stay distinct.
+    - `sassy_count`: Count the matches `sassy_matches` would return, without building CIGAR strings.
+    - `sassy_count_many`: Count the matches of every pattern in a panel, without building CIGAR strings.
+    - `sassy_contains`: Return whether the text contains at least one match of the pattern with at most k edits.
+    - `sassy_contains_many`: Return whether any pattern in the panel matches the text with at most k edits.
+    - `sassy_grep`: Stream the matches of an ASCII pattern in one long text value, scanning overlapping 1 KiB regions and returning all qualifying endpoints. An outer `LIMIT` stops the scan once enough rows are produced.
+    
+    ### CRISPR
+    
+    - `sassy_crispr_matches`: Find guide occurrences with at most k edits over the whole guide, including its trailing PAM. Hits must end in an exact IUPAC PAM match unless `allow_pam_edits` is true, and targets whose N fraction exceeds `max_n_frac` are dropped. Both strands are searched by default. `cigar_format` selects text, packed BAM operations, or both.
+    - `sassy_crispr_matches_many`: Search a guide panel sharing the same PAM suffix; each hit carries the guide's zero-based `pattern_idx`. Guides with different PAMs belong in separate rows or calls. `cigar_format` selects text, packed BAM operations, or both.
+    
+    ### Diagnostics
+    
+    - `sassy_backend_info`: Report each SIMD backend (scalar, avx2, avx512, neon, wasm128): whether it is compiled into this build, supported by the running CPU, and selected. Selection happens on the first search.
+    
+    Operational notes:
+    
+    - Scalar arguments are positional with trailing defaults; the C extension API does not support named scalar arguments. For example `sassy_matches(pattern, text, k, alphabet := 'iupac', rc := true, all_endpoints := false, cigar_format := 'text')` is written `sassy_matches(pattern, text, k, 'iupac', true, false, 'text')`, and trailing arguments may be omitted.
+    - Every scalar has VARCHAR and BLOB overloads; pattern and text must use the same type. `_many` variants take a `VARCHAR[]` or `BLOB[]` panel and report the zero-based `pattern_idx` of each hit.
+    - Coordinates are zero-based and half-open in the input text. Text CIGAR is in pattern direction on reverse-strand hits; packed `cigar_ops` use BAM encoding in forward-reference order with query soft clips. The result struct is fixed across formats: 'text' sets `cigar_ops` to NULL, 'packed' sets `cigar` to NULL, and 'both' populates both fields.
+    - `sassy_grep` streams one long ASCII value in overlapping 1 KiB regions and returns all qualifying endpoints, so an outer `LIMIT` stops the search early.
+    - The SIMD backend (scalar, AVX2, AVX-512 or NEON) is chosen at runtime; set `SASSY_C_BACKEND` before the first search to force one. `sassy_backend_info()` reports what is compiled, supported and selected.
+    - Loading executes no SQL and writes nothing to the database, so read-only databases are supported. MinGW and Rtools x86-64 builds use static Rust/GCC runtimes and Windows system DLLs. MSVC is unsupported. The default DuckDB-Wasm MVP and EH bundles are supported with scalar search and a fail-stop Rust panic ABI; the optional COI/threads bundle remains excluded pending an atomics-enabled Rust standard library.

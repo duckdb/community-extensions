@@ -1,0 +1,225 @@
+extension:
+  name: lpts
+  description: Optimized-plan inspection and cross-system SQL transpilation
+  version: 1.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - ila
+
+repo:
+  github: cwida/lpts
+  ref: 6845654b3ce21922f83f226937abd3aa9a790a70
+
+docs:
+  hello_world: |
+    -- Set both input and output dialects to DuckDB for a first round trip.
+    D SET lpts_input_dialect = 'duckdb';
+    D SET lpts_dialect = 'duckdb';
+
+    D CREATE TABLE users (id INTEGER, name VARCHAR, age INTEGER);
+    D INSERT INTO users VALUES (1, 'Alice', 30), (2, 'Bob', 22), (3, 'Carol', 28);
+
+    -- Return the optimized plan as readable CTE SQL.
+    D PRAGMA lpts('SELECT name FROM users WHERE age > 25');
+    WITH
+    t0_scan (t0_name) AS (
+        SELECT  "name"
+        FROM    memory.main.users
+        WHERE   (age>25)
+    )
+    SELECT  t0_name AS "name"
+    FROM    t0_scan;
+
+    -- The same output, exposed as a first-class EXPLAIN statement.
+    D EXPLAIN (FORMAT SQL) SELECT name FROM users WHERE age > 25;
+    ┌─────────────────────────────┐
+    │┌───────────────────────────┐│
+    ││  Optimized Logical Plan   ││
+    │└───────────────────────────┘│
+    └─────────────────────────────┘
+    WITH
+    t0_scan (t0_name) AS (
+        SELECT  "name"
+        FROM    memory.main.users
+        WHERE   (age>25)
+    )
+    SELECT  t0_name AS "name"
+    FROM    t0_scan;
+
+    -- Turn on transparent round-trip checking. Every top-level SELECT is now
+    -- rewritten by LPTS and its result compared against the original; a wrong
+    -- rewrite raises an error. The query otherwise returns its normal rows.
+    D SET lpts_check = true;
+    D SELECT name FROM users WHERE age > 25;
+    ┌─────────┐
+    │  name   │
+    │ varchar │
+    ├─────────┤
+    │ Alice   │
+    │ Carol   │
+    └─────────┘
+
+  extended_description: |
+    LPTS is a DuckDB extension for **optimized-plan inspection** and
+    **cross-system SQL transpilation**. LPTS takes DuckDB's post-optimizer
+    logical plan and reconstructs equivalent SQL as a sequence of named CTEs.
+
+    ## PRAGMA Syntax
+
+    ```sql
+    PRAGMA lpts('<query>');
+    ```
+
+    ## `EXPLAIN (FORMAT SQL)`
+
+    LPTS also extends DuckDB's `EXPLAIN` with a `SQL` format. `EXPLAIN (FORMAT SQL)
+    <query>` returns the optimized logical plan rendered as equivalent CTE SQL — the
+    same output as `PRAGMA lpts`, but exposed as a first-class `EXPLAIN` statement.
+    The CLI prints the SQL as plain multi-line text, while JDBC, Python, and other
+    clients receive the standard two-column (`explain_key`, `explain_value`) EXPLAIN
+    result. It honors `lpts_dialect` just like `PRAGMA lpts`.
+
+    ```sql
+    EXPLAIN (FORMAT SQL) SELECT name FROM users WHERE age > 25;
+    ```
+
+    ```text
+    ┌─────────────────────────────┐
+    │┌───────────────────────────┐│
+    ││  Optimized Logical Plan   ││
+    │└───────────────────────────┘│
+    └─────────────────────────────┘
+    WITH
+    t0_scan (t0_name) AS (
+        SELECT  "name"
+        FROM    memory.main.users
+        WHERE   (age>25)
+    )
+    SELECT  t0_name AS "name"
+    FROM    t0_scan;
+    ```
+
+    LPTS plans the query through DuckDB, optimizes it, then serializes the
+    optimized logical plan.
+
+    ## Supported Dialects
+
+    The dialect settings accept these values:
+
+    | Dialect | Accepted values |
+    |---|---|
+    | DuckDB | `duckdb` |
+    | PostgreSQL | `postgres`, `postgresql` |
+    | Spark SQL | `spark` |
+    | Hive | `hive` |
+    | Trino / Presto | `trino`, `presto` |
+    | Snowflake | `snowflake` |
+    | BigQuery | `bigquery`, `bq` |
+    | Redshift | `redshift` |
+    | MySQL / MariaDB | `mysql`, `mariadb` |
+
+    ## Use Cases
+
+    - Inspect optimized DuckDB plans as SQL.
+    - Debug optimizer rewrites such as filter pushdown, join reordering, top-N,
+      materialized CTEs, and subquery decorrelation.
+    - Generate a CTE program that communicates the optimized execution shape.
+    - Emit SQL for another engine with `lpts_dialect`.
+    - Convert other SQL dialect syntax to DuckDB SQL with `lpts_input_dialect`,
+      then execute or inspect it.
+
+    ## Supported Operators
+
+    LPTS is intended to cover all logical operators produced by optimized DuckDB
+    SELECT plans. The current regression suite round-trips all 22 TPC-H queries
+    and exercises joins, aggregates, windows, set operations, CTEs, recursive
+    CTEs, table functions, DuckLake scans, and inserts.
+
+    Unsupported optimizer edge cases fail explicitly with `NotImplementedException`.
+
+    ## Examples
+
+    ```sql
+    D CREATE TABLE events (id INTEGER, ts TIMESTAMP, name VARCHAR, "order" INTEGER);
+    D INSERT INTO events VALUES
+        (1, TIMESTAMP '2024-01-15 08:09:10', 'alpha', 10),
+        (11, TIMESTAMP '2024-01-16 11:12:13', 'beta', 20);
+
+    -- Render generated SQL for PostgreSQL.
+    D SET lpts_dialect = 'postgres';
+
+    -- Return generated CTE SQL directly in the shell.
+    D PRAGMA lpts(
+        'SELECT strftime(ts, ''%Y-%m-%d'') AS day
+         FROM events
+         WHERE id > 10
+         ORDER BY day'
+    );
+
+    -- Return generated CTE SQL as a table row, useful in scripts and tests.
+    D SELECT sql
+    FROM lpts_query(
+        'SELECT strftime(ts, ''%Y-%m-%d'') AS day
+         FROM events
+         WHERE id > 10
+         ORDER BY day'
+    );
+    ```
+
+    ```text
+    WITH
+    t0_scan (ts) AS (
+        SELECT  ts
+        FROM    events
+        WHERE   (id>10)
+    )
+    SELECT    to_char(ts, 'YYYY-MM-DD') AS "day"
+    FROM      t0_scan
+    ORDER BY  to_char(ts, 'YYYY-MM-DD') ASC NULLS LAST;
+    ```
+
+    ```sql
+    -- Switch back to DuckDB rendering.
+    D SET lpts_dialect = 'duckdb';
+
+    -- Turn on transparent round-trip checking, then run the query directly.
+    -- LPTS rewrites every top-level SELECT and compares its result bag against
+    -- the original, raising on a mismatch; the query returns its normal rows.
+    D SET lpts_check = true;
+    D SELECT name FROM events WHERE id > 10 ORDER BY name;
+    ```
+
+    ```text
+    ┌─────────┐
+    │  name   │
+    │ varchar │
+    ├─────────┤
+    │ beta    │
+    └─────────┘
+    ```
+
+    ```sql
+    -- Print the AST tree to stdout for interactive debugging.
+    D PRAGMA print_ast('SELECT name FROM events WHERE id > 10 ORDER BY name');
+
+    -- Return the AST tree as a table row, useful for tools and regression tests.
+    D SELECT ast
+    FROM print_ast_query('SELECT name FROM events WHERE id > 10 ORDER BY name');
+    ```
+
+    ```sql
+    -- Normalize MySQL syntax before DuckDB parses and plans the query.
+    D SET lpts_input_dialect = 'mysql';
+
+    -- Return source-dialect SQL normalized to DuckDB SQL.
+    D SELECT sql
+    FROM lpts_normalize_query(
+        'SELECT `order`, DATE_FORMAT(ts, ''%Y-%m-%d %H:%i:%s'') AS formatted FROM events LIMIT 5, 10'
+    );
+    ```
+
+    ```text
+    SELECT "order", strftime(ts, '%Y-%m-%d %H:%M:%S') AS formatted FROM events LIMIT 10 OFFSET 5
+    ```

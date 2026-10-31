@@ -1,7 +1,7 @@
 extension:
   name: decimal_arithmetic
   description: Extension that adds support special decimal arithmetic functions 
-  version: 0.0.2
+  version: 0.0.3
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: duckdb/duckdb-decimal-arithmetic
-  ref: f446d50383a7034cbe0f9bc106ecdb0ed68ec2f4 
+  ref: 66d59be49f75bcb164fd4f26b899cf9f075c4c58 
 
 docs:
   hello_world: |

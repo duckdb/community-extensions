@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_fuzzycomplete.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/fuzzycomplete/).
 extension:
   build: cmake
   description: Fuzzy matching based autocompletion
@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 74630cc8548a8ee6b32129abdc8bd70e1cf2bf87
   github: query-farm/fuzzycomplete
-  ref: 0a4d7e9e8afd8fbb5ca045d3af87f593a98c8278
+  ref: b632926cf27221b3afbbdd7b7f2dcc3e55f21601
+  variegata: 040136c2f5148f1dcd4f4ac60921ed2c40c615bb

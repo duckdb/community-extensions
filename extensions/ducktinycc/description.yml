@@ -1,7 +1,7 @@
 extension:
   name: ducktinycc
-  description: DuckDB C extension for in-process JIT compiled C UDFs via TinyCC — self-contained, no external runtime required
-  version: 0.2.0
+  description: Compile C from SQL into scalar, aggregate, and table functions in-process with an embedded TinyCC; no compiler or runtime files needed
+  version: 0.3.0
   language: C
   build: cmake
   license: MIT
@@ -13,29 +13,40 @@ extension:
 
 repo:
   github: sounkou-bioinfo/DuckTinyCC
-  ref: 5ab6fa819a3e250d0c62a2d7ac19788ae13b6ce7
+  ref: 6471af8132ff2843a73ed9af07a9313f0544f378
 
 docs:
   hello_world: |
-    -- Load the extension
     LOAD ducktinycc;
 
-    -- Compile and register a simple C function as a SQL UDF
-    SELECT ok, mode, code
+    -- Compile a C function and register it as collatz_steps(BIGINT) -> BIGINT
+    SELECT ok, code
     FROM tcc_module(
       mode := 'quick_compile',
-      source := 'const char *hello_from_c(void){ return "hello from C"; }',
-      symbol := 'hello_from_c',
-      sql_name := 'hello_from_c',
-      return_type := 'varchar',
-      arg_types := []
+      source := 'int64_t collatz_steps(int64_t n) {
+        int64_t steps = 0;
+        if (n < 1) return -1;
+        while (n != 1) { n = (n & 1) ? 3 * n + 1 : n / 2; steps++; }
+        return steps;
+      }',
+      symbol := 'collatz_steps',
+      sql_name := 'collatz_steps',
+      return_type := 'i64',
+      arg_types := ['i64']
     );
 
-    -- Call the registered C UDF 
-    SELECT hello_from_c() AS msg;
+    -- Longest Collatz chain below one million: 837799, 524 steps
+    SELECT arg_max(range, collatz_steps(range)) AS n, max(collatz_steps(range)) AS steps
+    FROM range(1, 1000000);
+
+    -- Every DuckTinyCC function, mode, type token, and C helper
+    SELECT kind, name, description FROM tcc_help();
 
   extended_description: |
-    DuckTinyCC compiles and registers C scalar UDFs from SQL using TinyCC (libtcc), in-process.
+    DuckTinyCC compiles C from SQL using TinyCC (libtcc), in-process, and registers it as a scalar,
+    aggregate (kind := 'aggregate'), or table function (kind := 'table').
+    `SELECT * FROM tcc_help()` lists every function, tcc_module mode, type token, and C helper
+    with an example. Worked examples: https://sounkou-bioinfo.github.io/DuckTinyCC/cookbook.html
 
     Main SQL entrypoints:
 
@@ -44,12 +55,13 @@ docs:
     | tcc_module(...) | Session config, build staging, codegen, compile, registration |
     | tcc_system_paths(...) | Show effective TinyCC include/library search paths |
     | tcc_library_probe(...) | Probe candidate library files and normalized link names |
+    | tcc_help() | List every function, mode, type token, and C helper with an example |
 
     Compile/codegen and C-type helper modes (via tcc_module):
 
     | Mode | Purpose |
     |---|---|
-    | quick_compile | One-shot source + codegen + compile + register |
+    | quick_compile | One-shot source + codegen + compile + register; kind := 'scalar', 'aggregate', or 'table' |
     | compile | Compile/register from staged session sources/bindings |
     | codegen_preview | Emit generated wrapper C source without compile/load |
     | c_struct | Generate + register struct helper UDFs from field specs |
@@ -93,12 +105,20 @@ docs:
     | tcc_module(...) | ok BOOLEAN, mode VARCHAR, phase VARCHAR, code VARCHAR, message VARCHAR, detail VARCHAR, sql_name VARCHAR, symbol VARCHAR, artifact_id VARCHAR, connection_scope VARCHAR |
     | tcc_system_paths(...) | kind VARCHAR, key VARCHAR, value VARCHAR, exists BOOLEAN, detail VARCHAR |
     | tcc_library_probe(...) | kind VARCHAR, key VARCHAR, value VARCHAR, exists BOOLEAN, detail VARCHAR |
+    | tcc_help() | kind VARCHAR, name VARCHAR, signature VARCHAR, description VARCHAR, example VARCHAR |
 
     Codegen/runtime model:
       - wrappers are generated from return_type/arg_types and registered through ducktinycc_register_signature(...)
-      - wrapper_mode supports row and batch execution paths
+      - wrapper_mode is row (default) or chunk_scalar_loop, a generated C loop over each data chunk
+      - returned strings, blobs, and list/struct payloads should be allocated with ducktinycc_result_alloc(size); the memory belongs to the executing chunk and is freed after DuckDB copies the results
       - code is compiled + relocated in-memory (no separate shared-library artifact)
       - registering the same sql_name twice in a session returns false/E_INIT_FAILED (consistent across platforms); use tcc_new_state to reset before re-registering
+
+    Aggregate and table functions:
+      - kind := 'aggregate' uses <symbol>_state, <symbol>_step, <symbol>_combine, <symbol>_final(state, R *out) returning 0 for NULL, and optional <symbol>_init / <symbol>_destroy
+      - kind := 'table' uses <symbol>_state, <symbol>_init(state, args...), <symbol>_next(state, C1 *, ..., Cm *) returning 0 at the end, and optional <symbol>_destroy; columns are the fields of a struct<...> return_type
+      - ducktinycc_malloc / ducktinycc_realloc / ducktinycc_free give heap memory for states without linking libc
+      - DuckDB crashes C-API aggregates under agg(x ORDER BY y) and OVER () frames (duckdb/duckdb#26109); avoid those forms
 
     Scalar UDF stability:
       - compile, quick_compile, and codegen_preview accept stability := 'consistent' | 'volatile'
@@ -118,8 +138,8 @@ docs:
     Community package excludes WASM targets.
     
     Additional Notes:
-    Generated and helper functions are SQL scalar UDFs; only tcc_module(...), tcc_system_paths(...), and tcc_library_probe(...) are table functions. 
+    Generated and helper functions are SQL scalar UDFs unless compiled with kind := 'aggregate' or 'table'; the extension's own table functions are tcc_module(...), tcc_system_paths(...), tcc_library_probe(...), and tcc_help(). 
     For library linking, we can pass short names (m, z, c), explicit filenames (libfoo.so, foo.dll, .a, .lib), or path-like values. 
-    Because DuckTinyCC uses -nostdlib by default, use library := 'c' when generated code needs libc symbols that are not otherwise injected. 
+    Because DuckTinyCC uses -nostdlib by default, use library := 'c' when generated code needs libc symbols that are not otherwise injected. TinyCC's libtcc1.a (compiler support: 64-bit float conversion, va_arg, stdatomic) is always linked. 
     Pointer helpers are low-level interop tools; for most workflows, handle-based access is safer than raw tcc_dataptr
     

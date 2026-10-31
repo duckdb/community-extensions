@@ -1,2 +1,4 @@
 function,description,comment,example
-spherical_angle,"Compute the angle between two points on the sphere","Input coordinates in radians (RA_1, DEC_1, RA2, DEC_2). Output angle in radians.","SELECT spherical_angle(0, 0, 1, 0);"
+spherical_angle,"Compute the angle between two points on the sphere. Prefer `angular_separation_rad` to be more explicit about units.","Input coordinates in radians (RA_1, DEC_1, RA_2, DEC_2). Output angle in radians.","SELECT spherical_angle(0, 0, 1, 0);"
+angular_separation_rad,"Compute the angular separation between two sky positions","Input coordinates in radians (RA_1, DEC_1, RA_2, DEC_2). Output separation in radians.","SELECT angular_separation_rad(0, 0, 1, 0);"
+angular_separation_deg,"Compute the angular separation between two sky positions","Input coordinates in degrees (RA_1, DEC_1, RA_2, DEC_2). Output separation in degrees.","SELECT angular_separation_deg(204.2538292, -29.8657611, 201.3650633, -43.0191125);"

@@ -23,6 +23,11 @@ on:
         required: false
         type: string
         default: ""
+      # Exact DuckDB commit to use when duckdb_version is not a real tag (e.g. untagged pre-releases)
+      duckdb_commit:
+        required: false
+        type: string
+        default: ""
       # Extension CI tools version to use
       ci_tools_version:
         required: true
@@ -108,7 +113,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: 'duckdb/duckdb'
-          ref: ${{ inputs.duckdb_version }}
+          ref: ${{ inputs.duckdb_commit || inputs.duckdb_version }}
           path: duckdb
           fetch-depth: 0
 
@@ -133,6 +138,8 @@ jobs:
           python3 -m pip install awscli
           if [ -n "${{ inputs.duckdb_tag }}" ]; then
             export DUCKDB_VERSION="${{ inputs.duckdb_tag }}"
+          elif [ -n "${{ inputs.duckdb_commit }}" ]; then
+            export DUCKDB_VERSION="${{ inputs.duckdb_version }}"
           else
             git config --global --add safe.directory '*'
             cd duckdb
@@ -141,10 +148,8 @@ jobs:
             export DUCKDB_VERSION=${DUCKDB_VERSION:=`git log -1 --format=%h`}
             cd ..
           fi
-          git fetch --tags --no-recurse-submodules
-          export EXT_VERSION=`git tag --points-at HEAD`
-          export EXT_VERSION=${EXT_VERSION:=`git log -1 --format=%h`}
-          ${{ inputs.deploy_script }} ${{ inputs.extension_name }} $EXT_VERSION $DUCKDB_VERSION ${{ matrix.duckdb_arch }} $BUCKET_NAME ${{inputs.deploy_latest || 'true' && 'false'}} ${{inputs.deploy_versioned || 'true' && 'false'}}
+          export EXT_VERSION="unversioned"
+          "${{ inputs.deploy_script }}" "${{ inputs.extension_name }}" "$EXT_VERSION" "$DUCKDB_VERSION" "${{ matrix.duckdb_arch }}" "$BUCKET_NAME" "${{inputs.deploy_latest || 'true' && 'false'}}" "${{inputs.deploy_versioned || 'true' && 'false'}}"
 
   clean_cache:
     needs:

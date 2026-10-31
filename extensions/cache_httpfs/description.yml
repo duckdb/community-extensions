@@ -1,19 +1,19 @@
 extension:
   name: cache_httpfs
   description: Read cached filesystem for httpfs
-  version: 0.13.5
+  version: 0.15.0
   language: C++
   build: cmake
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64;windows_amd64_mingw"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - dentiny
     - DouEnergy
 
 repo:
   github: dentiny/duck-read-cache-fs
-  andium: d3618a6fd8654db431f0f357cd08c89035411ad6
-  ref: 9abd76f61524bd3d0266600eaadebd687cdfd12b
+  ref: 62191f711413bb3cf50257b60dd4b44b2de0e3a0
+  variegata: 57ad2686b50c7338477dbb63bb6880631b8e66b2
 
 docs:
   hello_world: |

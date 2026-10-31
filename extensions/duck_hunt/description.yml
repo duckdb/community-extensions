@@ -1,17 +1,46 @@
 extension:
   name: duck_hunt
   description: Parse and analyze test results, build outputs, and CI/CD pipeline logs from 110+ formats with severity filtering, format auto-detection, and context extraction
-  version: 1.9.0
+  version: 1.14.0
   language: C++
   build: cmake
-  license: MIT
+  license: Apache-2.0
+  # Windows excluded: duckdb's vendored fmt (third_party/fmt) fails to compile on
+  # the build runner's MSVC (stdext::checked_array_iterator removed). Upstream
+  # issue, not duck_hunt code; no Windows artifact has ever been published for
+  # this extension. Revisit when duckdb ships a newer vendored fmt.
+  excluded_platforms: "windows_amd64;windows_amd64_mingw"
   maintainers:
     - teaguesterling
 
 repo:
   github: teaguesterling/duck_hunt
-  andium: da4f3d787f5bea20fba247b703b46abc9833ebeb
-  ref: da4f3d787f5bea20fba247b703b46abc9833ebeb
+  andium: 68ca1c4676f706980a6503c19b789f5224596b4d
+  ref: 72149b4fdabdfbf4bb231c81123832c428cc93a3
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 72149b4fdabdfbf4bb231c81123832c428cc93a3
+  # ref_next == ref (deliberate): validate the shipped release on v2.0-cyanoptera
+  # rather than skipping it.
+  #
+  # v1.14.0 (tag v1.14.0) RESTORES the v2.0 build. Cyanoptera made the
+  # ParserOptions default constructor private, which broke
+  # `Parser parser;` in duck_hunt_macros.cpp (it reaches ParserOptions() through a
+  # defaulted argument). The v2.0 line had not compiled since dd06255, and the leg
+  # was advisory, so main read green while that build was dead. v1.14.0 switches to
+  # cyanoptera's public context-free Parser::GetBuiltinParser(). Both v2.0 legs
+  # (linux_amd64, osx_arm64) are green on this exact commit, alongside 14 gating
+  # legs and 3794 assertions across 61 test files on the stable line.
+  #
+  # NOTE for whoever edits this next: the PREVIOUS ref_next comment claimed v2.0
+  # "BUILDS AND TESTS on this exact commit", and that was TRUE when written
+  # (2026-10-04, run 37180096622 green at 60f840ae). It became false on 2026-10-05
+  # when cyanoptera privatised ParserOptions. A ref_next claim has a shelf life:
+  # the next-line branch moves under a pinned ref, so "verified green" ages into
+  # "was green once". Re-check against a current cyanoptera leg before trusting it.
+  ref_next: 72149b4fdabdfbf4bb231c81123832c428cc93a3
 
 docs:
   readme: https://duck-hunt.readthedocs.io/

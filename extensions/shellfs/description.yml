@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_shellfs.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/shellfs/).
 extension:
   build: cmake
   description: Allow shell commands to be used for input and output
@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 4fef6d3d58068ce8ef6ed002441e0eca002cf372
   github: query-farm/shellfs
-  ref: c8088a72beea4c6ef3bdb637bfc2799d8944dd90
+  ref: aa33b9b8db9f838e535df467228593a2a95418da
+  variegata: d762423eea333f7ea044e4dbf4e86b8289d7e296

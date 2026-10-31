@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_airport.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/airport/).
 extension:
   build: cmake
   description: The Airport extension brings Arrow Flight support to DuckDB, enabling
@@ -17,4 +17,5 @@ extension:
 repo:
   andium: 3c12d74372ff8e7f5b4577da7dce3c36aca0bb6f
   github: query-farm/airport
-  ref: 8c0fcc5bc4de866c2ae7b20069db0e2fb06f6d86
+  ref: d6aed16bf9a1787c26602f146dd92debd939f33e
+  variegata: dc4208dc3c544169def364f179771e8ef9e7d444

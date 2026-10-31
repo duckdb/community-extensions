@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_radio.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/radio/).
 extension:
   build: cmake
   description: Allow interaction with event buses like Websocket and Redis publish/subscribe
@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 0ace6af84ec2289c23944857fd9aded06e65ec9c
   github: query-farm/radio
-  ref: ca2f4c3109e4f3afa115923862601a8b4cc3c619
+  ref: 9dda8c730b6f32f781e17f7b3cf527da115382a3
+  variegata: f8d93c04377284389e38937d9309c05ac71a123c

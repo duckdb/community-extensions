@@ -1,0 +1,27 @@
+extension:
+  name: documentdb
+  description: DuckDB extension for DocumentDB metadata and SQL integration, with schema inference scaffolding and collection access helpers.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  vcpkg_commit: bd93b56711a393a3c498991e023f94b7542832bb
+  license: MIT
+  maintainers:
+    - sandeepsnairms
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;
+
+repo:
+  github: documentdb/duckdb-documentdb
+  ref: 42543feb3f63847563623ee7ba8c6d6983ed5424
+
+docs:
+  hello_world: |
+    LOAD 'documentdb';
+
+    SELECT documentdb_version('documentdb') AS version;
+    SELECT documentdb_collections('app') AS collections;
+  extended_description: |
+    The duckdb-documentdb extension provides a DuckDB-facing integration layer for DocumentDB-style document collections.
+    The current implementation includes extension registration, collection metadata functions, and an initial schema inference
+    and scan-planning scaffold. It is intended to enable direct SQL querying and analytical access to document data without
+    an ETL step, while remaining compatible with the broader DuckDB extension model.

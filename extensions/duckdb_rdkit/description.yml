@@ -1,0 +1,14 @@
+extension:
+  name: duckdb_rdkit
+  description: Cheminformatics with RDKit for DuckDB - SMILES/SDF molecules, substructure search, and molecular descriptors.
+  version: 0.3.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - bodowd
+  excluded_platforms: "osx_amd64;windows_amd64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+repo:
+  github: bodowd/duckdb_rdkit
+  ref: aeb2f466efee14eb67096da8ebcfda566189eb6a
+

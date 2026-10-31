@@ -1,20 +1,21 @@
 extension:
   name: bigquery
   description: Integrates DuckDB with Google BigQuery, allowing direct querying and management of BigQuery datasets
-  version: 0.9.0
+  version: 0.13.0
   language: C++
   build: cmake
   license: MIT
   vcpkg_commit: "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0"
   requires_toolchains: "parser_tools"
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
+  opt_in_platforms: "linux_amd64_musl;linux_arm64_musl"
   maintainers:
     - hafenkran
 
 repo:
   github: hafenkran/duckdb-bigquery
   andium: ec5cf7b0342e7a46f7505c1176d8e46d963d7815
-  ref: c18ffbd5063b1b20ff71943dbcf3997ea3134b25
+  ref: 5439a6a58439af4c05064f80a28b159c5a1424e7
 
 docs:
   hello_world: |
@@ -35,9 +36,28 @@ docs:
     D SELECT * FROM bq.quacking_dataset.duck_tbl;
     ┌───────┬────────────────┐
     │   i   │       s        │
-    │ int32 │    varchar     │
+    │ int64 │    varchar     │
     ├───────┼────────────────┤
     │    12 │ quack 🦆       │
+    │    13 │ quack quack 🦆 │
+    └───────┴────────────────┘
+
+    -- Scan a BigQuery table directly without attaching a project
+    D SELECT * FROM bigquery_scan('my_gcp_project.quacking_dataset.duck_tbl') ORDER BY i;
+    ┌───────┬────────────────┐
+    │   i   │       s        │
+    │ int64 │    varchar     │
+    ├───────┼────────────────┤
+    │    12 │ quack 🦆       │
+    │    13 │ quack quack 🦆 │
+    └───────┴────────────────┘
+
+    -- Execute GoogleSQL in BigQuery and read the results in DuckDB
+    D SELECT * FROM bigquery_query('my_gcp_project', 'SELECT i, s FROM quacking_dataset.duck_tbl WHERE i = 13');
+    ┌───────┬────────────────┐
+    │   i   │       s        │
+    │ int64 │    varchar     │
+    ├───────┼────────────────┤
     │    13 │ quack quack 🦆 │
     └───────┴────────────────┘
 

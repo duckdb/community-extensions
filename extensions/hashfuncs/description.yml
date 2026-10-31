@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_hashfuncs.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/hashfuncs/).
 extension:
   build: cmake
   description: Non-cryptographic hash functions, xxHash, rapidhash and Murmurhash3
@@ -12,4 +12,5 @@ extension:
 repo:
   andium: 7680a4be752c2f0c09046eabacc384e0df66134a
   github: query-farm/hashfuncs
-  ref: 1c362d3b8b099ab902f95b0b1158ab9e17290a5a
+  ref: b8986ca6a0f384293a43f1fd0768d0e3ec1da7be
+  variegata: 6c8bd7c1161657a901f1f7c1909a60f69867f6af

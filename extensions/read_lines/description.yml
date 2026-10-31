@@ -1,7 +1,7 @@
 extension:
   name: read_lines
-  description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection, and context lines around matches.
-  version: 0.1.4
+  description: Read line-based text files with line numbers and efficient subset extraction. Supports glob patterns, line selection with context, and GitHub-style '#L12-24' fragments so a line range can be attached to any path, including URIs served by other extensions.
+  version: 0.4.3
   language: C++
   build: cmake
   license: MIT
@@ -9,8 +9,21 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_read_lines
+  ref: 63d27fec46a4c9baa98708cc1884329f20a597bf
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 63d27fec46a4c9baa98708cc1884329f20a597bf
+  # ref_next == ref (deliberate): validate the shipped release on DuckDB
+  # v2.0-cyanoptera. v0.4.3 lands the family-C port (named_parameter ->
+  # FunctionSignature typed-kwargs shim, #18) — verified by a real cyanoptera CI
+  # leg that builds AND tests on v2.0 on this exact commit (the merge tip), plus a
+  # drift guard that keeps both lines in the workflow.
+  ref_next: 63d27fec46a4c9baa98708cc1884329f20a597bf
+  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; ref is a
+  # v1.5.4 tree, so v0.4.0 ships on the v1.5.x track only.
   andium: 8075509bc21b936c228879ada22c8a46657109aa
-  ref: refs/tags/v0.1.4
 docs:
   hello_world: |
     -- Read all lines from a file
@@ -43,9 +56,12 @@ docs:
 
     **Functions:**
     - `read_lines(path)` - Read all lines from file(s) with glob support
-    - `read_lines(path, lines)` - Read selected lines (positional argument)
-    - `read_lines_lateral(path, lines)` - Lateral join variant for file paths from table columns
+    - `read_lines(path, lines[, trim])` - Read selected lines (positional arguments)
+    - `read_lines_lateral(path[, lines[, trim]])` - Lateral join variant for file paths from table columns
     - `parse_lines(text, ...)` - Parse lines from a string
+
+    Sources may be non-seekable (pipes/streams, e.g. shellfs commands), including
+    per-row commands in a correlated lateral join.
 
     **Output Schema:**
     | Column | Type | Description |
@@ -54,6 +70,13 @@ docs:
     | content | VARCHAR | Line content (preserves original line endings) |
     | byte_offset | BIGINT | Byte position of line start |
     | file_path | VARCHAR | Source file path (read_lines only) |
+
+    **Trimming** (`trim` argument; transforms content only, never changes which rows appear):
+    - `NULL` / `false` / `'none'` - Preserve exactly (default)
+    - `true` / `'endings'` - Strip the line terminator only
+    - `'right'` - Strip terminator and trailing spaces/tabs
+    - `'left'` - Strip leading spaces/tabs, keep terminator
+    - `'both'` - Both sides
 
     **Line Selection:**
     - Single line: `42` or `lines := 42`

@@ -1,0 +1,8 @@
+function,function_type,description,comment,example
+opendal_version,scalar,"Returns the version of the duckdb-opendal extension and the linked opendal-core library.",,"SELECT opendal_version();"
+opendal_stat,table,"Table function that returns metadata for a single path (such as mode, content_length, last_modified, and user_metadata).",,"SELECT * FROM opendal_stat('fs:///data/file.parquet');"
+opendal_ls,table,"Table function that lists files and subdirectories at a given path. Supports recursive listing.",,"SELECT * FROM opendal_ls('fs:///data/', recursive := true);"
+opendal_glob,table,"Table function that performs glob pattern-based file listing under a path. Matches files recursively if recursive is set.",,"SELECT * FROM opendal_glob('fs:///data/**/*.parquet');"
+opendal_du,table,"Table function that calculates and aggregates disk usage, returning size rollups grouped by parent directory.",,"SELECT * FROM opendal_du('fs:///data/');"
+opendal_copy,table,"Table function that copies a file from a source URL to a destination URL. Drains OpenDAL server-side copy where supported, otherwise streams in chunks.",,"SELECT * FROM opendal_copy('fs:///data/src.csv', 'fs:///data/dest.csv');"
+opendal_is_manually_set,scalar,"Returns true if the given URL scheme has been manually overridden to map directly to the OpenDAL filesystem.",,"SELECT opendal_is_manually_set('s3://bucket/file');"

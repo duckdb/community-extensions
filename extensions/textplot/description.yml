@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_textplot.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/textplot/).
 extension:
   build: cmake
   description: Enables text-based data visualization directly in SQL queries, including
@@ -14,4 +14,5 @@ extension:
 repo:
   andium: db7e2017352a63d43da4c9391321fb66f4d1e18b
   github: query-farm/textplot
-  ref: 90b106d2578d0bf6e18a47d7982aa8b3d9f40cd1
+  ref: e3b8772c5c5a15077f86e200f90b4999504a46d6
+  variegata: 6d3bd91ea6fd9c1df2947adf0f19b8d7cbab2571

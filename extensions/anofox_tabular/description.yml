@@ -1,6 +1,7 @@
 extension:
   name: anofox_tabular
-  description: A duckdb extension which combines data quality and data preparation tools for tabular data.
+  version: 2026.10.25
+  description: A DuckDB extension for data quality, validation and anomaly detection in SQL - 18 data quality checks (volume, nulls, freshness, schema drift, regex and value-set compliance, duplicates, referential integrity, time-aware baselines) with a table-driven check-suite runner, column profiling and correlations including nested types, hash- and join-based table diffing, anomaly detection with Isolation Forest (categorical, Extended IF, SCiForest), DBSCAN and explainable OutlierTree, PII detection and masking (17 types including IBAN, credit cards, API keys and NER-based names, organizations and locations), email validation with DNS/SMTP checks, international address parsing (libpostal), phone number validation (libphonenumber), EU VAT validation (28 countries), and currency-aware money arithmetic.
   language: C++
   build: cmake
   excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads;linux_arm64;linux_amd64_musl;" 
@@ -9,4 +10,34 @@ extension:
     - jrosskopf
 repo:
   github: DataZooDE/anofox-tabular
-  ref: 1afde321c83d27e5c26ab6b309cefed1aa4893d5
+  ref: 844277a7ee1dc778f3ef5db14a0185083cb3ecaa
+  variegata: 844277a7ee1dc778f3ef5db14a0185083cb3ecaa
+docs:
+  hello_world: |
+    -- Validate contact data
+    SELECT email_is_valid('user@example.com'), vat_is_valid('DE136695976');
+
+    -- Find and mask PII in free text
+    SELECT pii_mask('Reach jane@corp.com, card 4111 1111 1111 1111', 'redact');
+    -- Reach [EMAIL], card [CREDIT_CARD]
+
+    -- A data quality check: one pass/fail row with a message
+    CREATE TABLE orders AS
+      SELECT i AS id, CASE WHEN i % 50 = 0 THEN NULL ELSE i % 7 END AS customer_id,
+             CASE WHEN i = 77 THEN 99999.0 ELSE 20 + i % 13 END AS amount
+      FROM range(1, 501) t(i);
+    SELECT status, message FROM null_rate('orders', 'customer_id', 0.01);
+    -- fail | Null rate 0.02 (10/500) exceeds maximum 0.01
+
+    -- Anomaly scores with Isolation Forest (trees, sample size, contamination)
+    SELECT * FROM isolation_forest('orders', 'amount', 100, 256, 0.1, 'scores')
+    ORDER BY anomaly_score DESC LIMIT 3;
+  extended_description: |
+    Anofox Tabular brings data quality engineering into DuckDB: checks that return pass/fail
+    assertion rows, check suites defined in a SQL table, profiling, table diffs for migration
+    validation, and anomaly detection, plus validators and normalizers for emails, addresses,
+    phone numbers, EU VAT IDs, money and PII. Everything runs locally inside DuckDB.
+
+    Functions carry an `anofox_tab_` prefix and a short alias (`email_is_valid` for
+    `anofox_tab_email_is_valid`). Documentation:
+    https://github.com/DataZooDE/anofox-tabular/blob/main/docs/API_REFERENCE.md

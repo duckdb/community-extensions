@@ -1,20 +1,26 @@
 extension:
   name: yaml
   description: Read YAML files into DuckDB with native YAML type support, comprehensive extraction functions, and seamless JSON interoperability
-  version: 1.6.3
+  version: 1.9.2
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - teaguesterling
 
-  # yaml package issues for windows in previous vcpkg
+  # Pinned vcpkg for Windows yaml-cpp compatibility (older vcpkg had Windows build issues).
   vcpkg_commit: "656be05781442d5c4cb14978f6c7bf47b6e12b32"
   
 repo:
   github: teaguesterling/duckdb_yaml
-  andium: de60de55fb238c44661cef27373e82ab21920f43
-  ref: de60de55fb238c44661cef27373e82ab21920f43
+  andium: 0bdc812c064fa7b85617f75680d9c1177263f741
+  ref: 84f5de21e39eab9994c691d1ed06ade04d9e02df
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 84f5de21e39eab9994c691d1ed06ade04d9e02df
+  ref_next: 84f5de21e39eab9994c691d1ed06ade04d9e02df
 
 docs:
   hello_world: |

@@ -1,6 +1,5 @@
 docs:
-  extended_description: The HTTP Client Extension is experimental, use at your own
-    risk!
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/http_client/).
   hello_world: "-- GET Request Example w/ JSON Parsing\nWITH __input AS (\n  SELECT\n\
     \    http_get(\n        'https://httpbin.org/delay/0',\n        headers => MAP\
     \ {\n          'accept': 'application/json',\n        },\n        params => MAP\
@@ -48,8 +47,9 @@ extension:
   - Okabintaro
   - rustyconover
   name: http_client
-  version: '2025120401'
+  version: '2026082701'
 repo:
   andium: e9730fc28af6757f663246f06956a8cab7ad9a55
   github: query-farm/httpclient
-  ref: ae403862ff7fa4ed119f1baa855e579104eefe7b
+  ref: f8885ec49e233d0d246f3aad5406ca11fd148868
+  variegata: 9db208efbb157cd481d64b23b95b0fca1a86887f

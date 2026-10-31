@@ -1,0 +1,80 @@
+extension:
+  name: tantivy
+  description: BM25 full-text search for DuckDB — tokenization and Snowball stemming via tantivy, through DuckDB's C Extension API (quack-rs), no Arrow IPC
+  version: 0.2.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-tantivy
+  ref: a6b63f04351b8bd5f2ee979e0dc0a654d9620bdb
+  ref_next: a6b63f04351b8bd5f2ee979e0dc0a654d9620bdb
+
+docs:
+  hello_world: |
+    INSTALL tantivy FROM community;
+    LOAD tantivy;
+
+    CREATE TABLE docs(doc_id BIGINT, body VARCHAR);
+    INSERT INTO docs VALUES (0, 'the cat sat'), (1, 'a cat here'), (2, 'the dog barked');
+
+    SELECT * FROM bm25_search('docs', 'cat');
+    -- doc_id | score
+    --        1 | 0.92...
+    --        0 | 0.92...
+
+    SELECT * FROM bm25_search('docs', 'cat', top_k := 1);
+
+  extended_description: |
+    ## tantivy — BM25 Full-Text Search for DuckDB
+
+    A native Rust DuckDB loadable extension adding **BM25 full-text search**
+    (via [tantivy](https://github.com/quickwit-oss/tantivy), the Rust
+    search engine behind Quickwit) plus **tokenization** and
+    **Snowball stemming** for 18 languages — written against DuckDB's
+    C Extension API (ABI v1.2.0) through
+    [quack-rs](https://github.com/tomtom215/quack-rs). Table functions
+    bind to real tables and stream real columns: no Arrow IPC, no JSON
+    shims, no external search engine.
+
+    ### Functions
+
+    | Function | Description |
+    |---|---|
+    | `bm25_search(table, query, [id_column := ''], [text_column := 'body'], [language := 'english'], [top_k := 100])` | BM25 search over a table → `doc_id BIGINT, score DOUBLE` |
+    | `supported_languages()` | The 18 Snowball languages tantivy can stem |
+    | `tokenize(text)` / `tokenize(text, language)` | Tokenize (+ stem if language given) → `VARCHAR[]` |
+    | `stem(word, language)` | Snowball-stem a single word |
+    | `bm25_score(doc, query)` / `bm25_score(doc, query, language)` | BM25 score of one doc against a query |
+    | `tantivy_version()` | Version string of the embedded tantivy |
+
+    Unicode text is NFC-normalized on both the indexed documents and the
+    query, so canonically-equivalent spellings (precomposed vs decomposed)
+    match.
+
+    ### Hard limits (by design — clean SQL errors, never crashes or silent data loss)
+
+    | Limit | Value |
+    |---|---|
+    | `top_k` range | `[1, 100000]` |
+    | Rows indexed per `bm25_search` call | 1,000,000 (plus a proportional text-bytes cap) — add a `WHERE` clause for larger tables |
+    | Per-text length | 16 MiB |
+
+    Each call builds an in-RAM index; the extension is a high-precision
+    full-text search layer for medium-sized tables, not a persistent
+    search-engine replacement.
+
+    **Known limitation:** temporary tables and uncommitted transactions are
+    not visible to `bm25_search` (the C-API callbacks receive no caller
+    connection, so the extension queries through a connection it opens
+    itself). Permanent and attached tables work fine.
+
+    Windows and musl builds are excluded pending CI coverage, matching the
+    other quack-rs based community extensions.
+
+    →  [GitHub](https://github.com/alitrack/duckdb-tantivy)

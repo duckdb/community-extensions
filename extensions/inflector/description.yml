@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_inflector.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/inflector/).
 extension:
   build: cmake
   description: Powerful string case transformation and inflection capabilities directly
@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 888a4bc287db39ae1680269f963952696a28ccf1
   github: query-farm/inflector
-  ref: 7f812dfdac6be765d32e19a001978606cbd47640
+  ref: 69e604e8d73bb5b40b03d024d04572ba3a9fac49
+  variegata: c161cab900fe007f1a3ec049a5ba3faa6b68e196

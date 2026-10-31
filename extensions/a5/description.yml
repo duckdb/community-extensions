@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_a5.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/a5/).
 extension:
   build: cmake
   description: Hierarchical pentagonial indexing for geospatial data that is equal-area
@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 6266499b7b2cb8d827450dc5626725ba9449fd18
   github: query-farm/a5
-  ref: 4aac561c114316002afde75dee0ca543e053c272
+  ref: f3e8fba2b615b6e4cface8aedc85dfdd8b943ba7
+  variegata: 7dca3cbcb4e3ddeb462b4c371c095dfec817e3b6

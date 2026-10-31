@@ -1,7 +1,7 @@
 extension:
   name: prql
   description: Support for PRQL, the Pipelined Relational Query Language
-  version: 1.0.0
+  version: 1.1.0
   language: C++
   build: cmake
   requires_toolchains: "rust"
@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: ywelsch/duckdb-prql
-  ref: 0b411575bb454e96cd5bd8aa97ba1d73ed689a34
+  ref: 96562b93570a6ec9be8fac10b7cc0af91578b55c
+  variegata: 17368b6881efcd7a045dcbc26fc617edfaf2fd09
 
 docs:
   hello_world: |

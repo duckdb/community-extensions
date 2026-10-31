@@ -1,73 +1,151 @@
 extension:
   name: ducksmiles
-  description: Cheminformatics toolkit for DuckDB - SMILES, InChI, MOL/SDF, PDB, SELFIES, and Wildman-Crippen LogP from SQL
-  version: 0.2.0
+  description: Cheminformatics and CPU numerical analytics for DuckDB - molecular formats, descriptors, fingerprints, similarity, regression, statistical inference, experimental design, time series, reliability and model evaluation from SQL
+  version: 0.6.1
   language: C++
   build: cmake
+  requires_toolchains: rust
+  test_config: >-
+    {"test_env_variables":{"DUCKDB_TEST_ON_INIT":"LOAD '{BUILD_DIR}/extension/ducksmiles/ducksmiles.duckdb_extension';","T":"\"test/*\" --test-flags='--require ducksmiles --require json' --fail-require-skip","DUCKDB_TEST_STATICALLY_LOADED_EXTENSIONS":"['core_functions','json']"}}
   license: MIT
   maintainers:
     - nkwork9999
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: b34ffe7a20aeac2cc0c46debb3ab7179fdc726fc
+  ref: 46f357e7c6c2cd28dbf8a7d11dfe1c7f7c141dbc
 
 docs:
   hello_world: |
-    -- Validate SMILES
-    SELECT mol_is_valid('CCO');          -- true
-    SELECT mol_is_valid('invalid_xyz');  -- false
+    -- Parse SMILES and get molecular formula
+    SELECT mol_formula('CCO');
+    -- C2H6O
 
-    -- Molecular formula (Hill system)
-    SELECT mol_formula('CCO');           -- C2H6O  (ethanol)
-    SELECT mol_formula('c1ccccc1');      -- C6H6   (benzene)
-    SELECT mol_formula('O');             -- H2O    (water)
+    -- Calculate molecular weight
+    SELECT round(mol_weight('c1ccccc1'), 2);
+    -- 78.11
 
-    -- Molecular weight
-    SELECT round(mol_weight('c1ccccc1'), 2);  -- 78.11
+    -- Wildman-Crippen LogP and molar refractivity (match RDKit)
+    SELECT round(logp_crippen('CCO'), 4), round(mol_mr('c1ccccc1'), 3);
+    -- -0.0014, 26.442
 
-    -- Wildman-Crippen LogP (matches RDKit Crippen.MolLogP)
-    SELECT round(logp_crippen('c1ccccc1'), 4);            -- 1.6866 (benzene)
-    SELECT round(logp_crippen('CC(=O)Oc1ccccc1C(=O)O'), 4); -- aspirin
+    -- QED drug-likeness score (RDKit Chem.QED, weights_mean)
+    SELECT round(qed('CC(=O)Oc1ccccc1C(=O)O'), 3);
+    -- 0.550   (aspirin)
 
-    -- Expand implicit hydrogens to explicit [H] atoms in SMILES
-    SELECT add_hydrogens('CCO');         -- [C]([C]([O][H])([H])[H])([H])([H])[H]
+    -- Drug-likeness rule panels + toxicophore alerts
+    SELECT lipinski_violations('CC(=O)Oc1ccccc1C(=O)O'),
+           druglikeness_pass('CC(=O)Oc1ccccc1C(=O)O', 'veber'),
+           structural_alerts_json('O=Cc1ccccc1');
+    -- 0, 1, ["aldehyde","aldehyde_any"]
 
-    -- InChI layer extraction
-    SELECT inchi_formula('InChI=1S/C2H4O2/c1-2(3)4/h1H3,(H,3,4)');  -- C2H4O2
+    -- Morgan/ECFP fingerprint + similarity between two BLOBs
+    SELECT round(tanimoto_bit(morgan_fp_bits('CCO'), morgan_fp_bits('CCN')), 4);
+    -- 0.3333
+
+    -- In-silico docking: SMILES ligand vs PDB receptor -> ranked poses (JSON)
+    SELECT dock('CCO', :receptor_pdb, 1.7,0.2,0.5, 8,8,8, 20, 42);
+
+    -- Retrospective virtual-screening enrichment over a docked, labelled library
+    SELECT roc_auc(list(score), list(is_active)),
+           enrichment_factor(list(score), list(is_active), 0.01),
+           bedroc(list(score), list(is_active), 20.0)
+    FROM docked_library;
+
+    -- CPU PCA on a numeric matrix, returning versioned JSON
+    SELECT chem_pca([[1.0,2.0],[2.0,4.0],[3.0,6.0]], [1.0,0.0]);
 
     -- Convert SMILES to SELFIES (ML-friendly notation)
     SELECT smiles_to_selfies('CCO');
 
-    -- Batch processing
-    SELECT smiles, mol_formula(smiles) AS formula, mol_num_atoms(smiles) AS atoms
-    FROM (VALUES ('CCO'), ('c1ccccc1'), ('CC(=O)Oc1ccccc1C(=O)O')) AS t(smiles);
-
   extended_description: |
-    Cheminformatics toolkit for DuckDB — analyze molecular structures directly from SQL
+    Cheminformatics toolkit for DuckDB - analyze molecular structures directly from SQL
     without leaving your database. Pure Rust implementation with no external chemistry
     library dependencies (no RDKit required).
 
     **Supported Formats:**
-    - SMILES: Molecular validation, formula, weight, atom/bond counts, LogP
-    - InChI/InChIKey: Layer extraction, stereochemistry detection, skeleton matching
-    - MOL/SDF: V2000/V3000 block parsing, molecule counting
-    - PDB/CIF/XYZ: Protein structure analysis (atom, chain, residue, model counts)
-    - SELFIES: Bidirectional SMILES-SELFIES conversion for ML pipelines
+    - SMILES: validation, formula, weight, atom/bond counts, canonicalization, aromaticity
+    - InChI/InChIKey: layer extraction, stereochemistry detection, skeleton matching
+    - MOL/SDF: V2000/V3000 block parsing, 3D geometry, molecule counting
+    - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
+    - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **37 scalar SQL functions** for molecular property extraction, format conversion,
-    structural comparison, and physicochemical property prediction. Ideal for
-    cheminformatics datasets, drug discovery pipelines, and molecular ML feature
-    engineering.
+    **418 SQL overloads**, including the existing 151 molecular overloads and
+    267 CPU analytics functions. Molecular methods cover property extraction, format conversion,
+    structural comparison, fingerprinting, similarity search, drug-likeness /
+    toxicophore filtering, and structure-based virtual screening.
 
-    **LogP:** `logp_crippen()` implements the Wildman-Crippen atom-contribution
-    method (110 SMARTS patterns, 68 atom types) and matches RDKit's
-    `Crippen.MolLogP` exactly for small molecules.
+    Function descriptions, meaningful argument names, runnable examples and
+    categories are discoverable through `duckdb_functions()` for every overload.
+    Filter with `list_contains(categories, 'ducksmiles')` after loading the extension.
 
-    **Hydrogen expansion:** `add_hydrogens()` returns a SMILES with all implicit
-    H atoms broken out as explicit `[H]` vertices (verbose bracket form, round-trips
-    through the parser). Useful as a preprocessing primitive for any descriptor
-    that needs explicit hydrogens, and composes safely with `logp_crippen` (the
-    internal H expansion is idempotent).
+    **Descriptors (RDKit-faithful ports):**
+    - 21 structural-profile functions: fragments, formal charge, hydrogen and
+      bond counts, ring membership, elemental counts, fractions, isotope-aware
+      heavy-atom mass and mean heavy-atom degree. A pinned RDKit 2025.09.6
+      reference suite checks 4,510 inputs; this is finite-corpus validation,
+      not a guarantee of full RDKit parser/sanitizer equivalence.
+    - `logp_crippen()` / `mol_mr()` - Wildman-Crippen LogP and molar refractivity.
+    - `tpsa()` - Ertl topological polar surface area.
+    - `qed()` - QED drug-likeness (Bickerton 2012), a port of RDKit `Chem.QED`.
+    - Lipinski set: `num_h_donors()`, `num_h_acceptors()`, `num_rotatable_bonds()`,
+      `fraction_csp3()`, `num_heteroatoms()`, and the full ring-count descriptor family.
 
-    **Architecture:** Rust (core logic, 5 crates) + C++ (DuckDB integration via FFI)
+    **Mass context and native graphs:**
+    - `formula_exact_mass()` parses supported flat formulas strictly.
+    - `adduct_neutral_mass()` and `adduct_precursor_mz()` perform versioned
+      arithmetic for 29 explicit adduct labels, including signed electron corrections.
+    - `mol_graph_json()` exports a versioned native atom/bond graph in input
+      order with explicit hydrogen vertices, isotope, charge and raw stereo tokens.
+      This sidecar is not pretrained-model tensors or full RDKit sanitization.
+    - Unsupported or malformed inputs return NULL.
+
+    **Fingerprints & similarity:**
+    - `morgan_fp_bits()` (Morgan/ECFP-style, radius 2 / 2048-bit default) and
+      `maccs_keys()` (167-bit MACCS). Morgan bit positions are not claimed to
+      be identical to RDKit's MorganGenerator.
+    - Full bit-fingerprint similarity family over raw BLOBs, faithful to RDKit
+      `DataStructs/BitOps.cpp`: `tanimoto_bit`, `dice_bit`, `cosine_bit`, `kulczynski_bit`,
+      `sokal_bit`, `mcconnaughey_bit`, `asymmetric_bit`, `braun_blanquet_bit`,
+      `russel_bit`, and asymmetric `tversky_bit(a, b, alpha, beta)`.
+
+    **Structure tools:** SMARTS substructure search/counting, Bemis-Murcko and generic
+    scaffolds, scaffold networks, ring-system extraction, maximum common substructure
+    (MCS), and MolHash standardization.
+
+    **Drug-likeness & toxicophore filtering:**
+    - `admet_json()` - a full report: descriptors plus six drug-likeness rule panels.
+    - `druglikeness_pass(smiles, rule)` for Lipinski, Veber, Ghose, Egan, Muegge and
+      Lead-likeness; `lipinski_violations()` for the Rule-of-Five count.
+    - `structural_alerts_json()` / `structural_alert_count()` over a curated
+      Brenk / PAINS reactive-group toxicophore catalogue.
+
+    **In-silico docking pipeline (structure-based virtual screening, end-to-end in SQL):**
+    - `smiles_to_pdbqt()` - 3D conformer generation (distance geometry + an L-BFGS-
+      minimised lite force field with aromatic-ring planarity) emitted as PDBQT.
+    - `prepare_receptor(pdb, ph)` - pH-dependent protonation states + polar-hydrogen
+      addition, so the receptor can donate H-bonds.
+    - `dock(smiles, pdb, cx, cy, cz, sx, sy, sz, n_runs, seed [, ph])` - flexible
+      torsion-tree docking with an AutoDock-Vina-style scoring function and 3D affinity
+      maps; returns ranked poses with coordinates as JSON.
+    - Retrospective-validation harness: `roc_auc`, `enrichment_factor(fraction)`,
+      `bedroc(alpha)` to measure how well a docked library enriches known actives.
+
+    **CPU numerical analytics:**
+    - 267 functions for descriptive/inferential statistics, regression, mixed/latent
+      models, IRT/SEM, causal evaluation, experimental design, quality/reliability,
+      time series, functional preprocessing, numeric text analysis and spatial models.
+    - Numeric matrices and ordered parameter lists; versioned JSON results, reusable
+      fitted models, and NULL for invalid or resource-limited inputs. No GPU or Python
+      runtime is required. Existing molecular methods remain available.
+    - Complete SQL examples, parameter contracts, validation evidence and remaining
+      gaps are in the [README](https://github.com/nkwork9999/duckSMILES#cpu-analytics-complete-sql-api-reference).
+      These are bounded partial method contracts; full JMP equivalence is not claimed.
+
+    The new bounded CPU methods include censored regression, estimated spatial
+    covariance, static SVG histograms/box plots and ordered categorical ML with
+    saved prediction. JMP default Lasso, sandwich inference and full plot options
+    remain explicitly incomplete in the source README.
+
+    **Architecture:** Rust (core logic, zero external chemistry crates) + C++ (DuckDB
+    integration via FFI).

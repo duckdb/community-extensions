@@ -1,7 +1,7 @@
 extension:
   name: fit
   description: Read Garmin .fit files using DuckDB - GPS tracks, heart rate, power metrics, and fitness device data
-  version: 1.0.0
+  version: 1.0.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: antoriche/duckdb-fit-extension
-  ref: 157a5762bba68e84e9affa4af17af45ef15f4be3
+  ref: 3ec9b4137afdd103deb058109eb7eba189691356
 
 docs:
   hello_world:  |

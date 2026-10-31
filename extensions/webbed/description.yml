@@ -1,23 +1,40 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.0.1
+  version: 2.13.0
   language: C++
   build: cmake
   license: MIT
   requires_toolchains: vcpkg
+  # Windows included since v2.4.0: DuckDB v1.5.4's vendored fmt no longer uses the removed
+  # MSVC STL API (the old compile blocker), and the extension builds and passes tests on the
+  # windows_amd64 MSVC runner in CI.
   maintainers:
     - teaguesterling
-  vcpkg_commit: 68a1c387f660632f2f65cdb7e8cd093a08840e5d
 repo:
   github: teaguesterling/duckdb_webbed
-  andium: 1c5dbe889d0b6efaf1cda2e26ee370de2d1612c6
-  ref: 1c5dbe889d0b6efaf1cda2e26ee370de2d1612c6
+  ref: 84819a583d3d7f8095fa29e4f1f8094ca7b67a86
+  # variegata: the v1.5.6 track. scripts/build.py:46-48 routes duckdb_version
+  # v1.5.6 here. Same commit as ref deliberately -- this release builds and
+  # passes on both lines, so v1.5.6 users get the correctness fixes rather than
+  # staying frozen at v2.10.0. The registry no longer builds v1.5 automatically;
+  # per the DuckDB team, a v1.5.6 build needs this field plus contacting them.
+  variegata: 84819a583d3d7f8095fa29e4f1f8094ca7b67a86
+  # ref_next is now DORMANT: build_next.yml is `if: false`, and build.py's
+  # ref_next branch is unreachable while the registry's duckdb_version equals its
+  # DUCKDB_LATEST_STABLE. Kept and moved with ref anyway -- it costs nothing and
+  # restores prerelease validation if that job is re-enabled. A STALE ref_next is
+  # worse than an absent one: it validates the PREVIOUS release while reporting
+  # green, so it must never lag ref.
+  ref_next: 84819a583d3d7f8095fa29e4f1f8094ca7b67a86
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
     -- Load the extension
     LOAD webbed;
+
+    -- Read HTML files directly as structured document blocks
+    SELECT * FROM read_html_blocks('index.html');
 
     -- Read XML files directly into tables
     SELECT * FROM 'data.xml';
@@ -55,7 +72,7 @@ docs:
 
     **HTML Processing & Web Scraping**: Advanced HTML parsing capabilities with specialized functions for web data extraction. Extract text content with `html_extract_text()`, parse HTML tables into structured data with `html_extract_tables()`, extract links with metadata using `html_extract_links()`, and extract images with attributes using `html_extract_images()`. Perfect for web scraping and HTML document analysis workflows.
 
-    **Document Block Processing**: Convert HTML documents to and from structured block representations with `html_to_duck_blocks()` and `duck_blocks_to_html()`. Supports paragraphs, headings, code blocks, tables, lists, inline formatting (bold, italic, links, etc.), and frontmatter preservation. Integrates with the `duck_block_utils` extension for full Markdown support.
+    **Document Block Processing**: Convert HTML documents to and from structured block representations with `read_html_blocks()`, `parse_html_blocks()`, `html_to_duck_blocks()`, and `duck_blocks_to_html()`. Supports paragraphs, headings, code blocks, tables, lists, inline formatting (bold, italic, links, etc.), and frontmatter preservation. Integrates with the `duck_block_utils` extension for full Markdown support.
 
     **Smart Schema Inference & File Reading**: Automatically flatten XML/HTML documents into relational tables with intelligent type detection for dates, numbers, booleans, and nested structures. Functions like `read_xml()` and `read_html()` provide direct file-to-table conversion with configurable options including `datetime_format` presets, `nullstr` for custom NULL values, and schema customization. **SAX streaming** (v2.0) automatically handles files over 16MB using a push parser that processes XML in 64KB chunks — peak memory stays proportional to a single record, not the file size.
 
@@ -64,6 +81,7 @@ docs:
     - `xml_extract_text(xml, xpath)` - XPath-based text extraction
     - `xml_extract_elements(xml, xpath)` - Extract structured elements
     - `xml_extract_attributes(xml, xpath)` - Extract attributes as structs
+    - `xml_extract_text_each(xml, context_xpath, relative_xpath)` - One entry per context node, NULL where the relative path matches nothing, so parallel calls over sibling paths stay aligned for `unnest`
     - `xml_to_json(xml)` / `json_to_xml(json)` - Format conversions
     - `xml_stats(xml)` - Document statistics and analysis
     - `xml_validate_schema(xml, xsd)` - XSD schema validation
@@ -74,7 +92,9 @@ docs:
 
     **Key HTML Functions**:
     - `read_html(pattern)` - Read HTML files into tables
-    - `html_extract_tables(html)` - Extract HTML tables as structured data (this will often require post-processing given the possible complexity of HTML tables)
+    - `read_html_blocks(pattern)` - Read HTML files directly into flattened `duck_block` rows
+    - `parse_html_blocks(content)` - Parse HTML strings directly into flattened `duck_block` rows
+    - `html_extract_tables(html)` - Extract HTML tables as structured data
     - `html_extract_links(html)` - Extract all links with metadata
     - `html_extract_images(html)` - Extract images with attributes
     - `html_extract_text(html, xpath)` - XPath-based HTML text extraction
@@ -85,4 +105,4 @@ docs:
 
     See https://duckdb-webbed.readthedocs.io for comprehensive documentation and examples.
 
-    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 68 test suites with 2511 assertions, including DOM/SAX equivalence testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
+    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 109 test suites with 4104 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.

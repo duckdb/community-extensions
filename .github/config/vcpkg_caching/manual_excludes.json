@@ -1,13 +1,16 @@
 {
   "linux_amd64": [
+    "arrow"
   ],
   "linux_amd64_musl": [
+    "arrow"
   ],
   "linux_arm64": [
   ],
   "osx_amd64": [
   ],
   "osx_arm64": [
+    "arrow"
   ],
   "wasm_eh": [
   ],
@@ -16,6 +19,7 @@
   "wasm_threads": [
   ],
   "windows_amd64": [
+    "arrow"
   ],
   "windows_amd64_mingw": [
   ]

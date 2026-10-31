@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: moj-analytical-services/splink_udfs
-  ref: cf00056f887486d0aee0a853a764f9775aa40438
+  variegata: cf00056f887486d0aee0a853a764f9775aa40438
+  ref: c5b384ba3a62ea016e23c4fd408e012921595ea0
 
 docs:
   hello_world: |

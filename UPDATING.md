@@ -40,7 +40,7 @@ duckdb-stable-build:
   with:
     duckdb_version: v1.3.2
     ci_tools_version: v1.3.2
-    extension_name: quack
+    extension_name: waddle
 
 duckdb-next-build:
   name: Build extension binaries
@@ -48,7 +48,7 @@ duckdb-next-build:
   with:
     duckdb_version: main
     ci_tools_version: main
-    extension_name: quack
+    extension_name: waddle
 ```
 
 We can see that we are running two workflows that call into the same reusable workflow. 
@@ -57,13 +57,13 @@ Firstly we have the `duckdb-stable-build` workflow, which should target the late
 
 Secondly we have the `duckdb-next-build` workflow. This workflow has a very different purpose: it will try to build the extension against the latest version of DuckDB, to make sure that it still works. This is not used for any release process but is purely meant to inform the maintainer whether the extension is still compatible with latest DuckDB main.
 
-Now let's take a look at our extension descriptor in the community extensions repo, we take this sample from [the quack extension](`https://github.com/duckdb/community-extensions/blob/main/extensions/quack/description.yml`) which builds the [C++ extension template](https://github.com/duckdb/extension-template) as a community extension:
+Now let's take a look at our extension descriptor in the community extensions repo, we take this sample from [the waddle extension](https://github.com/duckdb/community-extensions/blob/main/extensions/waddle/description.yml) which builds the [C++ extension template](https://github.com/duckdb/extension-template) as a community extension:
 
 ```yaml
 extension:
-  name: quack
+  name: waddle
   description: Provides a hello world example demo
-  version: 0.0.1
+  version: 0.0.2
   language: C++
   build: cmake
   license: MIT
@@ -72,7 +72,7 @@ extension:
 
 repo:
   github: duckdb/extension-template
-  ref: c7d9ef3463376dc2b64959abf3a477eae2280142
+  ref: cfaf3e236008e782d27f4341b0ee036002d0a449
 ```
 
 ### Release process
@@ -82,6 +82,25 @@ Firstly, whenever an extension descriptor is updated, the extension is rebuilt a
 
 Secondly, whenever a new version of DuckDB is released, all community extensions are rebuilt as part of the release process. This will ensure the extensions are available
 right from the moment the new DuckDB release is out. We will take a closer look at how this works in the next section.
+
+### Versioned community extension installs
+
+Community extension descriptors point to a single active source ref through `repo.ref`. Updating this ref and merging the
+descriptor change makes that ref the source used for subsequent community extension builds.
+
+The community extension repository does not currently provide a way for users to install an older community extension
+source version by extension version, git tag, or previous descriptor ref. Rebuilding an extension publishes the resulting
+artifact for each DuckDB version and platform at the active community extension repository path. If the same extension is
+rebuilt for the same DuckDB version and platform, the newly built artifact replaces the artifact DuckDB will install from
+that path.
+
+The `deploy_versioned` workflow input controls whether deployment also uploads an artifact under a versioned artifact
+path, but it does not make historical community extension versions selectable through the standard DuckDB community
+extension install flow.
+
+Maintainers who need users to pin or install historical extension builds should publish those builds outside the standard
+community extension descriptor path, for example through separate custom extension repositories, separate channels, or
+direct artifact URLs.
 
 ## Upgrading an extension to a new DuckDB version
 When a new DuckDB version is (about to be) released, there are two states your extension can be in, which we will illustrate using the example extension described before:
@@ -120,7 +139,7 @@ duckdb-stable-build:
 ```yaml
 repo:
   github: duckdb/extension-template
-  ref: c7d9ef3463376dc2b64959abf3a477eae2280142
+  ref: cfaf3e236008e782d27f4341b0ee036002d0a449
   ref_next: <latest commit of vx.y-codename of your repo>
 ```
 

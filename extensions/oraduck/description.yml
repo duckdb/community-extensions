@@ -1,0 +1,60 @@
+extension:
+  name: oraduck
+  description: Read Oracle tables in parallel (ATTACH, oraduck_scan) and load query results into Oracle through the OCI Direct Path API
+  version: '0.4.0'
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - hugues31
+  # Oracle Instant Client, loaded at run time, needs glibc and exists for x86_64 and arm64 Linux and
+  # x86_64 Windows; macOS (Instant Client 23 only on Apple Silicon) is not tested yet
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_arm64;linux_amd64_musl;osx_amd64;osx_arm64"
+
+repo:
+  github: hugues31/oraduck
+  ref: 87d23f0664975ddca900ad39287d74634d554731
+
+install_notes: |
+  **Oracle Instant Client** (Basic or Basic Light, version 19 or later) is required to talk to Oracle.
+  OraDuck loads it at run time: put its directory in `LD_LIBRARY_PATH` (Linux) or `PATH` (Windows)
+  before starting DuckDB. On Linux, Instant Client also needs `libaio` and `libnsl`.
+  Without it, the extension loads and reports what is missing.
+
+docs:
+  hello_world: |
+    CREATE SECRET oracle_test (TYPE oraduck, USER 'scott', PASSWORD 'tiger', DSN 'dbhost:1521/ORCLPDB1');
+
+    -- Read: attach the Oracle database (read-only); filters and columns are pushed to Oracle
+    ATTACH '' AS ora (TYPE oraduck, SECRET oracle_test);
+    SELECT * FROM ora.MY_SCHEMA.MY_TABLE WHERE part_date = DATE '2024-05-07';
+
+    -- Or read one table with the table function
+    SELECT count(*) FROM oraduck_scan('MY_SCHEMA.MY_TABLE', connection := 'oracle_test');
+
+    -- Write: the target table must exist in Oracle; columns are matched by name
+    COPY (SELECT id, amount, operation_date, label FROM source)
+    TO 'MY_SCHEMA.MY_TABLE' (FORMAT oraduck, CONNECTION 'oracle_test');
+  extended_description: |
+    OraDuck reads Oracle tables into DuckDB and loads DuckDB query results into Oracle, both through OCI
+    with one Oracle session per DuckDB thread and no intermediate file.
+
+    Reading:
+    - `ATTACH '' AS ora (TYPE oraduck, SECRET '<secret>')` exposes an Oracle database as a read-only
+      catalog (schemas are Oracle users; tables, views and synonyms); `oraduck_scan('SCHEMA.TABLE', …)`
+      reads one table or view
+    - projection and filter pushdown: only the selected columns are fetched, and `WHERE` conditions that
+      Oracle evaluates exactly like DuckDB run in Oracle, which prunes partitions
+    - parallel sessions over ROWID ranges (from DBA_EXTENTS or DBMS_PARALLEL_EXECUTE) or ORA_HASH(ROWID),
+      with a common `AS OF SCN` snapshot when the user may read the current SCN
+    - exact types: NUMBER(p,s) as integers or DECIMAL, DATE/TIMESTAMP, CLOB/BLOB read inline with
+      bounded memory, UTF-8 validated strings
+
+    Writing:
+    - `COPY ... TO 'SCHEMA.TABLE' (FORMAT oraduck, CONNECTION '<secret>')` through the OCI Direct Path
+      API, the engine behind `sqlldr direct=true`; all sessions commit together, any error aborts the load
+    - on Oracle 19c, 1.2 to 3.2 times faster than a CSV export loaded by parallel direct path SQL*Loader
+    - indexed tables need `SKIP_INDEX_MAINTENANCE true`, which leaves their indexes UNUSABLE until rebuilt
+
+    Options, type mapping, recommended Oracle privileges, benchmarks and limitations:
+    https://github.com/hugues31/oraduck

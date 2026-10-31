@@ -1,0 +1,40 @@
+extension:
+  name: duck_pinyin
+  description: Chinese pinyin conversion, polyphonic phrase disambiguation, and ordered pinyin matching
+  version: "0.1"
+  language: Rust
+  build: cargo
+  license: MIT AND CC-BY-SA-4.0
+  maintainers:
+    - DeoLeung
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;linux_amd64_musl;linux_arm64_musl;osx_amd64;windows_arm64"
+
+repo:
+  github: aiyou178/duck_pinyin
+  ref: 3f92fbd1a11c5e321a681c05e7343892e3dc24ed
+
+docs:
+  hello_world: |
+    LOAD duck_pinyin;
+    SELECT pinyin_char_romanize('我ABC们123');
+    SELECT pinyin_word_romanize('重庆银行');
+    SELECT pinyin_matches('wu han huang he lou', 'whh');
+  extended_description: |
+    Native Chinese pinyin conversion and ordered phrase matching, ported from
+    pg_pinyin with pinned embedded dictionaries. Includes character conversion,
+    longest-phrase polyphonic disambiguation, batch documents, pre-tokenized
+    input, and explicit per-call dictionary overrides.
+
+    Query modes include full syllables, initials, autocomplete, automatic, and
+    legacy compatibility parsing. Ordered matching supports a total skipped-token
+    budget. The core extension is independent of PostgreSQL and FTS.
+
+    An optional official FTS/BM25 SQL example is provided separately. Its current
+    dynamic-term macro has a documented correlated-query scaling limitation;
+    consult the repository benchmarks before using that example on large tables.
+
+    Extension code is MIT licensed. Embedded phrase dictionary data includes
+    CC-BY-SA-4.0 material. Source attribution, pinned data manifests, and complete
+    data license texts are included in the repository and release archives.
+    Qualified with DuckDB 2.0.0 using the legacy V1 C API entrypoint.

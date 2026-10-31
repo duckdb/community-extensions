@@ -11,7 +11,8 @@ extension:
     - evertlammerts
 repo:
   github: paleolimbot/duckdb-nanoarrow
-  ref: 42e4199a67c4cd0789087562a025e87e7130fdc3
+  ref: e390b9b4f8a41e64e41488888defb27d8f1e1421
+  variegata: 42e4199a67c4cd0789087562a025e87e7130fdc3
 
 docs:
   hello_world: |

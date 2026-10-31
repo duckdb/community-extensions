@@ -1,0 +1,8 @@
+function,description,comment,example
+lttb,Downsample points to n representative points using Largest-Triangle-Three-Buckets,"Sorts input by x before sampling.","SELECT lttb(x, y, 4) FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);"
+largestTriangleThreeBuckets,Alias for lttb with ClickHouse-compatible naming,"Sorts input by x before sampling.","SELECT largestTriangleThreeBuckets(x, y, 4) FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);"
+lttb_sorted,Downsample already-sorted points to n representative points,"Caller must guarantee input is ordered by x.","SELECT lttb_sorted(x, y, 4) FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);"
+lttb_indices,Return selected sorted-position indices from LTTB sampling,"Indices are returned as BIGINT[].","SELECT lttb_indices(x, y, 4) FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);"
+minmax_lttb,Downsample using MinMax preselection followed by LTTB,"Approximate method for large inputs. Pass NULL for the default minmax_ratio.","SELECT minmax_lttb(x, y, 4, NULL) FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);"
+minmax_lttb_sorted,Downsample already-sorted points using MinMax preselection followed by LTTB,"Approximate method for large inputs. Caller must guarantee input is ordered by x.","SELECT minmax_lttb_sorted(x, y, 4, NULL) FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);"
+bucket_stats,Return per-bucket statistical summaries over y with x range boundaries,"Returns STRUCT(bucket_start, bucket_end, count, min, max, mean, std, first, last)[].","SELECT bucket_stats(x, y, 3) FROM (VALUES (1, 0), (2, 10), (3, -5), (4, 8), (5, 0)) AS t(x, y);"

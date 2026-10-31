@@ -2,16 +2,16 @@ name: Community Extension Build
 on:
   pull_request:
     paths-ignore:
-      - '**'
-      - '!scripts/build.py'
-      - '!.github/workflows/build.yml'
-      - '!extensions/*/description.yml'
+      - "**"
+      - "!scripts/build.py"
+      - "!.github/workflows/build.yml"
+      - "!extensions/*/description.yml"
   push:
     paths-ignore:
-      - '**'
-      - '!scripts/build.py'
-      - '!.github/workflows/build.yml'
-      - '!extensions/*/description.yml'
+      - "**"
+      - "!scripts/build.py"
+      - "!.github/workflows/build.yml"
+      - "!extensions/*/description.yml"
   workflow_dispatch:
     inputs:
       extension_name:
@@ -20,7 +20,11 @@ on:
         type: string
       ci_tools_version:
         type: string
+      reduced_ci_mode:
+        type: string
       duckdb_tag:
+        type: string
+      duckdb_commit:
         type: string
       deploy:
         type: string
@@ -40,7 +44,11 @@ on:
         type: string
       ci_tools_version:
         type: string
+      reduced_ci_mode:
+        type: string
       duckdb_tag:
+        type: string
+      duckdb_commit:
         type: string
       deploy:
         type: string
@@ -52,6 +60,14 @@ on:
         required: false
         type: boolean
         default: false
+      require_ref_next:
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}-${{ github.head_ref || '' }}-${{ github.base_ref || '' }}-${{ inputs.extension_name || '' }}-${{ github.ref != 'refs/heads/main' || github.sha }}-${{ inputs.duckdb_version || '' }}
+  cancel-in-progress: true
 
 jobs:
   prepare:
@@ -66,41 +82,47 @@ jobs:
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
-      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ case((inputs.duckdb_version || 'v1.5.2') == 'v1.5.2', steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && '84bab45d415d22042bd0b9081aea57f362da3f35' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT, steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT == '' && 'ce613c41372b23b1f51333815feb3edd87ef8a8b' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT) }}
+      # Release 2025.12.12 for 1.5.5, else 2026.06.24
+      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT != '' && steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT || ((inputs.duckdb_version || 'd54cbbe3df17e8e5ce68312f483b4155836112aa') == 'v1.5.6' && '84bab45d415d22042bd0b9081aea57f362da3f35' || 'cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3') }}
     env:
-      DUCKDB_LATEST_STABLE: 'v1.5.2'
-      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v1.5.2' }}
+      DUCKDB_LATEST_STABLE: 'v2.0.0'
+      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v2.0.0' }}
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Get all changed description files
-      id: changed-files
-      uses: tj-actions/changed-files@v46
-      with:
-        files: |
-          extensions/*/description.yml
+      - name: Get all changed description files
+        id: changed-files
+        uses: tj-actions/changed-files@v46
+        with:
+          files: |
+            extensions/*/description.yml
 
-    - name: Parse description files
-      id: parse
-      env:
-        ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
-        PIP_BREAK_SYSTEM_PACKAGES: 1
-      run: |
-        pip install pyyaml
-        # scripts/build.py takes DUCKDB_VERSION from environment
-        python scripts/build.py
-        cat env.sh >> $GITHUB_OUTPUT
-        echo `cat $GITHUB_OUTPUT`
+      - name: Parse description files
+        id: parse
+        env:
+          ALL_CHANGED_FILES: ${{ github.event_name == 'workflow_dispatch' && format('extensions/{0}/description.yml', inputs.extension_name) || steps.changed-files.outputs.all_changed_files }}
+          PIP_BREAK_SYSTEM_PACKAGES: 1
+          COMMUNITY_EXTENSION_REQUIRE_REF_NEXT: ${{ inputs.require_ref_next }}
+        run: |
+          pip install pyyaml
+          # scripts/build.py takes DUCKDB_VERSION from environment
+          python scripts/build.py
+          cat env.sh >> $GITHUB_OUTPUT
+          echo `cat $GITHUB_OUTPUT`
 
   build:
     needs: prepare
-    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v1.5-variegata
-    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' }}
+    uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v2.0-cyanoptera
+    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' && needs.prepare.outputs.COMMUNITY_EXTENSION_REF != '' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.5.2' }}
-      duckdb_tag: ${{ inputs.duckdb_tag || '' }}
-      ci_tools_version: ${{ inputs.ci_tools_version || 'v1.5-variegata' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0' }}
+      # no tag currently for v2.0.0-alpha46057; re-add duckdb_tag and remove duckdb_commit when bumping to official 2.0
+      # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
+      duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && 'd54cbbe3df17e8e5ce68312f483b4155836112aa' || '') }}
+      ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
+      reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
+      
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       test_config: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
@@ -122,7 +144,7 @@ jobs:
     uses: ./.github/workflows/generate_docs.yml
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.5.2' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'd54cbbe3df17e8e5ce68312f483b4155836112aa' }}
 
   archive:
     needs:
@@ -142,13 +164,16 @@ jobs:
       - prepare
       - build
     uses: ./.github/workflows/_extension_deploy.yml
-    if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_DEPLOY != '' && inputs.deploy != 'false' }}
+    if: ${{ github.ref_name == 'main' && needs.prepare.outputs.COMMUNITY_EXTENSION_DEPLOY != '' && inputs.deploy != 'false' }}
     secrets: inherit
     with:
       deploy_latest: true
-      duckdb_version: ${{ inputs.duckdb_version || 'v1.5.2' }}
-      duckdb_tag: ${{ inputs.duckdb_tag || '' }}
-      ci_tools_version: ${{ inputs.ci_tools_version || 'v1.5-variegata' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0' }}
+      # re-add duckdb_tag when bumping to 2.0.0
+      # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
+      duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && 'd54cbbe3df17e8e5ce68312f483b4155836112aa' || '') }}
+      ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
+      reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       opt_in_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS}}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}

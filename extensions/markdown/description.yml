@@ -1,7 +1,7 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.4.2
+  version: 1.9.8
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,26 @@ extension:
   vcpkg_commit: bffcbb75f71553824aa948a7e7b4f798662a6fa7
 repo:
   github: teaguesterling/duckdb_markdown
+  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; every
+  # change since ships on the v1.5.x track via ref, which is a v1.5.6 tree as of
+  # v1.9.7 (was v1.5.4 when this note was written, then v1.5.5).
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
-  ref: refs/tags/v1.4.2
+  ref: 6fc7013de640191ea5248897df3b60a7bc07db67
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 6fc7013de640191ea5248897df3b60a7bc07db67
+  # ref_next is what makes the PRERELEASE leg actually build against DuckDB
+  # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
+  # the PR passes green having verified nothing on that line. A STALE ref_next is
+  # worse than an absent one: it validates the PREVIOUS release against the next
+  # line while reporting green, so it moves with ref on every release.
+  #
+  # Same commit as ref, and measured rather than assumed: v1.9.8's next-line legs
+  # are green on all eight arches against v2.0-cyanoptera (linux_amd64/arm64,
+  # osx_amd64/arm64, windows_amd64 + mingw, wasm_mvp/eh/threads).
+  ref_next: 6fc7013de640191ea5248897df3b60a7bc07db67
 docs:
   hello_world: |
     -- Load the extension
@@ -102,4 +120,4 @@ docs:
 
     Real-world benchmark: Processing 287 Markdown files (2,699 sections, 1,137 code blocks, 1,174 links) in 603ms.
 
-    Full test suite with 1108 passing assertions across 20 test files.
+    Full test suite with 2058 passing assertions across 60 test files.

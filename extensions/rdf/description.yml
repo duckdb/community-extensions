@@ -1,7 +1,7 @@
 extension:
   name: rdf
-  description: A DuckDB extension to read and write RDF
-  version: 2.7.0
+  description: Read and write RDF, query using SPARQL
+  version: 2.9.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: nonodename/duck_rdf
-  ref: 1e79fecbdfbd390bda11172ff87488b1c5c6526b
+  variegata: de345a85c40ccb023d09509181a597ba99c28ffe
+  ref: badeb50fd12f0004528352bb879f72e055e4dd7b 
 
 docs:
   hello_world: |
@@ -41,6 +42,12 @@ docs:
              'https://query.wikidata.org/sparql',
              'SELECT (COUNT(*) AS ?count) WHERE { ?item wdt:P31 wd:Q5 .}'
          );
+
+    -- 8. Execute a SPARQL query using against DuckDB tables using an R2RML mapping
+    SELECT * FROM execute_sparql(
+             'PREFIX ex: <http://example.com/ns#> SELECT ?e ?name WHERE { ?e ex:name ?name }',
+             'full_r2rml_mapping.ttl'
+         );
     
   extended_description: |
     The `duck_rdf` extension enables DuckDB to read and write RDF (Resource Description Framework)
@@ -50,7 +57,7 @@ docs:
     ### Supported Formats
 
     **Read:** Turtle (`.ttl`), NTriples (`.nt`), NQuads (`.nq`), TriG (`.trig`), and
-    RDF/XML (`.rdf`/`.xml`, experimental — read-only).
+    RDF/XML (`.rdf`/`.xml`).
 
     **Write:** NTriples, Turtle, NQuads (via R2RML mapping).
 
@@ -58,7 +65,9 @@ docs:
 
     `read_rdf()` returns six columns: `subject`, `predicate`, `object` (always populated),
     and `graph`, `language_tag`, `datatype` (nullable). It accepts a file path or glob pattern;
-    multiple matched files are scanned in parallel.
+    multiple matched files are scanned in parallel. `.gz` and `.zst` compressed files are
+    supported (note that you need to load the parquet extension for the libzstd library to be 
+    loaded). The RDF format is auto-detected by file extension but can be overridden with the `file_type` parameter.
 
     ```sql
     SELECT subject, predicate FROM read_rdf('data.ttl');
@@ -73,6 +82,7 @@ docs:
     | `strict_parsing` | `true` | Set to `false` to allow malformed URIs |
     | `prefix_expansion` | `false` | Expand CURIE-form URIs to full URIs (Turtle/TriG only) |
     | `file_type` | auto-detected | Override format: `ttl`, `nt`, `nq`, `trig`, `rdf`/`xml` |
+    | `filename` | false | Add a 7th filename column |
 
     `pivot_rdf()` takes the same path/glob argument as read_rdf() and returns a pivoted table, 
     one column per predicate, at least one row per subject. (To operate on arbitrary file sizes 
@@ -80,7 +90,7 @@ docs:
     SQL domain, it is subject to memory limits which this function aims to avoid by doing two 
     passes on the RDF, the first profiling the shape of the data using `profile_rdf()`.
 
-    The experimental `read_sparql(endpoint, query)` sends a SPARQL SELECT query to a remote 
+    The `read_sparql(endpoint, query)` function sends a SPARQL SELECT query to a remote 
     endpoint and returns the result set as a DuckDB table. Column names are derived from the 
     SPARQL variable names; all columns are VARCHAR. Unbound variables are returned as empty strings.
 
@@ -91,6 +101,15 @@ docs:
                 'SELECT (COUNT(*) AS ?count) WHERE {   ?item wdt:P31 wd:Q5 .}'
             );
     ```
+
+    You can also execute a SPARQL 1.1 query `execute_sparql(query, mapping)` against DuckDB tables 
+    using an R2RML mapping file to define the mapping between relational data and RDF. The SPARQL 
+    query is converted to SQL at query time using a rules based optimzer The function returns the 
+    result set as a DuckDB table. A good subset of SPARQL is supported. For more information see
+    the [docs](https://github.com/nonodename/duck_rdf/blob/main/docs/sparql.md).
+
+    To see the query that would be run, use `sparql_to_sql(sparql, mapping)`.
+
     ### Writing RDF (R2RML)
 
     Write RDF using [R2RML](https://www.w3.org/TR/r2rml/) mapping files with DuckDB's `COPY TO`
@@ -114,6 +133,7 @@ docs:
     | `mapping` | Yes | — | Path to R2RML mapping file (`.ttl`) |
     | `rdf_format` | No | `ntriples` | Output format: `ntriples`, `turtle`, or `nquads` |
     | `ignore_non_fatal_errors` | No | `true` | Raise an exception on the first parse error when `false` |
+    | `ignore_case` | No | `false` | When true, all column and table names are lowercased before matching. |
 
     ### Validation Helpers
 

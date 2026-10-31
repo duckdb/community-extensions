@@ -1,0 +1,78 @@
+# PDF 0.9.0: consolidated API for DuckDB 2.0.
+extension:
+  name: pdf
+  description: Read, OCR, inspect, transform, and write PDFs in SQL
+  version: 0.9.0
+  language: C++
+  build: cmake
+  license: GPL-2.0-or-later
+  maintainers:
+    - asubbarao
+  # windows_amd64 (MSVC/vcpkg) builds and is supported. mingw/rtools use a
+  # different toolchain than the MSVC static linkage this extension relies on;
+  # windows_arm64 is untested; wasm cannot link Poppler/Tesseract.
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;windows_arm64
+  requires_toolchains: vcpkg
+  vcpkg_url: https://github.com/microsoft/vcpkg.git
+  vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
+
+repo:
+  github: asubbarao/duckdb-pdf
+  ref: 82d7ae3d6aa7af6b1688544b7ca26edb616e46a3
+
+docs:
+  hello_world: |
+    LOAD pdf;
+
+    -- One row per page (path or glob; parallel across pages/files)
+    SELECT filename, page, text
+    FROM read_pdf('reports/*.pdf')
+    WHERE contains(lower(text), 'revenue');
+
+    -- Metadata census
+    SELECT file, title, author, page_count FROM pdf_info('reports/*.pdf');
+
+    -- RAG chunks in one statement
+    CREATE TABLE chunks AS FROM read_pdf('reports/*.pdf', grain := 'chunk');
+
+    -- Page raster + native write
+    SELECT pdf_render('report.pdf', 1, {dpi: 150}) AS page_image;
+    COPY (SELECT file, page_count FROM pdf_info('reports/*.pdf'))
+    TO 'findings.pdf' (FORMAT pdf, TITLE 'Findings', FOOTER 'page {page}');
+
+  extended_description: |
+    **Everything PDF, in SQL** — Poppler, Tesseract (OCR), qpdf, and libharu,
+    statically linked. Paths or globs; no external tools at runtime for core
+    ops. Full docs and recipes:
+    [API reference](https://github.com/asubbarao/duckdb-pdf/blob/82d7ae3d6aa7af6b1688544b7ca26edb616e46a3/README.md) and
+    [cookbook](https://github.com/asubbarao/duckdb-pdf/blob/82d7ae3d6aa7af6b1688544b7ca26edb616e46a3/COOKBOOK.md).
+
+    **Breaking API update (0.9.0)** — 19 public names replace the earlier
+    separate entry points. Retired names are removed. See the
+    [migration table](https://github.com/asubbarao/duckdb-pdf/blob/82d7ae3d6aa7af6b1688544b7ca26edb616e46a3/README.md#migration-from-48-names).
+    This source targets DuckDB 2.0.0.
+
+    **Discover functions** — `duckdb_functions()` exposes parameter names,
+    descriptions and examples. Scalar options use validated STRUCT fields.
+    `pdf_render` and `ocr_image` each have scalar and table forms.
+
+    **Read** — `read_pdf` selects page, line, element, table or chunk grain;
+    `read_pdf_words` returns word boxes, geometric `line` and page size. Auto-OCR on
+    image-only pages for page/line/word/table readers; element/chunk OCR is
+    opt-in. English model bundled.
+
+    **Inspect** — `pdf_info` selects metadata/permissions or qpdf statistics;
+    `pdf_objects` selects pages, outline, tagged structure, destinations, fonts,
+    attachments, form fields, annotations, revisions, signatures or images.
+
+    **Convert / render** — `pdf_text` selects text, Markdown, HTML, XML or JSON;
+    `pdf_render` renders PNG/SVG as a scalar or streams pages as a table.
+    `ocr_image` has scalar and table forms, with text/hocr/tsv output.
+
+    **Transform & write** — `pdf_merge`, `pdf_pages`, `pdf_split`, `pdf_stamp`,
+    `pdf_rewrite`, `pdf_sign`, `pdf_redact`, `pdf_ocr`;
+    `write_pdf` / `COPY … (FORMAT pdf)`;
+    `to_pdf` for office docs (LibreOffice at runtime).
+
+    **Scope** — deterministic extraction, not ML document AI. **License** —
+    GPL-2.0-or-later (Poppler).

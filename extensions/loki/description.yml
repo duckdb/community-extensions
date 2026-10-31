@@ -1,0 +1,63 @@
+extension:
+  name: loki
+  description: Query Grafana Loki from DuckDB in plain SQL, with label/time/line-filter pushdown into LogQL
+  version: 1.0.1
+  language: C++
+  build: cmake
+  license: MIT
+  # cpp-httplib + OpenSSL do live HTTP(S) at scan time, which the WebAssembly
+  # targets cannot do — exclude them rather than ship a binary that can't connect.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  # Pin the vcpkg baseline the extension is tested against (currently also the
+  # community pipeline default) so openssl/cpp-httplib/yyjson resolve reproducibly.
+  vcpkg_commit: "84bab45d415d22042bd0b9081aea57f362da3f35"
+  maintainers:
+    - prochac
+
+repo:
+  github: prochac/duckdb-loki
+  ref: v1.0.1
+
+docs:
+  hello_world: |
+    -- Store the Loki endpoint and credentials once with the Secret Manager.
+    CREATE SECRET my_loki (
+        TYPE loki,
+        ENDPOINT 'https://logs-prod.example.net',
+        TOKEN 'glc_...'            -- or USERNAME + PASSWORD for basic auth
+    );
+
+    -- Query logs in plain SQL. WHERE predicates on promoted label columns, the
+    -- timestamp and the log line are translated into a LogQL stream selector,
+    -- start/end bounds and line filters; anything else DuckDB applies as a residual.
+    SELECT timestamp, level, line
+    FROM loki(selector := '{job="api"}', labels := ['level'], secret := 'my_loki')
+    WHERE level = 'error'
+      AND timestamp >= now() - INTERVAL 2 HOUR
+      AND line LIKE '%timeout%';
+
+    -- Or send raw LogQL through untouched with loki_scan():
+    SELECT * FROM loki_scan('{job="api"} |= `timeout`', secret := 'my_loki');
+  extended_description: |
+    `loki` turns a Grafana Loki instance into a first-class, queryable DuckDB data
+    source, so you can join your logs against Parquet, CSV, Postgres, or anything
+    else DuckDB reads — without ever hand-writing an HTTP request.
+
+    - **`loki(selector := ...)`** — pushdown-driven. SQL `WHERE` filters on promoted
+      label columns, `timestamp`, and `line` are translated into the LogQL stream
+      selector, `start`/`end` time bounds, and line filters. Untranslatable predicates
+      are left as residuals for DuckDB to apply, so results are always correct.
+    - **`loki_scan(query := ...)`** — a raw-LogQL escape hatch for full control.
+    - **`loki_labels()` / `loki_label_values()` / `loki_series()`** — label discovery
+      helpers so the source is explorable and autocompletes well.
+
+    Connection and auth (bearer token, basic auth, `X-Scope-OrgID` tenant, or arbitrary
+    headers) come from DuckDB's Secret Manager with per-call overrides. A
+    `CREATE SECRET (TYPE loki, PROVIDER env)` seeds the connection from the standard
+    logcli environment variables (`LOKI_ADDR`, `LOKI_BEARER_TOKEN`,
+    `LOKI_USERNAME`/`LOKI_PASSWORD`, `LOKI_ORG_ID`), with inline options overriding the
+    environment. Results page
+    automatically over Loki's per-request entry cap, and projection pushdown skips
+    materialising the columns a query doesn't select. Timestamps keep Loki's nanosecond
+    resolution (`TIMESTAMP_NS`). See the
+    [repository](https://github.com/prochac/duckdb-loki) for full documentation.

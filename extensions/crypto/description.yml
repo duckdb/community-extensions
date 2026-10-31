@@ -1,5 +1,5 @@
 docs:
-  extended_description: For more information regarding usage, see the [documentation](https://query.farm/duckdb_extension_crypto.html).
+  extended_description: For more information regarding usage, see the [documentation](https://query.farm/products/extensions/crypto/).
 extension:
   build: cmake
   description: Cryptographic hash functions and HMAC
@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 0840a76e0a50c4c6e27f5432221166c829c00413
   github: query-farm/crypto
-  ref: 8781b4cb42c79a0d23b01adfac5e867050dc36ac
+  ref: cbcc152b6cbe53ae7876af24060c26df0488a2a6
+  variegata: 2f9163474e3d0c22e2a69573fbb456d7e106dcf6

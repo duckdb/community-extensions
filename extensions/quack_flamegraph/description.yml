@@ -1,0 +1,55 @@
+extension:
+  name: quack_flamegraph
+  description: Query Brendan Gregg folded CPU/allocation profiles as DuckDB tables
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - kevintruong
+
+repo:
+  github: kevintruong/quack-flamegraph
+  ref: 253fab90fe4dcddc70f519ea79bd42dd74ce0d3d
+
+docs:
+  hello_world: |
+    INSTALL quack_flamegraph FROM community;
+    LOAD quack_flamegraph;
+
+    -- Hottest self time
+    SELECT leaf, exclusive
+    FROM flamegraph_exclusive('cpu.folded')
+    ORDER BY exclusive DESC
+    LIMIT 10;
+
+    -- Sample coverage (inclusive)
+    SELECT frame, inclusive
+    FROM flamegraph_inclusive('cpu.folded')
+    ORDER BY inclusive DESC
+    LIMIT 10;
+
+    -- Raw stacks
+    SELECT list_extract(frames, -1) AS leaf, samples
+    FROM read_folded('cpu.folded')
+    ORDER BY samples DESC
+    LIMIT 10;
+
+  extended_description: |
+    `quack_flamegraph` reads [folded stack](https://www.brendangregg.com/FlameGraphs/cpuflamegraphs.html)
+    files produced by `stackcollapse-*`, `perf --folded`, samply/xctrace collapse, and similar tools.
+
+    ### Functions
+
+    - `read_folded(path)` — table function returning `frames VARCHAR[]`, `samples BIGINT`, `source VARCHAR`
+    - `flamegraph_exclusive(path)` — leaf self-time (`GROUP BY` last frame)
+    - `flamegraph_inclusive(path)` — `unnest(frames)` (recursive names inflate)
+    - `flamegraph_coverage(path)` — unique-stack sample presence (`list_distinct`)
+    - `flamegraph_edges(path)` — parent→child sample mass
+    - `flamegraph_hot_stacks(path)` — stacks ordered for concentration checks
+
+    The parser drops zero-sample parent frames (common in Instruments/sample collapse), takes the last space-separated field as the count, and strips an optional `Thread_…:` prefix.
+
+    Built with DuckDB's [Rust C Extension API template](https://github.com/duckdb/extension-template-rs).

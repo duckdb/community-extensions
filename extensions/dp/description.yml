@@ -1,0 +1,108 @@
+extension:
+  name: dp
+  description: Differential-privacy publishing in SQL — dp_count/dp_sum/dp_mean with the classic Laplace mechanism (pure SQL macros, deterministic reproducible noise)
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;linux_arm64_musl;windows_arm64"
+  requires_toolchains: "rust"
+  test_config: '{"test_env_variables": {"SKIP_TESTS": "1"}}'
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-dp
+  ref: 5ec9b7a679ed916268ee5873df43cbc6b1039891
+
+docs:
+  hello_world: |
+    -- (epsilon, 0)-differential-privacy publishing, straight in SQL.
+    -- The Rust extension is a thin shim: on LOAD it registers the dp_*
+    -- macros from a pure-SQL script. Zero per-row native work.
+
+    CREATE TABLE patients AS
+      SELECT range AS id,
+             20 + (hash('age' || range) % 60) AS age
+      FROM range(300);
+
+    -- Clip + Laplace(1/eps) count, deterministic per salt (reproducible)
+    D SELECT dp_count(array_agg(age), 0.1, 'pub_2026q4') AS dp_n FROM patients;
+    ┌─────────────┐
+    │    dp_n     │
+    │   double    │
+    ├─────────────┤
+    │ 307.23651554674376 │
+    └─────────────┘
+
+    -- Clipped mean: eps = privacy budget, lb/ub = clipping bounds
+    D SELECT dp_mean(array_agg(age), 0.1, 0, 100, 'pub_2026q4') AS dp_age FROM patients;
+    D SELECT dp_sum(array_agg(age), 0.01, 0, 100, 'pub_2026q4') AS dp_sum_tighter FROM patients;
+
+  extended_description: |
+    # duckdb-dp — differential privacy for DuckDB
+
+    Publish (epsilon, 0)-differentially-private aggregate statistics directly in
+    SQL. The mechanism is the classic **Laplace** mechanism; all the privacy math
+    is **pure SQL macros** (no per-row native code). The bundled Rust extension
+    is a thin shim that exists only so the community registry can build a
+    loadable binary: on `LOAD` it executes the SQL script and registers the
+    `dp_*` macros.
+
+    ## Functions
+
+    | function | mechanism | sensitivity |
+    |---|---|---|
+    | `dp_count(x, eps, salt)` | count + Laplace(1/eps) | 1 |
+    | `dp_sum(x, eps, lb, ub, salt)` | clipped sum + Laplace((ub-lb)/eps) | ub-lb |
+    | `dp_mean(x, eps, lb, ub, salt)` | clipped mean + Laplace((ub-lb)/(2n·eps)) | (ub-lb)/(2n) |
+    | `dp_noise_lap(b, salt)` / `dp_noise_gauss(sigma, salt)` | noise primitives | — |
+    | `dp_u(salt)` / `dp_v(salt)` | deterministic uniform (internal) | — |
+
+    Aggregates take a **LIST** (house convention, same as `duckdb_stats`):
+
+    ```sql
+    SELECT dp_count(array_agg(age), 0.1, 'pub_2026q4') FROM t;
+    ```
+
+    - **eps** = privacy budget; `eps <= 0` returns NULL (nothing published).
+    - **salt** = publication identifier. Same salt → same noise on re-run
+      (reproducible dashboards); different salt → independent noise (assign a
+      fresh salt per publication when budget is tracked per release). The salt
+      must be a single constant shared by all rows.
+    - **lb / ub** = clipping bounds — semantically core, not optional: the
+      noise scale is `(ub - lb)`, so no clip means no sensitivity guarantee.
+    - NULL rows are not counted (matches COUNT/AVG); `ub <= lb` → NULL.
+
+    ## Honest scope (prototype)
+
+    1. **Single-query mechanism, no composition accounting.** Publishing several
+       `dp_*` values back-to-back — you sum the budgets yourself (basic
+       composition, Σeps) or use advanced composition (Dwork-Roth Thm 3.7).
+    2. **Non-adaptive.** Noise derived from one salt is correlated across calls;
+       reusing a salt across independent publications shares noise and breaks
+       additivity.
+    3. **Numerics.** 48-bit deterministic uniform; the log domain is clamped to
+       `[2^-20, 1-2^-20]` (a 48-bit value within 2^-48 of 1 would otherwise
+       round `1-V` to 0 → `ln(0)` → ±inf; regression-locked by the test suite).
+    4. **Upgrade path.** For RDP / ledger accounting / complex queries, move to
+       a C++ extension over **OpenDP** (MIT / Rust / C ABI).
+
+    ## Verification
+
+    - `bash run_tests.sh` — 12 assertions (determinism, salt divergence, eps
+      bounds, empty, NULL semantics, clipping, numeric, grouped, ub<=lb, mean
+      scale, tail-finite), all green → exit 0.
+    - `python3 verify_dp.py` — moment checks vs theory (Laplace σ≈b·√2,
+      Gaussian σ, uniform, no collisions), N=2000, ±10%.
+    - End-to-end: the compiled binary `LOAD`s in the DuckDB CLI and produces
+      values **bit-identical** to the raw `dp.sql`, deterministic across loads.
+
+    ## Relation to the registry
+
+    Registry 370-extension rescan (2026-10-18): no differential-privacy
+    coverage. (`differential` = database versioning / time travel; `table_guard`
+    = table-level access control; `semantic_profile` = PII detection only —
+    none of them implement a DP mechanism.) `duckdb_stats` is the statistics
+    layer (inference / hypothesis tests); this is the publishing layer
+    (privacy budget) — no overlap.
