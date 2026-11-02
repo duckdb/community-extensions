@@ -1,7 +1,7 @@
 extension:
   name: typed_ai
   description: Use TypeSafe Jev (or another AI, even a free one on your laptop) to sort, filter and check the text in your tables. Get yes or no, pick one, or a rating, see how sure it is, and never spend more than your limit.
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: hfmsio/duckdb-typed-ai
-  ref: d99fa461d5722e48136277ac788068e7fad6a1b9
-  ref_next: d99fa461d5722e48136277ac788068e7fad6a1b9
+  ref: 00d03a08936f2edf86f72cd77a8986b500796506
+  ref_next: 00d03a08936f2edf86f72cd77a8986b500796506
 
 docs:
   hello_world: |
@@ -43,13 +43,13 @@ docs:
     -- Odds from 0 to 1
     SELECT item, typed_prob(item, 'the owner needs this back today') AS urgent
     FROM found ORDER BY urgent DESC;
-    -- insulin pen in a blue case                  0.59
-    -- laptop with a school sticker                0.54
-    -- wedding ring wrapped in a napkin            0.54
-    -- half-eaten sandwich                         0.37
-    -- broken umbrella                             0.34
-    -- cello in a hard case                        0.31
-    -- box of live crickets labelled lizard food   0.30
+    -- insulin pen in a blue case                  0.64
+    -- wedding ring wrapped in a napkin            0.59
+    -- laptop with a school sticker                0.53
+    -- box of live crickets labelled lizard food   0.36
+    -- broken umbrella                             0.36
+    -- half-eaten sandwich                         0.27
+    -- cello in a hard case                        0.26
 
     -- Pick a shelf; the options come from a table
     SELECT item, typed_pick(item, 'which shelf?', (SELECT list(name) FROM shelves)) AS shelf
@@ -82,12 +82,13 @@ docs:
     | --- | --- |
     | `typed_is(value, statement [, cutoff])` | true or false, for filtering with `WHERE` |
     | `typed_prob(value, statement)` | how likely the statement is true, from 0 to 1 |
-    | `typed_pick(value, question, options)` | the best option; the options can come from a table |
+    | `typed_pick(value, question, options)` | the best option; the options can come from a table, or be pictures |
     | `typed_score(value, question, levels)` | a rating on your scale, e.g. 0 for the lowest level up to 3 |
+    | `typed_box(photo, target)` | where something is in a photo, and how sure (Jev only) |
     | `typed_ask(value, question_json)` | the full answer, with the odds for every option |
     | `typed_usage()` | what you have spent, your limit, and how many answers were reused for free |
 
-    `value` can be text, any other value, or a whole row.
+    `value` can be text, any other value, a whole row, or (new in 0.1.1, Jev only, in preview) a photo.
 
     Safe by default:
 
@@ -136,4 +137,38 @@ docs:
     SELECT id, typed_pick(note, 'what private data does this note contain?',
       ['none', 'contact details', 'health', 'money']) AS found FROM notes;
     -- 1 none   2 contact details   3 health   4 money   5 none
+    ```
+
+    #### Photos (new in 0.1.1, Jev only)
+
+    With Jev, a PNG or JPEG file is sent as a picture, so `read_blob` turns a folder of photos into rows. Each
+    side must be 280 to 1568 pixels; shrink big phone photos first with `magick mogrify -resize '1568x1568>' *.jpg`.
+    A 1024 x 768 photo costs about $0.0001. Photo support is a Jev preview, so its limits may change. Other
+    providers stop with a clear message instead of sending a photo.
+
+    ```sql
+    CREATE TABLE found AS SELECT parse_filename(filename, true) AS item, content FROM read_blob('found/*.jpg');
+
+    -- Ask about the photo
+    SELECT item, typed_pick(content, 'which shelf?', ['medical', 'electronics', 'valuables', 'animals',
+                                                      'food and rubbish', 'general']) AS shelf FROM found;
+    -- hearing_aid      medical
+    -- leather_wallet   valuables
+
+    -- Photo and text together: does the desk note match the photo?
+    SELECT item, typed_prob({photo: content, note: note}, 'the note correctly describes the photo') AS matches
+    FROM found JOIN desk USING (item);
+    -- teddy_bear   (note: teddy bear in a red jumper)   0.96
+    -- wristwatch   (note: silver digital watch)         0.01   it is a gold watch
+
+    -- Options as pictures: which lost-item report, each one the owner's photo?
+    SELECT item, typed_pick(content, 'which lost-item report is the item in this photo?',
+             (SELECT map_concat(map(list(report), list(photo)), MAP {'no report matches': NULL::BLOB})
+              FROM reports)) AS report FROM found;
+    -- found_bottle_blue   bottle_blue
+    -- sandwich            no report matches
+
+    -- Where is it? Edges are fractions of the photo's width and height
+    SELECT typed_box(content, 'the winding crown') FROM found WHERE item = 'wristwatch';
+    -- {'left': 0.1, 'top': 0.73, 'right': 0.22, 'bottom': 0.88, 'confidence': 0.89}
     ```
