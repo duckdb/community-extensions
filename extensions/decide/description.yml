@@ -1,7 +1,7 @@
 extension:
   name: decide
-  description: Filter, classify, and score text with OpenAI Decisions or Cloudflare Clef
-  version: 0.2.0
+  description: Filter, classify, and score text with OpenAI Decisions, TypeSafe Jev, or Cloudflare Clef
+  version: 0.2.1
   language: C++
   build: cmake
   license: MIT
@@ -10,48 +10,57 @@ extension:
     - gzheng92
 repo:
   github: gzheng92/duckdb-decide
-  # Validated DuckDB 2.0.0 source revision.
-  ref: 96a0e33fa9b52210af63c2f08bd21024bd2ae0ab
+  # Validated DuckDB 2.0.0 source revision: the v0.2.1 release commit.
+  ref: a520e4b0a4aa9e7a1ed20e8fd825108f7e6ecd3a
 docs:
   hello_world: |
     -- OpenAI example; use your own API key.
     SET decisions_provider = 'openai';
-    CREATE OR REPLACE SECRET decide_credentials (TYPE decisions, API_KEY 'your-key');
+    CREATE OR REPLACE SECRET openai_key (TYPE decisions, API_KEY 'your-key', SCOPE 'decisions://openai');
     SELECT decision_prob('The parcel arrived crushed.',
                          'Does this report physical damage?') AS probability;
   extended_description: |
-    `decide` integrates OpenAI Decisions and Cloudflare Clef (Workers AI)
-    with the same DuckDB SQL functions.
-    It provides boolean predicates, probabilities, categorical choices,
-    rubric scores, and explicit multi-question JSON answers.
+    `decide` asks decision models yes/no, multiple-choice, and rubric questions
+    from SQL. It supports OpenAI Decisions (the default, `gpt-6-luna`),
+    TypeSafe Jev, and Cloudflare Clef (Workers AI) with the same functions:
+    boolean predicates, probabilities, categorical choices, rubric scores, and
+    explicit multi-question JSON answers. `SELECT * FROM decision_providers()`
+    lists the providers, models, and credential names.
     Typed functions batch 20 rows per request by default; set
     `decisions_batch_size = 1` for independent row evaluation.
     Non-NULL inputs and instructions are sent to the selected provider and can
-    incur API charges. OpenAI is the default provider and uses `gpt-6-luna`.
-    Credentials use DuckDB's `decisions` secret type or `OPENAI_API_KEY`.
+    incur API charges.
 
-    ### Cloudflare Clef
+    ### Credentials
 
-    Select Cloudflare and supply a Workers AI token and account ID:
+    Keep one `decisions` secret per provider, scoped to it, so each key is sent
+    only to its own provider. Each provider also reads an environment variable.
 
     ```sql
-    SET decisions_provider = 'cloudflare';
-    SET decisions_model = 'clef'; -- also supports 'clef-flash'
-    CREATE OR REPLACE SECRET decide_credentials (
-        TYPE decisions,
-        API_KEY 'workers-ai-token',
-        ACCOUNT_ID 'your-account-id'
-    );
+    CREATE OR REPLACE SECRET openai_key (TYPE decisions, API_KEY 'sk-...', SCOPE 'decisions://openai');
+    CREATE OR REPLACE SECRET jev_key (TYPE decisions, API_KEY 'your-typesafe-key', SCOPE 'decisions://jev');
+    CREATE OR REPLACE SECRET cf_key (TYPE decisions, API_KEY 'workers-ai-token',
+                          ACCOUNT_ID 'your-account-id', SCOPE 'decisions://cloudflare');
+    ```
+
+    The environment variables are `OPENAI_API_KEY`, `TYPESAFE_API_KEY`, and
+    `CLOUDFLARE_API_TOKEN` with `CLOUDFLARE_ACCOUNT_ID`.
+
+    ### TypeSafe Jev and Cloudflare Clef
+
+    ```sql
+    SET decisions_provider = 'jev';        -- default model jev-latest
+    SET decisions_provider = 'cloudflare'; -- default model clef; also 'clef-flash'
+    SET decisions_model = 'jev-1.14.0';    -- optional override; RESET when switching
     SELECT decision_prob('The parcel arrived crushed.',
                          'Does this report physical damage?') AS probability;
     ```
 
-    Alternatively, set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
-    The same predicates, choices, scores, and batching functions work with either
-    provider. Cloudflare requests are capped at 64 questions per request and
-    Cloudflare does not return refusal answers. Both integrations accept text only.
+    Clef caps requests at 64 questions. Neither Jev nor Clef returns refusal
+    answers. All providers accept text only.
 
     No API key is required to build or run the offline tests.
-    This is an independent integration; the OpenAI Decisions API is in public beta.
+    This is an independent integration, not an official extension of OpenAI,
+    TypeSafe, or Cloudflare.
     See the [README](https://github.com/gzheng92/duckdb-decide#readme)
     for function signatures, limits, refusal handling, and batching semantics.
