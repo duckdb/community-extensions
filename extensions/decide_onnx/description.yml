@@ -1,7 +1,7 @@
 extension:
   name: decide_onnx
-  description: Classify rows, route messages and answer yes/no questions in SQL with the vela3-fast decision model, on CPU via ONNX Runtime
-  version: '0.1.0'
+  description: Classify rows, route messages and answer yes/no questions in SQL in English, French, German, Spanish and Italian with the vela3-fast-multilingual decision model, on CPU via ONNX Runtime
+  version: '0.2.0'
   language: C++
   build: cmake
   license: MIT
@@ -13,14 +13,14 @@ extension:
 repo:
   github: altertable-ai/duckdb-decide_onnx
   # DuckDB 2.0 only. There is no v1.5.6 port, so variegata is unset.
-  ref: 8611088fa96ebc1f550b409e8efba77a8fd0b23a
+  ref: 8b64fcf52bef0d737ddda7fbd8c4bc512d982732
 
 docs:
   hello_world: |
     INSTALL decide_onnx FROM community;
     LOAD decide_onnx;
 
-    -- vela3-fast (1.5 GB, an ONNX export) is downloaded from assets.altertable.ai and cached on first use.
+    -- vela3-fast-multilingual (an ONNX export) is downloaded from assets.altertable.ai and cached on first use.
     CREATE TABLE tickets AS FROM (VALUES
         ('Broken mug', 'The order arrived broken. I want my money back.'),
         ('Double charge', 'I was charged twice this month.')
@@ -41,8 +41,10 @@ docs:
            decision_yes_no(message, 'Is the customer asking for a refund?')
     FROM tickets;
   extended_description: |
-    **decide_onnx** runs the decision backbone of [vela3-fast](https://huggingface.co/vllm-sr/vela3-fast), a
-    380M-parameter encoder of the vLLM Semantic Router Vela 3.0 family, inside DuckDB. You give it a state, a
+    **decide_onnx** runs [vela3-fast-multilingual](https://huggingface.co/altertable/vela3-fast-multilingual-onnx-int8)
+    inside DuckDB: an English, French, German, Spanish and Italian fine-tune of the decision backbone of
+    [vela3-fast](https://huggingface.co/vllm-sr/vela3-fast), a 380M-parameter encoder of the vLLM Semantic Router
+    Vela 3.0 family. You give it a state, a
     question and options; it picks an option and gives a probability for each, or gives P(yes) for a yes/no
     question, in one encoder pass. There is no prompt engineering of an LLM, no Python and no GPU: the network
     runs on CPU through a statically linked ONNX Runtime.
@@ -62,8 +64,8 @@ docs:
     up the new syntax when its current query ends.
 
     The tokenizer is a C++ port of the Hugging Face one and matches it token for token; the probabilities match
-    the published PyTorch code to 1e-4. Rows run in parallel on DuckDB's threads and repeated decisions are
+    the published PyTorch code, run with the fine-tuned weights, to within 0.01. Rows run in parallel on DuckDB's threads and repeated decisions are
     scored once.
 
-    The extension is MIT licensed. The vela3-fast weights are Apache-2.0. The model's probabilities are not
+    The extension is MIT licensed. The vela3-fast-multilingual weights are Apache-2.0. The model's probabilities are not
     calibrated; do not use it for high-risk decisions about people without independent validation.
