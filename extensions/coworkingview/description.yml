@@ -1,0 +1,42 @@
+extension:
+  name: coworkingview
+  description: Query the public CoworkingView flexible-office price index
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - coworkingview
+
+repo:
+  github: coworkingview/duckdb-coworkingview
+  ref: 6f4ce6db2056717a9084d8f97e8b24f2a132988b
+
+docs:
+  hello_world: |
+    SELECT city, currency, median, sample_size
+    FROM coworkingview_prices('berlin')
+    WHERE basis = 'per_desk' AND option_type IS NULL;
+  extended_description: |
+    coworkingview reads a dated snapshot of the public CoworkingView Price Index
+    (https://coworkingview.com/en/tools/price-index). This release bundles the
+    document published at 2026-11-01T11:34:11.702Z
+    (https://coworkingview.com/api/price-index).
+
+    `coworkingview_prices(city)` returns the median, average, minimum, maximum
+    and quartiles per desk per month, plus an entry price. The entry price is
+    the cheapest advertised monthly price of each building and is not a per-desk
+    figure. Pass a city name or a slug. `coworkingview_cities()` lists every
+    city in the snapshot, including cities that are not priced yet.
+    `coworkingview_snapshot()` returns the licence and attribution.
+    `coworkingview_endpoints()` returns the public URLs so the index can be
+    refreshed with httpfs and `read_json`. No API key is required.
+
+    The extension code is MIT. The bundled Price Index is CC BY 4.0
+    (https://creativecommons.org/licenses/by/4.0/). Figures are operator list
+    prices in each city's own currency, not a booking quote, and are not
+    comparable across currencies.
+
+    This extension was written with AI assistance and is maintained by
+    CoworkingView (https://coworkingview.com). The public API is documented at
+    https://coworkingview.com/en/api.
