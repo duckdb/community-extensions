@@ -1,0 +1,74 @@
+extension:
+  name: cpt
+  description: Offline change point detection (PELT, binary segmentation, dynamic programming, CROPS)
+  version: 0.1.0
+  language: C
+  build: cmake
+  license: MIT
+  requires_toolchains: "python3"
+  maintainers:
+    - oluies
+    - VGSML
+
+repo:
+  github: hugr-lab/duck-changepoint
+  ref: 482f0059c58f25a3bbef4d2c9c6c3392f9fe0cda
+
+docs:
+  hello_world: |
+    LOAD cpt;
+
+    -- Two sensors, one reading per minute for a day. Sensor 1 steps up by 3 at 10:00.
+    -- The noise is a sine, so the result is the same on every DuckDB version.
+    CREATE TABLE readings AS
+    SELECT s AS sensor_id,
+           TIMESTAMP '2026-01-01' + INTERVAL (i) MINUTE AS ts,
+           20 + CASE WHEN s = 1 AND i >= 600 THEN 3 ELSE 0 END + sin(i * 1.7 + s) AS value
+    FROM range(1, 3) a(s), range(1440) b(i);
+
+    -- 1-based segment ends per sensor; the last one is the length of the series
+    SELECT sensor_id, cpt_pelt(list(value ORDER BY ts), 'l2') AS segment_ends
+    FROM readings
+    GROUP BY sensor_id
+    ORDER BY sensor_id;
+    -- 1 | [600, 1440]
+    -- 2 | [1440]
+
+    -- When each change happened: every segment end but the last is followed by a new segment
+    WITH s AS (
+        SELECT sensor_id, list(ts ORDER BY ts) AS tss, list(value ORDER BY ts) AS xs
+        FROM readings
+        GROUP BY sensor_id
+    )
+    SELECT sensor_id, tss[e + 1] AS changed_at
+    FROM s, unnest(cpt_pelt(xs, 'l2')[:-2]) AS u(e);
+    -- 1 | 2026-01-01 10:00:00
+
+    -- Mean and variance of every segment
+    SELECT sensor_id, unnest(cpt_segment_stats(xs, cpt_pelt(xs, 'l2')), recursive := true)
+    FROM (SELECT sensor_id, list(value ORDER BY ts) AS xs FROM readings GROUP BY sensor_id)
+    ORDER BY ALL;
+  extended_description: |
+    cpt finds the points where an ordered series changes its behaviour: a level shift, a change in
+    variance, in the rate of counts or in the median. cpt_pelt, cpt_binseg and cpt_dynp take one
+    series per row as DOUBLE[] (build it with list(x ORDER BY ts)) and return the 1-based end
+    positions of the segments, the last one equal to the length of the series. cpt_crops returns
+    every optimal segmentation over a range of penalties, and cpt_segment_stats returns statistics
+    for given segment ends.
+
+    - cpt_pelt: the exact optimum of the penalised cost (PELT, Killick et al. 2012), with exact
+      pruning also when a minimum segment length is set.
+    - cpt_binseg: binary segmentation, O(n log n), stops after n_bkps splits or at a penalty.
+    - cpt_dynp: the optimal split into exactly n_bkps + 1 segments.
+    - cpt_crops: every distinct optimal segmentation over a range of penalties (CROPS).
+    - cpt_segment_stats: start, end, mean, variance and length of every segment.
+
+    Costs: 'l2' (mean), 'normal' (mean and variance), 'poisson' (counts), 'l1' (median). Penalties:
+    a number, or 'bic' (default), 'mbic', 'aic' with the values of R's changepoint package. Results
+    are checked against ruptures and R changepoint.
+
+    A running scalar function cannot be interrupted, so the work on one series is capped by the
+    setting cpt_max_evaluations (default 1e9 evaluation units, 0 = no limit).
+
+    Written in C11 on the stable C API: one binary loads in DuckDB 1.5.6 and later.
+    Documentation: https://github.com/hugr-lab/duck-changepoint
