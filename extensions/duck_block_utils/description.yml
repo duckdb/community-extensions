@@ -1,7 +1,7 @@
 extension:
   name: duck_block_utils
   description: Build, transform, validate, and extract content from structured documents using the duck_block type
-  version: 3.5.1
+  version: 4.0.0
   language: C++
   build: cmake
   license: MIT
@@ -14,13 +14,13 @@ repo:
   # so advancing this pin would point a v1.4.5 build at a tree that cannot build for
   # it. v1.4.5 users should move to the v1.5.x track.
   andium: 125662df9e5450105dc9b7957ad955cb53d7beec
-  ref: 531b0596017773ec5d3eee1e71e25361a5d49525
+  ref: 65f03cb7f776549a68ae9efba0b5a6d6adc259d3
   # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
   # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
   # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
   # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
-  variegata: 531b0596017773ec5d3eee1e71e25361a5d49525
-  ref_next: 531b0596017773ec5d3eee1e71e25361a5d49525
+  variegata: 65f03cb7f776549a68ae9efba0b5a6d6adc259d3
+  ref_next: 65f03cb7f776549a68ae9efba0b5a6d6adc259d3
 docs:
   hello_world: |
     -- Build a document programmatically
@@ -60,6 +60,22 @@ docs:
     unified representation for document elements that works across formats.
 
     **Documentation:** [duck-block-utils.readthedocs.io](https://duck-block-utils.readthedocs.io)
+
+    ## 4.0.0 moves the Pandoc converter out
+
+    Nine names and eleven overloads left this extension for
+    [duckdb_panduck](https://github.com/teaguesterling/duckdb_panduck), with no
+    alias path: `pandoc_ast_to_blocks`, `read_pandoc_ast`, `write_pandoc_ast`,
+    `duck_blocks_to_pandoc_ast`, `duck_blocks_to_pandoc_blocks`, `pandoc_ast`,
+    `pandoc_inlines_to_db_inlines`, `pandoc_inlines_to_text` and
+    `duck_blocks_inlines_to_pandoc`. This extension is utility macros over the
+    `duck_block` type; the Pandoc AST is panduck's subject.
+
+    **Upgrade both sides.** One extension must own each name, and `pandoc_ast`
+    has an identical signature in both, so loading 3.5.1 together with panduck
+    0.7.0 makes the second `LOAD` fail. Every other combination is fine.
+
+    No spec change: `duck_block_spec_version()` is unchanged at spec 1.4.
 
     ## 2.0.0 is a breaking rename
 
@@ -173,16 +189,16 @@ docs:
     |----------|-------------|
     | `duck_blocks_render_ansi(blocks, width)` | Terminal rendering with themes |
 
-    ## Pandoc integration
+    ## Pandoc integration moved to panduck in 4.0.0
 
-    Convert between Pandoc's JSON AST and `duck_block` without invoking Pandoc:
+    The Pandoc converter now lives in
+    [duckdb_panduck](https://github.com/teaguesterling/duckdb_panduck), under the
+    same names. `LOAD panduck;` and the call sites are unchanged.
 
-    | Function | Description |
-    |----------|-------------|
-    | `pandoc_ast_to_blocks(json)` | Parse a Pandoc AST |
-    | `duck_blocks_to_pandoc_ast(blocks)` | Emit a full Pandoc document |
-    | `duck_blocks_to_pandoc_blocks(blocks)` | Emit just the block list |
-    | `read_pandoc_ast(path)` / `write_pandoc_ast(path, blocks)` | Read and write AST files |
+    ```sql
+    LOAD panduck;
+    SELECT pandoc_ast_to_blocks(ast_json);
+    ```
 
     ## Ecosystem
 
