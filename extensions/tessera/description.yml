@@ -1,0 +1,36 @@
+extension:
+  name: tessera
+  description: Fast join-aggregates (pair counts and sums of self-joins and two-relation joins) over skewed sparse relations, with a sparse product and a CPU matrix accelerator
+  version: 1.2.1
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "linux_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64;windows_amd64;windows_arm64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "omp"
+  maintainers:
+    - GyuyeongKim
+
+repo:
+  github: GyuyeongKim/Tessera-public
+  ref: dd3efd594a5954dd3abc6661cd7892b77c81924e
+
+docs:
+  hello_world: |
+    CREATE TABLE r AS
+      SELECT (random() * 20000)::INTEGER AS k, floor(power(random(), 3) * 5000)::INTEGER AS x FROM range(2000000);
+    -- the five pairs of values that share the most keys; Tessera replaces the join and the aggregation
+    SELECT a.x AS x0, b.x AS x1, COUNT(*) AS c
+    FROM r a JOIN r b ON a.k = b.k AND a.x < b.x
+    GROUP BY a.x, b.x ORDER BY c DESC LIMIT 5;
+    EXPLAIN SELECT a.x, b.x, COUNT(*) FROM r a JOIN r b ON a.k = b.k GROUP BY a.x, b.x;
+    -- item similarity above a threshold
+    SELECT * FROM tessera_sim('r', 'k', 'x', 'jaccard', 0.2);
+  extended_description: |
+    Tessera is an optimizer rule and operator for join-aggregates, queries that count or sum the joined rows of each
+    pair of values: `SELECT a.x, b.x, COUNT(*) FROM R a JOIN R b ON a.k = b.k GROUP BY a.x, b.x`, also with
+    `SUM(a.v * b.v)`, `a.x < b.x`, `HAVING`, `ORDER BY ... LIMIT`, or a second relation. It never builds the joined
+    rows. It computes each pair once on a sparse path, drops the values that cannot reach a `HAVING` or top-k threshold
+    before any product, and runs the dense block of the most frequent values on Intel AMX where the CPU has it. The rule
+    replaces matching plans by itself, so the SQL stays unchanged. Settings: `tessera_enabled`, `tessera_frontier`,
+    `tessera_min_expansion`, `tessera_min_expansion_cross`. See https://github.com/GyuyeongKim/Tessera-public for the
+    supported queries, the PostgreSQL, SQLite, and Spark adapters, and the C interface.
