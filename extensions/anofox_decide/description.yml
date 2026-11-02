@@ -1,7 +1,7 @@
 extension:
   name: anofox_decide
-  description: Natural-language decisions on your data inside DuckDB — yes/no probabilities, one-of-N choices and ordinal scores with the answer sets written in the query, from hosted (TypeSafe Jev, Liquid AI D1), local-server and in-process ONNX decision models, plus calibration metrics
-  version: '2026.10.26'
+  description: Natural-language decisions on your data inside DuckDB — yes/no probabilities, one-of-N choices and ordinal scores with the answer sets written in the query, from hosted (TypeSafe Jev, Liquid AI D1, OpenAI Decisions), local-server and in-process ONNX decision models, plus calibration metrics
+  version: '2026.10.31'
   language: C++
   build: cmake
   license: MIT
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: DataZooDE/anofox-decide
-  ref: c0daf3163ce4cdbe3ef6af6c585ecbe33de0612b
-  variegata: c0daf3163ce4cdbe3ef6af6c585ecbe33de0612b
+  ref: edf0fb28710f147cf2faa8bc93ea83d597ab7e32
+  variegata: edf0fb28710f147cf2faa8bc93ea83d597ab7e32
 
 docs:
   hello_world: |
@@ -24,8 +24,8 @@ docs:
     -- Real answers: register a hosted model, opt in to remote calls, and ask.
     -- (export LIQUID_API_KEY=... before starting DuckDB; a DuckDB secret overrides it)
     SET anofox_decide_allow_remote = true;                 -- your text goes to the provider
-    SELECT decide_register_model('d1:free', 'liquid');
-    SET anofox_decide_model = 'd1:free';
+    SELECT decide_register_model('d1', 'liquid');
+    SET anofox_decide_model = 'd1';
 
     SELECT id,
            decide_probability(text, 'A refund is requested.')                                    AS p_refund,
@@ -61,7 +61,8 @@ docs:
     One interface, several models, comparable in a single query:
 
     - **Hosted:** TypeSafe **Jev** (`typesafe`), Liquid AI **D1** (`liquid`) and Cloudflare **Clef** /
-      **Clef-flash** (`cloudflare`, on Workers AI). Calls send the text you
+      **Clef-flash** (`cloudflare`, on Workers AI) and OpenAI **gpt-6-luna** (`openai`, the Decisions API;
+      a refusal comes back as NULL). Calls send the text you
       score to the provider, so they sit behind an explicit opt-in (`anofox_decide_allow_remote`),
       off by default.
     - **Local servers:** [strands-decider](https://github.com/strands-labs/strands-decider)
