@@ -13,9 +13,9 @@ extension:
 
 repo:
   github: prochac/duckdb-loki
-  ref: v2.0.0
+  ref: c936b0faaf7819745a6de9dcd5385ca383641a23 # v2.0.0
   # DuckDB 1.5 uses the C++ API from before 2.0, so its builds come from the v1 line.
-  variegata: v1.2.0
+  variegata: eacf6cbcc15412e42b6f22f4f6e7051a03c626a7 # v1.2.0
 
 docs:
   hello_world: |
