@@ -17,3 +17,64 @@ repo:
   ref: 62a2d77685c8365c80639e8f6110d68efb83660b
   # DuckDB 1.5.6 stays on v0.4.0, the last release built for that line.
   variegata: d4aa50f9bf23ca44b44f0df48fb0065ba751f5be
+
+docs:
+  hello_world: |
+    -- The connection lives in a secret, so credentials stay out of SQL text
+    -- and query history. HOST/PORT/SERVICE_NAME, an Easy Connect string in
+    -- DSN, or an alias from tnsnames.ora all work.
+    CREATE SECRET ora (
+        TYPE oracle,
+        DSN 'db.example.com:1521/ORCLPDB1',
+        USER 'scott',
+        PASSWORD '...'
+    );
+
+    -- Run Oracle SQL and get the rows back as a DuckDB table.
+    SELECT * FROM oracle_query('ora', 'SELECT id, label FROM app.items');
+
+    -- Or attach the schema and use plain DuckDB SQL against it.
+    ATTACH 'ora' AS o (TYPE oracle_scanner);
+    SELECT * FROM o.ITEMS WHERE id > 100 ORDER BY id LIMIT 10;
+
+    -- Writes go through the same catalog, inside a real transaction.
+    INSERT INTO o.ITEMS SELECT * FROM 'new_items.parquet';
+  extended_description: |
+    `oracle_scanner` reads and writes Oracle Database directly. It speaks
+    Oracle's own network protocol (TNS/TTC) in C++, so there is no Oracle
+    Instant Client, OCI, ODPI-C, ODBC, JDBC, Python runtime or helper
+    process: `INSTALL` downloads one file and nothing else is needed on the
+    machine or on the Oracle server.
+
+    **Connect** with a DuckDB secret: host, port and service name; an Easy
+    Connect string or a full descriptor in `DSN`; an alias from
+    `tnsnames.ora` (`CONFIG_DIR`, `TNS_ADMIN`); or an Autonomous Database
+    wallet ZIP or folder, read in memory and never unpacked to disk. TCPS
+    always verifies the certificate and host name.
+
+    **Read** with `oracle_query` (bind parameters supported) or `ATTACH` a
+    schema and query its tables and views by name. Filters, `ORDER BY ...
+    LIMIT`, aggregates, joins between two attached tables, and JSON path
+    filters are sent to Oracle when its answer is provably the same; large
+    tables are read through several sessions by ROWID ranges at one SCN;
+    heavy columns are fetched only for rows that pass the filter.
+    `EXPLAIN ANALYZE` shows the SQL Oracle ran and the bytes it moved.
+
+    **Write** with `INSERT`, `UPDATE`, `DELETE` (including `RETURNING`)
+    through the attached schema, in DuckDB transactions that commit or roll
+    back on Oracle, or with `oracle_execute` for batches.
+
+    **Call** procedures and functions (`oracle_call_auto`, `oracle_call_named`,
+    `oracle_arguments`) and run anonymous PL/SQL blocks (`oracle_plsql`).
+
+    **Types** include NUMBER (exact), DATE, TIMESTAMP with time zones,
+    INTERVAL, RAW, BINARY_FLOAT/DOUBLE, CLOB/BLOB, JSON (OSON), XMLTYPE,
+    BOOLEAN and 23ai VECTOR, with `oracle_vector_search` for nearest
+    neighbours through Oracle's vector index.
+
+    **Snapshots:** `oracle_snapshot` copies the result of a query over the
+    attached schema into an ordinary DuckDB table, read `AS OF` one SCN, and
+    `oracle_snapshot_refresh` takes it again.
+
+    Full documentation, supported types and limits:
+    https://github.com/krokozyab/quack-oracle
