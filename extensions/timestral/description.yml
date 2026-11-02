@@ -1,7 +1,7 @@
 extension:
   name: timestral
   description: Zero-shot probabilistic time-series forecasting in SQL with Mistral's Timestral models, on CPU via ONNX Runtime
-  version: '0.1.0'
+  version: '0.1.1'
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: altertable-ai/duckdb-timestral
-  ref: 3bab0a28ff9b8854dc624b6666e1fc0639076466
+  ref: 8f0bc7fe5e83d127abd4ea1b4115fa1ab121006b
   variegata: 7d6486900113e4271f8e32324adf27776b63a02b
 
 docs:
@@ -20,7 +20,7 @@ docs:
     INSTALL timestral FROM community;
     LOAD timestral;
 
-    -- Hourly series, one per store. The 5M model (~23 MB) is downloaded and cached on first use.
+    -- Hourly series, one per store. The 5M model (~21 MB) is downloaded and cached on first use.
     CREATE TABLE sales AS
     SELECT g AS store, TIMESTAMP '2026-01-01' + INTERVAL (i) HOUR AS ts, 10 * g + sin(i / 6) AS amount
     FROM range(3) a(g), range(500) b(i);
