@@ -1,8 +1,8 @@
 # DuckDB 2.0.0 / C Extension API v2 only; no 1.x or prerelease refs are provided.
 extension:
   name: units
-  description: Physical unit conversion, compound-unit parsing, dimensional compatibility, and measurement validation using UCUM
-  version: 0.2.0
+  description: Physical unit conversion, unit and quantity parsing, dimensional compatibility, and measurement validation using UCUM
+  version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
@@ -14,7 +14,7 @@ extension:
 
 repo:
   github: sebastiaan-dev/duckdb-units-rs
-  ref: 715fed394bd719e35b82d503ea2683d421fcbe06
+  ref: 0a9d7cf1ea3b458fcb98fbcf31a1778f4ef234be
 
 docs:
   hello_world: |
@@ -40,6 +40,10 @@ docs:
     SELECT unit_convert_checked(1, 'kg', 'm');
     SELECT unit_parse_checked('Cel/s');
 
+    -- Parse measurement text with an explicit separator and no alias guessing.
+    SELECT quantity_parse('12.5 kg/m3');
+    SELECT quantity_parse_checked('1eV'); -- invalid_quantity; use '1 eV'
+
     -- Discover registered units, including explicit support status.
     SELECT unit, name, supported
     FROM unit_search('pressure') ORDER BY unit;
@@ -60,7 +64,10 @@ docs:
     Checked conversion returns `STRUCT(value, status, message)`; checked parsing
     returns `STRUCT(definition, status, message)`. Missing inputs have a distinct
     `missing_input` status. This supports auditing and quarantining bad rows before
-    normalization.
+    normalization. `quantity_parse()` parses a decimal value plus a UCUM unit;
+    `quantity_parse_checked()` returns `STRUCT(quantity, status, message)`.
+    Quantity text requires a space or tab between the number and unit, rejecting
+    ambiguous compact forms, locale-dependent numbers, and out-of-range values.
 
     `units_catalog()` exposes 312 registered UCUM atoms with definitions and support
     diagnostics; 253 currently pass the extension's conversion policy. Prefixes and
