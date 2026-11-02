@@ -1,7 +1,7 @@
 extension:
   name: cozip
   description: Cloud-Optimized ZIP reader for DuckDB
-  version: 2.0.1
+  version: 3.0.0
   language: C++
   build: cmake
   license: MIT
@@ -11,30 +11,28 @@ extension:
     - ryali93
 repo:
   github: asterisk-labs/cozip_reader
-  ref: 7af22df789f3ece8301492b7e229b968664fcd56
+  ref: 911e26c23330238302f0d937cfcae6e7ba529140
 docs:
   hello_world: |
     INSTALL cozip FROM community;
     LOAD cozip;
 
-    -- One row per sample, one column per file, ready for a dataloader.
-    SELECT * FROM read_taco('https://example.org/cloudsen12.zip') LIMIT 10;
-
-    -- A Flat-profile archive is a plain manifest instead.
-    SELECT * FROM read_flat('https://example.org/dataset.zip') LIMIT 10;
+    SELECT name, "cozip:location"
+    FROM read_flat('https://data.source.coop/asterisk-labs/cozip-api-fixtures/data/cities.zip')
+    LIMIT 10;
 
   extended_description: |
-    cozip puts an index at byte 0 of a ZIP archive, so a reader reaches any
-    file inside it in one range request instead of scanning the Central
-    Directory. This extension reads both cozip profiles without downloading
-    the archive, over HTTPS, S3, GCS, Azure or HuggingFace.
+    cozip puts an index at byte 0 of a ZIP archive, so a reader can locate a
+    file without scanning the Central Directory. This extension reads the
+    Flat profile (profile 1) from local files or remote storage, including
+    HTTPS, S3, GCS, Azure, and Hugging Face.
 
     read_flat(path) returns the Flat-profile manifest: one row per entry with
     name, offset, size and whatever columns the writer added.
 
-    read_taco(path) returns one row per sample with one column per file in the
-    contract. Pass pivoted := false for one row per file. It reads .zip,
-    FOLDER, and TACOCAT datasets.
+    The cozip:location column contains a GDAL /vsisubfile/ path for each stored
+    file. DuckDB readers can open those paths directly, fetching only the
+    needed byte ranges. The extension also accepts cozip-subfile:// paths.
 
-    Every data column holds a GDAL /vsisubfile/ path that opens the referenced
-    file in GDAL, rasterio or terra without extracting the archive.
+    Version 3.0 removes the TACO-specific read_taco and taco_* functions.
+    TACO ZIP ::location paths remain readable through the subfile filesystem.
