@@ -1,4 +1,3 @@
-# DuckDB 2.0.0 / C Extension API v2 only; no 1.x or prerelease refs are provided.
 extension:
   name: units
   description: Physical unit conversion, unit and quantity parsing, dimensional compatibility, and measurement validation using UCUM
@@ -6,8 +5,7 @@ extension:
   language: Rust
   build: cargo
   license: MIT
-  # Initially enable Linux amd64/arm64 and macOS arm64; expand after validation.
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;osx_amd64"
+  excluded_platforms: "windows_amd64;windows_amd64_rtools;windows_amd64_mingw;osx_amd64"
   requires_toolchains: "rust;python3"
   maintainers:
     - sebastiaan-dev
