@@ -1,0 +1,76 @@
+extension:
+  name: apt
+  description: Query the apt/dpkg package manager of Debian-based systems with SQL - installed packages, dependencies, repositories and their trust, package origins, pending security updates and change history
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - adriens
+  # apt only exists on Debian-based (glibc) Linux
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_arm64;osx_amd64;osx_arm64;linux_amd64_musl;linux_arm64_musl"
+  # lz4, to read the lz4-compressed apt indexes (vcpkg.json)
+  requires_toolchains: "vcpkg"
+
+repo:
+  github: adriens/duckdb-apt
+  # v0.1.0; DuckDB 2.0 only, so variegata (v1.5.6 builds) is unset
+  ref: 14746b3542d12ab547e5e9720ee48e0b94cddc95
+
+docs:
+  hello_world: |
+    INSTALL apt FROM community;
+    LOAD apt;
+
+    -- Version of apt
+    SELECT apt_version();
+
+    -- What did I install on purpose?
+    SELECT name, version
+    FROM apt_packages()
+    WHERE NOT auto_installed
+    ORDER BY name;
+
+    -- Which packages will apt never update?
+    SELECT name, version
+    FROM apt_packages()
+    ANTI JOIN apt_package_origins()
+        USING (name, architecture);
+
+    -- Pending security updates
+    SELECT name, current_version, new_version
+    FROM apt_upgradable()
+    WHERE is_security;
+
+    -- Repositories without a pinned signing key, or fetched over plain HTTP
+    SELECT uri, suite, signed_by
+    FROM apt_sources()
+    WHERE enabled
+      AND (signed_by IS NULL OR uri LIKE 'http://%');
+
+    -- Who changed what lately?
+    SELECT start_time, action, package, requested_by
+    FROM apt_history()
+    ORDER BY start_time DESC
+    LIMIT 20;
+
+    -- Compare Debian versions like dpkg
+    SELECT apt_version_compare('1:1.0', '2.0');
+
+    -- Package URLs for vulnerability scanners
+    COPY (SELECT purl FROM apt_packages()) TO 'purls.csv';
+  extended_description: |
+    The apt extension reads the files of the apt and dpkg package managers (/var/lib/dpkg, /etc/apt,
+    /var/lib/apt/lists, /var/log/apt) and exposes them as tables, so that the software installed on a
+    Debian, Ubuntu or derived system can be audited with SQL: inventory, dependency graph, repository
+    configuration and freshness, the repository each package comes from (and the packages no repository
+    updates anymore), pending updates flagged as security fixes, held packages and the change history with
+    who requested each change.
+
+    Files are read through DuckDB's file system, so enable_external_access and allowed_directories apply.
+    Every table function accepts a root parameter to audit another system, such as a mounted disk image or a
+    container filesystem. On systems without apt, the functions return no rows.
+
+    Documentation: https://adriens.github.io/duckdb-apt/
+
+    A Quarto notebook in the repository turns these tables into a PDF security report.
