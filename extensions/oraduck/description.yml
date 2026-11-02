@@ -1,7 +1,7 @@
 extension:
   name: oraduck
-  description: Read Oracle tables in parallel (ATTACH, oraduck_scan) and load query results into Oracle through the OCI Direct Path API
-  version: '0.4.0'
+  description: Read Oracle tables in parallel, load query results into Oracle through the OCI Direct Path API and run statements in Oracle
+  version: '0.5.0'
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: hugues31/oraduck
-  ref: 87d23f0664975ddca900ad39287d74634d554731
+  ref: e8f04ef00b37851a5f291e0b411365c9377dcf13
 
 install_notes: |
   **Oracle Instant Client** (Basic or Basic Light, version 19 or later) is required to talk to Oracle.
@@ -35,9 +35,13 @@ docs:
     -- Write: the target table must exist in Oracle; columns are matched by name
     COPY (SELECT id, amount, operation_date, label FROM source)
     TO 'MY_SCHEMA.MY_TABLE' (FORMAT oraduck, CONNECTION 'oracle_test');
+
+    -- Run one SQL statement or PL/SQL block in Oracle (committed; rolled back on error)
+    CALL oraduck_execute('TRUNCATE TABLE MY_SCHEMA.MY_TABLE', connection := 'oracle_test');
   extended_description: |
     OraDuck reads Oracle tables into DuckDB and loads DuckDB query results into Oracle, both through OCI
-    with one Oracle session per DuckDB thread and no intermediate file.
+    with one Oracle session per DuckDB thread and no intermediate file. It also runs SQL statements and
+    PL/SQL blocks in Oracle.
 
     Reading:
     - `ATTACH '' AS ora (TYPE oraduck, SECRET '<secret>')` exposes an Oracle database as a read-only
@@ -55,6 +59,13 @@ docs:
       API, the engine behind `sqlldr direct=true`; all sessions commit together, any error aborts the load
     - on Oracle 19c, 1.2 to 3.2 times faster than a CSV export loaded by parallel direct path SQL*Loader
     - indexed tables need `SKIP_INDEX_MAINTENANCE true`, which leaves their indexes UNUSABLE until rebuilt
+
+    Running statements:
+    - `CALL oraduck_execute('<statement>', connection := '<secret>')` runs one SQL statement or PL/SQL
+      block in its own Oracle session and commits it; `rows_affected` gives the row count of an INSERT,
+      UPDATE, DELETE or MERGE
+    - an error rolls the statement back; Ctrl-C and `max_execution_time` stop it in Oracle and roll it back
+    - upsert: `COPY` into a staging table, then `MERGE` it into the target with `oraduck_execute`
 
     Options, type mapping, recommended Oracle privileges, benchmarks and limitations:
     https://github.com/hugues31/oraduck
