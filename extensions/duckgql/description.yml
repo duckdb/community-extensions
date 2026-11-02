@@ -1,7 +1,7 @@
 extension:
   name: duckgql
   description: Adds ISO GQL graph querying and graph algorithms to DuckDB
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,9 @@ extension:
 
 repo:
   github: rahul-iyer/duckdb-gql
-  ref: 44e77c6835f9e6758bb3e3bccb1a642981dbf1e7
+  ref: 549eb4f70e74b3cd18e7f6597f3c492e5edcc1c5
+  variegata: 44e77c6835f9e6758bb3e3bccb1a642981dbf1e7
+  andium: 44e77c6835f9e6758bb3e3bccb1a642981dbf1e7
 
 docs:
   hello_world: |
@@ -45,7 +47,9 @@ docs:
     mutations with DuckDB's native relational storage and execution engine,
     plus an explicit CSR layer for graph algorithms.
 
-    **What works in v0.2.0**
+    **What works in v0.3.0**
+
+    This version targets DuckDB 2.0.0.
 
     * Managed property graphs backed by typed DuckDB vertex and edge tables.
     * Read-only, zero-copy graph projections over existing DuckDB and DuckLake
@@ -62,12 +66,17 @@ docs:
       ordering, paging, fixed multi-hop patterns, and a bounded
       variable-length path subset.
     * Standalone node and directed-path `INSERT`, fixed directed
-      `MATCH`-and-`INSERT`, single-node `INSERT RETURN`, property and label
-      mutation, and edge/node deletion.
+      `MATCH`-and-`INSERT`, multiple directed insertion paths, node and edge
+      `INSERT RETURN` values, property and label mutation, and edge/node deletion.
     * Native DuckDB ART indexes for selective vertex-property equality lookups.
-    * Explicit CSR-backed BFS, DFS, unweighted SSSP, PageRank, weak and strong
-      components, Louvain community detection, degree, closeness, local
+    * Explicit CSR-backed BFS, DFS, unweighted and weighted SSSP, PageRank, weak
+      and strong components, Louvain community detection, degree, closeness, local
       clustering coefficient, and triangle counting.
+    * Experimental cost-based graph planning with plan diagnostics, directional
+      fanout and endpoint statistics, and costing across connected patterns.
+      Enable it with `SET gql_optimizer = 'cost'`; legacy planning is the default.
+    * Snapshot-scoped DuckLake identity caching and selective projected property
+      access, with source-version pinning and prepared-query rebinding.
 
     **Storage and execution model**
 
@@ -84,17 +93,17 @@ docs:
 
     **Project status**
 
-    DuckGQL v0.2.0 is not yet a complete or conforming ISO GQL implementation.
+    DuckGQL v0.3.0 is not yet a complete or conforming ISO GQL implementation.
     Grammar recognition does not imply semantic or transactional conformance.
-    The machine-readable conformance manifest currently classifies 24 feature
-    families as partial and 12 as planned. Important restrictions include
+    The machine-readable conformance manifest records partial and planned
+    feature families. Important restrictions include
     autocommit-only graph lifecycle and CSR operations, a single vertex and
     edge input per bulk load, and incomplete
     general path searches, query composition, procedures, and the complete GQL
     value/type system.
 
     See the [documentation](https://duckgql.com/docs/), inspect the
-    [conformance manifest](https://github.com/rahul-iyer/duckdb-gql/blob/v0.2.0/test/conformance/iso-gql-2024.tsv),
+    [conformance manifest](https://github.com/rahul-iyer/duckdb-gql/blob/549eb4f70e74b3cd18e7f6597f3c492e5edcc1c5/test/conformance/iso-gql-2024.tsv),
     or try the [browser playground](https://duckgql.com/).
 
   known_limitations: |
@@ -109,13 +118,10 @@ docs:
       database-instance scoped and version checked. Graph mutations or direct
       SQL writes invalidate managed snapshots; the next algorithm call rebuilds
       the required projection automatically.
-    * Weighted SSSP is not implemented. The current SSSP implementation is
-      unweighted.
-    * Multiple-path and undirected insertion, general runtime property maps,
+    * Undirected insertion, general runtime property maps,
       and open-graph schema evolution remain incomplete.
-    * `INSERT RETURN` currently supports one directly inserted node variable;
-      edge values, expressions, multiple return items, ordering, and pagination
-      are not yet supported.
+    * Standalone `INSERT RETURN` supports directly inserted node and edge
+      variables; expressions, ordering, and pagination are not yet supported.
     * General path modes and searches, shortest-path groups, complete
       variable-length path composition, procedure semantics, query composition,
       named graph types, typed storage enforcement, and the complete GQL
