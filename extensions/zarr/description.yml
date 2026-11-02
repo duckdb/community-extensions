@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: xqlsystems/duckdb-zarr
-  ref: v0.2.1
-  variegata: v0.2.1
+  ref: 473cb3b203ff0c2f7f330bc6a4c0cbe4ed5c6474
+  variegata: 473cb3b203ff0c2f7f330bc6a4c0cbe4ed5c6474
 
 docs:
   hello_world: |
