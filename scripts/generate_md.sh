@@ -85,20 +85,25 @@ do
          rm $DOCS/functions.csv
       fi
 
+      # A Markdown table row must fit on a single line, but the -markdown output mode does not escape newlines.
+      # A newline in a cell (e.g., a multi-line string literal in an example) breaks the rest of the table,
+      # which then renders as plain text (and makes the kramdown parser of the website extremely slow).
+      $DUCKDB_BINARY $DOCS/$extension.db -c "CREATE OR REPLACE MACRO markdown_cell(s) AS regexp_replace(s, '\r\n|\r|\n', '<br>', 'g');"
+
       if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM new_settings) == 0 THEN error('table empty') END"; then
-         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM new_settings;" > $DOCS/$extension/settings.md
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "SELECT * REPLACE (markdown_cell(description) AS description) FROM new_settings;" > $DOCS/$extension/settings.md
       else
          echo "This extension does not add any settings." > $DOCS/$extension/settings.md
       fi
 
       if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions) == 0 THEN error('table empty') END"; then
-         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions;" > $DOCS/$extension/functions.md
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "SELECT * REPLACE (markdown_cell(description) AS description, markdown_cell(comment) AS comment, markdown_cell(examples) AS examples) FROM functions;" > $DOCS/$extension/functions.md
       else
          echo "This extension does not add any functions." > $DOCS/$extension/functions.md
       fi
 
       if $DUCKDB_BINARY $DOCS/$extension.db "SELECT CASE WHEN (SELECT count(*) FROM functions_overloads) == 0 THEN error('table empty') END"; then
-         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
+         $DUCKDB_BINARY $DOCS/$extension.db -markdown -c "SELECT * REPLACE (markdown_cell(description) AS description, markdown_cell(comment) AS comment, markdown_cell(examples) AS examples) FROM functions_overloads;" > $DOCS/$extension/functions_overloads.md
       else
          echo "This extension does not add any function overloads." > $DOCS/$extension/functions_overloads.md
       fi
