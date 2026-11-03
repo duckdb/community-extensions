@@ -1,7 +1,7 @@
 extension:
   name: pintail
   description: Lightweight Geohash utilities for DuckDB, including coordinate and geometry encoding, cell decoding, bounding boxes, and neighbors.
-  version: 0.2.0
+  version: 0.2.1
   language: C++
   build: cmake
   license: Apache-2.0
@@ -10,7 +10,9 @@ extension:
 
 repo:
   github: tshelianthus/duckdb-pintail
-  ref: a91b8018c00a9e889f8215e968e42f0c6eb964dc
+  # ref builds against DuckDB 2.0; variegata against v1.5.6. Same verified source.
+  ref: 59ff51b7589bbcb611eaa556535087532af76265
+  variegata: 59ff51b7589bbcb611eaa556535087532af76265
 
 docs:
   hello_world: |
