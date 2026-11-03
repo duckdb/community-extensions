@@ -1,0 +1,66 @@
+extension:
+  name: ivf
+  description: "OSA Levenshtein + Meilisearch-style typo tolerance for FTS (ivf_levenshtein, transposition = 1), with an exact-recall IVF-Flat vector baseline"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-ivf
+  ref: 74b06baaa68c46d7579bcb1ad6b13df3f171ec9b
+
+docs:
+  hello_world: |
+    LOAD ivf;
+
+    -- Edit distance: OSA Damerau-Levenshtein, a transposition counts as ONE edit
+    SELECT ivf_levenshtein('sachin', 'sahcin');   -- 1  (swap h/c)
+    SELECT ivf_levenshtein('cruide', 'crude');    -- 1  (deleted char)
+    SELECT ivf_levenshtein('abcd', 'dcba', 2);    -- 2  (saturates at maxd)
+
+    -- Exact-recall vector search (IVF-Flat, brute-force baseline / eval ground truth)
+    CREATE TABLE items(id BIGINT, vec FLOAT[]);
+    INSERT INTO items VALUES (0, [0.0,1.0]), (1, [1.0,0.0]), (2, [0.9,0.1]);
+    SELECT * FROM ivf_create_index('items_vec', 'items', 'id', 'vec', 4, 10, true);
+    SELECT * FROM ivf_search_exact('items_vec', 'items', 'vec', 2);
+
+  extended_description: |
+    ## ivf — OSA Levenshtein + typo tolerance for DuckDB FTS
+
+    Pure-Rust (zero non-std dependencies), C-API v1.2.0. Two capability
+    groups:
+
+    **1. `ivf_levenshtein(a, b[, maxd])` — OSA Damerau-Levenshtein.**
+    An adjacent transposition counts as ONE edit (the dominant class of real
+    keyboard typos; plain Levenshtein counts 2) — the same semantics
+    Meilisearch uses for typo tolerance. Banded with early exit, optional
+    `maxd` saturation.
+
+    On top of the official `fts` extension (DuckDB >= 2.0) this powers a
+    SQL macro layer (`test/fts_typo.sql`, load with `CREATE MACRO` from the
+    file) implementing Meilisearch-style search: length-tiered edit budgets
+    (<=3 letters never corrected, 4-5 tolerate 1, 6+ tolerate 2), correction
+    against the fts `raw_dict` (surface forms), two-way `synonyms` that
+    outrank typo correction, and an **expand-not-replace** entry point —
+    the original and corrected queries both run and are fused, so a wrong
+    correction can never hurt recall. Measured on 120k ag_news headlines
+    (bge-m3 vectors, 50 single-typo queries): nDCG@10 0.657 (no correction)
+    -> 0.705 (expand) -> 0.909 with vector fusion; word-level correction
+    recall 13/50 (the ceiling is the corpus dictionary — names/new words
+    are OOV).
+
+    **2. IVF-Flat vector index — exact-recall baseline.**
+    `ivf_create_index` / `ivf_search` (nprobe) / `ivf_search_exact`
+    (brute force) / `ivf_list`. Positioning: a dependency-free,
+    uncompressed exact-recall control for eval harnesses and
+    ground-truth checks — not a competitive ANN engine (see official `vss`
+    for HNSW, `vindex`/turbovec for quantized ANN).
+
+    **Platforms:** Linux x64, macOS arm64/x64, Windows x64 (CI-built).
+    Load with `INSTALL ivf FROM community;` (or `LOAD 'ivf.duckdb_extension'`
+    with `-unsigned` for local builds).
