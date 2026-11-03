@@ -1,7 +1,7 @@
 extension:
   name: pql
-  description: Predictive queries as SQL. TRAIN a model on the tables you already have, PREDICT with it, BACKTEST it.
-  version: 0.2.0
+  description: Predictive queries as SQL. TRAIN a model on the tables you already have, PREDICT with it, BACKTEST it, and OPTIMIZE a plan from its predictions.
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: Guepard-Corp/duckdb-pql
-  variegata: 87692e362ebb0a08cc1f880ce8d44feac1f79239
-  ref: 2ec718717aae50a9af8ee9f26a52d93e5633cbb0
+  variegata: 021b33aebe70bb427f6fbc3d8bd367bd25cfe9f5
+  ref: 246e4d08436ae750fbfea1f0bf709df6ff9d5f70
 
 docs:
   hello_world: |
@@ -42,7 +42,7 @@ docs:
     time, and reports how good the model is before you use it. No feature
     engineering, no export, no separate service.
 
-    ### The five statements
+    ### The statements
 
     ```sql
     TRAIN [OR REPLACE] MODEL <name>
@@ -60,6 +60,11 @@ docs:
     BACKTEST MODEL <name> [ FROM <ts> ] [ TO <ts> ];   -- replay it row by row against what happened
     EXPLAIN MODEL <name>;                                -- which features it relies on
     DROP MODEL [IF EXISTS] <name>;
+
+    [EXPLAIN] OPTIMIZE <table> [ WHERE <filter> ]       -- a plan from the predictions (three forms, below)
+      [ CHOOSE <column> IN (<value>, ...) | ASSIGN <column> OVER <table>.<key> [ ... ] ]
+      MAXIMIZE | MINIMIZE <total> [ SUBJECT TO <limit> [ AND ... ] ]
+      USING MODEL <name>;
     ```
 
     Every statement is also a table function, `pql_exec('<statement>')`, so a
@@ -128,6 +133,51 @@ docs:
     FROM pql_exec('BACKTEST MODEL spend FROM ''2025-09-15''');
     ```
 
+    ### From a prediction to a plan: OPTIMIZE
+
+    `OPTIMIZE` is one statement. It turns a model's predictions into a plan that
+    maximises or minimises a total under limits, in one of three forms:
+
+    | form | decides | limits | rows interact |
+    |---|---|---|---|
+    | `OPTIMIZE t ... SUBJECT TO ...` | which rows to act on | totals over the plan | only through the totals |
+    | `OPTIMIZE t CHOOSE col IN (...)` | one value per row, from a list | totals over the plan | only through the totals |
+    | `OPTIMIZE t ASSIGN col OVER r.key` | which row of another table each row goes to, or none | per resource (`PER col`), and with `SEQUENCE` order, setups and time windows | through the resource they share |
+
+    ```sql
+    -- Which rows: fifty calls, to the customers worth most who would not reorder on their own.
+    OPTIMIZE customers
+      MAXIMIZE SUM((1 - prediction) * tier * 100)
+      SUBJECT TO COUNT(*) <= 50
+      USING MODEL reorder;
+
+    -- A value per row: the offer for each customer, under a budget.
+    OPTIMIZE customers
+      CHOOSE offer IN ('none', '10%', '20%')
+      MAXIMIZE SUM(prediction - CASE offer WHEN '10%' THEN 10 WHEN '20%' THEN 20 ELSE 0 END)
+      SUBJECT TO SUM(CASE offer WHEN '10%' THEN 10 WHEN '20%' THEN 20 ELSE 0 END) <= 5000
+      USING MODEL spend;
+
+    -- A resource per row, in sequence: jobs on crews, with travel, time windows and each crew's hours.
+    OPTIMIZE jobs WHERE open = 1 AT received_at
+      ASSIGN crew OVER crews.crew ELSE 'none'
+        ONLY IF resource.kind = kind
+        SEQUENCE FROM resource.free_from
+          START    DISTANCE(resource.lat, resource.lon, from_lat, from_lon) / 40
+          SETUP    DISTANCE(prev.to_lat, prev.to_lon, from_lat, from_lon) / 40
+          DURATION miles / 40 + 1
+          WINDOW BETWEEN window_from AND window_to
+      MAXIMIZE SUM(prediction - plan.setup * 60)
+      SUBJECT TO SUM(plan.setup + plan.duration) PER crew <= resource.hours
+      USING MODEL job_margin;
+    ```
+
+    With `CHOOSE`, one row's choice never changes what another row is worth. With
+    `ASSIGN` it does: a job uses its crew's hours, and its travel depends on the job
+    before it. So `ASSIGN` has its own solver and plan columns (`sequence`, `begin`,
+    `setup`, `duration`). In every form, `EXPLAIN OPTIMIZE` reports the plan's total
+    beside a bound no plan can beat; when the two are equal, the plan is proven best.
+
     ### It is still SQL
 
     ```sql
@@ -164,5 +214,5 @@ docs:
     - [Reference](https://github.com/Guepard-Corp/duckdb-pql/blob/main/docs/reference.md):
       full syntax, options, result columns, and the current limitations.
     - [How it works](https://github.com/Guepard-Corp/duckdb-pql/blob/main/docs/how-it-works.md):
-      features, leakage, the two model architectures.
+      features, leakage, the two model architectures, and the OPTIMIZE solvers.
     - Issues and questions: https://github.com/Guepard-Corp/duckdb-pql/issues
