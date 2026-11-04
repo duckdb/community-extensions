@@ -12,32 +12,19 @@ extension:
   cuda_archs: "80-real"
   cuda_version: "13"
   test_config: '{"test_env_variables":{"VCPKG_CUDA_ARCHITECTURES":"80-real"}}'
-  use_merged_vcpkg_manifest: true
+  skip_tests: true
   vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
   extra_extension_config: |-
     set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
-    # Older duckdb_extension_load versions split semicolon-separated SUBMODULES during argument parsing.
-    # TODO: Use duckdb_extension_load again after DuckDB 2.0.1.
-    register_external_extension(
+    duckdb_extension_load(
       sirius_cuda13
-      https://github.com/sirius-db/sirius
-      5350b8f951c32cb79f4b1971a48c5915f0a6908f
-      FALSE
-      FALSE
-      sirius-duckdb
-      sirius-duckdb/src/include
-      ""
-      FALSE
-      ""
-      "duckdb;cucascade;substrait"
-      "")
+      SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}
+      INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/src/include)
 
 repo:
   github: sirius-db/sirius
-  ref: 5350b8f951c32cb79f4b1971a48c5915f0a6908f
-  ref_next: 5350b8f951c32cb79f4b1971a48c5915f0a6908f
-  build_github: duckdb/extension-template
-  build_ref: fd1d3a78f95168640b1354e115b40d8abb5d5931
+  ref: a1d2f068922b26df3da913672503d2e9cc8e4bd5
+  build_directory: sirius-duckdb
 
 docs:
   hello_world: |
