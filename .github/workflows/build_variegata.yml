@@ -20,4 +20,3 @@ jobs:
     with:
       duckdb_version: 'v1.5.6'
       deploy: 'true'
-      require_variegata: true

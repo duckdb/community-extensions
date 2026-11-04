@@ -55,7 +55,7 @@ def base_commit():
 
 	return subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], capture_output=True, text=True).stdout.strip() or None
 
-def repo_field_changed(field):
+def field_changed(field):
 	base = base_commit()
 	print(f"Comparing repo.{field} against base commit: {base}")
 
@@ -69,29 +69,35 @@ def repo_field_changed(field):
 	field_changed = base_value is None or str(base_value) != str(desc['repo'].get(field))
 	return field_changed
 
+def select_ref(field):
+	if field in desc['repo']:
+		ref = desc['repo'][field]
+		if not field_changed(field):
+			print(f"Skipping {field} build: repo.{field} is unchanged ({ref})")
+			ref = None
+	else:
+		print(f"Skipping {field} build: repo.{field} is not defined")
+		ref = None
+
+	return ref
+
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
 	if 'canonical_name' in desc.get('repo', {}):
 		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
-	extension_ref = desc['repo']['ref']
-	if os.environ['DUCKDB_VERSION'] == 'v1.4.5':
-		if 'andium' in desc['repo']:
-			extension_ref = desc['repo']['andium']
+
+	extension_ref = None
+	if os.environ['DUCKDB_VERSION'] == os.environ['DUCKDB_LATEST_STABLE']:
+		extension_ref = select_ref('ref');
+	elif os.environ['DUCKDB_VERSION'] == 'v1.4.5':
+		extension_ref = select_ref('andium');
 	elif os.environ['DUCKDB_VERSION'] == 'v1.5.6':
-		if 'variegata' in desc['repo']:
-			extension_ref = desc['repo']['variegata']
-			if deploy and os.environ.get('COMMUNITY_EXTENSION_REQUIRE_VARIEGATA') == 'true' and not repo_field_changed('variegata'):
-				print(f"Skipping variegata build: repo.variegata is unchanged ({extension_ref})")
-				extension_ref = None
-		elif os.environ.get('COMMUNITY_EXTENSION_REQUIRE_VARIEGATA') == 'true':
-			print("Skipping variegata build: repo.variegata is not defined")
-			extension_ref = None
-	elif os.environ['DUCKDB_VERSION'] != os.environ['DUCKDB_LATEST_STABLE']:
-		if desc['repo'].get('ref_next'):
-			extension_ref = desc['repo']['ref_next']
-		elif os.environ.get('COMMUNITY_EXTENSION_REQUIRE_REF_NEXT') == 'true':
-			print("Skipping prerelease validation: repo.ref_next is not defined")
-			extension_ref = None
+		extension_ref = select_ref('variegata');
+	elif os.environ['DUCKDB_VERSION'] == 'v2.0.0-alpha': # placeholder
+		extension_ref = select_ref('ref_next');
+	else:
+		print("No valid ")
+
 	if extension_ref:
 		hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
