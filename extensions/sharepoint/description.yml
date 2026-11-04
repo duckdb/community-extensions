@@ -1,7 +1,7 @@
 extension:
   name: sharepoint
-  version: 2026.10.18
-  description: Query files in SharePoint / OneDrive directly with a sharepoint:// filesystem
+  version: 2026.11.03
+  description: SharePoint and OneDrive in SQL -- files (sharepoint://), Excel workbooks, SharePoint lists, search and change feeds
   language: C++
   build: cmake
   license: MIT
@@ -13,15 +13,16 @@ extension:
   excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - jrosskopf
+    - sipemu
 
 repo:
   github: DataZooDE/duckdb-sharepoint
-  ref: 88ce9519e20838b37df80dc1e09d6150cc61fe85
-  # ref builds against DuckDB 2.0, variegata against v1.5.6 and andium against
-  # v1.4.5 (community-extensions scripts/build.py); a missing key falls back to
-  # ref. One commit serves all three lines (duckdb-compat), so at release all
-  # are the same tagged SHA.
-  variegata: 88ce9519e20838b37df80dc1e09d6150cc61fe85
+  ref: 9704b2b63de18beb1666872409d298e0edcc0229
+  # ref builds against DuckDB 2.0 and variegata against v1.5.6
+  # (community-extensions scripts/build.py); a missing key falls back to ref.
+  # One commit serves both lines (duckdb-compat), so at release both are the
+  # same tagged SHA. No andium key: DuckDB 1.4.x is not supported.
+  variegata: 9704b2b63de18beb1666872409d298e0edcc0229
 
 docs:
   hello_world: |
@@ -61,8 +62,16 @@ docs:
     and served from a block cache. Writes stream through a Graph upload session
     in bounded memory and the file appears when it is closed (Graph cannot
     write at a byte offset, so positional writes raise rather than corrupt).
-    Besides app-only client credentials, a user can sign in with
-    `device_code` or `authorization_code`. Also registers the
+    Beyond files: `read_excel_table` / `read_excel_range` read live Excel
+    workbooks and `COPY ... (FORMAT excel_table | excel_range)` writes them
+    back; `read_sharepoint_list` reads SharePoint lists as typed tables (WHERE
+    pushed down to Graph on indexed columns) and `COPY ... (FORMAT
+    sharepoint_list)` creates or updates items; `read_sharepoint_files` lists a
+    library with its metadata; `search_sharepoint` runs Microsoft Search;
+    `sharepoint_changes` returns the files changed since a token;
+    `?version=` reads an earlier version of a file.
+    Besides app-only client credentials or a certificate, a user can sign in
+    with `device_code` or `authorization_code`. Also registers the
     scheme-generic `write_blob`, `remove_file`, `move_file` and `file_size` SQL
     functions, which work for any filesystem DuckDB can reach.
 
