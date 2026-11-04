@@ -37,11 +37,12 @@ if dir_name != extension_name:
 
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
-	hdl.write(f"COMMUNITY_EXTENSION_BUILD_GITHUB={desc['repo'].get('build_github', desc['repo']['github'])}\n")
+	build_directory = desc['repo'].get('build_directory')
+	if build_directory:
+		hdl.write(f"COMMUNITY_EXTENSION_BUILD_DIRECTORY={build_directory}\n")
 	if 'canonical_name' in desc.get('repo', {}):
 		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
 	extension_ref = desc['repo']['ref']
-	build_ref = desc['repo'].get('build_ref')
 	if os.environ['DUCKDB_VERSION'] == 'v1.4.5':
 		if 'andium' in desc['repo']:
 			extension_ref = desc['repo']['andium']
@@ -56,9 +57,6 @@ with open('env.sh', 'w+') as hdl:
 			extension_ref = None
 	if extension_ref:
 		hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
-		build_ref = build_ref or extension_ref
-	if build_ref:
-		hdl.write(f"COMMUNITY_EXTENSION_BUILD_REF={build_ref}\n")
 	hdl.write(f"COMMUNITY_EXTENSION_NAME={desc['extension']['name']}\n")
 	excluded_platforms = desc['extension'].get('excluded_platforms')
 	opt_in_platforms = desc['extension'].get('opt_in_platforms')
@@ -67,6 +65,7 @@ with open('env.sh', 'w+') as hdl:
 	vcpkg_url = desc['extension'].get('vcpkg_url')
 	vcpkg_commit = desc['extension'].get('vcpkg_commit')
 	test_config = desc['extension'].get('test_config')
+	skip_tests = desc['extension'].get('skip_tests')
 	extra_extension_config = desc['extension'].get('extra_extension_config')
 	cuda_archs = desc['extension'].get('cuda_archs')
 	cuda_version = desc['extension'].get('cuda_version')
@@ -86,6 +85,8 @@ with open('env.sh', 'w+') as hdl:
 	if test_config:
 		escaped_config =test_config.replace("\n", "")
 		hdl.write(f"COMMUNITY_EXTENSION_TEST_CONFIG={escaped_config}\n")
+	if skip_tests:
+		hdl.write("COMMUNITY_EXTENSION_SKIP_TESTS=1\n")
 	if extra_extension_config:
 		hdl.write("COMMUNITY_EXTENSION_EXTRA_CONFIG<<EOF\n")
 		hdl.write(f"{extra_extension_config.rstrip()}\n")

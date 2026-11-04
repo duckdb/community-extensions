@@ -74,15 +74,15 @@ jobs:
     outputs:
       COMMUNITY_EXTENSION_NAME: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_NAME }}
       COMMUNITY_EXTENSION_GITHUB: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_GITHUB }}
-      COMMUNITY_EXTENSION_BUILD_GITHUB: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_BUILD_GITHUB }}
+      COMMUNITY_EXTENSION_BUILD_DIRECTORY: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_BUILD_DIRECTORY }}
       COMMUNITY_EXTENSION_CANONICAL_NAME: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_CANONICAL_NAME}}
       COMMUNITY_EXTENSION_REF: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REF }}
-      COMMUNITY_EXTENSION_BUILD_REF: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_BUILD_REF }}
       COMMUNITY_EXTENSION_DEPLOY: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_DEPLOY }}
       COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS: ${{ inputs.more_excluded }}${{ steps.parse.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}
       COMMUNITY_EXTENSION_OPT_IN_PLATFORMS: ${{ inputs.more_opt_in }}${{ steps.parse.outputs.COMMUNITY_EXTENSION_OPT_IN_PLATFORMS }}
       COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       COMMUNITY_EXTENSION_TEST_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_TEST_CONFIG }}
+      COMMUNITY_EXTENSION_SKIP_TESTS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_SKIP_TESTS }}
       COMMUNITY_EXTENSION_EXTRA_CONFIG: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_EXTRA_CONFIG }}
       COMMUNITY_EXTENSION_CUDA_ARCHS: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_CUDA_ARCHS }}
       COMMUNITY_EXTENSION_CUDA_VERSION: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_CUDA_VERSION }}
@@ -135,15 +135,16 @@ jobs:
       extension_canonical: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CANONICAL_NAME }}
       extra_toolchains: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REQUIRES_TOOLCHAINS }}
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
-      override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_BUILD_GITHUB }}
-      override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_BUILD_REF }}
+      override_repository: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_GITHUB }}
+      override_ref: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_REF }}
+      build_directory: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_BUILD_DIRECTORY || '.' }}
       extra_extension_config: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXTRA_CONFIG }}
       cuda_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CUDA_ARCHS }}
       cuda_version: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_CUDA_VERSION || '13' }}
       use_merged_vcpkg_manifest: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_USE_MERGED_VCPKG_MANIFEST }}
       vcpkg_url: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_URL}}
       vcpkg_commit: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT}}
-      skip_tests: ${{ inputs.skip_tests || false }}
+      skip_tests: ${{ inputs.skip_tests || needs.prepare.outputs.COMMUNITY_EXTENSION_SKIP_TESTS == '1' }}
       save_cache: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME == 'quack' && github.event_name != 'pull_request' }}
 
   doc_test:
