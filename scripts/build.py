@@ -55,7 +55,7 @@ def base_commit():
 
 	return subprocess.run(['git', 'rev-parse', 'FETCH_HEAD'], capture_output=True, text=True).stdout.strip() or None
 
-def field_changed(field):
+def repo_field_changed(field):
 	base = base_commit()
 	print(f"Comparing repo.{field} against base commit: {base}")
 
@@ -72,7 +72,7 @@ def field_changed(field):
 def select_ref(field):
 	if field in desc['repo']:
 		ref = desc['repo'][field]
-		if not field_changed(field):
+		if not repo_field_changed(field):
 			print(f"Skipping {field} build: repo.{field} is unchanged ({ref})")
 			ref = None
 	else:
