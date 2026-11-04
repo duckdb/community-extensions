@@ -63,7 +63,7 @@ docs:
     **Key Features:**
     
     - **Native YAML Type**: Full YAML type support with automatic casting between YAML, JSON, and VARCHAR
-    - **File Reading**: Read YAML files with `read_yaml()` and `read_yaml_objects()` functions supporting multi-document files, top-level sequences, and robust error handling
+    - **File Reading**: Read YAML files with `read_yaml()` and `read_yaml_objects()` functions supporting multi-document files, top-level sequences, gzip and zstd compression, and robust error handling
     - **Direct File Querying**: Query YAML files directly using `FROM 'file.yaml'` syntax
     - **Extraction Functions**: Query YAML data with `yaml_extract()`, `yaml_type()`, `yaml_exists()`, `yaml_value()`, `->>` operator, and path-based extraction
     - **Document Operations**: Check containment with `yaml_contains()`, merge documents with `yaml_merge_patch()`, and analyze structure with `yaml_structure()`
