@@ -1,0 +1,52 @@
+extension:
+  name: jasp_ext
+  description: Read JASP project files (.jasp) as SQL tables — data, column metadata and analysis registry
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: "rust"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb_jasp
+  ref: 29f495076d45b0bbb22cf3fa663bd339787f78f5
+
+docs:
+  extended_description: |
+    The jasp_ext extension reads [JASP](https://www.jasp.org/) project files (`.jasp`) directly as SQL tables.
+
+    A `.jasp` file is a ZIP archive containing `internal.sqlite` (the real data), `analyses.json`
+    (analysis registry) and `resources/N/jaspResults.json` (per-analysis results). Data lives in
+    `DataSet` / `DataSet_N` tables where every logical column is stored as a pair of physical
+    columns (`Column_{id}_DBL` value, `Column_{id}_INT` categorical code). The extension maps
+    these back to logical typed columns:
+
+    | JASP column type | DuckDB type | source |
+    |---|---|---|
+    | scale | DOUBLE | `_DBL` REAL value, `nan` → NULL |
+    | ordinal | DOUBLE | `_DBL` code |
+    | nominal | VARCHAR | `Labels[_INT]` |
+    | nominalText | VARCHAR | `_DBL` text value |
+
+    **Table functions:**
+
+    | function | description |
+    |---|---|
+    | `read_jasp(path)` | all data rows (typed), from the default DataSet |
+    | `read_jasp(path, dataset)` | a specific `DataSet_N` |
+    | `read_jasp_columns(path [, dataset])` | column metadata (id, name, columnType) |
+    | `read_jasp_analyses(path)` | one row per registered analysis |
+
+    **Example:**
+
+    ```sql
+    SELECT * FROM read_jasp('/path/to/project.jasp');
+    SELECT * FROM read_jasp_columns('/path/to/project.jasp');
+    SELECT * FROM read_jasp_analyses('/path/to/project.jasp');
+    ```
+
+    **Install:** `INSTALL jasp_ext FROM community;`
+
+    **Source:** [alitrack/duckdb_jasp](https://github.com/alitrack/duckdb_jasp)
