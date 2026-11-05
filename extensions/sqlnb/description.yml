@@ -26,6 +26,9 @@ docs:
     your local DuckDB database. Open and save notebook files, browse your tables,
     and revisit earlier versions with built-in notebook history.
 
+    SQLNB can also open, edit, and save existing notebooks from the official
+    DuckDB UI extension.
+
     Run `select sqlnb_start();` to open SQLNB in your browser. Keep your DuckDB
     session open while you work.
 
