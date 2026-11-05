@@ -21,29 +21,13 @@ docs:
     load sqlnb;
     select sqlnb_start();
 
-    -- Keep this DuckDB connection open while using the browser.
-    select sqlnb_status();
-    select sqlnb_stop();
-
   extended_description: |
-    SQLNB opens SQL notebooks in your browser using your local DuckDB session.
-    Open and save notebook files, run queries, and work with tables and charts.
-    The native extension provides a local HTTP server, notebook history, and an
-    optional authenticated MCP server. It loads official Quack, httpfs, and ICU
-    dependencies from DuckDB core.
+    Write SQL, explore query results, and build charts in a notebook connected to
+    your local DuckDB database. Open and save notebook files, browse your tables,
+    and revisit earlier versions with built-in notebook history.
 
-    The separately hosted Sidequery UI is downloaded and cached at startup.
-    Compatible UI updates do not require a new native extension release: restart
-    SQLNB to pick up an update. Active sessions retain their current UI, and a
-    verified cached UI remains available when the network is unavailable.
-    The native extension is MIT licensed; the separately hosted UI is not part
-    of this repository or covered by its license.
+    Run `select sqlnb_start();` to open SQLNB in your browser. Keep your DuckDB
+    session open while you work.
 
-    Choose a notebook directory and avoid opening a browser automatically:
-
-    ```sql
-    select sqlnb_start(notebook_root := '~/Documents/notebooks', open_browser := false);
-    ```
-
-    MCP is disabled by default. See the [configuration and MCP documentation](https://github.com/sidequery/sqlnb-extension)
-    before enabling it with `mcp := true`.
+    See the [project documentation](https://github.com/sidequery/sqlnb-extension)
+    for configuration and connecting AI tools through MCP.
