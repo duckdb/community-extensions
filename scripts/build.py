@@ -83,6 +83,9 @@ def select_ref(field):
 
 with open('env.sh', 'w+') as hdl:
 	hdl.write(f"COMMUNITY_EXTENSION_GITHUB={desc['repo']['github']}\n")
+	build_directory = desc['repo'].get('build_directory')
+	if build_directory:
+		hdl.write(f"COMMUNITY_EXTENSION_BUILD_DIRECTORY={build_directory}\n")
 	if 'canonical_name' in desc.get('repo', {}):
 		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
 
@@ -108,6 +111,11 @@ with open('env.sh', 'w+') as hdl:
 	vcpkg_url = desc['extension'].get('vcpkg_url')
 	vcpkg_commit = desc['extension'].get('vcpkg_commit')
 	test_config = desc['extension'].get('test_config')
+	skip_tests = desc['extension'].get('skip_tests')
+	extra_extension_config = desc['extension'].get('extra_extension_config')
+	cuda_archs = desc['extension'].get('cuda_archs')
+	cuda_version = desc['extension'].get('cuda_version')
+	use_merged_vcpkg_manifest = desc['extension'].get('use_merged_vcpkg_manifest')
 	if excluded_platforms:
 		hdl.write(f"COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS={excluded_platforms}\n")
 	if opt_in_platforms:
@@ -123,3 +131,15 @@ with open('env.sh', 'w+') as hdl:
 	if test_config:
 		escaped_config =test_config.replace("\n", "")
 		hdl.write(f"COMMUNITY_EXTENSION_TEST_CONFIG={escaped_config}\n")
+	if skip_tests:
+		hdl.write("COMMUNITY_EXTENSION_SKIP_TESTS=1\n")
+	if extra_extension_config:
+		hdl.write("COMMUNITY_EXTENSION_EXTRA_CONFIG<<EOF\n")
+		hdl.write(f"{extra_extension_config.rstrip()}\n")
+		hdl.write("EOF\n")
+	if cuda_archs:
+		hdl.write(f"COMMUNITY_EXTENSION_CUDA_ARCHS={cuda_archs}\n")
+	if cuda_version:
+		hdl.write(f"COMMUNITY_EXTENSION_CUDA_VERSION={cuda_version}\n")
+	if use_merged_vcpkg_manifest:
+		hdl.write("COMMUNITY_EXTENSION_USE_MERGED_VCPKG_MANIFEST=1\n")
