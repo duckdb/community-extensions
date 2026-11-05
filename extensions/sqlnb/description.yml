@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: sidequery/sqlnb-extension
-  ref: 26e634068407950db98d6145a155817ecef51c23
+  ref: f9adda39f49b01af8d2454f426ddf6396cb029c2
 
 docs:
   hello_world: |
