@@ -1,0 +1,49 @@
+extension:
+  name: sqlnb
+  description: Local SQL notebooks in your browser, backed by your DuckDB session
+  version: 0.1.0
+  language: C++ and Rust
+  build: cmake
+  license: MIT
+  requires_toolchains: rust
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+  opt_in_platforms: osx_amd64
+  maintainers:
+    - nicosuave
+
+repo:
+  github: sidequery/sqlnb-extension
+  ref: 26e634068407950db98d6145a155817ecef51c23
+
+docs:
+  hello_world: |
+    install sqlnb from community;
+    load sqlnb;
+    select sqlnb_start();
+
+    -- Keep this DuckDB connection open while using the browser.
+    select sqlnb_status();
+    select sqlnb_stop();
+
+  extended_description: |
+    SQLNB opens SQL notebooks in your browser using your local DuckDB session.
+    Open and save notebook files, run queries, and work with tables and charts.
+    The native extension provides a local HTTP server, notebook history, and an
+    optional authenticated MCP server. It loads official Quack, httpfs, and ICU
+    dependencies from DuckDB core.
+
+    The separately hosted Sidequery UI is downloaded and cached at startup.
+    Compatible UI updates do not require a new native extension release: restart
+    SQLNB to pick up an update. Active sessions retain their current UI, and a
+    verified cached UI remains available when the network is unavailable.
+    The native extension is MIT licensed; the separately hosted UI is not part
+    of this repository or covered by its license.
+
+    Choose a notebook directory and avoid opening a browser automatically:
+
+    ```sql
+    select sqlnb_start(notebook_root := '~/Documents/notebooks', open_browser := false);
+    ```
+
+    MCP is disabled by default. See the [configuration and MCP documentation](https://github.com/sidequery/sqlnb-extension)
+    before enabling it with `mcp := true`.
