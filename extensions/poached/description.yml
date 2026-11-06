@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: sidequery/poached
-  ref: 3ea18b13eef73620a4707c70753331b235a87f37
+  ref: 2bdb07eabb92b1de546a1eb8e987983a8928c3b6
 
 docs:
   hello_world: |
@@ -33,20 +33,15 @@ docs:
 
     -- Validate SQL and get error messages
     SELECT is_valid_sql('SELECT * FROM'), sql_error_message('SELECT * FROM');
-    ┌──────────────┬────────────────────────────────────────────┐
-    │ is_valid_sql │            sql_error_message               │
-    ├──────────────┼────────────────────────────────────────────┤
-    │ false        │ Parser Error: syntax error at end of input │
-    └──────────────┴────────────────────────────────────────────┘
 
-    -- Get result column types without executing
+    -- Get SELECT column names without executing
     SELECT * FROM parse_columns('SELECT 1 AS num, ''hello'' AS str', 0);
-    ┌───────────┬──────────┬──────────┐
-    │ col_index │ col_name │ col_type │
-    ├───────────┼──────────┼──────────┤
-    │         0 │ num      │ INTEGER  │
-    │         1 │ str      │ VARCHAR  │
-    └───────────┴──────────┴──────────┘
+    ┌───────────┬──────────┐
+    │ col_index │ col_name │
+    ├───────────┼──────────┤
+    │         0 │ num      │
+    │         1 │ str      │
+    └───────────┴──────────┘
 
     -- Extract function calls with type info
     SELECT * FROM parse_functions('SELECT COUNT(*), UPPER(name) FROM t');
@@ -57,22 +52,20 @@ docs:
     │ upper         │ scalar        │
     └───────────────┴───────────────┘
 
-    -- Get full query plan as JSON
+    -- Get parsed statement information as JSON
     SELECT sql_parse_json('SELECT 1 + 2 AS result');
 
   extended_description: |
     `poached` is a DuckDB extension for SQL parsing and introspection, designed for building IDEs, SQL editors, query analyzers, and developer tools.
 
-    **Tokenization**: `tokenize_sql()` returns tokens with byte positions and categories (KEYWORD, IDENTIFIER, OPERATOR, NUMERIC_CONSTANT, STRING_CONSTANT, COMMENT, ERROR) for accurate syntax highlighting.
+    **Tokenization**: `parse_tokens()` (also available as `tokenize_sql()`) returns tokens with byte positions and categories (KEYWORD, IDENTIFIER, OPERATOR, NUMERIC_CONSTANT, STRING_CONSTANT) for syntax highlighting. Comments are stripped before tokenization.
 
     **Validation**: `is_valid_sql()` and `sql_error_message()` for parse error detection and reporting.
 
-    **Schema introspection**: `parse_columns()`, `parse_column_types()`, `parse_type_info()` to get result column names and types without executing queries.
+    **Column introspection**: `parse_columns()` returns SELECT column names without executing queries; `parse_column_names()` returns the names as a list.
 
     **Query analysis**: `parse_tables()`, `parse_functions()`, `parse_where()` to extract structural information from queries.
 
-    **Parameters**: `parse_parameters()` to extract prepared statement parameters.
-
-    **JSON output**: `sql_parse_json()` for full query plan access as JSON.
+    **JSON output**: `parse_sql_json()` (also available as `sql_parse_json()`) returns parsed statement types and SQL text, or a parse error.
 
     For more details, visit the [extension repository](https://github.com/sidequery/poached).
