@@ -1,0 +1,36 @@
+extension:
+  name: sqlnb
+  description: Local SQL notebooks in your browser, backed by your DuckDB session
+  version: 0.1.0
+  language: C++ and Rust
+  build: cmake
+  license: MIT
+  requires_toolchains: rust
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+  opt_in_platforms: osx_amd64
+  maintainers:
+    - nicosuave
+
+repo:
+  github: sidequery/sqlnb-extension
+  ref: f9adda39f49b01af8d2454f426ddf6396cb029c2
+
+docs:
+  hello_world: |
+    install sqlnb from community;
+    load sqlnb;
+    select sqlnb_start();
+
+  extended_description: |
+    Write SQL, explore query results, and build charts in a notebook connected to
+    your local DuckDB database. Open and save notebook files, browse your tables,
+    and revisit earlier versions with built-in notebook history.
+
+    SQLNB can also open, edit, and save existing notebooks from the official
+    DuckDB UI extension.
+
+    Run `select sqlnb_start();` to open SQLNB in your browser. Keep your DuckDB
+    session open while you work.
+
+    See the [project documentation](https://github.com/sidequery/sqlnb-extension)
+    for configuration and connecting AI tools through MCP.
