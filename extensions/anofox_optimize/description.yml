@@ -1,6 +1,6 @@
 extension:
   name: anofox_optimize
-  version: 2026.10.26
+  version: 2026.11.6
   description: Combinatorial decision algorithms as SQL — bin packing, knapsack, wave batching, sequencing, scheduling, assortment and portfolio selection
   language: C++
   build: cmake
@@ -8,15 +8,18 @@ extension:
   maintainers:
     - jrosskopf
   # windows_amd64_rtools: R packaging only.
-  # windows_amd64_mingw / wasm_*: the extension links OpenSSL (pulled in for
-  # anonymous usage telemetry, which is off with a single SET) and that is not
-  # reliably available on those toolchains.
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  # windows_amd64_mingw: vcpkg cannot build OpenSSL there.
+  # wasm_mvp: loads, but an extension error reaches the caller as
+  # `_setThrew is not defined` instead of its message (duckdb-wasm's mvp glue).
+  # wasm_threads: untested; duckdb-wasm has no Node bundle to run it in.
+  # wasm_eh builds without telemetry and passes the whole test/sql suite in
+  # DuckDB-Wasm (test/wasm).
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_threads"
 
 repo:
   github: DataZooDE/anofox-optimize
-  ref: fc7bbd2205bb449d35c658cd57d020dbfc3ab16f
-  variegata: fc7bbd2205bb449d35c658cd57d020dbfc3ab16f
+  ref: 36443e3715feb7af9f5d54fdafe322f8ebb6de86
+  variegata: 36443e3715feb7af9f5d54fdafe322f8ebb6de86
 
 docs:
   hello_world: |
@@ -71,8 +74,11 @@ docs:
     ### Honesty about guarantees
 
     Two functions return a **proven optimum** and say so in their names:
-    `knapsack_exact` and `schedule_exact`. Everything else is heuristic and
-    carries no guarantee. Functions that would blow up refuse rather than hang —
+    `knapsack_exact` and `schedule_exact`. Knapsack's guarantee needs weights
+    in multiples of 0.0001 and a table within its limits, and
+    `knapsack_best_of` is exact only inside those limits; see
+    [docs/theory/02](https://github.com/DataZooDE/anofox-optimize/blob/main/docs/theory/02-packing-and-knapsack.md).
+    Everything else is heuristic and carries no guarantee. Functions that would blow up refuse rather than hang —
     `schedule_exact` rejects more than 14 jobs with an error naming the
     heuristic to use instead.
 
