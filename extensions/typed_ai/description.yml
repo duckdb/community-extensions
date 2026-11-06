@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: hfmsio/duckdb-typed-ai
-  ref: 00d03a08936f2edf86f72cd77a8986b500796506
-  ref_next: 00d03a08936f2edf86f72cd77a8986b500796506
+  ref: ee44975f75acc111dc58e4c8e2d2b2fe82882e36
+  ref_next: ee44975f75acc111dc58e4c8e2d2b2fe82882e36
 
 docs:
   hello_world: |
@@ -144,7 +144,8 @@ docs:
     With Jev, a PNG or JPEG file is sent as a picture, so `read_blob` turns a folder of photos into rows. Each
     side must be 280 to 1568 pixels; shrink big phone photos first with `magick mogrify -resize '1568x1568>' *.jpg`.
     A 1024 x 768 photo costs about $0.0001. Photo support is a Jev preview, so its limits may change. Other
-    providers stop with a clear message instead of sending a photo.
+    providers stop with a clear message instead of sending a photo. The community store has this version for
+    DuckDB 2.0 and later; older DuckDB gets 0.1.0, which cannot send photos.
 
     ```sql
     CREATE TABLE found AS SELECT parse_filename(filename, true) AS item, content FROM read_blob('found/*.jpg');
