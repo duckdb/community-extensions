@@ -7,11 +7,12 @@ extension:
   license: MIT
   maintainers:
     - gorfather
+  opt_in_platforms: "osx_amd64"
 
 repo:
   github: gorfather/duckdb-gorz
-  ref: 819405bf684cc57194fbdd06b2a2143df6e7557b
-  variegata: 719675390296f6525d20e86d00d7f36d28b7007c
+  ref: 5c51c4734e432cf645232bc6a59899ace464b7ed
+  variegata: 40b5ec3be5dfe17b460566528aa0ad3aab6daeed
 
 docs:
   hello_world: |
