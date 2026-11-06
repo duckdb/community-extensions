@@ -1,7 +1,7 @@
 extension:
   name: duckgql
-  description: Adds ISO GQL graph querying and graph algorithms to DuckDB
-  version: 0.3.0
+  description: GQL graph queries, mutations, and algorithms over DuckDB and DuckLake tables
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: rahul-iyer/duckdb-gql
-  ref: 549eb4f70e74b3cd18e7f6597f3c492e5edcc1c5
+  ref: e1be52d4ce7981e7197afeaa38f45ce637c0ec67
   variegata: 44e77c6835f9e6758bb3e3bccb1a642981dbf1e7
   andium: 44e77c6835f9e6758bb3e3bccb1a642981dbf1e7
 
@@ -47,13 +47,15 @@ docs:
     mutations with DuckDB's native relational storage and execution engine,
     plus an explicit CSR layer for graph algorithms.
 
-    **What works in v0.3.0**
+    **What works in v0.3.1**
 
     This version targets DuckDB 2.0.0.
 
     * Managed property graphs backed by typed DuckDB vertex and edge tables.
-    * Read-only, zero-copy graph projections over existing DuckDB and DuckLake
-      tables, including multiple heterogeneous vertex and edge mappings.
+    * Zero-copy graph projections over existing DuckDB and DuckLake tables,
+      including multiple heterogeneous vertex and edge mappings. Live graphs
+      registered with `ACCESS_MODE 'READ_WRITE'` support GQL `INSERT`, `SET`,
+      `REMOVE`, and `DELETE` against their mapped source tables.
     * Live DuckLake projections that follow committed snapshots, or pinned
       projections for reproducible analysis.
     * Mapping-scoped integer source keys, optional edge keys, and DuckGQL-managed
@@ -64,16 +66,21 @@ docs:
       endpoint and identity validation.
     * Directed `MATCH`, `OPTIONAL MATCH`, filtering, projection, aggregation,
       ordering, paging, fixed multi-hop patterns, and a bounded
-      variable-length path subset.
+      variable-length path subset, composed quantified patterns, shortest-path
+      search, and search-based reachability.
     * Standalone node and directed-path `INSERT`, fixed directed
       `MATCH`-and-`INSERT`, multiple directed insertion paths, node and edge
       `INSERT RETURN` values, property and label mutation, and edge/node deletion.
-    * Native DuckDB ART indexes for selective vertex-property equality lookups.
+    * Query parameters and native DuckDB ART indexes for selective
+      vertex-property equality lookups.
+    * Compact, buffer-managed CSR snapshots with incremental insert deltas and
+      optional persistence in the database file for reuse after reopening.
     * Explicit CSR-backed BFS, DFS, unweighted and weighted SSSP, PageRank, weak
       and strong components, Louvain community detection, degree, closeness, local
       clustering coefficient, and triangle counting.
     * Experimental cost-based graph planning with plan diagnostics, directional
       fanout and endpoint statistics, and costing across connected patterns.
+      Seed-degree estimates and same-type degree bias improve expansion costing.
       Enable it with `SET gql_optimizer = 'cost'`; legacy planning is the default.
     * Snapshot-scoped DuckLake identity caching and selective projected property
       access, with source-version pinning and prepared-query rebinding.
@@ -83,17 +90,22 @@ docs:
     Managed vertices and edges remain authoritative ordinary DuckDB tables
     rather than entity-attribute-value rows. For referenced graphs, the mapped
     DuckDB or DuckLake source tables remain authoritative and DuckGQL persists
-    only the typed graph mapping. Nodes retain their complete label set and each
+    the typed graph mapping and derived caches. Nodes retain their complete label set and each
     edge has exactly one immutable type. DuckGQL lowers graph queries to native
     DuckDB relational plans, allowing DuckDB to execute scans, joins,
     aggregation, ordering, and recursive CTEs. The graph optimizer can choose
     table scans, native property indexes, node-label postings, and selective
-    fixed-hop CSR expansion. CSR snapshots are immutable, database-instance
-    scoped, version checked, and derived rather than authoritative.
+    CSR expansion. CSR snapshots are database-instance scoped, version checked,
+    and derived rather than authoritative. Inserts are read through a delta
+    alongside the snapshot; updates and deletes invalidate affected snapshots.
+    `gql_build_csr` saves snapshots in the database file by default. After
+    reopening, saved pages load on demand through DuckDB's buffer manager,
+    including for read-only databases. Use `persist := false` for memory-only
+    snapshots.
 
     **Project status**
 
-    DuckGQL v0.3.0 is not yet a complete or conforming ISO GQL implementation.
+    DuckGQL v0.3.1 is not yet a complete or conforming ISO GQL implementation.
     Grammar recognition does not imply semantic or transactional conformance.
     The machine-readable conformance manifest records partial and planned
     feature families. Important restrictions include
@@ -103,7 +115,7 @@ docs:
     value/type system.
 
     See the [documentation](https://duckgql.com/docs/), inspect the
-    [conformance manifest](https://github.com/rahul-iyer/duckdb-gql/blob/549eb4f70e74b3cd18e7f6597f3c492e5edcc1c5/test/conformance/iso-gql-2024.tsv),
+    [conformance manifest](https://github.com/rahul-iyer/duckdb-gql/blob/e1be52d4ce7981e7197afeaa38f45ce637c0ec67/test/conformance/iso-gql-2024.tsv),
     or try the [browser playground](https://duckgql.com/).
 
   known_limitations: |
@@ -115,9 +127,10 @@ docs:
       scalar vertex-label column, and one edge-type column. Every edge row must
       contain exactly one non-empty type.
     * CSR construction and CSR algorithms are autocommit-only. Snapshots are
-      database-instance scoped and version checked. Graph mutations or direct
-      SQL writes invalidate managed snapshots; the next algorithm call rebuilds
-      the required projection automatically.
+      database-instance scoped and version checked. Inserts can be absorbed
+      incrementally; updates and deletes invalidate affected snapshots.
+      Automatically built algorithm projections, weighted projections, and
+      endpoint statistics remain memory-only.
     * Undirected insertion, general runtime property maps,
       and open-graph schema evolution remain incomplete.
     * Standalone `INSERT RETURN` supports directly inserted node and edge
@@ -126,9 +139,11 @@ docs:
       variable-length path composition, procedure semantics, query composition,
       named graph types, typed storage enforcement, and the complete GQL
       value/type system remain incomplete.
-    * Referenced DuckDB and DuckLake graphs are read-only, and all mapped tables
-      must belong to one attached catalog. Source keys are currently integer
-      typed, and endpoint types must exactly match their vertex key types.
+    * Referenced graphs require all mapped tables to belong to one attached
+      catalog. Source keys are currently integer typed, and endpoint types must
+      exactly match their vertex key types. Write-through access requires
+      `SNAPSHOT_POLICY 'LIVE'`; pinned snapshots remain read-only.
     * One referenced table maps one static node or edge type. Composite and
       string identities, multi-table joins for one element, mapping predicates,
-      and write-through mutations are not yet supported.
+      `MERGE`, `INSERT ... RETURN`, and label changes on referenced graphs are
+      not yet supported.
