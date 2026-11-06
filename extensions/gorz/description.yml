@@ -1,7 +1,7 @@
 extension:
   name: gorz
-  description: Read GORpipe .gorz and .gord files and write .gorz as native DuckDB tables
-  version: 0.2.0
+  description: Read and write GORpipe .gorz files and .gord dictionary folders as native DuckDB tables
+  version: 1.0.0
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: gorfather/duckdb-gorz
-  ref: 1d86719faf3efc07ef4c269a2ad60cf49ef514f5
+  ref: 819405bf684cc57194fbdd06b2a2143df6e7557b
+  variegata: 719675390296f6525d20e86d00d7f36d28b7007c
 
 docs:
   hello_world: |
@@ -25,6 +26,11 @@ docs:
     -- predicates are pushed down into a block seek):
     SELECT * FROM 'variants.gorz' WHERE chrom = 'chr1' AND pos BETWEEN 1500 AND 2500;
 
+    -- Write a .gord dictionary folder: one sorted .gorz per genomic range (here
+    -- 1 Mb per file) plus thedict.gord. The input needs no ORDER BY.
+    COPY (SELECT * FROM 'variants.gorz') TO 'variants.gord' (FORMAT gord, SPLIT 1000000);
+    SELECT * FROM 'variants.gord' WHERE chrom = 'chr1';
+
     -- Read a partitioned .gord dictionary table (not shown here), keeping only
     -- the partitions tagged sample1 or sample99 (GOR's -f). See the GORpipe paper
     -- (Guðbjartsson et al., Bioinformatics 2016, doi:10.1093/bioinformatics/btw199)
@@ -33,8 +39,8 @@ docs:
     SELECT * FROM read_gord('example.gord', f := ['sample1', 'sample99']);
   extended_description: |
     The `gorz` extension reads and writes [GORpipe](https://github.com/gorpipe/gor)
-    genomic files — block-compressed `.gorz` and `.gord` dictionaries — as native
-    DuckDB tables. Files it writes are read and seeked natively by `gorpipe`, and
+    genomic files — block-compressed `.gorz` and `.gord` dictionary folders — as
+    native DuckDB tables. Files it writes are read and seeked natively by `gorpipe`, and
     vice-versa.
 
     ### Reading
@@ -47,7 +53,7 @@ docs:
     - **`WHERE chrom/pos` → block seek** — range predicates seek into the right block instead of scanning the whole file.
     - **`range := 'chrN:start-end'`** — GOR's `-p` semantics as a hard positional filter (also `'chrN'`, `'chrN:start-'`, `'chrN:pos'`).
     - **Partition filters** — GOR's `-f` / `-ff` semantics prune a `.gord`'s file list and expose a `Source` column: `f := ['A','B']` is an inline tag list, `ff := 'tags.txt'` is a *tag file* (one tag per line / first tab-delimited column, `#` lines skipped). `source := 'PN'` renames the exposed column.
-    - **Object stores** — paths resolve through DuckDB's FileSystem, so `s3://…` works when `httpfs` is loaded.
+    - **Object stores** — paths resolve through DuckDB's FileSystem, so `s3://…` works for reads and writes when `httpfs` is loaded.
 
     ### Writing
 
@@ -57,7 +63,38 @@ docs:
     ```
 
     Single-threaded, standard block-zip; validates GOR order (chromosomes ascend
-    lexicographically, positions non-decreasing) and errors out otherwise.
+    lexicographically, positions non-decreasing) and errors out otherwise. `META`
+    also writes the `.gorz.meta` sidecar (columns, types, line count, range, MD5),
+    which `read_gor` uses to hand the column types back.
+
+    ```sql
+    COPY (SELECT * FROM my_variants) TO 'out.gord' (FORMAT gord, SPLIT 100);
+    ```
+
+    Writes a dictionary **folder**, as `pgor … | write out.gord` does: one sorted
+    `.gorz` + `.gorz.meta` per genomic range and `out.gord/thedict.gord`. The query
+    needs no `ORDER BY`; it runs once and each range is sorted on its own, so
+    memory follows the size of a range rather than the size of the input.
+
+    - `SPLIT 'chrom'` (default) — one file per chromosome.
+    - `SPLIT n`, `n` ≤ 1000 — `n` genome partitions (a step of 3,000,000,000 / `n` bases within each chromosome, as `pgor -split=n`).
+    - `SPLIT n`, `n` > 1000 — `n` bases per file.
+    - `OVERWRITE` — replace an existing `.gord` folder.
+    - `STAGING 'dir'` — local directory for the temporary files (default: next to the output; DuckDB's `temp_directory` for an object-store target).
+
+    ### Object stores
+
+    ```sql
+    LOAD httpfs;
+    CREATE SECRET (TYPE s3, KEY_ID '…', SECRET '…', REGION 'eu-west-1');
+    COPY (SELECT * FROM my_variants) TO 's3://bucket/out.gord' (FORMAT gord, SPLIT 100);
+    SELECT count(*) FROM 's3://bucket/out.gord' WHERE chrom = 'chr17';
+    ```
+
+    `.gorz` files and `.gord` folders can be read from and written to
+    S3-compatible stores (`s3://…`). For a folder write the temporary files stay
+    on local disk and only the finished `.gorz`, `.meta` and `thedict.gord`
+    objects are uploaded, the dictionary last.
 
     ### References
 
