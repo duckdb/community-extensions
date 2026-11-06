@@ -10,7 +10,8 @@ extension:
 
 repo:
   github: gorfather/duckdb-gorz
-  ref: 719675390296f6525d20e86d00d7f36d28b7007c
+  ref: 1d86719faf3efc07ef4c269a2ad60cf49ef514f5
+  variegata: 719675390296f6525d20e86d00d7f36d28b7007c
 
 docs:
   hello_world: |
