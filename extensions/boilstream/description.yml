@@ -1,113 +1,56 @@
 extension:
   name: boilstream
-  description: Secure remote secrets storage with OPAQUE PAKE authentication, email/password registration, MFA login, and automatic ducklake mounting
-  version: 0.8.0
+  description: Remote secret storage with OPAQUE authentication, MFA login, and managed catalog discovery
+  version: 0.8.2
   language: C++, Rust
   build: cmake
   license: MIT
   maintainers:
     - dforsber
   requires_toolchains: rust
+  excluded_platforms: "wasm_mvp"
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 136d08cd83e9f77ccf7f4ca7ccc7477723cb490c
+  ref: 94e2885365525a56320cac04c1661c244ee935ff
 
 docs:
   hello_world: |
-    -- Setup: Install and load boilstream extension
     INSTALL httpfs; LOAD httpfs;
     INSTALL boilstream FROM community;
     LOAD boilstream;
 
-    -- Option 1: Login with email/password/MFA (establishes OPAQUE session)
-    --     NOTE: Remember to clean up your ~/.duckdb/history
-    PRAGMA boilstream_login('https://api.example.com/user@example.com', 'password', '123456');
-    ┌────────────────────────┬─────────────────────┬────────────────────┐
-    │         status         │     expires_at      │ ducklakes_attached │
-    ├────────────────────────┼─────────────────────┼────────────────────┤
-    │ Session token obtained │ 2025-11-21 10:30:00 │                  2 │
-    └────────────────────────┴─────────────────────┴────────────────────┘
+    -- Use your server and credentials; avoid retaining credentials in SQL history.
+    PRAGMA boilstream_login('https://api.example.com/user@example.com', 'your-password', '123456');
 
-    -- Option 2: Authenticate with bootstrap token (from SSO/web UI)
-    PRAGMA boilstream_bootstrap_session('https://api.example.com/secrets:TOKEN');
-    ┌────────────────────────┬─────────────────────┬────────────────────┐
-    │         status         │     expires_at      │ ducklakes_attached │
-    ├────────────────────────┼─────────────────────┼────────────────────┤
-    │ Session token obtained │ 2025-11-21 10:30:00 │                  2 │
-    └────────────────────────┴─────────────────────┴────────────────────┘
-
-    -- List all available ducklakes
+    -- Discover catalogs and inspect available secret metadata.
+    -- Login does not automatically attach catalogs.
     FROM boilstream_ducklakes();
-    ┌──────────────┬──────────────┬─────────────────┐
-    │ catalog_id   │ catalog_name │   description   │
-    ├──────────────┼──────────────┼─────────────────┤
-    │ 5a805647-... │ my_analytics │ Sales analytics │
-    └──────────────┴──────────────┴─────────────────┘
-
-    -- List all cached secrets with expiration
     FROM boilstream_secrets();
-    ┌─────────────────────┬──────────┬─────────────────────┐
-    │        name         │   type   │     expires_at      │
-    ├─────────────────────┼──────────┼─────────────────────┤
-    │ my_analytics        │ ducklake │ 2026-11-19 20:00:00 │
-    │ my_analytics_s3     │ s3       │ 2026-11-19 20:00:00 │
-    │ my_analytics_pg     │ postgres │ 2026-11-19 20:00:00 │
-    └─────────────────────┴──────────┴─────────────────────┘
-
-    -- Create new ducklake
-    PRAGMA boilstream_create_ducklake('new_catalog', 'My new ducklake');
-
-    -- Query ducklake (automatically attached)
-    USE my_analytics;
-    SHOW TABLES;
-
-    -- Create persistent secret onto BoilStream server
-    CREATE PERSISTENT SECRET s3_minio IN boilstream (
-        TYPE S3,
-        KEY_ID 'minioadmin',
-        SECRET 'minioadmin',
-        REGION 'eu-west-1',
-        ENDPOINT 'localhost:9000',
-        USE_SSL false,
-        URL_STYLE 'path',
-        SCOPE 's3://ingestion-data/'
-    );
+    PRAGMA boilstream_help;
 
   extended_description: |
-    Boilstream extension provides enterprise-grade remote secrets storage for multi-tenant DuckDB deployments.
+    BoilStream provides remote secret storage with OPAQUE password authentication,
+    email/password registration, MFA login, and bootstrap-token authentication.
+    It supports per-connection session state, signed requests, encrypted responses,
+    and managed catalog discovery with explicit attachment.
 
-    **Features:**
-    - 🔐 **OPAQUE PAKE Authentication** - Password-less authentication (IETF RFC 9807)
-    - 🔒 **End-to-end Encryption** - AES-256-GCM/ChaCha20-Poly1305 for secrets and responses
-    - 🔑 **Cryptographic Key Derivation** - HKDF-SHA256 with domain separation
-    - 🛡️ **Defense in Depth** - HMAC verification before AEAD decryption
-    - 🎯 **Session Protection** - Lock-step sequence protocol prevents hijacking
-    - 🗄️ **Ducklake Support** - Auto-attach multi-tenant data catalogs
-    - 🌐 **SSO Integration** - Bootstrap token exchange for web environments
+    Version 0.8.2 hardens URL validation and credential cleanup and qualifies a
+    pinned DuckDB 2.0 WASM baseline. Native macOS/Linux ARM64 and browser EH Quack
+    integration were tested. Threaded Quack compatibility passes with the pinned,
+    source-built shared-memory artifact included in the regression workflow's
+    downloads. DuckDB's public threaded Quack artifact is still incompatible;
+    browser deployments must serve the compatible paired artifact as described
+    in the compatibility guide. Load threaded extensions before enabling query
+    workers. MVP WASM is excluded.
 
-    **Security:**
-    - Facebook's audited OPAQUE implementation (Rust + C++ FFI)
-    - Protects against MITM attacks even if TLS is compromised
-    - One-time bootstrap tokens with anonymous authentication
-    - Session resumption with encrypted refresh tokens
-    - Comprehensive test vectors and security specification
+    Remote operations require a compatible BoilStream server and HTTPS (HTTP is
+    allowed only for exact loopback hosts). Native HTTP uses httpfs; managed Quack
+    attachment requires the core quack extension. Authentication does not provide
+    blanket protection against compromised TLS endpoints or embedding processes.
 
-    **API Functions:**
-    - `PRAGMA boilstream_register_user(url_with_email, password)` - Register new user with MFA (displays QR code)
-    - `PRAGMA boilstream_verify_mfa(totp_code)` - Complete registration and get backup codes
-    - `PRAGMA boilstream_login(url_with_email, password, mfa_code)` - Email/password/MFA login
-    - `PRAGMA boilstream_bootstrap_session(url_with_token)` - Authenticate with bootstrap token
-    - `boilstream_ducklakes()` - List available ducklakes
-    - `boilstream_secrets()` - List cached secrets with expiration
-    - `boilstream_buckets()` - List available storage buckets
-    - `PRAGMA boilstream_create_ducklake(name, description)` - Create new ducklake
-    - `PRAGMA boilstream_help` - Show all available commands
-
-    **Requirements:**
-    - httpfs extension (auto-loaded)
-    - postgres_scanner extension (auto-loaded)
-    - ducklake extension (auto-loaded)
-    - Compatible REST API server (see [API specification](https://github.com/dforsber/boilstream-extension/blob/main/src/README.md))
-
-    For detailed documentation, security specification, and setup instructions, visit the [extension repository](https://github.com/dforsber/boilstream-extension).
+    The upstream OPAQUE dependency upgrade resolves the production Rust audit
+    advisory and is tested against existing OPAQUE 3 password records. Host-library
+    findings and full browser server-authentication coverage remain separate.
+    See the [compatibility and deployment guide](https://github.com/dforsber/boilstream-extension/blob/94e2885365525a56320cac04c1661c244ee935ff/test/wasm/QUACK_COMPATIBILITY.md)
+    and [dependency upgrade evidence](https://github.com/dforsber/boilstream-extension/blob/94e2885365525a56320cac04c1661c244ee935ff/scripts/security/OPAQUE_UPGRADE.txt).
