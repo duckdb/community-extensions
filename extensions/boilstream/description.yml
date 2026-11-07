@@ -1,7 +1,7 @@
 extension:
   name: boilstream
   description: Remote secret storage with OPAQUE authentication, MFA login, and managed catalog discovery
-  version: 0.8.1
+  version: 0.8.2
   language: C++, Rust
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 19b93fac548d71e71e480e651726f4323e971f44
+  ref: 157dd4d52dd9f2aa170b1545b9a6777dc284a936
 
 docs:
   hello_world: |
@@ -35,19 +35,22 @@ docs:
     It supports per-connection session state, signed requests, encrypted responses,
     and managed catalog discovery with explicit attachment.
 
-    Version 0.8.1 hardens URL validation and credential cleanup and qualifies a
+    Version 0.8.2 hardens URL validation and credential cleanup and qualifies a
     pinned DuckDB 2.0 WASM baseline. Native macOS/Linux ARM64 and browser EH Quack
-    integration were tested. The current core Quack artifact for wasm_threads is
-    incompatible with shared memory; BoilStream recovery is tested, but threaded
-    Quack integration is unsupported. Load threaded extensions before enabling
-    query workers. MVP WASM is excluded.
+    integration were tested. Threaded Quack compatibility passes with the pinned,
+    source-built shared-memory artifact included in the regression workflow's
+    downloads. DuckDB's public threaded Quack artifact is still incompatible;
+    browser deployments must serve the compatible paired artifact as described
+    in the compatibility guide. Load threaded extensions before enabling query
+    workers. MVP WASM is excluded.
 
     Remote operations require a compatible BoilStream server and HTTPS (HTTP is
     allowed only for exact loopback hosts). Native HTTP uses httpfs; managed Quack
     attachment requires the core quack extension. Authentication does not provide
     blanket protection against compromised TLS endpoints or embedding processes.
 
-    See the [0.8.1 release notes](https://github.com/dforsber/boilstream-extension/releases/tag/v0.8.1)
-    for validation and known limitations, including the outstanding Rust audit
-    advisory and deferred host-library findings. Full browser server authentication
-    and Windows/x86_64 execution have not been qualified in this release review.
+    The upstream OPAQUE dependency upgrade resolves the production Rust audit
+    advisory and is tested against existing OPAQUE 3 password records. Host-library
+    findings and full browser server-authentication coverage remain separate.
+    See the [compatibility and deployment guide](https://github.com/dforsber/boilstream-extension/blob/157dd4d52dd9f2aa170b1545b9a6777dc284a936/test/wasm/QUACK_COMPATIBILITY.md)
+    and [dependency upgrade evidence](https://github.com/dforsber/boilstream-extension/blob/157dd4d52dd9f2aa170b1545b9a6777dc284a936/scripts/security/OPAQUE_UPGRADE.txt).
