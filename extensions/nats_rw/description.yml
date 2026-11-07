@@ -4,15 +4,15 @@ extension:
   version: 0.1.0
   language: C++
   build: cmake
-  license: MIT
+  license: BSL 1.1
   requires_toolchains: rust
   excluded_platforms: "osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
-    - robert-guangzhou
+    - xiehuiqiang
 
 repo:
   github: robert-guangzhou/duckdb-nats-rw
-  ref: d156fb72981bd823d4f6c891130ffc73b527026b
+  ref: 58a7ef66d19cb5f12f67ce513465178794feb4da
 
 docs:
   hello_world: |
