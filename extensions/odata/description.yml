@@ -1,0 +1,97 @@
+extension:
+  name: odata
+  description: Expose DuckDB tables and views as an authenticated OData v4 HTTP API with query options, generated EDMX metadata, and opt-in writes. Inspired by quack and the OData protocol. Support duckdb v1.5 and v2.0.
+  version: 0.1.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - cn00
+
+repo:
+  github: cn00/duckdb-odata
+  ref: 0bfe67f22bfb7f3ec7d0ba15327718392e552438
+
+docs:
+  hello_world: |
+    INSTALL odata;
+    LOAD odata;
+
+    CREATE TABLE customers (id BIGINT, name VARCHAR, active BOOLEAN);
+    CALL odata_expose('customers');
+    CALL odata_entity('customers', key := 'id');
+    CALL odata_serve();
+
+  extended_description: |
+    Expose selected DuckDB tables or views as OData v4 entity sets. The extension
+    generates an EDMX `$metadata` document from the DuckDB catalog and supports
+    query options such as `$select`, `$filter`, `$orderby`, `$top`, `$skip`, and
+    `$count`. The server is read-only by default and enables bearer-token
+    authentication automatically. Setting `read_only := false` enables
+    validated, transactional `POST`, `PATCH`, `PUT`, and `DELETE` operations
+    for exposed entities.
+
+    ### Publish views over local files
+
+    Use a dedicated schema for views over local CSV and Excel data, then expose
+    the entire schema:
+
+    ```sql
+    INSTALL excel;
+    LOAD excel;
+
+    CREATE SCHEMA odata_sources;
+    CREATE VIEW odata_sources.orders AS
+        SELECT * FROM read_csv_auto('/data/orders.csv');
+    CREATE VIEW odata_sources.customers AS
+        SELECT * FROM read_xlsx('/data/customers.xlsx');
+
+    CALL odata_expose_schema('odata_sources');
+    CALL odata_serve();
+    ```
+
+    ### Publish attached PostgreSQL or SQL Server schemas
+
+    Tables and views from other DuckDB connectors can be exposed without
+    copying their data. Install and load the connector, attach the source, then
+    expose its schema:
+
+    ```sql
+    INSTALL postgres;
+    LOAD postgres;
+    ATTACH 'host=db.example.com port=5432 dbname=app user=odata_reader password=<password>'
+        AS pg (TYPE postgres, READ_ONLY);
+    CALL odata_expose_schema('pg.public');
+    CALL odata_serve();
+    ```
+
+    ```sql
+    INSTALL mssql FROM community;
+    LOAD mssql;
+    ATTACH 'Server=db.example.com,1433;Database=app;User Id=odata_reader;Password=<password>;TrustServerCertificate=yes'
+        AS mssql_db (TYPE mssql);
+    CALL odata_expose_schema('mssql_db.dbo');
+    CALL odata_serve();
+    ```
+
+    ### Call the OData API with curl
+
+    `odata_serve()` returns `listen_url` and `auth_token`. Substitute those
+    values into a second terminal and use the token as a bearer credential:
+
+    ```bash
+    export ODATA_URL='http://localhost:54321' # Replace with listen_url.
+    export ODATA_TOKEN='replace-with-auth_token'
+
+    curl -H "Authorization: Bearer $ODATA_TOKEN" "$ODATA_URL/odata/"
+    curl -H "Authorization: Bearer $ODATA_TOKEN" "$ODATA_URL/odata/\$metadata"
+    curl -H "Authorization: Bearer $ODATA_TOKEN" \
+      "$ODATA_URL/odata/customers?\$filter=active%20eq%20true&\$top=10"
+    ```
+
+    Keep credentials out of SQL files and use a database account with only the
+    read permissions required by the exposed data. Each OData request queries
+    the underlying view or attached table, so results remain current.
+
+    See the [project README](https://github.com/cn00/duckdb-odata#readme) for
+    setup instructions, examples, and details.
