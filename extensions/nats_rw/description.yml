@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: robert-guangzhou/duckdb-nats-rw
-  ref: 070d6f058916e066b409dd1602c869bae00700ed
+  ref: 34776855201e614ed4f94ab3a861c34285698569
 
 docs:
   hello_world: |
