@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cn00/duckdb-odata
-  ref: 0bfe67f22bfb7f3ec7d0ba15327718392e552438
+  ref: a364f28886ba4e0a32025363a757ed501bc536f8
 
 docs:
   hello_world: |
