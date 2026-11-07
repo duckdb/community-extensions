@@ -6,13 +6,13 @@ extension:
   build: cmake
   license: MIT
   requires_toolchains: rust
-  excluded_platforms: "linux_amd64_musl;osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools"
+  excluded_platforms: "osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - robert-guangzhou
 
 repo:
   github: robert-guangzhou/duckdb-nats-rw
-  ref: 860a0878e152ff48a68e8271ce163cc2c2e8cd61
+  ref: d156fb72981bd823d4f6c891130ffc73b527026b
 
 docs:
   hello_world: |
