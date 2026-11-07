@@ -1,7 +1,7 @@
 extension:
   name: odata
-  description: Expose DuckDB tables and views as an authenticated OData v4 HTTP API with query options, generated EDMX metadata, and opt-in writes. Inspired by quack and the OData protocol.
-  version: 0.1.0
+  description: Expose DuckDB tables and views as an authenticated OData v4 HTTP API with query options, generated EDMX metadata, and opt-in writes. Inspired by quack and the OData protocol. Support duckdb v1.5 and v2.0.
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: cn00/duckdb-odata
-  ref: e01758c32baa1ee0c5f6dd213c952deee6817e10
+  ref: 0bfe67f22bfb7f3ec7d0ba15327718392e552438
 
 docs:
   hello_world: |
