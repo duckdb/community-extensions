@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dforsber/boilstream-extension
-  ref: 157dd4d52dd9f2aa170b1545b9a6777dc284a936
+  ref: 784bf296c197ad3de42118fda0e244a55f7cdacd
 
 docs:
   hello_world: |
@@ -52,5 +52,5 @@ docs:
     The upstream OPAQUE dependency upgrade resolves the production Rust audit
     advisory and is tested against existing OPAQUE 3 password records. Host-library
     findings and full browser server-authentication coverage remain separate.
-    See the [compatibility and deployment guide](https://github.com/dforsber/boilstream-extension/blob/157dd4d52dd9f2aa170b1545b9a6777dc284a936/test/wasm/QUACK_COMPATIBILITY.md)
-    and [dependency upgrade evidence](https://github.com/dforsber/boilstream-extension/blob/157dd4d52dd9f2aa170b1545b9a6777dc284a936/scripts/security/OPAQUE_UPGRADE.txt).
+    See the [compatibility and deployment guide](https://github.com/dforsber/boilstream-extension/blob/784bf296c197ad3de42118fda0e244a55f7cdacd/test/wasm/QUACK_COMPATIBILITY.md)
+    and [dependency upgrade evidence](https://github.com/dforsber/boilstream-extension/blob/784bf296c197ad3de42118fda0e244a55f7cdacd/scripts/security/OPAQUE_UPGRADE.txt).
