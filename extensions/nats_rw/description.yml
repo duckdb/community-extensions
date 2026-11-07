@@ -6,7 +6,7 @@ extension:
   build: cmake
   license: MIT
   requires_toolchains: rust
-  excluded_platforms: "osx_amd64;osx_arm64;wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - robert-guangzhou
 
