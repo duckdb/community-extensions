@@ -1,0 +1,43 @@
+extension:
+  name: vcatbridge
+  description: Add RLS to DuckDB
+  version: 0.2.3
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh"
+  maintainers:
+    - srossross
+
+repo:
+  github: n6k-io/duckdb-virtual-catalog
+  ref: 68adf2cdd3ddf933d42458815e9eb96f91c7e8f8
+
+docs:
+  hello_world: |
+    -- On the SOURCE instance: register a bridge and grant tables.
+    LOAD vcatbridge;
+    SELECT vcatbridge_register_source('b1', 'source_catalog', 'my-secret');
+    SELECT vcatbridge_configure_policy('b1', '{
+      "policy_version": 1,
+      "tables": {
+        "main.users": {"select": true, "update": "tenant_id = $tenant"}
+      }
+    }');
+    SELECT vcatbridge_set_context('b1', 'tenant', 42);
+
+    -- On the TARGET instance (same process): redeem the token.
+    LOAD vcatbridge;
+    ATTACH '' AS my_bridge (TYPE vcatbridge, ID 'b1', TOKEN 'my-secret');
+    SELECT * FROM my_bridge.main.users;
+
+  extended_description: |
+    Row-level security for DuckDB. A private source database shares selected tables
+    with a target catalog in the same process, with per-table, per-verb grants and
+    row rules.
+
+    [Quack](https://duckdb.org/quack/) serves a DuckDB database over the network but
+    can't limit which tables or rows clients see. Serve a `vcatbridge` catalog through
+    Quack and clients only see what the policy allows.
+
+    Documentation: https://github.com/n6k-io/duckdb-virtual-catalog/blob/main/docs/vcatbridge.md
