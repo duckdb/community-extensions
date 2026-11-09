@@ -1,7 +1,7 @@
-# PDF 0.10.0: Apple Vision OCR backend and image_barcodes (macOS).
+# PDF 0.10.0: Apple Vision OCR and barcodes, column-aware reading order.
 extension:
   name: pdf
-  description: Read, OCR, inspect, transform, and write PDFs in SQL
+  description: Read, OCR (Tesseract or Apple Vision), inspect, transform, and write PDFs in SQL
   version: 0.10.0
   language: C++
   build: cmake
@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: f9387b8aedc501fc5b57c53ae9b6796fde3747ae
+  ref: cde4d9d0291d934c3f3565ff75d4305ff9466505
 
 docs:
   hello_world: |
@@ -35,6 +35,9 @@ docs:
     -- RAG chunks in one statement
     CREATE TABLE chunks AS FROM read_pdf('reports/*.pdf', grain := 'chunk');
 
+    -- Scanned pages through Apple Vision on macOS (Tesseract elsewhere)
+    SELECT page, text FROM read_pdf('scan.pdf', ocr := true, ocr_backend := 'vision');
+
     -- Page raster + native write
     SELECT pdf_render('report.pdf', 1, {dpi: 150}) AS page_image;
     COPY (SELECT file, page_count FROM pdf_info('reports/*.pdf'))
@@ -42,31 +45,31 @@ docs:
 
   extended_description: |
     **Everything PDF, in SQL** — Poppler, Tesseract (OCR), qpdf, and libharu,
-    statically linked. Paths or globs; no external tools at runtime for core
-    ops. Full docs and recipes:
-    [API reference](https://github.com/asubbarao/duckdb-pdf/blob/f9387b8aedc501fc5b57c53ae9b6796fde3747ae/README.md) and
-    [cookbook](https://github.com/asubbarao/duckdb-pdf/blob/f9387b8aedc501fc5b57c53ae9b6796fde3747ae/COOKBOOK.md).
+    statically linked; Apple Vision on macOS. Paths or globs; no external tools
+    at runtime for core ops. Full docs and recipes:
+    [API reference](https://github.com/asubbarao/duckdb-pdf/blob/cde4d9d0291d934c3f3565ff75d4305ff9466505/README.md) and
+    [cookbook](https://github.com/asubbarao/duckdb-pdf/blob/cde4d9d0291d934c3f3565ff75d4305ff9466505/COOKBOOK.md).
 
-    **Breaking API update (0.9.0)** — 19 public names replace the earlier
-    separate entry points. Retired names are removed. See the
-    [migration table](https://github.com/asubbarao/duckdb-pdf/blob/f9387b8aedc501fc5b57c53ae9b6796fde3747ae/README.md#migration-from-48-names).
+    **New in 0.10.0** — Apple Vision is a second OCR engine on macOS
+    (`ocr_backend := 'vision'`, or `backend: 'vision'` on `ocr_image`), and
+    `image_barcodes` reads barcodes and QR codes from images. The default
+    `auto` layout keeps two-column pages split around full-width figures, and
+    reads rotated text (such as arXiv's margin stamp) as its own lines instead
+    of merging it into the text beside it.
+
+    **API (0.9.0)** — 20 public names replace the earlier separate entry
+    points; retired names are removed. See the
+    [migration table](https://github.com/asubbarao/duckdb-pdf/blob/cde4d9d0291d934c3f3565ff75d4305ff9466505/README.md#migration-from-48-names).
     This source targets DuckDB 2.0.0.
-
-    **Apple Vision (macOS, new in 0.10.0)** — `ocr_backend := 'vision'` on the
-    readers and `{backend: 'vision'}` on `ocr_image` run OCR through Apple's
-    on-device Vision framework (CPU, GPU or Neural Engine), with Tesseract
-    language codes mapped and Vision request options in `ocr_vars`.
-    `image_barcodes(blob)` detects barcodes and QR codes with Vision. Choosing
-    `vision` on other platforms is an error; Tesseract stays the default.
 
     **Discover functions** — `duckdb_functions()` exposes parameter names,
     descriptions and examples. Scalar options use validated STRUCT fields.
     `pdf_render` and `ocr_image` each have scalar and table forms.
 
     **Read** — `read_pdf` selects page, line, element, table or chunk grain;
-    `read_pdf_words` returns word boxes, geometric `line` and page size. Auto-OCR on
-    image-only pages for page/line/word/table readers; element/chunk OCR is
-    opt-in. English model bundled.
+    `read_pdf_words` returns word boxes, geometric `line`, `column_index` and
+    page size. Auto-OCR on image-only pages for page/line/word/table readers;
+    element/chunk OCR is opt-in. English model bundled.
 
     **Inspect** — `pdf_info` selects metadata/permissions or qpdf statistics;
     `pdf_objects` selects pages, outline, tagged structure, destinations, fonts,
@@ -79,7 +82,8 @@ docs:
     **Transform & write** — `pdf_merge`, `pdf_pages`, `pdf_split`, `pdf_stamp`,
     `pdf_rewrite`, `pdf_sign`, `pdf_redact`, `pdf_ocr`;
     `write_pdf` / `COPY … (FORMAT pdf)`;
-    `to_pdf` for office docs (LibreOffice at runtime).
+    `to_pdf` for office docs (Microsoft or Apple apps on macOS, LibreOffice
+    elsewhere).
 
     **Scope** — deterministic extraction, not ML document AI. **License** —
     GPL-2.0-or-later (Poppler).
