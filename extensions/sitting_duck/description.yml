@@ -40,9 +40,12 @@ repo:
   #
   # Part of the 2.0 cost is this extension's own: its selector macro is a
   # 2371-line SQL macro, and planning cost rises with its size. Measured on one
-  # binary, this release's macro costs 18.3 s where the September macro costs
-  # 12.8 s. So the gap against v1.5.6 is an order of magnitude, roughly 20x, and
-  # is not attributed to DuckDB alone.
+  # binary, with the September macro read in to shadow the built-in one, this
+  # release's macro costs 18.230 s where the September macro costs 13.045 /
+  # 12.900 / 12.851 s. So about 5.3 s of the 18.2 s is this extension's own
+  # growth, and holding the macro constant the step from dev86072 to dev88609 is
+  # only about +0.7 s. The gap against v1.5.6 is an order of magnitude, roughly
+  # 20x, and is not attributed to DuckDB alone.
   #
   # A related upstream planner regression is open as duckdb/duckdb#26036,
   # labelled `reproduced`. It measures a synthetic statement-size repro, which on
