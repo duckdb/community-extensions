@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 28 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.18.1
+  version: 1.18.3
   language: C++
   build: cmake
   license: Apache-2.0
@@ -13,22 +13,64 @@ repo:
   # commit. sitting_duck's duckdb submodule pin moved to the v2.0.0 tag and the
   # v1.5 build leg was removed from its own CI.
   #
-  #   ref, ref_next -> v1.18.1, for the 2.0 line
+  #   ref, ref_next -> v1.18.3, for the 2.0 line
   #   variegata     -> held at v1.17.0, so DuckDB v1.5.6 keeps the artifact it
   #                    has today
   #
   # `variegata` is unchanged on purpose: the v1.5.6 leg then skips and its
   # existing artifact stays in place. Stated plainly, so nobody is surprised:
-  # under this entry's `version: 1.18.1`, v1.5.6 continues to serve
+  # under this entry's `version: 1.18.3`, v1.5.6 continues to serve
   # sitting_duck v1.17.0. Only the 2.0 line moves.
   #
-  # WHY v1.5.6 IS STILL OFFERED: ast_select is about 28x slower per call on the
-  # 2.0 line. Measured with one variable changed, 0.448 s against 12.537 s. The
-  # cost is planning, not execution, and PREPARE does not amortize it. It is an
-  # upstream planner regression, duckdb/duckdb#26036. It no longer reproduces on
-  # duckdb main, but that fix is not in any release.
-  ref: 30704be97ef09c416ea97bfd2071e2894fabec2a
+  # WHY v1.5.6 IS STILL OFFERED: one `ast_select` call costs seconds on the 2.0
+  # line against well under a second on v1.5.6. Measured 2026-11-09 on an
+  # otherwise quiet 36-core machine, `threads=1`, the same selector on the same
+  # file, builds in one tree, two runs each:
+  #
+  #   DuckDB v1.5.6            0.657 / 0.561 s
+  #   DuckDB v2.0.0-dev85467  15.308 / 12.403 s
+  #   DuckDB v2.0.0-dev86072  12.577 / 11.822 s
+  #   DuckDB v2.0.0-dev88609  18.230 s          <- the pin `ref` builds on
+  #
+  # The equivalent plain query over read_ast() is 3-5 ms on every one of those
+  # lines, so the cost is PLANNING, not execution, and it is paid per call.
+  # Detailed profiling of one dev88609 call puts 16.74 s of 18.49 s in the
+  # planner, with binding at 0.047 s, the whole optimizer at 1.22 s and
+  # execution at 0.125 s of CPU.
+  #
+  # Part of the 2.0 cost is this extension's own: its selector macro is a
+  # 2371-line SQL macro, and planning cost rises with its size. Measured on one
+  # binary, this release's macro costs 18.3 s where the September macro costs
+  # 12.8 s. So the gap against v1.5.6 is an order of magnitude, roughly 20x, and
+  # is not attributed to DuckDB alone.
+  #
+  # A related upstream planner regression is open as duckdb/duckdb#26036,
+  # labelled `reproduced`. It measures a synthetic statement-size repro, which on
+  # 2026-10-08 scaled super-linearly on both the 2.0 branch and duckdb `main`.
+  ref: 7f9baef8db2570b9e1e771da554e23794ec20378
   variegata: cee95ef6eeb33aa6c25527769d3ebf97898aa994
+  #
+  # THIS BUMP SPANS TWO RELEASES. The registry's previous entry was v1.18.1, so
+  # v1.18.2 AND v1.18.3 both arrive here, and each changes read_ast() output.
+  #
+  # v1.18.2 moved IS_EXPORTED. It no longer depends on query options: the fix
+  # reaches every caller of is_exported(flags) and every prune := ['internal']
+  # query. Previously `prune := ['internal']` emptied the bodies of the
+  # functions it keeps (one fixture went 1246 nodes to 841, assignments 26 to 2).
+  #
+  # v1.18.3 changes C++ parameters in two user-visible ways. ARITY: a defaulted
+  # parameter now appears, so `void f(int a, int b = 2)` reports two parameters
+  # where it reported one, and `void dv(const int& x = 0)` reports one where it
+  # reported none -- the old counts were short without saying so. NAMES: where a
+  # declarator nests, the name was the TYPE or the DEFAULT VALUE and is now the
+  # declarator-id, so `const std::string& s` was `std::string` and is now `s`,
+  # `int& r = global` was `global` and is now `r`, and `int* p` was empty and is
+  # now `p`. Three further C++ nodes (function_declarator, parameter_list,
+  # lambda_expression) now carry parameters where they carried none, so a C++
+  # function yields two DEFINITION_FUNCTION rows with the same payload. C's
+  # function name for a function returning a function pointer was the return
+  # type and is now the function's own name.
+  # Notes: https://github.com/teaguesterling/sitting_duck/releases/tag/v1.18.3
   #
   # v1.18.0 CHANGED OUTPUT, so re-measure if you pin values. ast_type_map()
   # gained a `native_strategy` column at index 8, which moves `flags` from 8 to
@@ -38,27 +80,39 @@ repo:
   # parameter to ast_select and corrects the ast_unparse documentation.
   # Notes: https://github.com/teaguesterling/sitting_duck/blob/main/docs/releases/v1.18.1.md
   #
-  # EVIDENCE: run 41990901070 on the extension repo, at the commit `ref` names, is
-  # completed/success with no job outside success and skipped, over 17 platform
-  # legs. https://github.com/teaguesterling/sitting_duck/actions/runs/41990901070
+  # EVIDENCE: run 42541346951 on the extension repo, at the commit `ref` names, is
+  # completed/success: 29 jobs success, 3 skipped, none otherwise. It covers
+  # eight build platforms -- linux_amd64, linux_arm64, osx_arm64, windows_amd64,
+  # windows_amd64_mingw, wasm_mvp, wasm_eh, wasm_threads -- plus a second
+  # linux_amd64 leg for v2.0 test coverage.
+  #
+  # It took two attempts. In attempt 1 the linux_arm64 container could not fetch
+  # its package metadata ("repomd.xml parser error: Document is empty") and
+  # nothing of the extension compiled there; linux_amd64 was cancelled with it.
+  # Attempt 2, reported here, is green on every leg.
+  # https://github.com/teaguesterling/sitting_duck/actions/runs/42541346951
   #
   # The suite RUNS against DuckDB v2.0.0 -- the version this registry builds --
   # on all four platforms where the harness runs it, with identical counts:
   #
-  #   linux_amd64          ran tests: 168 passed, 5 skipped in 1310s
-  #   osx_arm64            ran tests: 168 passed, 5 skipped in 3264s
-  #   windows_amd64        ran tests: 168 passed, 5 skipped in 3820s
-  #   windows_amd64_mingw  ran tests: 168 passed, 5 skipped in 3899s
+  #   linux_amd64          ran tests: 182 passed, 5 skipped in 1423s
+  #   osx_arm64            ran tests: 182 passed, 5 skipped in 4463s
+  #   windows_amd64        ran tests: 182 passed, 5 skipped in 5170s
+  #   windows_amd64_mingw  ran tests: 182 passed, 5 skipped in 5220s
   #
   # A fifth leg pins the same v2.0.0 tag with ci-tools `main` and reports
-  # ran tests: 168 passed, 5 skipped in 1325s on linux_amd64.
+  # ran tests: 182 passed, 5 skipped in 958s on linux_amd64. A separate job
+  # runs the C++ unit tests: All tests passed (10028 assertions in 187 test
+  # cases).
   #
   # The rest is COMPILE evidence, stated so a green "Test" step is not over-read.
   # On `linux_arm64` the harness itself declines: "Tests are not supported for
-  # linux_arm64." The three wasm targets have no test step. A separate leg
-  # builds the moving `v2.0-cyanoptera` branch with `skip_tests: true`, whose
-  # Test step prints "Tests skipped by workflow input."
-  ref_next: 30704be97ef09c416ea97bfd2071e2894fabec2a
+  # linux_arm64." The three wasm legs do run a Test step, and it declines too:
+  # "The Wasm distribution job has no test target." A separate leg builds the
+  # moving `v2.0-cyanoptera` branch with `skip_tests: true`, whose Test step
+  # prints "Tests skipped by workflow input." All four of those steps are green
+  # and run nothing.
+  ref_next: 7f9baef8db2570b9e1e771da554e23794ec20378
 docs:
   hello_world: |
     -- Parse Python code and find function definitions
