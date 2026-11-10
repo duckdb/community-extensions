@@ -1,7 +1,7 @@
 extension:
   name: webbed
   description: Comprehensive processing extension for web markup languages (XML and HTML) with SAX streaming for large files, intelligent schema inference, XPath-based data extraction, and HTML table parsing.
-  version: 2.14.0
+  version: 2.15.0
   language: C++
   build: cmake
   license: MIT
@@ -13,11 +13,11 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/duckdb_webbed
-  ref: 18c22232ebdb387014f4e024c5e41a2326358c88
+  ref: 3a2f99baa1a8f58f1a1d2c3a5d0ad679a00d8df3
   # variegata: the v1.5.6 track. scripts/build.py:46-48 routes duckdb_version
-  # v1.5.6 here. Same commit as ref deliberately -- this release builds and
-  # passes on both lines, so v1.5.6 users get the correctness fixes rather than
-  # staying frozen at v2.10.0. The registry no longer builds v1.5 automatically;
+  # v1.5.6 here. Held at v2.14.0: v2.15.0 builds on v1.5.6 but fails 3 of its
+  # 171 test cases there, so v1.5.6 users stay on v2.14.0 until a fix release.
+  # The registry no longer builds v1.5 automatically;
   # per the DuckDB team, a v1.5.6 build needs this field plus contacting them.
   variegata: 18c22232ebdb387014f4e024c5e41a2326358c88
   # ref_next is now DORMANT: build_next.yml is `if: false`, and build.py's
@@ -26,7 +26,7 @@ repo:
   # restores prerelease validation if that job is re-enabled. A STALE ref_next is
   # worse than an absent one: it validates the PREVIOUS release while reporting
   # green, so it must never lag ref.
-  ref_next: 18c22232ebdb387014f4e024c5e41a2326358c88
+  ref_next: 3a2f99baa1a8f58f1a1d2c3a5d0ad679a00d8df3
 docs:
   docs_url: https://duckdb-webbed.readthedocs.io
   hello_world: |
@@ -105,4 +105,4 @@ docs:
 
     See https://duckdb-webbed.readthedocs.io for comprehensive documentation and examples.
 
-    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 140 test files with 5017 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
+    Built on libxml2 for robust, standards-compliant parsing with comprehensive error handling and memory-safe RAII implementation. 171 test files with 6810 assertions, including DOM/SAX equivalence, adversarial/security, and multi-file parallelism testing. The extension supports mixed file systems, configurable schema inference, and efficient processing of large document collections.
