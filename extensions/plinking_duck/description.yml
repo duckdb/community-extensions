@@ -19,18 +19,23 @@ repo:
   # (TYPE pfile_catalog) as a read-only database, completes the sample axis for both
   # reading (read_pfile combine_samples) and writing (COPY ... shard_samples), and adds
   # the two-axis matrix writer (COPY ... shard_by '<v>' shard_samples {...} -> a
-  # pfile_catalog:2 grid). The DuckDB v1.5.6 variant build stays RETIRED.
+  # pfile_catalog:2 grid) AND its reader: read_pfile(catalog := '<x>.pfile.json')
+  # reads a matrix as one 2-D cohort across its variant and sample blocks, and
+  # ATTACH c.genotypes_by_sample uses that read. The DuckDB v1.5.6 variant build
+  # stays RETIRED.
   #
-  # So ref / ref_next advance to the v0.16.0 commit (9a8d4b3) while variegata stays
+  # So ref / ref_next advance to the v0.16.0 commit (493bf5a) while variegata stays
   # PINNED at the v0.14.2 commit (7a34f3ab) — the last commit that builds on v1.5.6.
   # variegata cannot advance (v0.16.0 uses v2.0-only APIs) and must not be dropped
   # (absent -> v1.5.6 falls back to ref -> builds the v2.0-only tree on v1.5.6 and
   # fails). Net: v1.5.6 users keep v0.14.2; the 2.0 line gets v0.16.0. ref_next == ref.
-  # 9a8d4b3 is green on both release legs of its push-to-main run (42669269984): ref
-  # (v2.0.0) and ref_next (cyanoptera, v2.0), each on linux amd64/arm64 + osx arm64.
-  ref: 9a8d4b3db110b7e0194f808d8cb4310372fae1f4
+  # v0.16.0 was re-cut from 9a8d4b3 to 493bf5a to fold in the matrix reader (#92),
+  # which closes the writer-only preview's known limitation. 493bf5a is green on both
+  # release legs of its push-to-main run (42750231649): ref (v2.0.0) and ref_next
+  # (cyanoptera, v2.0), each on linux amd64/arm64 + osx arm64.
+  ref: 493bf5ae416553fd8f4735cd5eabfe2f271da45d
   variegata: 7a34f3ab8d76534aaebed0aaa88e8ef27099f4e6
-  ref_next: 9a8d4b3db110b7e0194f808d8cb4310372fae1f4
+  ref_next: 493bf5ae416553fd8f4735cd5eabfe2f271da45d
 
 docs:
   hello_world: |
@@ -61,7 +66,7 @@ docs:
     - `read_pvar(path | [paths])` — variant metadata (.pvar/.bim); a list row-concatenates multiple files
     - `read_psam(path)` — sample metadata (.psam/.fam)
     - `read_pgen(path)` — binary genotypes (.pgen)
-    - `read_pfile(prefix | [prefixes])` — unified fileset reader with orient modes (variant/genotype/sample), sample subsetting, region and variant filtering; a list of prefixes reads a variant-sharded fileset (identical samples) as one table, and `combine_samples := 'concatenate' | 'disjoint'` reads a sample-sharded cohort (one shared `.pvar`) as one table
+    - `read_pfile(prefix | [prefixes])` — unified fileset reader with orient modes (variant/genotype/sample), sample subsetting, region and variant filtering; a list of prefixes reads a variant-sharded fileset (identical samples) as one table, and `combine_samples := 'concatenate' | 'disjoint'` reads a sample-sharded cohort (one shared `.pvar`) as one table; and `read_pfile(catalog := '<cohort>.pfile.json')` reads a version-2 matrix as one 2-D cohort across its variant and sample blocks
     - `read_plink_vcf(path)` — fast biallelic genotype extraction from VCF/VCF.gz (~3x faster than htslib)
 
     **Writing & catalogs:**
