@@ -1,7 +1,7 @@
 extension:
   name: tantivy
-  description: BM25 full-text search for DuckDB — tokenization and Snowball stemming via tantivy, through DuckDB's C Extension API (quack-rs), no Arrow IPC
-  version: 0.2.0
+  description: BM25 full-text search for DuckDB — tokenization, Snowball stemming and Chinese (jieba) segmentation via tantivy, plus persistent named indexes (v0.3.0), through DuckDB's C Extension API (quack-rs), no Arrow IPC
+  version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: alitrack/duckdb-tantivy
-  ref: a6b63f04351b8bd5f2ee979e0dc0a654d9620bdb
-  ref_next: a6b63f04351b8bd5f2ee979e0dc0a654d9620bdb
+  ref: 16840aeb1fa17f16c46d43caab20683b950dfb20
+  ref_next: 16840aeb1fa17f16c46d43caab20683b950dfb20
 
 docs:
   hello_world: |
@@ -36,19 +36,31 @@ docs:
     A native Rust DuckDB loadable extension adding **BM25 full-text search**
     (via [tantivy](https://github.com/quickwit-oss/tantivy), the Rust
     search engine behind Quickwit) plus **tokenization** and
-    **Snowball stemming** for 18 languages — written against DuckDB's
-    C Extension API (ABI v1.2.0) through
-    [quack-rs](https://github.com/tomtom215/quack-rs). Table functions
-    bind to real tables and stream real columns: no Arrow IPC, no JSON
-    shims, no external search engine.
+    **Snowball stemming** for 18 languages and **Chinese (jieba)
+    word segmentation** — written against DuckDB's C Extension API
+    (ABI v1.2.0) through [quack-rs](https://github.com/tomtom215/quack-rs).
+    Table functions bind to real tables and stream real columns: no Arrow
+    IPC, no JSON shims, no external search engine.
+
+    v0.3.0 adds **persistent named indexes**: build once from a table
+    (`tantivy_create_index`), store on disk (mmap-backed), search any number
+    of times (`tantivy_search_index`) with results bit-identical to
+    `bm25_search`, then `tantivy_save_index` / `tantivy_load_index` to move
+    indexes across processes and machines.
 
     ### Functions
 
     | Function | Description |
     |---|---|
     | `bm25_search(table, query, [id_column := ''], [text_column := 'body'], [language := 'english'], [top_k := 100])` | BM25 search over a table → `doc_id BIGINT, score DOUBLE` |
-    | `supported_languages()` | The 18 Snowball languages tantivy can stem |
-    | `tokenize(text)` / `tokenize(text, language)` | Tokenize (+ stem if language given) → `VARCHAR[]` |
+    | `tantivy_create_index(name, table, [id_column := ''], [text_column := 'body'], [language := 'english'], [path := ''])` | Build a persistent on-disk index `name` from a table and register it (v0.3.0) |
+    | `tantivy_search_index(name, query, [top_k := 10])` | BM25 search against a registered persistent index, bit-identical to `bm25_search` (v0.3.0) |
+    | `tantivy_save_index(name, [path := ''])` | Copy a registered index to `path` (v0.3.0) |
+    | `tantivy_load_index(name, path := '...')` | Open a saved index from any process, read-only (v0.3.0) |
+    | `tantivy_list()` | The registered persistent indexes (v0.3.0) |
+    | `tantivy_terms(table, [text_column := 'body'])` | Raw-term dictionary of the table → `term VARCHAR, df BIGINT` |
+    | `supported_languages()` | The 18 Snowball languages plus `chinese (jieba)` |
+    | `tokenize(text)` / `tokenize(text, language)` | Tokenize (+ stem if language given) → `VARCHAR[]`; `language := 'chinese'` uses jieba word segmentation |
     | `stem(word, language)` | Snowball-stem a single word |
     | `bm25_score(doc, query)` / `bm25_score(doc, query, language)` | BM25 score of one doc against a query |
     | `tantivy_version()` | Version string of the embedded tantivy |
@@ -65,9 +77,9 @@ docs:
     | Rows indexed per `bm25_search` call | 1,000,000 (plus a proportional text-bytes cap) — add a `WHERE` clause for larger tables |
     | Per-text length | 16 MiB |
 
-    Each call builds an in-RAM index; the extension is a high-precision
-    full-text search layer for medium-sized tables, not a persistent
-    search-engine replacement.
+    `bm25_search` builds an in-RAM index per call (high-precision
+    full-text search layer for medium-sized tables); for repeated queries
+    over the same corpus, use the v0.3.0 persistent named indexes instead.
 
     **Known limitation:** temporary tables and uncommitted transactions are
     not visible to `bm25_search` (the C-API callbacks receive no caller
