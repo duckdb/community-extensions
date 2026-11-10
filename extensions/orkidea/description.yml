@@ -1,0 +1,66 @@
+extension:
+  name: orkidea
+  description: Read, write, upsert, and alter Oracle Database tables through a Rust ADBC driver, with no Oracle client
+  version: '0.1.0'
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl;linux_arm64_musl"
+  requires_toolchains: "rust"
+  maintainers:
+    - hc12r
+
+repo:
+  github: Tnsor-Labs/duckdb-orkidea
+  # The commit tagged v0.1.0, built for DuckDB v2.0.0.
+  ref: 4ac753a0642d2be301106daaa45c7a336635a35c
+
+docs:
+  hello_world: |
+    -- Store the connection in a secret (or use CONNECT_STRING with a TNS alias)
+    CREATE SECRET ora (
+        TYPE orkidea,
+        HOST 'db.example.com', PORT 1521, SERVICE 'FREEPDB1',
+        USER 'scott', PASSWORD 'tiger'
+    );
+
+    -- Attach the database: filters, projections, LIMIT, and top-N run in Oracle
+    ATTACH 'ora' AS ora (TYPE orkidea);
+    SELECT ename, sal FROM ora.emp WHERE deptno = 10 ORDER BY sal DESC LIMIT 5;
+
+    -- Write to it, inside DuckDB transactions
+    CREATE TABLE ora.top_earners AS SELECT * FROM ora.emp WHERE sal > 3000;
+    UPDATE ora.emp SET sal = sal * 1.1 WHERE deptno = 20;
+    INSERT INTO ora.dept VALUES (50, 'RESEARCH', 'BOSTON') ON CONFLICT DO NOTHING;
+
+    -- Or run Oracle SQL directly
+    FROM orkidea_query('ora', 'SELECT * FROM v$version');
+    FROM orkidea_execute('ora', 'BEGIN dbms_stats.gather_table_stats(USER, ''EMP''); END;');
+  extended_description: |
+    Orkidea makes an Oracle schema behave like a DuckDB database you can
+    change, not just read: `INSERT`, `CREATE TABLE ... AS`, `UPDATE`,
+    `DELETE`, `RETURNING`, `ON CONFLICT`, `INSERT OR REPLACE`, `MERGE INTO`,
+    `CREATE`/`DROP TABLE`, and `ALTER TABLE` (add, drop, and rename columns,
+    change types, defaults, `NOT NULL`, primary keys), all inside DuckDB
+    transactions that commit or roll back on Oracle. Defaults and identity
+    columns are left to Oracle, and `RETURNING` gives the rows as Oracle
+    stored them.
+
+    It is built on the [Orkidea ADBC driver](https://github.com/Tnsor-Labs/orkidea-adbc),
+    a standalone Rust implementation of Oracle's network protocol that is
+    linked into the extension, so there is no Instant Client, OCI, or ODBC to
+    install. Results stream into DuckDB as Arrow record batches with exact
+    types (`NUMBER(p,s)` as `DECIMAL`, `TIMESTAMP WITH TIME ZONE` as
+    `TIMESTAMPTZ`, LOBs, intervals, `JSON`, and `VECTOR`).
+
+    - **Secrets**: host/port/service, connect strings, `tnsnames.ora`
+      aliases, wallets, and TLS.
+    - **ATTACH**: filters, projections, `LIMIT`, and top-N queries are pushed
+      down to Oracle.
+    - **Parallel scans**: large tables are read by several sessions over
+      ROWID ranges at one SCN, so the result is a consistent snapshot.
+    - **Federation**: join Oracle with Postgres, Parquet, or any other source
+      DuckDB reads.
+    - `orkidea_query` and `orkidea_execute` run Oracle SQL and PL/SQL.
+
+    Not affiliated with, sponsored by, or endorsed by Oracle Corporation.
