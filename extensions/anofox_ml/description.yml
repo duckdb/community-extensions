@@ -10,8 +10,8 @@ extension:
     - sipemu
 repo:
   github: DataZooDE/anofox-ml
-  ref: 7a0334b77f89dc5d50643fbe1484dffd1dc10917
-  variegata: 7a0334b77f89dc5d50643fbe1484dffd1dc10917
+  ref: 54af08b305abde0f095c26973f8f59a266d9a9c0
+  variegata: 54af08b305abde0f095c26973f8f59a266d9a9c0
 docs:
   hello_world: |
     CREATE TABLE train AS
