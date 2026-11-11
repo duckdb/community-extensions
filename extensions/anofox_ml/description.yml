@@ -1,17 +1,17 @@
 extension:
   name: anofox_ml
+  version: 0.2.0
   description: Machine learning in SQL - 188 scikit-learn-compatible estimators (trees, boosting, linear models, GLMs, SVMs, kNN, naive Bayes, MLPs, clustering, decomposition, preprocessing, text vectorizers, meta-estimators, conformal prediction), fitted per group with an aggregate and stored as BLOBs, plus metrics, cross-validation, tuning and drift detection.
   language: C++
   build: cmake
   license: BSL 1.1
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
   requires_toolchains: rust
   maintainers:
     - sipemu
 repo:
   github: DataZooDE/anofox-ml
-  ref: 54af08b305abde0f095c26973f8f59a266d9a9c0
-  variegata: 54af08b305abde0f095c26973f8f59a266d9a9c0
+  ref: 9523f533425d0e52a69fb2b8a8656adb1e3a19b2
+  variegata: 9523f533425d0e52a69fb2b8a8656adb1e3a19b2
 docs:
   hello_world: |
     CREATE TABLE train AS
