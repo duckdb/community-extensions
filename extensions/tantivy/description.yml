@@ -1,0 +1,37 @@
+extension:
+  name: tantivy
+  description: "BM25 full-text search for DuckDB powered by Rust's tantivy: persistent named indexes, 18 Snowball stemmer languages + jieba Chinese, and dryrun-style pre-execution cost estimates"
+  version: 0.3.1
+  language: Rust
+  build: cargo
+  license: MIT
+  maintainers:
+    - alitrack
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
+
+repo:
+  github: alitrack/duckdb-tantivy
+  ref: afc5784a51831e69c2ae6da5495e8d382d8a927c
+
+docs:
+  hello_world: |
+    -- BM25 search straight over a table
+    SELECT * FROM bm25_search('articles', 'duckdb rust', text_column := 'body');
+
+    -- Or build a persistent, mmap-backed named index first
+    SELECT * FROM tantivy_create_index('news', 'articles', id_column := 'id', text_column := 'body', language := 'english');
+    SELECT * FROM tantivy_search_index('news', 'duckdb rust', top_k := 5);
+
+    -- Pre-execution cost estimate (dryrun-style): what WOULD the search touch?
+    SELECT * FROM tantivy_stats('news', 'duckdb rust');
+  extended_description: |
+    BM25 full-text search powered by tantivy (quack-rs binding, no VGI, no Arrow IPC).
+
+    - `bm25_search(table, query, ...)` — BM25 over any table, in one call
+    - `tantivy_create_index` / `tantivy_search_index` / `tantivy_save_index` / `tantivy_load_index` / `tantivy_list` — persistent, named, mmap-backed indexes (v0.3.0)
+    - `tantivy_stats(name, query)` — pre-execution cost estimate (duckdb-dryrun style): exact postings+positions byte ranges, doc-frequency bounds, confidence + notes; absent terms report 0 bytes (AND short-circuits). Never decodes postings, never scores (~2ms)
+    - `tantivy_terms(table, text_column)` — raw-term dictionary with document frequencies
+    - `tokenize` / `stem` / `bm25_score` scalars — 18 Snowball stemmer languages + jieba Chinese segmentation (word-level CJK)
+    - Deterministic tie-break over the full match set at the cutoff
+
+    Chinese indexes use jieba word segmentation (no stemmer); all text is NFC-normalized before indexing and querying.
