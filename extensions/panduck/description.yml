@@ -1,7 +1,7 @@
 extension:
   name: panduck
   description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
-  version: 0.9.1
+  version: 0.10.0
   language: C++
   build: cmake
   license: MIT
@@ -13,35 +13,40 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: b90650547b36691f307571e13f480079ccd0c5f4
+  ref: 5e1497d154a06a82e348fad597729d7022029872
   # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
   # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
   # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Advance
   # only to a commit v1.5.6 can still build.
   #
-  # HELD AT 0.7.0 FOR 0.9.1, deliberately. panduck's CI retired its v1.5.6 leg when
+  # HELD AT 0.7.0 FOR 0.10.0, deliberately. panduck's CI retired its v1.5.6 leg when
   # v2.0.0 became the shipping line, so no v1.5.6 build of `ref` has been measured, and
   # one call in `ref` uses a Catalog::GetEntry overload that v1.5.6 does not have.
   # v1.5.6 users stay on 0.7.0, which is the release paired with duck_block_utils 4.0.0.
   variegata: dc094ee3261251a69f3f394b775709a682fb0640
-  # MEASURED for 0.9.1 on this exact commit:
-  #   v2.0.0 linux_amd64 suite on longbottom, clean build: 3247 assertions, 0 failed.
-  #     The new reader_registry_git.test skips there (a local build's INSTALL from
-  #     community 404s); its 9 assertions pass with duck_tails 1.9.0 loaded by path.
-  #   panduck CI on this commit (run 43156589515): every v2.0.0 and v2.0-line build passes,
-  #     including wasm_mvp, wasm_eh and wasm_threads; Linux tests 38 passed, 5 gated skips,
-  #     reader_registry_git.test included. Three DuckDB-main canary legs (osx_arm64 and
-  #     both Windows) were cancelled by a later push to panduck main.
+  # MEASURED for 0.10.0 on this exact commit:
+  #   v2.0.0 linux_amd64 suite on longbottom, build of the same tree: 3292 assertions,
+  #     0 failed. 14 test files skip there: each needs an INSTALL that a local build
+  #     cannot resolve.
+  #   panduck CI on this commit (run 43298145044): every v2.0.0 and v2.0-line build passes,
+  #     including wasm_mvp, wasm_eh and wasm_threads; Linux tests 40 passed, 5 gated skips.
+  #     The DuckDB-main canary fails on windows_amd64 inside DuckDB's own types.cpp (MSVC
+  #     C3493), not in panduck.
   #   The CI wasm_eh artifact of this commit loads in @duckdb/duckdb-wasm 1.33.1-dev114.0
-  #     (v2.0.0, d54cbbe3df) in Node, with duck_block_utils 4.0.0. 28 queries give output
-  #     identical to the native linux_amd64 artifact: 0.9.0's 26 plus 2 git:// cases.
+  #     (v2.0.0, d54cbbe3df) in Node, with duck_block_utils 4.0.0. 31 queries give output
+  #     identical to the native linux_amd64 artifact: 0.9.1's 28 plus ODT, EPUB and a DOCX
+  #     in duckdb-excel#110's ZIP shape.
+  #
+  # NEW DEPENDENCIES in 0.10.0: ZIP reading moved from miniz to minizip-ng 4.0.7 with zlib,
+  # the library and version duckdb-excel uses. The repo's vcpkg_ports/ overlays pin them,
+  # so vcpkg_commit does not change.
   #
   # ref_next STAYS SET even when it equals ref: without it scripts/build.py prints "Skipping
   # prerelease validation" and test_against_latest never runs -- a green that means "did not
   # look". panduck v0.2.0 merged that way, and the job has since caught two real defects.
   # A STALE ref_next is worse than an absent one: it validates the PREVIOUS release
   # against the next line while reporting green, so it moves with ref every release.
-  ref_next: b90650547b36691f307571e13f480079ccd0c5f4
+  ref_next: 5e1497d154a06a82e348fad597729d7022029872
 docs:
   hello_world: |
     LOAD panduck;
@@ -187,7 +192,7 @@ docs:
 
     This is an early release. Ten native readers are implemented and tested against
     reference implementations -- RTF, DOCX, ODT, EPUB, LaTeX, Org, RST, ipynb, MediaWiki,
-    Textile -- plus a Pandoc AST reader, with 3247 test assertions, differential validation
+    Textile -- plus a Pandoc AST reader, with 3292 test assertions, differential validation
     against a real pandoc on every fixture, and CI that builds and tests against DuckDB
     v2.0.0, the v2.0 line and main. PDF, Markdown and HTML
     are read by delegating to the pdf, markdown and webbed extensions rather than by a
