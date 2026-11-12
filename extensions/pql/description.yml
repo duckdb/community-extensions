@@ -1,7 +1,7 @@
 extension:
   name: pql
-  description: Predictive queries as SQL. TRAIN a model on the tables you already have, PREDICT with it, BACKTEST it, and OPTIMIZE a plan from its predictions.
-  version: 0.3.0
+  description: Predictive queries as SQL. TRAIN a model on the tables you already have, PREDICT with it, BACKTEST it, and OPTIMIZE a plan under limits, from its predictions or from the table's own columns.
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: Guepard-Corp/duckdb-pql
-  variegata: 021b33aebe70bb427f6fbc3d8bd367bd25cfe9f5
-  ref: 246e4d08436ae750fbfea1f0bf709df6ff9d5f70
+  variegata: 6965cc588f8b058164cc51e004307604fbc15928
+  ref: b1775696b04e9082592259f9e508b9a728ab289f
 
 docs:
   hello_world: |
@@ -61,10 +61,10 @@ docs:
     EXPLAIN MODEL <name>;                                -- which features it relies on
     DROP MODEL [IF EXISTS] <name>;
 
-    [EXPLAIN] OPTIMIZE <table> [ WHERE <filter> ]       -- a plan from the predictions (three forms, below)
+    [EXPLAIN] OPTIMIZE <table> [ WHERE <filter> ]       -- a plan under limits (three forms, below)
       [ CHOOSE <column> IN (<value>, ...) | ASSIGN <column> OVER <table>.<key> [ ... ] ]
       MAXIMIZE | MINIMIZE <total> [ SUBJECT TO <limit> [ AND ... ] ]
-      USING MODEL <name>;
+      [ USING MODEL <name> ];                          -- only to plan with prediction or CHOOSE
     ```
 
     Every statement is also a table function, `pql_exec('<statement>')`, so a
@@ -135,8 +135,9 @@ docs:
 
     ### From a prediction to a plan: OPTIMIZE
 
-    `OPTIMIZE` is one statement. It turns a model's predictions into a plan that
-    maximises or minimises a total under limits, in one of three forms:
+    `OPTIMIZE` is one statement. It finds a plan that maximises or minimises a
+    total under limits, from a model's predictions or from the table's own
+    columns, in one of three forms:
 
     | form | decides | limits | rows interact |
     |---|---|---|---|
@@ -177,6 +178,23 @@ docs:
     before it. So `ASSIGN` has its own solver and plan columns (`sequence`, `begin`,
     `setup`, `duration`). In every form, `EXPLAIN OPTIMIZE` reports the plan's total
     beside a bound no plan can beat; when the two are equal, the plan is proven best.
+
+    `USING MODEL` is needed only when the plan uses what a model knows: the word
+    `prediction`, or `CHOOSE`. Without it, OPTIMIZE is constraint programming on
+    the table's own columns (a value, a distance, a capacity):
+
+    ```sql
+    -- Each load on one truck with the right trailer, or a partner carrier; the most value.
+    OPTIMIZE loads ASSIGN truck OVER trucks.truck ELSE 'partner'
+      ONLY IF resource.trailer = trailer
+      MAXIMIZE SUM(value)
+      SUBJECT TO COUNT(*) PER truck <= 1;
+    ```
+
+    When every limit is `COUNT(*) PER <lever> <=` a cap and nothing is sequenced,
+    the plan is a pure pairing and PQL solves it exactly (the Hungarian
+    algorithm): the bound equals the objective. Routes, hours and windows are
+    searched.
 
     ### It is still SQL
 
