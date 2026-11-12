@@ -1,7 +1,7 @@
 extension:
   name: panduck
   description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
-  version: 0.8.0
+  version: 0.9.0
   language: C++
   build: cmake
   license: MIT
@@ -13,33 +13,33 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: 50f3f692e58f8281b569c8f37716453ccb24ec1c
+  ref: cb409423f05d0ce945419000ba933189fce8d7e9
   # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
   # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
   # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Advance
   # only to a commit v1.5.6 can still build.
   #
-  # HELD AT 0.7.0 FOR 0.8.0, deliberately. panduck's CI retired its v1.5.6 leg when
-  # v2.0.0 became the shipping line, so no v1.5.6 build of `ref` has been measured.
+  # HELD AT 0.7.0 FOR 0.9.0, deliberately. panduck's CI retired its v1.5.6 leg when
+  # v2.0.0 became the shipping line, so no v1.5.6 build of `ref` has been measured, and
+  # one call in `ref` uses a Catalog::GetEntry overload that v1.5.6 does not have.
   # v1.5.6 users stay on 0.7.0, which is the release paired with duck_block_utils 4.0.0.
   variegata: dc094ee3261251a69f3f394b775709a682fb0640
-  # MEASURED for 0.8.0 on this exact commit:
-  #   v2.0.0 linux_amd64 suite on longbottom: 3171 assertions, 0 failed.
-  #   panduck CI on this commit (run 42953658576, after a re-run of a yum-mirror failure): every
-  #     v2.0.0 and v2.0-line build passes, including wasm_mvp, wasm_eh and wasm_threads.
-  #     The only red job is the DuckDB main canary: DuckDB main changed ClientContext&
-  #     to Context (panduck #173). That does not affect v2.0.0 or the v2.0 line.
-  #   The CI wasm_eh artifact of 0559559, whose extension sources are identical, loads
-  #     in @duckdb/duckdb-wasm 1.33.1-dev114.0 (v2.0.0, d54cbbe3df) in Node, with
-  #     duck_block_utils 4.0.0. 23 queries over the new functions give output identical
-  #     to the native linux_amd64 artifact of the same commit.
+  # MEASURED for 0.9.0 on this exact commit:
+  #   v2.0.0 linux_amd64 suite on longbottom, clean build: 3247 assertions, 0 failed.
+  #   panduck CI on this commit (run 43120159904): every v2.0.0 and v2.0-line build passes,
+  #     including wasm_mvp, wasm_eh and wasm_threads; Linux tests 37 passed, 5 gated skips.
+  #     The only red job is the DuckDB-main canary on Windows, which fails inside DuckDB's
+  #     own src/common/types.cpp under MSVC. The Linux canary on DuckDB main passes.
+  #   The CI wasm_eh artifact of this commit loads in @duckdb/duckdb-wasm 1.33.1-dev114.0
+  #     (v2.0.0, d54cbbe3df) in Node, with duck_block_utils 4.0.0. 26 queries over the
+  #     new functions give output identical to the native linux_amd64 artifact.
   #
   # ref_next STAYS SET even when it equals ref: without it scripts/build.py prints "Skipping
   # prerelease validation" and test_against_latest never runs -- a green that means "did not
   # look". panduck v0.2.0 merged that way, and the job has since caught two real defects.
   # A STALE ref_next is worse than an absent one: it validates the PREVIOUS release
   # against the next line while reporting green, so it moves with ref every release.
-  ref_next: 50f3f692e58f8281b569c8f37716453ccb24ec1c
+  ref_next: cb409423f05d0ce945419000ba933189fce8d7e9
 docs:
   hello_world: |
     LOAD panduck;
@@ -79,6 +79,9 @@ docs:
     WITH d AS (SELECT list(b ORDER BY b.element_order) AS blocks
                FROM read_odt_blocks('doc.odt') b)
     SELECT * FROM doc_section_blocks((SELECT blocks FROM d), 'Methods');
+
+    -- Reading mode: the page without its nav, aside and page header and footer
+    SELECT * FROM doc_reader('page.html');
 
     -- Render one back out (md, html or text)
     SELECT doc_render('report.docx', 'md');
@@ -122,7 +125,8 @@ docs:
     | `read_pandoc_blocks(path)` | Pandoc JSON AST (reaches all 43 formats pandoc reads) |
 
     Every text format also has a `_string` variant that parses content directly.
-    DOCX, ODT, EPUB and RTF read lists, blockquotes, tables, images and footnotes;
+    DOCX, ODT, EPUB and RTF read lists, blockquotes, tables, images and footnotes, and an
+    RST footnote or citation reference joins its body by `attributes['id']`;
     document metadata is extracted for every format that has any.
 
     ## Dispatch
@@ -144,6 +148,8 @@ docs:
     | `doc_search_sections(path, pattern)` | The section whose CONTENT matches, not its heading (`match := 'glob'` too) |
     | `doc_section_blocks(blocks, heading)` | `doc_section` over a duck_block list rather than a path |
     | `doc_search_sections_blocks(blocks, pattern)` | `doc_search_sections` over a duck_block list |
+    | `doc_reader(path)` | Reading mode: drop a page's nav, aside, and header and footer outside an article |
+    | `doc_reader_blocks(blocks)` | `doc_reader` over a duck_block list |
     | `panduck_glob_like(pattern)` | The glob-to-`LIKE` translation the glob mode uses |
     | `doc_container(path, id)` | The blocks inside one container |
     | `doc_render(path, fmt)` | Render a document to `md`, `html` or text |
@@ -179,9 +185,9 @@ docs:
 
     This is an early release. Ten native readers are implemented and tested against
     reference implementations -- RTF, DOCX, ODT, EPUB, LaTeX, Org, RST, ipynb, MediaWiki,
-    Textile -- plus a Pandoc AST reader, with 3171 test assertions, differential validation
+    Textile -- plus a Pandoc AST reader, with 3247 test assertions, differential validation
     against a real pandoc on every fixture, and CI that builds and tests against DuckDB
-    v1.5.6, v2.0.0 and main. PDF, Markdown and HTML
+    v2.0.0, the v2.0 line and main. PDF, Markdown and HTML
     are read by delegating to the pdf, markdown and webbed extensions rather than by a
     reader here.
 
