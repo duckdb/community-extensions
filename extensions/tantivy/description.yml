@@ -1,17 +1,17 @@
 extension:
   name: tantivy
   description: "BM25 full-text search for DuckDB powered by Rust's tantivy: persistent named indexes, 18 Snowball stemmer languages + jieba Chinese, and dryrun-style pre-execution cost estimates"
-  version: 0.3.1
+  version: 0.4.0
   language: Rust
   build: cargo
   license: MIT
   maintainers:
     - alitrack
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
+  excluded_platforms: "wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
 
 repo:
   github: alitrack/duckdb-tantivy
-  ref: afc5784a51831e69c2ae6da5495e8d382d8a927c
+  ref: 44d372ac762e17f8e7a9edaaa284a6f651771ef2
 
 docs:
   hello_world: |
