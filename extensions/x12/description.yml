@@ -20,7 +20,7 @@ docs:
     INSTALL x12 FROM community;
     LOAD x12;
 
-    -- Transaction type (ST01 for X12, UNH02 for EDIFACT); NULL if not EDI
+    -- Transaction type (ST01 for X12, UNH02 for EDIFACT), NULL if not EDI
     SELECT x12_transaction_type('ISA*00*          *00*          *ZZ*S*ZZ*R*240101*1200*U*00401*000000001*0*P*>~ST*835*0001~SE*2*0001~');
 
     -- Sniffed delimiter set + family
