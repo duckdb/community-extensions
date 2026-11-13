@@ -1,7 +1,7 @@
 extension:
   name: anofox_decide
-  description: Natural-language decisions on your data inside DuckDB — yes/no probabilities, one-of-N choices and ordinal scores with the answer sets written in the query, from hosted (TypeSafe Jev, Liquid AI D1, OpenAI Decisions), local-server and in-process ONNX decision models, plus calibration metrics
-  version: '2026.10.31'
+  description: Natural-language decisions on your data inside DuckDB — yes/no probabilities, one-of-N choices and ordinal scores with the answer sets written in the query, from hosted (TypeSafe Jev, Liquid AI D1, Cloudflare Clef, OpenAI Decisions, Gemini Decisions), local-server and in-process ONNX decision models, plus calibration metrics
+  version: '2026.11.13'
   language: C++
   build: cmake
   license: MIT
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: DataZooDE/anofox-decide
-  ref: edf0fb28710f147cf2faa8bc93ea83d597ab7e32
-  variegata: edf0fb28710f147cf2faa8bc93ea83d597ab7e32
+  ref: 9dc6229ed59c035f2ad5cb5da218e48a47c0194f
+  variegata: 9dc6229ed59c035f2ad5cb5da218e48a47c0194f
 
 docs:
   hello_world: |
@@ -61,8 +61,8 @@ docs:
     One interface, several models, comparable in a single query:
 
     - **Hosted:** TypeSafe **Jev** (`typesafe`), Liquid AI **D1** (`liquid`) and Cloudflare **Clef** /
-      **Clef-flash** (`cloudflare`, on Workers AI) and OpenAI **gpt-6-luna** (`openai`, the Decisions API;
-      a refusal comes back as NULL). Calls send the text you
+      **Clef-flash** (`cloudflare`, on Workers AI), OpenAI **gpt-6-luna** (`openai`, the Decisions API)
+      and Google **gemini-decision-1** (`gemini`, Gemini Decisions); a refusal comes back as NULL. Calls send the text you
       score to the provider, so they sit behind an explicit opt-in (`anofox_decide_allow_remote`),
       off by default.
     - **Local servers:** [strands-decider](https://github.com/strands-labs/strands-decider)
@@ -74,15 +74,17 @@ docs:
       (`decide_token_count` shows what fits).
     - **`stub`:** a built-in test model that returns constants, so the SQL can be tried with no key.
 
-    API keys come from environment variables or DuckDB secrets
-    (`CREATE SECRET (TYPE anofox_decide, API_KEY '...', SCOPE 'api.liquid.ai')`); a secret always
-    overrides the environment, and a key is only ever sent to the host it was configured for. **The
+    Every online service takes its key the same way: a DuckDB secret
+    (`CREATE SECRET (TYPE anofox_decide, SERVICE 'liquid', API_KEY '...')`) or the service's
+    environment variable (`LIQUID_API_KEY`, `GEMINI_API_KEY`, ...). A secret always overrides the
+    environment, and a key is only ever sent to the service and host it was configured for;
+    `decide_services()` shows where each key comes from (never the key). **The
     extension ships no model weights**: local models download the upstream files on request.
 
     ### Built for many rows
     Scalar calls over a table evaluate a chunk of rows together: identical requests are sent once, up
-    to `anofox_decide_max_concurrency` remote requests run at the same time (default 8 for hosted
-    providers), connections are reused, and a rate limit makes the query back off. On the real Liquid
+    to `anofox_decide_max_concurrency` remote requests run at the same time per endpoint and key, across
+    threads and queries (default 8 for hosted providers), connections are reused, and a rate limit makes the query back off. On the real Liquid
     D1 service, 8 tickets with three questions each took 176.7 s one at a time and 23.1 s this way.
 
     ### Know how good it is, and fix the cut-off
@@ -105,10 +107,11 @@ docs:
     - `decide_probability` / `decide_decision` / `decide_choice` / `decide_choice_distribution` / `decide_score` — evaluate one question
     - `decide_many` / `decide_table` / `decide_answers` — several questions about one text, as JSON, rows, or a list to `unnest`
     - `decide_accuracy` / `decide_brier_score` / `decide_ece` / `decide_fit_calibration` — quality metrics and calibration (aggregates)
-    - `decide_register_model` / `decide_unregister_model` / `decide_models` / `decide_doctor` — models and diagnostics
+    - `decide_register_model` / `decide_unregister_model` / `decide_models` / `decide_services` / `decide_doctor` — models, keys and diagnostics
     - `decide_download` / `decide_token_count` — fetch a local model, count tokens for its window
     - `SET anofox_decide_*` settings (default model, remote opt-in, concurrency, timeout, retries)
 
-    Every function is also available as `anofox_decide_*`. See the
+    Every function is also available as `anofox_decide_*`. A Claude Code plugin with four skills
+    teaches an assistant the whole SQL API: `/plugin marketplace add DataZooDE/anofox-decide`. See the
     [project repository](https://github.com/DataZooDE/anofox-decide) for the full SQL API, examples
     and troubleshooting.
