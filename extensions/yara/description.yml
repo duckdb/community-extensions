@@ -1,0 +1,48 @@
+extension:
+  name: yara
+  description: YARA rule validation + malware-signature scanning in SQL, via pure-Rust yara-x (no libyara) — validate rulesets and scan BLOBs, one row per pattern hit
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-yara
+  ref: 082efda6d744601c1b11bb33618333291b8e73bb
+  ref_next: 082efda6d744601c1b11bb33618333291b8e73bb
+
+docs:
+  hello_world: |
+    INSTALL yara FROM community;
+    LOAD yara;
+
+    -- Pure validation: do these rules compile? (never errors)
+    SELECT yara_check('rule bad { strings: $a = "abc" }');   -- false
+
+    -- The yara-x modules a rule may import
+    SELECT * FROM yara_modules();
+
+    -- Scan data against a ruleset — one row per matched pattern
+    SELECT * FROM yara_string_matches(
+        'MZ90abc',
+        'rule MZ { strings: $mz = "MZ" condition: $mz }'
+    );
+    -- rule | identifier | offset | matched
+
+  extended_description: |
+    ## yara — YARA in SQL
+
+    Pure-Rust [yara-x](https://github.com/VirusTotal/yara-x) (no native
+    libyara), so the rules engine compiles into the extension itself.
+
+    | Function | Returns | Notes |
+    |---|---|---|
+    | `yara_check(rules)` | BOOLEAN | Do the rules compile? NULL in → NULL out. Never errors. |
+    | `yara_modules()` | table | The yara-x modules a rule may `import` |
+    | `yara_string_matches(data, rules)` | table | One row per pattern hit: `rule, identifier, offset, matched` |
+
+    →  [GitHub](https://github.com/alitrack/duckdb-yara)
