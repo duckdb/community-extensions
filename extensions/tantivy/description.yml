@@ -1,19 +1,19 @@
 extension:
   name: tantivy
-  description: BM25 full-text search for DuckDB — tokenization, Snowball stemming and Chinese (jieba) segmentation via tantivy, plus persistent named indexes (v0.3.0), through DuckDB's C Extension API (quack-rs), no Arrow IPC
-  version: 0.3.0
+  description: BM25 full-text search for DuckDB — tokenization, Snowball stemming and Chinese (jieba) segmentation via tantivy, persistent named indexes (v0.3.0), and dryrun-style pre-execution cost estimates (tantivy_stats, v0.4.0), through DuckDB's C Extension API (quack-rs), no Arrow IPC
+  version: 0.4.0
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  excluded_platforms: "wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
   requires_toolchains: "rust;python3"
   maintainers:
     - alitrack
 
 repo:
   github: alitrack/duckdb-tantivy
-  ref: 16840aeb1fa17f16c46d43caab20683b950dfb20
-  ref_next: 16840aeb1fa17f16c46d43caab20683b950dfb20
+  ref: 44d372ac762e17f8e7a9edaaa284a6f651771ef2
+  ref_next: 44d372ac762e17f8e7a9edaaa284a6f651771ef2
 
 docs:
   hello_world: |
@@ -38,15 +38,22 @@ docs:
     search engine behind Quickwit) plus **tokenization** and
     **Snowball stemming** for 18 languages and **Chinese (jieba)
     word segmentation** — written against DuckDB's C Extension API
-    (ABI v1.2.0) through [quack-rs](https://github.com/tomtom215/quack-rs).
+    through [quack-rs](https://github.com/tomtom215/quack-rs).
     Table functions bind to real tables and stream real columns: no Arrow
     IPC, no JSON shims, no external search engine.
 
-    v0.3.0 adds **persistent named indexes**: build once from a table
+    v0.3.0 added **persistent named indexes**: build once from a table
     (`tantivy_create_index`), store on disk (mmap-backed), search any number
     of times (`tantivy_search_index`) with results bit-identical to
     `bm25_search`, then `tantivy_save_index` / `tantivy_load_index` to move
     indexes across processes and machines.
+
+    v0.4.0 adds **`tantivy_stats(name, query)`**, a duckdb-dryrun-style
+    **pre-execution cost estimate**: exact postings+positions byte ranges
+    from TermInfo, doc-frequency bounds, confidence + notes; absent terms
+    report 0 bytes (AND short-circuits). Never decodes postings, never
+    scores (~2ms). v0.4.0 also enables the wasm platforms (in-memory
+    RamDirectory indexes on wasm32; persistent indexes remain native-only).
 
     ### Functions
 
@@ -55,6 +62,7 @@ docs:
     | `bm25_search(table, query, [id_column := ''], [text_column := 'body'], [language := 'english'], [top_k := 100])` | BM25 search over a table → `doc_id BIGINT, score DOUBLE` |
     | `tantivy_create_index(name, table, [id_column := ''], [text_column := 'body'], [language := 'english'], [path := ''])` | Build a persistent on-disk index `name` from a table and register it (v0.3.0) |
     | `tantivy_search_index(name, query, [top_k := 10])` | BM25 search against a registered persistent index, bit-identical to `bm25_search` (v0.3.0) |
+    | `tantivy_stats(name, query)` | Pre-execution cost estimate for a query against a registered index (v0.4.0) |
     | `tantivy_save_index(name, [path := ''])` | Copy a registered index to `path` (v0.3.0) |
     | `tantivy_load_index(name, path := '...')` | Open a saved index from any process, read-only (v0.3.0) |
     | `tantivy_list()` | The registered persistent indexes (v0.3.0) |
@@ -67,7 +75,8 @@ docs:
 
     Unicode text is NFC-normalized on both the indexed documents and the
     query, so canonically-equivalent spellings (precomposed vs decomposed)
-    match.
+    match. Ranking applies a deterministic tie-break over the full match
+    set at the cutoff.
 
     ### Hard limits (by design — clean SQL errors, never crashes or silent data loss)
 
@@ -79,14 +88,15 @@ docs:
 
     `bm25_search` builds an in-RAM index per call (high-precision
     full-text search layer for medium-sized tables); for repeated queries
-    over the same corpus, use the v0.3.0 persistent named indexes instead.
+    over the same corpus, use the persistent named indexes instead.
 
     **Known limitation:** temporary tables and uncommitted transactions are
     not visible to `bm25_search` (the C-API callbacks receive no caller
     connection, so the extension queries through a connection it opens
     itself). Permanent and attached tables work fine.
 
-    Windows and musl builds are excluded pending CI coverage, matching the
-    other quack-rs based community extensions.
+    Windows (rtools/mingw) and musl builds are excluded pending CI
+    coverage, matching the other quack-rs based community extensions;
+    `wasm_threads` is excluded because the wasm32 build is single-threaded.
 
     →  [GitHub](https://github.com/alitrack/duckdb-tantivy)
