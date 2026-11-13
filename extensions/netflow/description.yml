@@ -1,0 +1,43 @@
+extension:
+  name: netflow
+  description: NetFlow v5/v9, IPFIX and sFlow datagrams in SQL — probe export version, decode the header as a STRUCT, triage well-formedness, pure Rust no libnetflow
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-netflow
+  ref: adc2132c07563b96102bf9643c9dd3015750f93f
+  ref_next: adc2132c07563b96102bf9643c9dd3015750f93f
+
+docs:
+  hello_world: |
+    INSTALL netflow FROM community;
+    LOAD netflow;
+
+    -- A NetFlow v5 datagram (header + records) as a BLOB
+    SELECT netflow_version(from_hex('00050001000000000000000000000007'));
+
+    SELECT netflow_header(from_hex('00050001000000000000000000000007'));
+
+    SELECT (netflow_well_formed(from_hex('00050001000000000000000000000007'))).ok;
+
+  extended_description: |
+    ## netflow — flow exports in SQL
+
+    Decoder compiled in, pure Rust (no `pdq`, no `libnetflow`, no Suricata).
+    The datagram is a BLOB column; header fields come back as a STRUCT you can
+    filter, join and aggregate on.
+
+    | Function | Returns | Notes |
+    |---|---|---|
+    | `netflow_version(payload)` | VARCHAR | `'5'` / `'9'` / `'10'` / `'sflow5'`, NULL when unrecognized |
+    | `netflow_header(payload)` | STRUCT | Decoded export header (version, count, sys_uptime, export_time, sequence, obs_domain) |
+    | `netflow_well_formed(payload)` | STRUCT | `ok` / `kind` / `error` triage |
+
+    →  [GitHub](https://github.com/alitrack/duckdb-netflow)
