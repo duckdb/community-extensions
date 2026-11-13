@@ -33,9 +33,11 @@
 | [`RT_RasterValue`](#rt_rastervalue) | Returns the value in a specified band of a datacube or filepath[s] at the specified pixel coordinates (column, row). |
 | [`RT_RasterValues`](#rt_rastervalues) | Returns the values in a band of a datacube or filepath[s] at the specified array of pixel coordinates (column, row). |
 | [`RT_RasterValueArray`](#rt_rastervaluearray) | Returns the values in all bands of a datacube or filepath[s] at the specified pixel coordinates (column, row). |
+| [`RT_OverviewRasterValueArray`](#rt_overviewrastervaluearray) | Returns the values in all bands of a filepath[s] at the specified pixel coordinates (column, row) and overview level (0-based index). |
 | [`RT_CoordValue`](#rt_coordvalue) | Returns the value in a specified band of a datacube or filepath[s] at the specified world coordinates (x, y). |
 | [`RT_CoordValues`](#rt_coordvalues) | Returns the values in a band of a datacube or filepath[s] at the specified array of world coordinates (x, y). |
 | [`RT_CoordValueArray`](#rt_coordvaluearray) | Returns the values in all bands of a datacube or filepath[s] at the specified world coordinates (x, y). |
+| [`RT_OverviewCoordValueArray`](#rt_overviewcoordvaluearray) | Returns the values in all bands of a filepath[s] at the specified world coordinates (x, y) and overview level (0-based index). |
 | [`RT_Envelope`](#rt_envelope) | Computes the bounding box of the valid (non-no-data) cells in the input datacube for a specific band and returns it as a geometry. |
 | [`RT_Polygon`](#rt_polygon) | Creates a polygon geometry for each contiguous region of non-no-data values for a specific band in the datacube. |
 | [`RT_CubeClip`](#rt_cubeclip) | Returns a datacube where cells outside the given geometry are replaced by the specified value. |
@@ -1088,6 +1090,50 @@ SELECT
 
 ----
 
+### RT_OverviewRasterValueArray
+
+Returns the values in all bands of a filepath[s] at the specified pixel coordinates (column, row) and overview level (0-based index)
+as an array of values, one for the specified overview level of each band.
+
+The function accepts the following parameters:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| [`filepath`, `filepaths`] | [VARCHAR, VARCHAR[]] | The input filepath[s] to the raster[s]. |
+| `overview` | INTEGER | The overview level (0-based index). |
+| `col` | INTEGER | The pixel column index within the tile. |
+| `row` | INTEGER | The pixel row index within the tile. |
+| `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
+
+When first parameter is an array of file paths, the function generates a virtual raster that combines all the specified files as a mosaic,
+and then retrieves the values at the given coordinates.
+
+#### Signature
+
+```sql
+RT_OverviewRasterValueArray ([filepath VARCHAR, filepaths VARCHAR[]],
+                             overview INTEGER,
+                             col INTEGER,
+                             row INTEGER,
+                             default_value DOUBLE)
+```
+
+#### Examples
+
+```sql
+SELECT
+    RT_OverviewRasterValueArray('path/to/raster/file.tif', 0, 10, 20, -9999.0),
+    RT_OverviewRasterValueArray('path/to/raster/file.tif', 0, 20, 20, -9999.0)
+;
+
+SELECT
+    RT_OverviewRasterValueArray(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, 10, 20, -9999.0),
+    RT_OverviewRasterValueArray(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, 20, 20, -9999.0)
+;
+```
+
+----
+
 ### RT_CoordValue
 
 Returns the value in a band of a datacube or filepath[s] at the given world coordinates (x, y).
@@ -1290,6 +1336,50 @@ SELECT
 SELECT
     RT_CoordValueArray(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 545600.0, 4724500.0, -9999.0) AS v1,
     RT_CoordValueArray(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 545800.0, 4724800.0, -9999.0) AS v2
+;
+```
+
+----
+
+### RT_OverviewCoordValueArray
+
+Returns the values in all bands of a filepath[s] at the specified world coordinates (x, y) and overview level (0-based index)
+as an array of values, one for the specified overview level of each band.
+
+The function accepts the following parameters:
+
+| Parameter | Type | Description |
+| --------- | -----| ----------- |
+| [`filepath`, `filepaths`] | [VARCHAR, VARCHAR[]] | The input filepath[s] to the raster[s]. |
+| `overview` | INTEGER | The overview level to use when reading the raster (0-based index). |
+| `x` | DOUBLE | The x coordinate in the same spatial reference system as the raster. |
+| `y` | DOUBLE | The y coordinate in the same spatial reference system as the raster. |
+| `default_value` | DOUBLE | The value to return if the specified coordinates are out of bounds. |
+
+When first parameter is an array of file paths, the function generates a virtual raster that combines all the specified files as a mosaic,
+and then retrieves the values at the given coordinates.
+
+#### Signature
+
+```sql
+RT_OverviewCoordValueArray ([filepath VARCHAR, filepaths VARCHAR[]],
+                            overview INTEGER,
+                            x DOUBLE,
+                            y DOUBLE,
+                            default_value DOUBLE)
+```
+
+#### Examples
+
+```sql
+SELECT
+    RT_OverviewCoordValueArray('path/to/raster/file.tif', 0, 545600.0, 4724500.0, -9999.0) AS v1,
+    RT_OverviewCoordValueArray('path/to/raster/file.tif', 0, 545800.0, 4724800.0, -9999.0) AS v2
+;
+
+SELECT
+    RT_OverviewCoordValueArray(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, 545600.0, 4724500.0, -9999.0) AS v1,
+    RT_OverviewCoordValueArray(['path/to/raster/file_1.tif', 'path/to/raster/file_2.tif'], 0, 545800.0, 4724800.0, -9999.0) AS v2
 ;
 ```
 
