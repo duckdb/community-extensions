@@ -1,7 +1,7 @@
 extension:
   name: firebird
   description: The first Firebird extension in the DuckDB Community Extensions registry. Federated read-only access to Firebird (3.0/4.0/5.0) databases from DuckDB, with projection + filter pushdown, INT128 / DECIMAL(38) / TIMESTAMP_TZ support, native ATTACH, and CHARACTER SET NONE handling (default win1252; strict / iso8859_1 / blob also available) with filter-pushdown correctness on transcoded columns.
-  version: 1.2.1
+  version: 1.3.1
   language: C++
   build: cmake
   license: MIT
@@ -21,8 +21,8 @@ extension:
 
 repo:
   github: flozer/duckdb-firebird
-  # v1.2.1 (immutable commit pin)
-  ref: 21b6d651389c022ab4420c096ba29094e45ebe52
+  # v1.3.1 (immutable commit pin)
+  ref: 46d034ff7d377d257476f00ea846fdaf3333b57b
 
 docs:
   hello_world: |
@@ -112,6 +112,12 @@ docs:
     - Since v1.2.1, `none_encoding` / `none_pushdown` are also accepted
       inside the connection string (URI query and key=value DSN forms),
       with strict booleans and documented precedence.
+    - DuckDB v2.0 support (v1.3.0/v1.3.1): the same source supports
+      DuckDB v1.5.6+ and v2.0+ through dual-path C++ API compilation,
+      with binaries built per DuckDB line. v1.3.1 recognizes v2.0's
+      normalized `NOT IN` expression, restoring pushdown, residual-filter
+      telemetry, and `firebird_unpushed_mode` guards without changing
+      default behavior.
     - Row estimate and scan advisories (v1.1.0): `firebird_profile_table`
       reports `estimated_rows` (cheap PK-range upper bound, or an opt-in
       exact `COUNT(*)` via `exact_row_count=true`) and structured
@@ -193,5 +199,6 @@ docs:
 
     - Firebird 3.0 (apt `firebird3.0-server`, CI fixture)
     - Firebird 4.0.x (`firebirdsql/firebird:4-noble`)
-    - Firebird 5.0.4 (Windows local + `firebirdsql/firebird:5-noble`)
-    - DuckDB v1.5.3 - v1.5.5 (`StorageExtension::Register` API)
+    - Firebird 5.0.x (Windows local + `firebirdsql/firebird:5-noble`)
+    - DuckDB v1.5.6 and v2.0.0 (`StorageExtension::Register` API;
+      dual-path C++ compilation)

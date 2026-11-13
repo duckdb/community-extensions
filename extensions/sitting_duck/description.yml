@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
-  description: Parse and analyze source code ASTs from 27 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.15.4
+  description: Parse and analyze source code ASTs from 28 programming languages with tree-sitter grammars, pattern matching, and structural search
+  version: 1.18.4
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,32 +9,122 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  ref: 803b35b5e4b8cec4b464169d4135648ce8a74875
-  # ref and ref_next are deliberately the SAME commit (v1.15.4). sitting_duck builds
-  # from one source tree against both DuckDB lines: the v2.0 removal of
-  # TableFunction::named_parameters goes through named_parameter_compat.hpp, which
-  # declares via GetSignature().WithTypedKwargs() on v2.0 and the flat map on v1.5.
+  # v1.18 REQUIRES DUCKDB 2.0, so `ref` and `variegata` are no longer the same
+  # commit. sitting_duck's duckdb submodule pin moved to the v2.0.0 tag and the
+  # v1.5 build leg was removed from its own CI.
   #
-  # v1.15.4 is a BUGFIX release for the CSS selector engine (sitting_duck#184).
-  # Three selector bugs shared one shape: a wrong selector parsed, executed and
-  # returned a plausible-looking answer, so nothing flagged it. Each now raises --
-  # `:scope` (ambiguous between three operations), and an argument handed to a
-  # zero-arity pseudo-class such as `:typed(X)` / `:decorated(X)`. Behaviour-
-  # correcting for selector authors, but nothing silently changes its answer: every
-  # retired spelling errors and names its replacement.
+  #   ref, ref_next -> v1.18.4, for the 2.0 line
+  #   variegata     -> held at v1.17.0, so DuckDB v1.5.6 keeps the artifact it
+  #                    has today
   #
-  # Evidence at this ref (803b35b): build 0 errors against v1.5.6, full suite
-  # passing (7138 assertions / 133 cases), and 33/33 upstream CI checks green on
-  # PR #185 -- including the v2.0-cyanoptera and both Windows legs.
+  # `variegata` is unchanged on purpose: the v1.5.6 leg then skips and its
+  # existing artifact stays in place. Stated plainly, so nobody is surprised:
+  # under this entry's `version: 1.18.4`, v1.5.6 continues to serve
+  # sitting_duck v1.17.0. Only the 2.0 line moves.
   #
-  # Caveat for whoever reads a red prerelease leg: this release's changes are pure
-  # SQL macros, so they were verified on the v1.5.6 line; and sitting_duck's own
-  # v2.0 canary runs skip_tests because ast_select tests blow the batch timeout
-  # there via upstream duckdb/duckdb#26036. The v2.0 line also moves daily. So a
-  # failure on that leg is far more likely to be upstream drift than this change,
-  # and it is deploy:false either way -- it cannot affect the shipped v1.5.6
-  # artifact.
-  ref_next: 803b35b5e4b8cec4b464169d4135648ce8a74875
+  # PER-CALL PLANNING COST ON THE 2.0 LINE: an `ast_select` call plans a large
+  # SQL macro, and that planning is paid on every call. v1.18.4 is the release
+  # that reduces it. Measured 2026-11-09 with the explicit `-no-agent` flag, on
+  # one DuckDB v2.0.0-dev88609 binary, `threads=1`, with the old and the new
+  # macro read into the same shell, two interleaved rounds:
+  #
+  #   ast_select_from(table, selector)   17.42 / 17.25 s  ->  2.36 / 2.32 s
+  #   ast_select('simple.py', selector)  19.24 / 19.70 s  ->  3.12 / 2.90 s
+  #
+  # Those rows shadow the macro with `.read`. Confirmed on 2026-11-10 UTC against
+  # the SHIPPED artifact instead -- the built-in macro compiled into a
+  # v2.0.0-dev88614 build whose `src/` is identical to this `ref` -- at
+  # 2.928 / 2.922 s and 2.366 / 2.290 s for the same two calls. Both builds carry
+  # DuckDB source_id d54cbbe3df; only the dev counter differs. Profiling one of
+  # the shipped-build calls puts 1.541 s in the planner and 1.132 s in the
+  # optimizer against 0.110 s of CPU, so what remains is planning, not
+  # execution.
+  #
+  # A related upstream planner regression is open as duckdb/duckdb#26036,
+  # labelled `reproduced`. It measures a synthetic statement-size repro, which on
+  # 2026-10-08 scaled super-linearly on both the 2.0 branch and duckdb `main`.
+  ref: c2a386367fb3e4c0d5b55866322c2ba34fe7db9a
+  variegata: cee95ef6eeb33aa6c25527769d3ebf97898aa994
+  #
+  # THIS BUMP SPANS THREE RELEASES. The registry's previous entry was v1.18.1,
+  # so v1.18.2, v1.18.3 AND v1.18.4 all arrive here. v1.18.2 and v1.18.3 each
+  # change read_ast() output; v1.18.4 does not.
+  #
+  # v1.18.4 is a PERFORMANCE release with no output change. It rewrites the
+  # selector macro's pseudo-class arms as a single hit-set probe, which cuts the
+  # per-call planning cost described above. A differential against the previous
+  # release found 0 differing rows in EITHER direction, over 7776 rows from 78
+  # non-empty selectors in 100 cases.
+  # Notes: https://github.com/teaguesterling/sitting_duck/releases/tag/v1.18.4
+  #
+  # v1.18.2 moved IS_EXPORTED. It no longer depends on query options: the fix
+  # reaches every caller of is_exported(flags) and every prune := ['internal']
+  # query. Previously `prune := ['internal']` emptied the bodies of the
+  # functions it keeps (one fixture went 1246 nodes to 841, assignments 26 to 2).
+  #
+  # v1.18.3 changes C++ parameters in two user-visible ways. ARITY: a defaulted
+  # parameter now appears, so `void f(int a, int b = 2)` reports two parameters
+  # where it reported one, and `void dv(const int& x = 0)` reports one where it
+  # reported none -- the old counts were short without saying so. NAMES: where a
+  # declarator nests, the name was the TYPE or the DEFAULT VALUE and is now the
+  # declarator-id, so `const std::string& s` was `std::string` and is now `s`,
+  # `int& r = global` was `global` and is now `r`, and `int* p` was empty and is
+  # now `p`. Three further C++ nodes (function_declarator, parameter_list,
+  # lambda_expression) now carry parameters where they carried none, so a C++
+  # function yields two DEFINITION_FUNCTION rows with the same payload. C's
+  # function name for a function returning a function pointer was the return
+  # type and is now the function's own name.
+  # Notes: https://github.com/teaguesterling/sitting_duck/releases/tag/v1.18.3
+  #
+  # v1.18.0 CHANGED OUTPUT, so re-measure if you pin values. ast_type_map()
+  # gained a `native_strategy` column at index 8, which moves `flags` from 8 to
+  # 9. Four native-extraction paths that returned populated but WRONG values now
+  # return correct ones: python type annotations, swift call arguments, and lua
+  # local visibility and modifier scope. v1.18.1 adds an opt-in `peek :=`
+  # parameter to ast_select and corrects the ast_unparse documentation.
+  # Notes: https://github.com/teaguesterling/sitting_duck/blob/main/docs/releases/v1.18.1.md
+  #
+  # EVIDENCE: run 42732006631 on the extension repo, at the commit `ref` names, is
+  # completed/success: 29 jobs success, 3 skipped, none otherwise. It covers
+  # eight build platforms -- linux_amd64, linux_arm64, osx_arm64, windows_amd64,
+  # windows_amd64_mingw, wasm_mvp, wasm_eh, wasm_threads -- plus a second
+  # linux_amd64 leg for v2.0 test coverage. The 3 skipped are
+  # `matrix.duckdb_arch` placeholders on that second leg.
+  # https://github.com/teaguesterling/sitting_duck/actions/runs/42732006631
+  #
+  # The suite RUNS against DuckDB v2.0.0 -- the version this registry builds --
+  # on five legs, with identical counts. Job ids are quoted because this matrix
+  # has TWO jobs per display name, and only one of each pair runs tests. Which
+  # one is not predictable from the id order, so the display name alone cannot
+  # tell you whether a platform was tested:
+  #
+  #   linux_amd64          129552187924   182 passed, 5 skipped in 523s
+  #   linux_amd64 (v2.0)   129552193217   182 passed, 5 skipped in 386s
+  #   osx_arm64            129562295794   182 passed, 5 skipped in 680s
+  #   windows_amd64        129562296053   182 passed, 5 skipped in 895s
+  #   windows_amd64_mingw  129562296077   182 passed, 5 skipped in 639s
+  #
+  # A separate job runs the C++ unit tests with the runtime-grammar directory
+  # set, job 129552079027: All tests passed (10028 assertions in 187 test
+  # cases). That is the same total this job reported at v1.18.3, so v1.18.4
+  # adds no assertions and loses none.
+  #
+  # SIDE EVIDENCE for the planning fix, from this registry's own build system.
+  # The same suite on the same four platforms took 1423s, 4463s, 5170s and
+  # 5220s at v1.18.3, against 523s, 680s, 895s and 639s here. CI wall time is
+  # NOT a controlled measurement -- two runs of identical code have differed by
+  # 1.6x before -- so the exact ratios mean little. The direction and the scale
+  # agree with the per-call figures above, on a 182-test suite rather than one
+  # selector.
+  #
+  # The rest is COMPILE evidence, stated so a green "Test" step is not
+  # over-read. Every leg not listed above has a green Test step that runs
+  # nothing, and says so in the harness's own words: "Tests are not supported
+  # for linux_arm64." (129552187818), "The Wasm distribution job has no test
+  # target." (wasm_mvp 129562295898, wasm_eh 129562295923, wasm_threads
+  # 129562296013), and "Tests skipped by workflow input." on the duplicate leg
+  # of every platform.
+  ref_next: c2a386367fb3e4c0d5b55866322c2ba34fe7db9a
 docs:
   hello_world: |
     -- Parse Python code and find function definitions

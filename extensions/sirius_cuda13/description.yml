@@ -1,0 +1,39 @@
+extension:
+  name: sirius_cuda13
+  description: CUDA 13 backend selected by the Sirius core loader
+  version: 0.0.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - mbrobbel
+  requires_toolchains: "cuda;rust"
+  excluded_platforms: "linux_amd64_musl;linux_arm64_musl;osx_amd64;osx_arm64;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  cuda_archs: "80-real"
+  cuda_version: "13"
+  test_config: '{"test_env_variables":{"VCPKG_CUDA_ARCHITECTURES":"80-real"}}'
+  skip_tests: true
+  vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
+  extra_extension_config: |-
+    set(SIRIUS_DUCKDB_LINKAGE static CACHE STRING "Sirius library linkage")
+    duckdb_extension_load(
+      sirius_cuda13
+      SOURCE_DIR ${CMAKE_CURRENT_LIST_DIR}
+      INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/src/include)
+
+repo:
+  github: sirius-db/sirius
+  ref: a1d2f068922b26df3da913672503d2e9cc8e4bd5
+  build_directory: sirius-duckdb
+
+docs:
+  hello_world: |
+    LOAD sirius;
+  extended_description: |
+    `sirius_cuda13` is the CUDA 13 backend for Sirius. It is installed and
+    loaded automatically by the lightweight `sirius` core extension when the
+    NVIDIA driver reports CUDA 13 or newer compatibility.
+
+    Applications should load `sirius`, not this backend directly.
+  hardware_requirements: |
+    Linux on x86-64 or arm64 with an NVIDIA GPU and a driver supporting CUDA 13.

@@ -1,0 +1,51 @@
+# Copy this file to duckdb/community-extensions as
+#   extensions/lakemon/description.yml
+# and set repo.ref to a commit SHA of paulosuzart/lakemon-duckdb-ext.
+# Official docs: https://duckdb.org/community_extensions/documentation
+#
+# The repository must be public before the community CI can clone it.
+
+extension:
+  name: lakemon
+  description: Smart DuckLake table maintain (adaptive rewrite + merge) and catalog-global expire/cleanup
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - paulosuzart
+
+repo:
+  github: paulosuzart/lakemon-duckdb-ext
+  # Built against latest stable DuckDB (v2.0.0); v1.5.6 rebuilds use the same ref.
+  ref: 31e6fe098ecff4f0d29f2044d47f86fd6c4f5829
+
+docs:
+  hello_world: |
+    INSTALL ducklake;
+    LOAD ducklake;
+    INSTALL lakemon FROM community;
+    LOAD lakemon;
+
+    ATTACH 'ducklake:metadata.ducklake' AS lake (DATA_PATH 'data_files');
+
+    CALL lakemon_table_stats('lake');
+    CALL lakemon_maintain('lake');
+    CALL lakemon_maintain_global('lake');
+    CALL lakemon_maintain('lake', dry_run => true);
+    CALL lakemon_policy();
+
+  extended_description: |
+    lakemon orchestrates native DuckLake maintenance CALLs with a policy layer:
+
+    * Catalog SELECT inventory of data files, delete files, and inlined-delete backlog
+    * Flush guard (lakemon_flush_inlined_max_delete_files) so a large ended-file delete backlog cannot block rewrite/merge
+    * Byte-weighted adaptive rewrite ladder (delete fraction DESC; one ducklake_rewrite_data_files CALL per byte-cut rung)
+    * Merge size bands (micro / small / medium) with per-tier target_file_size
+    * Table maintain (lakemon_maintain) vs catalog-global expire/cleanup (lakemon_maintain_global)
+    * CALL / SELECT plan and execute by default (dry_run for plan only)
+    * One result row per step (ok / skip / error / planned)
+    * Optional stderr step logs with duration and byte-weighted progress
+
+    Requires the core ducklake extension in the same session and an attached DuckLake catalog.
+    Compatible with DuckDB 1.5.6 and DuckDB 2.0.0 (lakemon 0.2.0+). Older DuckDB 1.5.x builds are no longer produced.

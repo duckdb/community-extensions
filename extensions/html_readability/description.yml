@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb-html-readability
-  ref: 53ebdc43c1014db969d9bb50359e0eb9d2cf5e6d
+  variegata: 53ebdc43c1014db969d9bb50359e0eb9d2cf5e6d
+  ref: c4d5a34f16b343cb2130d78a31826e71d1d4665f
 
 docs:
   hello_world: |

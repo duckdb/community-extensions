@@ -1,0 +1,272 @@
+extension:
+  name: root
+  description: Query CERN ROOT files directly from DuckDB. Explore TTrees, nested C++ objects and histograms, analyze selected event data, and build reusable indexes without converting the original ROOT files.
+  version: 3.11.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - LordVitiate
+  excluded_platforms: "linux_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64;osx_arm64;windows_amd64;windows_arm64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  test_config: '{"test_env_variables":{"ROOT4DUCKDB_ROOT_CONFIG":"/duckdb_build_dir/.deps/community-root/bin/root-config","LD_LIBRARY_PATH":"/duckdb_build_dir/.deps/community-root/lib"}}'
+
+repo:
+  github: LordVitiate/root4duckdb
+  ref: e2d5b93038f3f0016d6fdaa8525605a506c97508
+  variegata: bf55e4cd5491d9cc69e1d569009748ce457fe679
+
+docs:
+  hello_world: |
+    INSTALL root FROM community;
+    LOAD root;
+    
+    SELECT * FROM read_root('/data/events.root');
+    
+    SELECT entry_id, vecTrack_idx, chi2tot
+    FROM read_root(
+        '/data/events.root',
+        dictionary := '/data/libExperiment.so',
+        path_prefix := '/PaEvent/vecTrack'
+    )
+    WHERE entry_id BETWEEN 1000 AND 2000
+    LIMIT 20;
+
+  extended_description: |
+    # ROOT4DuckDB — Query CERN ROOT Data Directly with SQL
+    
+    ## Quick start
+    
+    Install and load ROOT4DuckDB:
+    
+    ```sql
+    INSTALL root FROM community;
+    LOAD root;
+    ```
+    
+    Explore the contents of a ROOT file:
+    
+    ```sql
+    SELECT * FROM read_root('/data/events.root');
+    ```
+    
+    This lists the available top-level objects and paths. You can then inspect an object, select an individual field, or query a collection as a relational dataset.
+    
+    ROOT4DuckDB works with existing ROOT files. No import or conversion step is required.
+    
+    ## Explore ROOT objects and their structure
+    
+    ROOT files may contain primitive TTree branches or complex experiment-specific C++ objects with nested collections.
+    
+    Start by discovering the available content:
+    
+    ```sql
+    SELECT * FROM read_root('/data/events.root');
+    ```
+    
+    To inspect the structure of an experiment-specific object, load its matching ROOT dictionary and use `root_describe`:
+    
+    ```sql
+    SELECT path, name, root_type, kind, is_container
+    FROM root_describe(
+        '/data/events.root',
+        '/PaEvent/vecTrack',
+        dictionary := '/data/libExperiment.so'
+    );
+    ```
+    
+    This shows which members are available, their ROOT types, and whether they represent collections or primitive values.
+    
+    The `PaEvent` paths in this documentation illustrate COMPASS-style event data. Other experiments use their own object names, dictionaries and layouts.
+    
+    ## Read selected event data
+    
+    You do not need to decode every member of an event object to analyze one quantity.
+    
+    For example, read the track-fit chi-square values from a nested track collection:
+    
+    ```sql
+    SELECT entry_id, vecTrack_idx, chi2tot
+    FROM read_root(
+        '/data/events.root',
+        dictionary := '/data/libExperiment.so',
+        path_prefix := '/PaEvent/vecTrack'
+    )
+    WHERE entry_id BETWEEN 1000 AND 2000
+    LIMIT 20;
+    ```
+    
+    Here:
+    
+    - `entry_id` identifies the event within the ROOT file.
+    - `vecTrack_idx` identifies the track within that event.
+    - `chi2tot` is the selected track quantity.
+    - `path_prefix` selects the logical field to read.
+    - `dictionary` provides the C++ class information needed for experiment-specific objects.
+    
+    Nested ROOT collections are flattened into relational rows while preserving their event and collection indices.
+    
+    Primitive TTree branches and supported histogram objects generally do not require experiment-specific dictionaries.
+    
+    ### Analyze values with SQL
+    
+    Once a ROOT field is exposed as a DuckDB relation, standard SQL operations become available:
+    
+    ```sql
+    SELECT
+        count(*) AS tracks,
+        avg(chi2tot) AS mean_chi2,
+        min(chi2tot) AS min_chi2,
+        max(chi2tot) AS max_chi2
+    FROM read_root(
+        '/data/events.root',
+        dictionary := '/data/libExperiment.so',
+        path_prefix := '/PaEvent/vecTrack'
+    )
+    WHERE chi2tot < 100;
+    ```
+    
+    Selections, aggregations, grouping and relational operations can be expressed without writing a dedicated ROOT event loop for each analysis.
+    
+    ## Analyze multiple ROOT files
+    
+    ROOT4DuckDB accepts individual files, directories, filename patterns and file manifests.
+    
+    ```sql
+    SELECT
+        source_id,
+        count(DISTINCT entry_id) AS events,
+        count(*) AS tracks
+    FROM read_root(
+        '/data/run*.root',
+        dictionary := '/data/libExperiment.so',
+        path_prefix := '/PaEvent/vecTrack'
+    )
+    GROUP BY source_id
+    ORDER BY source_id;
+    ```
+    
+    The `source_id` and `source_path` columns identify the source file when multiple files are read.
+    
+    ROOT4DuckDB supports parallel reading and can reduce unnecessary data decoding through field selection and entry-range filtering. The actual performance depends on the ROOT layout, storage system and selection conditions.
+    
+    ## Query ROOT histograms
+    
+    Supported `TH1`, `TH2`, `TH3` and `TProfile` objects can also be accessed as SQL relations.
+    
+    For example, read the bins of a one-dimensional histogram:
+    
+    ```sql
+    SELECT x_low, x_high, content, error
+    FROM read_root(
+        '/data/histograms.root',
+        path_prefix := '/analysis/mass/bins'
+    )
+    ORDER BY x_low;
+    ```
+    
+    Depending on the histogram type and selected view, ROOT4DuckDB exposes bin contents, uncertainties, axis information and histogram metadata.
+    
+    This allows histogram contents to participate in SQL-based inspection and analysis.
+    
+    ## Build reusable indexes for larger datasets
+    
+    Direct reading does not require an index. For repeated analyses of many ROOT files, however, ROOT4DuckDB can build persistent metadata to identify which files, baskets and event ranges may contain the requested values.
+    
+    Indexing stores metadata separately from the original ROOT files. The event payloads are not converted or duplicated.
+    
+    For example:
+    
+    ```sql
+    SELECT file_path, entries, flattened_values, status
+    FROM root_build_dataset_index(
+        '/data/run*.root',
+        'PaEvent',
+        '[
+            "/PaEvent/vecTrack/chi2tot",
+            "/PaEvent/vecTrack/xx0"
+        ]',
+        '/data/root-index',
+        dictionary := '/data/libExperiment.so',
+        catalog_mode := 'sqlite',
+        index_threads := 8,
+        max_in_flight_files := 4
+    );
+    ```
+    
+    This creates a reusable index for two track quantities.
+    
+    The metadata may include physical ROOT basket locations, event ranges, numerical statistics and Bloom filters. These help identify potentially relevant data before the original events are decoded.
+    
+    The SQLite catalog mode publishes versioned metadata through Apache Iceberg. The original ROOT event data remain in ROOT format.
+    
+    ### Query an indexed dataset
+    
+    Once the index has been created, use `read_root_dataset`:
+    
+    ```sql
+    SELECT source_id, entry_id, vecTrack_idx, value AS chi2tot
+    FROM read_root_dataset(
+        '/data/root-index',
+        '/PaEvent/vecTrack/chi2tot',
+        dictionary := '/data/libExperiment.so'
+    )
+    WHERE value < 10;
+    ```
+    
+    Unlike a simple unindexed scan, an indexed query can use stored metadata to exclude irrelevant ROOT files, baskets and entry ranges.
+    
+    Indexing is optional and is most useful when a dataset will be queried repeatedly or when selective queries can avoid substantial reading.
+    
+    ## Inspect dataset statistics without rescanning ROOT files
+    
+    ROOT4DuckDB can answer some questions directly from stored index metadata:
+    
+    ```sql
+    SELECT *
+    FROM root_dataset_stats(
+        '/data/root-index',
+        '/PaEvent/vecTrack/chi2tot'
+    );
+    ```
+    
+    This returns information such as the total value count, null and non-finite counts, minimum and maximum values, and basket statistics without rereading the original event payloads.
+    
+    You can also inspect published Iceberg metadata:
+    
+    ```sql
+    SELECT *
+    FROM root_iceberg_catalog('/data/root-index');
+    ```
+    
+    ## SQL function reference
+    
+    | Function | Purpose |
+    |---|---|
+    | `read_root` | Explore and read ROOT files, branches, nested objects and histograms |
+    | `root_describe` | Inspect the structure and members of ROOT C++ objects |
+    | `root_build_index` | Build reusable indexes and metadata for ROOT datasets |
+    | `root_build_dataset_index` | Production-facing interface for ROOT dataset indexing |
+    | `read_root_dataset` | Query indexed ROOT data with metadata-based pruning |
+    | `root_dataset_stats` | Retrieve stored statistics without reading event payloads |
+    | `root_iceberg_catalog` | Inspect published Apache Iceberg metadata |
+    
+    ## Reading modes and compatibility
+    
+    ROOT4DuckDB supports two complementary approaches to reading structured ROOT data:
+    
+    - **Serialized reading** accesses selected supported values directly from ROOT's stored baskets.
+    - **Object reading** reconstructs C++ objects through ROOT and traverses their members.
+    
+    The default `reader_mode := 'auto'` selects the supported approach and falls back to object reading when necessary.
+    
+    A compatible CERN ROOT runtime is required. Experiment-specific C++ objects may require matching ROOT dictionaries and compatible libraries.
+    
+    Availability of prebuilt extensions depends on the DuckDB release and operating-system platform. Refer to the compatibility matrix above for published binaries.
+    
+    ## Documentation and examples
+    
+    - [Source repository](https://github.com/LordVitiate/root4duckdb)
+    - [Complete SQL interface](https://github.com/LordVitiate/root4duckdb/blob/main/docs/sql-interface.md)
+    - [ROOT reading architecture](https://github.com/LordVitiate/root4duckdb/blob/main/docs/root-reading-pipeline.md)
+    - [Build and installation guide](https://github.com/LordVitiate/root4duckdb/blob/main/docs/building-from-source.md)
+    - [Multi-file performance measurements](https://github.com/LordVitiate/root4duckdb/blob/main/docs/direct-multifile-scan.md)

@@ -1,7 +1,7 @@
 extension:
   name: maxmind
   description: Read MaxMind databases (GeoLite, GeoIP, and more)
-  version: 0.11.0
+  version: 0.12.0
   language: Zig
   build: cmake
   license: ISC
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: marselester/duckdb-maxmind
-  ref: 6d0327c9b8bd90f19c4287dcf634301e79f8557e
+  ref: 08a80d772143c083c160ebd846642ecac1ef035c
 
 docs:
   hello_world: |
@@ -19,7 +19,7 @@ docs:
   extended_description: |
     Read any MaxMind database using table and scalar functions.
     GeoLite and GeoIP databases get typed columns;
-    other MMDB files return JSON in a `record` VARCHAR column.
+    other MMDB files return a `record` JSON column.
 
     Scan all IP network blocks with `read_mmdb()`.
     Use the optional `network` parameter to limit the scan to a subnet,
@@ -53,7 +53,7 @@ docs:
     Use `mmdb_record()` to look up a record from any MMDB file as JSON:
 
     ```sql
-    SELECT mmdb_record('./GeoLite2-City.mmdb', '1.0.64.0', 'city')::json -> 'city' -> 'names' ->> 'en' AS en;
+    SELECT mmdb_record('./GeoLite2-City.mmdb', '1.0.64.0', 'city') -> 'city' -> 'names' ->> 'en' AS en;
     ┌───────────┐
     │    en     │
     ├───────────┤

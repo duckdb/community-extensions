@@ -1,0 +1,67 @@
+extension:
+  name: decision_tune
+  description: Classify rows, route messages and answer yes/no questions in SQL with the DecisionTune 1.0 model, on CPU via ONNX Runtime
+  version: '0.1.0'
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "vcpkg"
+  maintainers:
+    - redox
+
+repo:
+  github: altertable-ai/duckdb-decision_tune
+  # DuckDB 2.0 only. There is no v1.5.6 port, so variegata is unset.
+  ref: a473343b7170efb8edbab3866bd122a606112ae8
+
+docs:
+  hello_world: |
+    INSTALL decision_tune FROM community;
+    LOAD decision_tune;
+
+    -- DecisionTune 1.0 (1.6 GB) is downloaded from Hugging Face and cached on first use.
+    CREATE TABLE tickets AS FROM (VALUES
+        ('Broken mug', 'The order arrived broken. I want my money back.'),
+        ('Double charge', 'I was charged twice this month.')
+    ) t(subject, message);
+
+    -- Route every ticket and flag refund requests: an answer, its confidence and all probabilities per question.
+    FROM tickets DECIDE (
+        CHOOSE 'Which team should handle this customer message?' AMONG (
+            billing  'Billing: charges, refunds, invoices',
+            shipping 'Shipping: delivery, lost or damaged packages',
+            tech     'Tech support: bugs, crashes, login problems') AS team,
+        ASK 'Is the customer asking for a refund or an exchange?' AS refund
+        GIVEN subject, message
+    );
+
+    -- The same decisions as functions.
+    SELECT decision_choose(message, 'Which team?', ['billing', 'shipping', 'tech support']).choice,
+           decision_yes_no(message, 'Is the customer asking for a refund?')
+    FROM tickets;
+  extended_description: |
+    **decision_tune** runs [DecisionTune 1.0](https://decisiontune.com/), a 395M-parameter decision model, inside
+    DuckDB. You give it a state, a question and options; it picks an option and gives a probability for each, or
+    gives P(yes) for a yes/no question, in one encoder pass. There is no prompt engineering of an LLM, no Python
+    and no GPU: the network runs on CPU through a statically linked ONNX Runtime.
+
+    - `FROM t DECIDE (CHOOSE question AMONG (key 'description', ...) AS name, ASK question AS name, ... GIVEN
+      columns)` adds `name`, `name_confidence` and `name_probabilities` (a MAP of option to probability) per
+      question; filter on them with an ordinary WHERE.
+    - `decision_choose(state, question, options)` returns the choice, its confidence and every option's
+      probability; options are a list of texts, or a MAP or STRUCT of key to description.
+      `decision_yes_no(state, question)` returns P(yes). Both also take the clause's words:
+      `decision_choose('Which team?' AMONG (billing, tech) GIVEN subject, message)`.
+    - A STRUCT, MAP or JSON object state is read as `key: value | ...`, the way the reference engine reads a dict.
+    - `decision_tune_models()` lists the model files and whether they are cached. Set `decision_tune_model_path`
+      to use a local copy offline.
+
+    Send `LOAD decision_tune` and the first `DECIDE` as two statements. A connection that is already open picks
+    up the new syntax when its current query ends.
+
+    The tokenizer is a C++ port of the Hugging Face one and matches it token for token; the probabilities match
+    onnxruntime in Python to 1e-4. Rows run in parallel on DuckDB's threads and repeated decisions are scored once.
+
+    The extension is MIT licensed. The DecisionTune 1.0 weights are Apache-2.0. The model's probabilities are not
+    calibrated; do not use it for high-risk decisions about people without independent validation.

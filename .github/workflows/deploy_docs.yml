@@ -1,3 +1,5 @@
+# This workflow does not deploy any docs
+# doc deployment is handled by a workflow in duckdb-web
 name: Generate and Deploy Website
 on:
   workflow_dispatch:

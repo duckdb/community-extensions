@@ -1,0 +1,30 @@
+extension:
+  name: querio_jev
+  description: Classify, filter and score table rows with TypeSafe Jev from SQL, with dedupe, a disk cache and concurrent requests.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - ramiabih
+
+repo:
+  github: Querio-App/duckdb-jev
+  ref: 154d256bff323b6dd163640e06bd7936ee77088a
+  variegata: 154d256bff323b6dd163640e06bd7936ee77088a
+
+docs:
+  hello_world: |
+    CREATE SECRET (TYPE jev, API_KEY '...');
+    SELECT jev_label('I was charged twice this month', ['billing', 'bug', 'churn']);
+    SELECT jev_if('Please cancel my plan', 'Is the customer about to cancel?');
+  extended_description: |
+    querio_jev turns TypeSafe Jev's typed decisions into SQL functions: jev_label and jev_classify (pick one, with
+    calibrated probabilities), jev_if and jev_prob (yes/no), jev_score (ordered levels), jev_tags (multi-label in
+    one request) and jev_ask (any set of native Jev questions in one request). Identical requests are sent once,
+    requests already in flight on other threads are shared, answers are cached in memory and in an answers file
+    on disk, and uncached requests go out concurrently with retries. Works with TypeSafe directly, OpenRouter or
+    the Vercel AI Gateway. HTTPS goes through DuckDB's httpfs extension, which is loaded automatically.
+    Not loadable alongside the community `jev` extension: both define jev_prob, jev_score and three jev_ settings.
+    Documentation: https://github.com/Querio-App/duckdb-jev

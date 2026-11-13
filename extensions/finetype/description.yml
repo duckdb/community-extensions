@@ -1,18 +1,23 @@
 extension:
   name: finetype
   description: Semantic type classification — detects 251 data types (emails, URLs, dates, UUIDs, currencies, etc.) from raw strings
-  version: 0.6.57
+  version: 0.6.66
   language: Rust
   build: cargo
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_mingw"
+  # osx_amd64 became opt-in in the DuckDB 2.0 matrix, and is opted into so
+  # Intel Macs keep a build.
+  opt_in_platforms: "osx_amd64"
   requires_toolchains: "rust"
   maintainers:
     - hughcameron
 
 repo:
   github: meridian-online/finetype
-  ref: c7662be0359d1e438fea399b133f5115aaa91b6d
+  ref: 6b85e500659f44520ca7e6e70073e335cc3e3acb
+  ref_next: 6b85e500659f44520ca7e6e70073e335cc3e3acb
+  variegata: a8ec8663862d28b1b9e0794f5026efbdb2ea3836
 
 docs:
   hello_world: |
@@ -112,7 +117,7 @@ docs:
     SELECT * FROM ft_validate('people', getvariable('email_schema'));
     ```
 
-    ## Aggregate function
+    ## Aggregate functions
 
     ### `ft_profile(value VARCHAR[, header VARCHAR]) → STRUCT(type VARCHAR, confidence DOUBLE, duckdb_type VARCHAR)`
     Profile one column directly, as an **aggregate** over its values — useful when the column is in
@@ -132,7 +137,27 @@ docs:
     ```
 
     Because it is an aggregate, it cannot take `list(...)` — nesting one aggregate inside another is a
-    binder error. Use `ft_detail(values LIST)` below if you already hold the values as a list.
+    binder error. Pass the column itself, and use `GROUP BY` for one answer per group. `FILTER` and
+    `DISTINCT` work too. An aggregate-level `ORDER BY` inside the call
+    (`ft_profile(value ORDER BY value)`) works on DuckDB 2.0 and crashes DuckDB 1.5, a DuckDB bug fixed
+    in 2.0 and not backported.
+
+    ### `ft_detail(value VARCHAR[, header VARCHAR]) → VARCHAR`
+    Explain the verdict `ft_profile` gives a column. An **aggregate** over the same sample as
+    `ft_profile`, so over the same rows its `type` is `ft_profile`'s. Returns JSON with the type,
+    confidence (0.0–1.0), the recommended DuckDB type, the number of values sampled, the rule that
+    decided the type when one fired, and the per-label vote map. It takes the same `GROUP BY`,
+    `FILTER`, `DISTINCT` and `ORDER BY` forms as `ft_profile`, with the same DuckDB 1.5 caveat on
+    `ORDER BY`.
+
+    ```sql
+    SELECT ft_detail(email, 'email') FROM people;
+    -- {"type": "identity.person.email", "confidence": 0.592, "duckdb_type": "VARCHAR", "samples": 3,
+    --  "disambiguation": "header_hint_cross_domain:email", "votes": {...}}
+    ```
+
+    Since 0.6.61 `ft_detail` is an aggregate only: the per-value `ft_detail(value)` scalar and the
+    `ft_detail(list(...))` forms are retired. To classify one value, use `ft_infer`.
 
     ## Scalar functions
 
@@ -148,32 +173,42 @@ docs:
     SELECT ft_infer('true');                 -- representation.boolean.terms
     ```
 
-    ### `ft_detail(value VARCHAR) → VARCHAR`
-    Classify with full detail. Returns JSON with the type, confidence (0.0–1.0), the recommended
-    DuckDB type, the number of samples seen, the disambiguation path, and the per-label vote map.
-
-    ```sql
-    SELECT ft_detail('192.168.1.1');
-    -- {"type": "technology.internet.ip_v4", "confidence": 0.829, "duckdb_type": "INET", ...}
-    ```
-
     ### `ft_cast(value VARCHAR) → VARCHAR`
     Normalize a value for safe `TRY_CAST()` to its detected DuckDB type. Handles date format
-    conversion (US/EU → ISO), boolean normalization, UUID lowercasing, numeric cleanup.
+    conversion (US/EU → ISO), boolean normalization, UUID lowercasing, numeric cleanup. A
+    percentage casts to a fraction, the value a spreadsheet holds.
 
     ```sql
     SELECT ft_cast('01/15/2024');  -- 2024-01-15 (US date → ISO)
+    SELECT ft_cast('95.5%');       -- 0.955 (percentage → fraction)
     ```
 
-    ### `ft_validate_text(value VARCHAR, schema_json VARCHAR) → STRUCT(valid BOOLEAN, "constraint" VARCHAR, message VARCHAR)`
+    ### `ft_validate_text(value VARCHAR, schema_json VARCHAR) → STRUCT(valid BOOLEAN, "constraint" VARCHAR, message VARCHAR, grade VARCHAR, note VARCHAR)`
     Validate a single value against a JSON Schema fragment. Returns a struct: `valid` is `true` when
     the value conforms (with `constraint` and `message` `NULL`); on failure `valid` is `false` and
     `constraint` / `message` name the failing keyword and the reason. This is the per-cell engine the
     `ft_validate` table verb runs over every column.
 
+    `grade` is `conforms`, `noted` or `fails`. A `noted` value is valid but carries a `note`, such as
+    a non-canonical form (an uppercase UUID) or a withdrawn code, when the fragment declares the
+    `x-finetype-canonical` or `x-finetype-historic` extension. `valid` still means "not a failure".
+    The scalar applies the same per-value check as `finetype validate`: enum membership ignores
+    letter-case, and when the fragment's `x-finetype-label` names a type with a check digit (ISBN,
+    IBAN, NPI and others), a right-shape value with a bad check digit fails with constraint
+    `checksum`.
+
     ```sql
     SELECT ft_validate_text('not-an-email', '{"type":"string","pattern":"^[^@]+@[^@]+\\.[^@]+$"}');
-    -- {'valid': false, 'constraint': pattern, 'message': '"not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"'}
+    -- {'valid': false, 'constraint': pattern, 'message': '"not-an-email" does not match "^[^@]+@[^@]+\.[^@]+$"', 'grade': fails, 'note': NULL}
+
+    SELECT ft_validate_text('550E8400-E29B-41D4-A716-446655440000',
+      '{"type":"string","pattern":"^[0-9a-fA-F-]{36}$",
+        "x-finetype-canonical":{"kind":"non_canonical","name":"lowercase","pattern":"^[^A-F]*$"}}');
+    -- {'valid': true, 'constraint': NULL, 'message': NULL, 'grade': noted, 'note': 'non_canonical: lowercase'}
+
+    SELECT ft_validate_text('0306406153',
+      '{"type":"string","pattern":"^[0-9]{9}[0-9X]$","x-finetype-label":"identity.commerce.isbn"}');
+    -- {'valid': false, 'constraint': checksum, 'message': '"0306406153" fails its isbn check digit', 'grade': fails, 'note': NULL}
     ```
 
     ### `ft_unpack(json VARCHAR) → VARCHAR`
@@ -183,19 +218,19 @@ docs:
     ### `ft_version() → VARCHAR`
     Returns the extension version string.
 
-    > **Aliases.** The earlier un-prefixed scalar names (`finetype`, `finetype_detail`,
-    > `finetype_cast`, `finetype_unpack`, `finetype_validate`, `finetype_version`) remain registered as
-    > aliases of the `ft_` scalars, so existing code keeps working. New code should use the `ft_` names.
+    > **Names.** Every function carries the `ft_` prefix. The earlier un-prefixed names (`finetype`,
+    > `finetype_detail`, `finetype_cast`, …) were removed in 0.6.57; the migration table is in the
+    > FineType changelog.
 
     ## Type Taxonomy
 
-    244 types organized into 7 domains:
-    - **container**: JSON, XML, CSV, arrays, key-value (11 types)
-    - **datetime**: dates, times, timestamps, epochs, durations, offsets (86 types)
-    - **finance**: currencies, accounting, market identifiers, transactions (28 types)
+    251 types organized into 7 domains:
+    - **container**: JSON, XML, CSV, arrays, key-value (12 types)
+    - **datetime**: dates, times, timestamps, epochs, durations, offsets (89 types)
+    - **finance**: currencies, accounting, market identifiers, transactions (29 types)
     - **geography**: coordinates, locations, addresses, transportation (25 types)
-    - **identity**: names, emails, phones, payments, medical (33 types)
+    - **identity**: names, emails, phones, payments, medical (34 types)
     - **representation**: booleans, numbers, text, files, scientific (32 types)
-    - **technology**: URLs, IPs, UUIDs, versions, codes (29 types)
+    - **technology**: URLs, IPs, UUIDs, versions, codes (30 types)
 
     For more information, see the [FineType documentation](https://github.com/meridian-online/finetype).

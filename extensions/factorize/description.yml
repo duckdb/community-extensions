@@ -1,0 +1,146 @@
+extension:
+  name: factorize
+  description: Answers count, sum, avg, min, max and GROUP BY over many-to-many equi-join graphs without materialising the join
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - maxdemarzi
+
+repo:
+  github: maxdemarzi/factorize
+  ref: 1f38c96adc116ab0aa4cd59610a6a1ca2437a5fc
+
+docs:
+  hello_world: |
+    -- The engine keeps intermediate joins in a factorised representation and
+    -- counts from it, so a result too large to materialise is still countable.
+    -- With factorize_mode='auto' an ordinary count(*) is taken over only where
+    -- a cost model predicts a win, and left alone otherwise.
+    SET factorize_mode = 'auto';
+
+    SELECT count(*)
+      FROM edges a, edges b, edges c, edges d
+     WHERE a.src = b.src AND b.src = c.src AND c.src = d.src;
+
+    -- EXPLAIN shows a FACTORIZED operator where it fired, and
+    -- SET factorize_explain = true prints why it did or did not.
+
+  extended_description: |
+    A clean-room implementation of Lehner & Neumann, *The Data World Is Not
+    Flat: Efficient Factorized Execution for Relational Systems* (PVLDB
+    19(11):3006-3019, 2026), derived from the paper only.
+
+    A join's result can be exponentially larger than the data it comes from. A
+    factorised representation keeps it as a product of independent parts rather
+    than writing every combination out: records grow by sum where tuples grow
+    by product. For an aggregate that only needs the count, the count can be
+    read from that representation without ever materialising it.
+
+    **What it is for.** Queries whose join result is too large to produce. On
+    the 442 queries of the cardinality-estimation benchmark whose results exceed
+    1e9 tuples, this answers 244 `count(\*)` queries that stock DuckDB does not
+    finish in sixty seconds, in a median of 0.09 s. One of them counts 10.8
+    trillion results in 24 seconds where the stock plan produces nothing in 180.
+
+    That 244 is specific to `count(\*)`, and deliberately says so: which queries
+    stock DuckDB cannot finish depends on the aggregate, not only on the join.
+    Over a random 120-query sample of the same corpus, with both plans timed
+    and a sixty-second cap, stock finishes 38 to 41 of them once the fold is
+    not `count(\*)` -- about a third of the corpus stops being out of reach.
+
+    The rescues survive the change of aggregate, which had been assumed rather
+    than measured until it was:
+
+        fold          rescued   faster   slower   neither   lost
+        min                45       34        7        34      0
+        max                47       33        7        33      0
+        avg                45       31       10        34      0
+        sum                46       31        9        33      1
+        count(c)           59       29       13        18      1
+        sum(x * y)         46       30       10        34      0
+
+    "Neither" is the floor neither plan clears inside the cap. count(c) reaches
+    furthest because the matcher only accepts it where the column cannot be
+    NULL, which makes the fold a counter again.
+
+    The slower column is mostly not this engine. Splitting the same runs by
+    whether the gate fired, every one of those slowdowns but two sits among
+    the queries it *declined* -- where `auto` runs the stock plan and the
+    difference is two timings of the same work, median ratio 0.98 over 151
+    pairs. Across 458 fired queries there are two bad outcomes, both under
+    count(c): one is the 60s cap falling just past a 58.8s stock plan, and the
+    other is watdiv_acyclic_217_10, which this project has recorded the cost
+    model failing on since well before these measurements.
+
+    Where it does regress is the corpus it is not for. On the queries DuckDB
+    can already materialise, about a third of the queries the gate fires on
+    come out slower -- 13 of the 37 it fires on for count(\*). And `auto` costs about 2 to 4 milliseconds to decline -- the
+    statistics sampling behind the decision -- which is invisible past 100ms
+    and around 20% on a 10ms query.
+
+    **What it is not for.** Queries DuckDB already handles. For a plain
+    count(\*) DuckDB carries no payload columns through a join and counts empty
+    tuples faster than this engine can build a representation: firing on every
+    eligible query is about 11x *slower* on the benchmark's live corpus. The
+    cost model exists to tell those regimes apart, and `auto` declines far more
+    often than it fires.
+
+    **Scope.** count(\*), count(c), sum, avg, min, max, bool_and and bool_or
+    over acyclic equi-join
+    graphs of many-to-many joins on integer and DECIMAL columns, with GROUP BY,
+    EXISTS and LIMIT. Also sum(x * y) for two columns, ungrouped, which is the
+    case factorisation is for: over independent branches it decomposes into a
+    product of one-column sums, so the pairings of x and y are summed without
+    being enumerated even though they are the join result itself.
+    Anything else is declined and the stock plan runs unchanged. `auto` is
+    bit-exact against `off`; if the factorised path raises, the replaced plan
+    answers instead.
+
+    The aggregates beyond count(\*) are timed as well as verified (D81). The
+    gate prices min and max separately from the rest, because they are not
+    folded at all: an ungrouped min or max over an acyclic join is answered by
+    a semijoin reducer, which reads the inputs and never builds the join. So
+    the folds no longer fire on the same queries as each other, which they did
+    until the reducer got a cost model of its own.
+
+    On the benchmark's live corpus, over the same 119 join graphs, medians of
+    three runs each:
+
+        fold          fires   ratio
+        min              65    3.9x
+        max              65    3.7x
+        count(\*)        37    1.7x
+        count(c)         36    1.4x
+        avg              29    1.5x
+        sum(x * y)       29    1.5x
+        sum              29    1.5x
+
+    Single runs of this measurement vary by about 10%, so these are medians
+    and not precise quantities. bool_and and bool_or are not listed separately:
+    the matcher compiles them to the min and max folds with the same binding,
+    so they are those rows with a BOOLEAN result type. An earlier reading of 0.93x for
+    sum(x * y) -- "slower than not firing" -- was an artifact: 65 of the 119
+    queries in that corpus multiplied two INTEGER join keys whose product
+    overflows INT32, so they raised instead of answering, and the gate fired on
+    30 of those against 3 of the rest. It measured how fast each plan reached
+    the same error (D85, D86). In the regime these exist for: on 50 of the
+    excluded queries sum(x * y) is 7 faster against 1 slower with no losses,
+    221s of stock against 92s.
+
+    **Known limitations**, measured rather than assumed, with the numbers in
+    DECISIONS.md: the cost model's coefficients are fitted on one machine and do
+    not transfer between machines or datasets; its estimates are wrong where it
+    is most confident; and on the benchmark corpus a handful of queries run
+    slower than the plan they replace, one of them past a sixty-second cap.
+    Scored against a per-query oracle with both plans timed, the gate lands
+    within about 1.1x to 1.4x of perfect depending on the aggregate, and most
+    of what is left is one query.
+
+    The counts of rescued queries above were measured before the semijoin
+    reducer and before the cost model was refitted for it, both of which only
+    widened what gets answered, so they understate the current state rather
+    than overstating it. DECISIONS.md carries each measurement with the date
+    and method it was taken by.

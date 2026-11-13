@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: alitrack/duckdb_turbovec
-  ref: refs/tags/v0.3.3
+  ref: 5d5448d0ae1759c4d56317cd1e44f4eb63f0c252
+  ref_next: 5d5448d0ae1759c4d56317cd1e44f4eb63f0c252
 
 docs:
   hello_world: |

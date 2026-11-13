@@ -1,0 +1,60 @@
+extension:
+  name: tidbfs
+  description: Read and write analytics files on TiDB Filesystem through its HTTP API, with experimental native DuckDB database storage.
+  version: 0.4.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - qiffang
+  # Initial release: Linux amd64 (glibc) and macOS arm64 only.
+  excluded_platforms: 'linux_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads'
+  opt_in_platforms: 'osx_arm64'
+  requires_toolchains: 'vcpkg;python3'
+  vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
+repo:
+  github: drive9-ai/duckdb
+  ref: 797d2c6250592d2b84716ebf43198b39bdfd3241
+docs:
+  docs_url: https://github.com/drive9-ai/duckdb#readme
+  hello_world: |
+    INSTALL tidbfs FROM community;
+    LOAD tidbfs;
+
+    -- Use your TiDB Filesystem data-plane endpoint and API key.
+    CREATE TEMPORARY SECRET fs (
+        TYPE tidbfs,
+        ENDPOINT 'https://YOUR_FILESYSTEM_ENDPOINT',
+        TOKEN 'YOUR_FILESYSTEM_API_KEY',
+        SCOPE 'tidbfs:///'
+    );
+
+    COPY (SELECT i AS id, i * 10 AS value FROM range(100) t(i))
+    TO 'tidbfs:///example.parquet' (FORMAT PARQUET);
+
+    SELECT count(*), sum(value) FROM read_parquet('tidbfs:///example.parquet');
+  extended_description: |
+    `tidbfs` is a native C++ filesystem extension for TiDB Filesystem. It calls
+    the existing HTTP data plane directly, without FUSE or a Go runtime.
+    Its initial community release targets DuckDB 2.0.0 on Linux amd64 (glibc)
+    and macOS arm64. OpenSSL and libcurl are statically linked into the artifact.
+
+    The `tidbfs:///` scheme supports Parquet, CSV and JSON reads, globbing,
+    Hive partition pruning, `COPY TO`, partitioned output, and database
+    `EXPORT`/`IMPORT`. Reads use conditional HTTP Range requests and parallel
+    reads. Writes stage locally and publish a complete file using the server's
+    revision checks and multipart upload APIs. They require local scratch
+    space; multi-file operations are not atomic transactions.
+
+    Experimental `tidbfs+db:///` storage can place native DuckDB database and
+    WAL files on the same filesystem using the public extent API and C++ SDK.
+    It preserves the existing sessions, advisory file locks and persistence
+    contract. All writers must cooperate with these locks; this is not a
+    replacement for DuckDB's concurrency rules or a claim of arbitrary
+    multi-process writer support. Native mode requires an unscoped filesystem
+    token and a server with the documented extent/session APIs.
+
+    See the [compatibility matrix](https://github.com/drive9-ai/duckdb/blob/main/docs/compatibility.md)
+    for the supported server capabilities, recovery tests and remaining limits.
+    The [publication guide](https://github.com/drive9-ai/duckdb/blob/797d2c6250592d2b84716ebf43198b39bdfd3241/docs/distribution.md)
+    documents the official build and artifact-level regression tests.

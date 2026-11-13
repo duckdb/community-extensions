@@ -1,10 +1,10 @@
 extension:
   name: sheetreader
-  description: Fast XLSX file importer
+  description: Fast, parallel Excel (XLSX) loading with low memory overhead.
   version: 0.2.0
   language: C++
   build: cmake
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw"
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;osx_amd64"
   license: MIT
   maintainers:
     - harrygav
@@ -12,60 +12,53 @@ extension:
 
 repo:
   github: polydbms/sheetreader-duckdb
-  ref: 813bda9e95d1bcb08e79042314bbd1948d22b979
+  ref: c201b73ad98bd1d3c64a727d0a24168975308ab8
 
 docs:
   hello_world: |
-    -- Create table from XLSX file & use default values for parameters
-    CREATE TABLE data AS FROM sheetreader('data.xlsx');
+    -- Install and load the extension
+    INSTALL sheetreader FROM community; LOAD sheetreader;
 
-    -- Example usage of available named parameters
-    CREATE TABLE data2 AS FROM sheetreader(
-        'data2.xlsx',
-        sheet_index = 1,
-        threads = 16,
-        skip_rows = 0,
-        has_header = true,
-        types = [BOOLEAN, VARCHAR],
-        coerce_to_string = true,
-        force_types = true
-    );
+    -- Read an Excel spreadsheet
+    SELECT * FROM sheetreader('data.xlsx');
 
+    -- Read a specific worksheet
+    SELECT * FROM sheetreader('data.xlsx', sheet_name = 'Sales');
+
+    -- Load a spreadsheet in parallel into a table
+    CREATE TABLE data AS
+    FROM sheetreader('data.xlsx', threads = 8);
 
   extended_description: |
-    `sheetreader` is a DuckDB extension that allows reading XLSX files into DuckDB tables with SheetReader, our blazingly fast XLSX parser (https://github.com/polydbms/sheetreader-core).
+    SheetReader enables fast, memory-efficient loading of Excel (XLSX) spreadsheets through specialized parsing routines and parallel processing. Unlike conventional XML-based Excel parsers, it is optimized for spreadsheet data, improving runtime and memory efficiency especially for large spreadsheets, as shown in our [research paper](https://doi.org/10.1016/j.is.2023.102183) and [recent benchmarks](https://github.com/polydbms/sheetreader-duckdb#benchmarks).
 
-    #### Parameters
+    #### Available Parameters
 
-    | Name | Description | Type | Default |
-    |:----|:-----------|:----:|:-------|
-    | `sheet_index` | Index of the sheet to read. Starts at 1. | `INTEGER` | `1` |
-    | `sheet_name` | Name of the sheet to read. <br> Only either `sheet_index` or `sheet_name` can be set.  | `VARCHAR` | `""` |
-    | `threads` | Number of threads to use, while parsing | `INTEGER` | Half of available cores; minimum 1 |
-    | `skip_rows` | Number of rows to skip | `INTEGER` | `0` |
-    | `has_header` | Force to treat first row as header row. <br> <ul> <li> If successful, the cell contents are used for column names. </li> <li> If set to `false` (which is the default), the extension will still try to treat the first row as header row. <br> The difference is that it will not fail, if the first row is not usable. </li> </ul> | `BOOLEAN` | `false` |
-    | `types` | List of types for all columns <ul> <li> Types currently available:<br> `VARCHAR`,`BOOLEAN`,`DOUBLE`, `DATE`.</li> <li> Useful in combination with `coerce_to_string` and `force_types`. </li> </ul> | `LIST(VARCHAR)` | Uses types determined by first & second row (after skipped rows) |
-    | `coerce_to_string` | Coerce all cells in column of type `VARCHAR` to string (i.e. `VARCHAR`). | `BOOLEAN` | `false` |
-    | `force_types` | Use `types` even if they are not compatible with types determined by first/second row. <br> Cells, that are not of the column type, are set to `NULL` or coerced to string, if option is set. | `BOOLEAN` | `false` |
+    | Parameter | Description | Type | Default |
+    |:----------|:------------|:----:|:--------|
+    | `sheet_index` | Index of the worksheet to read (starting at 1). Cannot be combined with `sheet_name`. | `INTEGER` | `1` |
+    | `sheet_name` | Name of the worksheet to read. Cannot be combined with `sheet_index`. | `VARCHAR` | `""` |
+    | `threads` | Number of threads used for parallel parsing. | `INTEGER` | Half of available cores (minimum 1) |
+    | `skip_rows` | Number of rows to skip before reading. | `INTEGER` | `0` |
+    | `has_header` | Require the first row to be usable as column headers. When false, SheetReader still attempts to use the first row as headers but does not fail if it cannot. | `BOOLEAN` | `false` |
+    | `types` | Column types (`VARCHAR`, `BOOLEAN`, `DOUBLE`, `DATE`), one per column. | `LIST(VARCHAR)` | Inferred from the first two rows after skipped rows |
+    | `coerce_to_string` | Coerce cells in `VARCHAR` columns to strings. | `BOOLEAN` | `false` |
+    | `force_types` | Enforce specified types even if they conflict with inferred types; incompatible cells become `NULL` or are converted to strings when `coerce_to_string` is set. | `BOOLEAN` | `false` |
 
-    #### More Information
-    SheetReader was introduced in the **PolyDB research project** ([polydbms.org](https://polydbms.org)). The initial design and evaluation was published in the [Information Systems Journal](https://www.sciencedirect.com/science/article/abs/pii/S0306437923000194). If you use this extension in your research, consider citing the following paper:
+    #### Background
+
+    SheetReader was developed as part of the [PolyDB](https://polydbms.org) research project. Our research introduced a spreadsheet-specialized parser designed for use across multiple systems, including integrations for [PostgreSQL](https://github.com/polydbms/pg_sheet_fdw), [Python/pandas](https://github.com/polydbms/sheetreader-python), [R data frames](https://github.com/fhenz/SheetReader-r), and DuckDB (see the [SheetReader core repository](https://github.com/polydbms/sheetreader-core)).
+
+    If SheetReader was helpful in your research, please consider citing our paper:
 
     ```bibtex
-    @article{DBLP:journals/is/GavriilidisHZM23,
-      author       = {Haralampos Gavriilidis and
-                      Felix Henze and
-                      Eleni Tzirita Zacharatou and
-                      Volker Markl},
-      title        = {SheetReader: Efficient Specialized Spreadsheet Parsing},
-      journal      = {Inf. Syst.},
-      volume       = {115},
-      pages        = {102183},
-      year         = {2023},
-      url          = {https://doi.org/10.1016/j.is.2023.102183},
-      doi          = {10.1016/J.IS.2023.102183},
-      timestamp    = {Mon, 26 Jun 2023 20:54:32 +0200},
-      biburl       = {https://dblp.org/rec/journals/is/GavriilidisHZM23.bib},
-      bibsource    = {dblp computer science bibliography, https://dblp.org}
+    @article{GavriilidisHZM23,
+      author  = {Haralampos Gavriilidis and Felix Henze and Eleni Tzirita Zacharatou and Volker Markl},
+      title   = {SheetReader: Efficient Specialized Spreadsheet Parsing},
+      journal = {Information Systems},
+      volume  = {115},
+      pages   = {102183},
+      year    = {2023},
+      doi     = {10.1016/j.is.2023.102183}
     }
     ```

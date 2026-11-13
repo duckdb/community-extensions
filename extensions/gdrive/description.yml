@@ -1,7 +1,7 @@
 extension:
   name: gdrive
-  version: 2026.09.26
-  description: Query files in Google Drive directly with a gdrive:// filesystem
+  version: 2026.11.13
+  description: Google Drive in SQL -- files and Sheets (gdrive://, browser links; read and write a Sheet by tab or range), Drive's metadata, locks, versions, change feeds and permissions
   language: C++
   build: cmake
   license: MIT
@@ -11,13 +11,21 @@ extension:
   # would build green in CI and then fail to LOAD. A clean "unavailable" is
   # better than an unloadable artifact.
   # mingw: vcpkg's OpenSSL port is fragile there; sibling extensions skip it.
-  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  # osx_amd64: community-extensions no longer builds Intel macOS (2026-11), and
+  # neither do we.
+  excluded_platforms: "osx_amd64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - jrosskopf
+    - sipemu
 
 repo:
   github: DataZooDE/duckdb-gdrive
-  ref: 3755d9ea6f03387d8546e3eb1500ea58758a3528
+  ref: eaa149e400b8a00849e5297e7f022426f4e0341f
+  # ref builds against DuckDB 2.0 and variegata against v1.5.6
+  # (community-extensions scripts/build.py); a missing key falls back to ref.
+  # One commit serves both lines (duckdb-compat), so at release both are the
+  # same tagged SHA. No andium key: DuckDB 1.4.x is not supported.
+  variegata: eaa149e400b8a00849e5297e7f022426f4e0341f
 
 docs:
   hello_world: |
@@ -47,9 +55,20 @@ docs:
     -- Glob a folder.
     SELECT * FROM read_parquet('gdrive://exports/parts/*.parquet');
 
+    -- Or paste an address from the browser: it names the file by id.
+    SELECT * FROM read_csv('https://drive.google.com/file/d/1a2b3cDeFgHiJkLmNoPQrStUvWxYz/view');
+
+    -- Drive's metadata as rows: owners, last change, links, revisions.
+    SELECT name, size, modified, modified_by, web_url FROM read_gdrive_files('gdrive://exports/**');
+
     -- A native Google Sheet is queryable with no manual export: it has no
     -- byte stream, so it is served through Drive's CSV export.
     SELECT * FROM read_csv('gdrive://Finance/Budget');
+
+    -- Any tab or A1 range of a Sheet, typed; and writing back into one, in
+    -- place, leaving its other tabs, formulas and formatting alone.
+    SELECT * FROM read_sheet_range('gdrive://Finance/Budget', 'Q4!A1:F');
+    COPY (SELECT * FROM t) TO 'gdrive://Finance/Budget' (FORMAT sheet_range, RANGE 'Forecast!A1', OVERWRITE);
 
     -- Write a whole file. Writes are sequential; Drive cannot write at a
     -- byte offset, so positional writes raise an error rather than corrupt.
@@ -64,12 +83,30 @@ docs:
     DuckDB dispatches file access through its virtual filesystem, everything
     layered on it inherits the scheme: `read_parquet`, `read_csv`, `COPY`,
     `glob`, and table formats such as DuckLake — attaching a DuckLake whose
-    `DATA_PATH` is on Drive works and is tested live.
+    `DATA_PATH` is on Drive works and is tested live. A DuckDB database file
+    on `gdrive://` can be `ATTACH`ed read-only. A file's address from the
+    browser (drive.google.com, docs.google.com) works wherever a path does.
 
-    `ATTACH` of a DuckDB **database file** on `gdrive://` is NOT supported.
-    DuckDB opens database files through a different path that does not consult
-    the virtual filesystem, so the attempt fails immediately rather than
-    half-working.
+    Beyond files, Drive's metadata as tables: `read_gdrive_files` lists files
+    under a path or glob with owner, last modifier, link, checksum and custom
+    properties; `search_gdrive` runs Drive's full-text search; `gdrive_drives`
+    lists Shared Drives; `gdrive_versions` lists a file's revisions and
+    `?version=<id>` reads one with any reader; `gdrive_changes` returns what
+    changed under a folder since a token (an incremental-sync feed);
+    `gdrive_permissions` lists who can reach each file, including
+    anyone-with-the-link sharing; and `read_gdrive_files` reports Drive's
+    file locks (`locked`, `locked_by`, `lock_reason`), which writes respect.
+
+    Native Sheets read through the ordinary readers as CSV, and
+    `read_sheet_range` reads any tab or A1 range with typed columns.
+    `COPY ... (FORMAT sheet_range, RANGE 'Tab!A1')` writes into a tab in place
+    through the Sheets API (`OVERWRITE` / `APPEND`; a missing tab is created),
+    never replacing the spreadsheet. Every write is retry-safe: a lost reply
+    never leaves a duplicate file or folder behind.
+
+    Also registers the scheme-generic
+    `write_blob`, `remove_file`, `move_file` and `file_size` SQL functions,
+    shared with the sibling `sharepoint` extension.
 
     This is **Google Drive**, not Google Cloud Storage — a different product
     with a different API and access model. For `gs://` buckets use the `gcs`

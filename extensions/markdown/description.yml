@@ -1,7 +1,7 @@
 extension:
   name: markdown
   description: Read, analyze, and write Markdown files with block-level document representation and inline element support
-  version: 1.9.8
+  version: 1.9.9
   language: C++
   build: cmake
   license: MIT
@@ -10,21 +10,34 @@ extension:
   vcpkg_commit: bffcbb75f71553824aa948a7e7b4f798662a6fa7
 repo:
   github: teaguesterling/duckdb_markdown
-  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit; every
-  # change since ships on the v1.5.x track via ref, which is a v1.5.6 tree as of
-  # v1.9.7 (was v1.5.4 when this note was written, then v1.5.5).
+  # andium (DuckDB v1.4.5 track) intentionally left at its prior commit. As of
+  # v1.9.9, ref is a DuckDB v2.0.0 tree (submodule d54cbbe3df).
   andium: c9e1a4d3b98a814c86295ecb2ed760be286242ba
-  ref: 6fc7013de640191ea5248897df3b60a7bc07db67
+  ref: 2faa04ab53709cd4dba19bcecc51879c904594de
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Advance
+  # only to a commit v1.5.6 can still build.
+  #
+  # HELD AT 1.9.8 FOR 1.9.9, deliberately. markdown retired its v1.5.6 CI leg in
+  # v1.9.9 (duckdb_markdown#106), so no v1.5.6 build of `ref` has been measured.
+  # v1.5.6 users stay on 1.9.8.
+  variegata: 6fc7013de640191ea5248897df3b60a7bc07db67
   # ref_next is what makes the PRERELEASE leg actually build against DuckDB
   # v2.0. Without it build_next.yml prints "Skipping prerelease validation" and
   # the PR passes green having verified nothing on that line. A STALE ref_next is
   # worse than an absent one: it validates the PREVIOUS release against the next
   # line while reporting green, so it moves with ref on every release.
   #
-  # Same commit as ref, and measured rather than assumed: v1.9.8's next-line legs
-  # are green on all eight arches against v2.0-cyanoptera (linux_amd64/arm64,
-  # osx_amd64/arm64, windows_amd64 + mingw, wasm_mvp/eh/threads).
-  ref_next: 6fc7013de640191ea5248897df3b60a7bc07db67
+  # Same commit as ref. MEASURED for 1.9.9 on this exact commit, in markdown's
+  # post-merge run 43061357283 against the v2.0 line: all eight next-line legs build.
+  # Tests: linux_amd64 and osx_arm64 61 passed, 0 skipped; windows_amd64 and mingw
+  # 59 passed, 2 skipped (require notwindows). linux_arm64 and the three wasm legs
+  # build only and print no test line. The run is red for two reasons outside
+  # markdown: Format Check never ran (apt could not resolve the Ubuntu mirror; the
+  # changed sources pass clang-format 11.0.1 locally), and the DuckDB-main canary's
+  # windows_amd64 fails compiling DuckDB's own src/common/types.cpp.
+  ref_next: 2faa04ab53709cd4dba19bcecc51879c904594de
 docs:
   hello_world: |
     -- Load the extension

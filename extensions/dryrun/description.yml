@@ -1,7 +1,7 @@
 extension:
   name: dryrun
   description: Estimate Parquet scan bytes for SELECT queries without executing them
-  version: 0.1.0
+  version: 0.1.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: aleda145/duckdb-dryrun
-  ref: dd1861b2f258644e2d15f880ed1e8b263f004dcc
+  ref: 0bddce4a16696198a282282879f10c4904de8570
 
 docs:
   hello_world: |

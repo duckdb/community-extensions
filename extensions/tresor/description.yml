@@ -1,0 +1,61 @@
+extension:
+  name: tresor
+  description: "Your company login, your role's secrets: S3, Postgres, APIs and more from a secrets service, with nothing on the laptop."
+  version: "0.1.1"
+  language: "C++"
+  build: "cmake"
+  license: "MIT"
+  maintainers:
+    - "VGSML"
+  # opt-in in extension-ci-tools; built and tested by tresor's own distribution workflow too
+  opt_in_platforms: "windows_arm64"
+
+repo:
+  github: "hugr-lab/tresor"
+  # v0.1.1 - the commit the tag v0.1.1 points at (a SHA rather than the tag name: a tag can be moved)
+  ref: b2937ac5f901908cf0de179a9027e133c6b3b37f
+
+docs:
+  hello_world: |
+    INSTALL tresor FROM community;
+    -- no LOAD: attaching a tresor: path loads it
+    ATTACH 'tresor:secrets.corp.example' AS corp;   -- log in once, with your company account
+    FROM corp.secrets();                              -- the secrets your roles may use
+    FROM 's3://lake/sales/*.parquet';                 -- the right one is found by scope, like any secret
+
+  extended_description: |
+    Stop copying keys into notebooks, `.env` files and CI variables. tresor makes your organization's secrets
+    part of DuckDB's own secret lookup: log in once with the company identity provider - Entra ID, Okta,
+    Keycloak, Auth0 - and every secret your roles may use is simply there. S3, GCS, R2, Azure, Postgres,
+    MySQL, HTTP APIs, Iceberg catalogs: queried as usual, with no key on the laptop and nothing to rotate by hand.
+
+    Website and docs: https://hugr-lab.com/tresor
+
+    **One login, everywhere DuckDB runs.** The browser or a device code, once; the login is remembered in the
+    OS keychain, so the CLI, DuckDB UI, Jupyter, DBeaver and your scripts all attach with no second sign-in.
+    In DuckDB UI or a notebook, `FROM tresor_login(...)` returns the link and code as a row.
+
+    **Secrets by role, managed in one place.** Administrators create secrets - from SQL
+    (`CREATE PERSISTENT SECRET ... IN corp`) or a web console - and grant their use to roles and groups.
+    Revoke a grant and the next query no longer sees the secret. The key material can stay in the vault you
+    already run (HashiCorp Vault / OpenBao, Azure Key Vault, AWS and GCP secret managers), referenced, never
+    copied.
+
+    **Short-lived by design.** Any parameter can be generated per caller on each read - a token minted for
+    you by token exchange, a claim of your own token - and cached only until shortly before it expires.
+    httpfs refreshes S3 credentials on its own. Variables work too: `SET motherduck_token = corp.variable(...)`.
+
+    **Pipelines without passwords.** Jobs log in as themselves: GitHub Actions OIDC, Kubernetes service
+    accounts, Azure managed identities, a private key - no stored secret at all. dbt-duckdb works through
+    its profile.
+
+    **Inside your own application.** Python, Go, Rust, Java and DuckDB-wasm in the browser: an app that
+    already signed its user in hands tresor that same token (`tresor_web_token`) and each renewal - no second
+    login, and the app's refresh token never leaves it.
+
+    **Audited and open.** Every login, lookup, write and grant is an audit event in DuckDB's log, exportable
+    over OpenTelemetry. Nothing secret is written to disk or logged. The service behind it speaks an open
+    protocol, duckdb-secrets/1 - a short spec any service can implement; tresor-server is the production one
+    (one container on Azure, Kubernetes, AWS or GCP).
+
+    Issues and feature requests: https://github.com/hugr-lab/tresor

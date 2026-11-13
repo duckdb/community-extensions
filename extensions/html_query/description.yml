@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: midwork-finds-jobs/duckdb_html_query
-  ref: a78df2bfb6ad547ceae25cac70277bbaf0ecba62
+  variegata: a78df2bfb6ad547ceae25cac70277bbaf0ecba62
+  ref: 87af2dc57ae7c16cc281157af979789bf1772f25
 
 docs:
   hello_world: |

@@ -1,0 +1,128 @@
+extension:
+  name: yorc
+  description: "Cultivate your research identity and networks: read and convert ORCID v3.0 researcher records, XML and JSON (API documents and the ORCID Public Data File dumps), as tables. An independent open-source project, not affiliated with, endorsed by or sponsored by ORCID, Inc.; no access to the ORCID Sandbox or the ORCID Member API, and no requests to ORCID."
+  version: 0.2.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - mgbilby
+
+repo:
+  github: mgbilby/yorc-duckdb
+  ref: bf20534dedcc291003d0b092077b87aa77a37853
+  variegata: bf20534dedcc291003d0b092077b87aa77a37853
+
+docs:
+  hello_world: |
+    -- 1. Check and canonicalise ORCID iDs
+    SELECT orcid_normalize('https://orcid.org/0000-0002-1825-0097');  -- 0000-0002-1825-0097
+    SELECT orcid_valid('0000-0002-1825-0098');                         -- false
+
+    -- 2. One row per work from saved records (globs and httpfs URLs work)
+    SELECT orcid, title, type, pub_year, doi
+    FROM orcid_works('records/*.xml')
+    ORDER BY pub_year DESC;
+
+    -- 3. Records already in a table: the _xml twin in a lateral join
+    SELECT r.orcid, a.affiliation_type, a.org_name, a.start_year
+    FROM records r, orcid_affiliations_xml(r.xml) a;
+
+    -- 4. A Public Data File dump, read in place (only the bytes needed)
+    INSTALL httpfs; LOAD httpfs;
+    SELECT orcid, given_names, family_name
+    FROM orcid_person('https://ndownloader.figshare.com/files/<file-id>', max_records := 1000);
+
+    -- 5. How a record changed: one snapshot, then two
+    SELECT event_at, event, kind, label FROM orcid_timeline('record.xml') ORDER BY event_at;
+    SELECT section, put_code, change, field, old_value, new_value
+    FROM orcid_changes('2024/record.xml', '2025/record.xml');
+
+    -- 6. The same iDs across two dump releases, without unpacking them
+    WITH pairs AS (
+      SELECT orcid, a.xml AS old_xml, b.xml AS new_xml
+      FROM orcid_documents('ORCID_2024_10_summaries.tar.gz', members := '*/097/*') a
+      FULL JOIN orcid_documents('ORCID_2025_10_summaries.tar.gz', members := '*/097/*') b USING (orcid))
+    SELECT c.orcid, c.section, c.change, c.field, c.old_value, c.new_value
+    FROM pairs p, orcid_changes_xml(p.old_xml, p.new_xml) c;
+
+    -- 7. JSON in, and ORCID documents out (XML or JSON)
+    SELECT orcid, title, type, pub_year, doi FROM orcid_works('records/*.json');
+    SELECT orcid_work_to_json(w) FROM orcid_works('record.xml') w LIMIT 1;
+
+  extended_description: |
+    Reads and writes ORCID v3.0 XML and JSON. Turns ORCID documents into
+    relational tables, and rows back into ORCID documents, for research-information, library, bibliometrics and CV workflows. It
+    reads Public API responses, saved records, and the yearly ORCID
+    Public Data File dumps (`.tar` / `.tar.gz`, streamed member by member, also
+    over https), in either format (told per file). The XML reader, the JSON
+    parser, the writers, the ISO 7064 check and SHA-256 are small
+    dependency-free C++ written from the specifications: no libxml2, no JSON
+    library, no OpenSSL, no vcpkg. A pure crosswalk, for any user and any
+    purpose: no network calls, no policy (consent, access and rate limits
+    belong to applications).
+
+    ### Not affiliated with ORCID
+    yorc-duckdb is an independent open-source project. It is not affiliated
+    with, endorsed by or sponsored by ORCID, Inc. It does not provide access
+    to the ORCID Sandbox or the ORCID Member API, and makes no requests to
+    ORCID: it reads ORCID documents and Public Data File archives you already
+    have.
+
+    ### Record tables
+    `orcid_works`, `orcid_fundings`, `orcid_affiliations` (all seven types:
+    employment, education, qualification, invited position, distinction,
+    membership, service), `orcid_peer_reviews`, `orcid_research_resources`,
+    `orcid_research_resource_items`, `orcid_research_resource_hosts`,
+    `orcid_contributors`,
+    `orcid_external_ids`, `orcid_person`, `orcid_person_items` (other names,
+    URLs, emails, addresses, keywords, person ids) and `orcid_history`. Each
+    reads a full `/record`, a section collection, a single item or a `bulk`
+    response.
+
+    ### Other API messages
+    `orcid_summary` and `orcid_summary_items` (the record summary endpoint:
+    per-type counts, email domains, listed ids, employments and activities),
+    `orcid_search_results` (search and expanded search), `orcid_errors`
+    (error responses, including the per-entry errors of bulk responses),
+    `orcid_notifications` (permission and custom inbox notifications) and
+    `orcid_group_ids` (peer-review group ids).
+
+    ### History of a record
+    `orcid_timeline` lists the dated creation and last modification of every
+    item in one snapshot. `orcid_changes(old, new)` compares two snapshots (for
+    example the same iD in two yearly Public Data File releases) and reports
+    added, removed and modified items, one row per changed field.
+    `orcid_documents(path)` lists the raw documents of files and archive
+    members (with the iD from the path), so two releases can be paired by
+    record and compared without unpacking them.
+    `orcid_dump_sample(archive, n, seed)` draws a reproducible sample of the
+    records of a dump, the same picks as the yorc-rs and yorc-zig libraries.
+
+    ### Writing: ORCID XML and JSON documents
+    `orcid_work_to_xml` / `orcid_work_to_json` and the same for fundings,
+    affiliations (all seven types), peer reviews, research resources, person
+    items (addresses, keywords, other names, researcher URLs, external
+    identifiers) and group ids take a STRUCT of the reader's columns (with
+    lists of external ids, contributors and resource items) and return the
+    document, valid against ORCID's XSDs, in ORCID's element order and JSON
+    conventions. `orcid_bulk_works_to_xml` / `_json` build bulk documents of
+    up to 100 works. Read, write and read again give the same rows. The
+    documents are returned as strings; nothing is sent to ORCID.
+
+    ### Three forms of every table, and scalars
+    Each table function `orcid_<section>(path)` reads XML or JSON files, globs
+    and URLs through DuckDB's file system (named parameters `members`,
+    `max_records` and `json_root`), and has `orcid_<section>_xml(xml)` and
+    `orcid_<section>_json(json)` twins for documents held in a column (lateral
+    joins); likewise `orcid_changes_xml` and `orcid_changes_json`. Every
+    record-table row carries the record iD and a SHA-256 of its source
+    document. Files and archive members are scanned in parallel, in document
+    order, with progress reporting.
+    `orcid_valid` and `orcid_normalize` check and canonicalise iDs (ISO 7064
+    MOD 11-2; URL prefixes, missing hyphens and a lowercase check digit are
+    accepted). On DuckDB v2.0 the file readers are multi-file readers (lists of
+    paths, `filename` and `file_index` columns, `union_by_name`,
+    `hive_partitioning`, parallel across files).
+
+    Column reference: https://github.com/mgbilby/yorc-duckdb/blob/main/docs/REFERENCE.md

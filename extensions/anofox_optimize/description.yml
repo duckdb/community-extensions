@@ -1,6 +1,6 @@
 extension:
   name: anofox_optimize
-  version: 2026.09.26
+  version: 2026.11.7
   description: Combinatorial decision algorithms as SQL — bin packing, knapsack, wave batching, sequencing, scheduling, assortment and portfolio selection
   language: C++
   build: cmake
@@ -8,14 +8,18 @@ extension:
   maintainers:
     - jrosskopf
   # windows_amd64_rtools: R packaging only.
-  # windows_amd64_mingw / wasm_*: the extension links OpenSSL (pulled in for
-  # anonymous usage telemetry, which is off with a single SET) and that is not
-  # reliably available on those toolchains.
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  # windows_amd64_mingw: vcpkg cannot build OpenSSL there.
+  # wasm_mvp: loads, but an extension error reaches the caller as
+  # `_setThrew is not defined` instead of its message (duckdb-wasm's mvp glue).
+  # wasm_threads: untested; duckdb-wasm has no Node bundle to run it in.
+  # wasm_eh builds without telemetry and passes the whole test/sql suite in
+  # DuckDB-Wasm (test/wasm).
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;wasm_mvp;wasm_threads"
 
 repo:
   github: DataZooDE/anofox-optimize
-  ref: 5ea8943bf6052489ff3ae824e9a657d2e0ba8c14
+  ref: 7d1f61390d76657b25d6d1090eceb26b98a35efc
+  variegata: 7d1f61390d76657b25d6d1090eceb26b98a35efc
 
 docs:
   hello_world: |
@@ -31,9 +35,9 @@ docs:
     FROM cartons;
 
     -- Which shipments go on a cheaper carrier that only takes 1000 units?
-    -- Value == weight, so this is subset-sum, and `exact` finds the perfect
-    -- fill that greedy rules miss.
-    SELECT opt_knapsack_exact(
+    -- Value == weight, so this is subset-sum, and `best_of`'s dynamic program
+    -- finds the perfect fill that greedy rules miss.
+    SELECT opt_knapsack_best_of(
              list(weight ORDER BY shipment_id),
              list(weight ORDER BY shipment_id),
              1000.0
@@ -55,7 +59,7 @@ docs:
     | Family | Decision | Example |
     |---|---|---|
     | `pack_*` | fit items into the fewest containers | `opt_pack_best_of` |
-    | `knapsack_*` | pick a subset under one capacity | `opt_knapsack_exact` |
+    | `knapsack_*` | pick a subset under one capacity | `opt_knapsack_best_of` |
     | `wave_*` | group orders into capacity-limited waves | `opt_wave_best_of` |
     | `sequence_*` | order jobs to cut changeover cost | `opt_sequence_two_opt` |
     | `schedule_*` | order jobs against due dates with setups | `opt_schedule_best_of` |
@@ -69,9 +73,16 @@ docs:
 
     ### Honesty about guarantees
 
-    Two functions return a **proven optimum** and say so in their names:
-    `knapsack_exact` and `schedule_exact`. Everything else is heuristic and
-    carries no guarantee. Functions that would blow up refuse rather than hang —
+    `schedule_exact` returns a **proven optimum** and refuses what it cannot
+    solve. `knapsack_best_of` (also callable as `knapsack_exact`, an alias)
+    returns one only when its dynamic program ran, inside a cell and memory
+    limit, with weights in multiples of 0.0001 whose sums are exact in doubles
+    (a selection fits when its weights, summed in doubles, are within
+    capacity, so 0.1 + 0.2 does not fit 0.3). Past the limits it silently
+    returns its best greedy answer, and nothing in the result says which case
+    occurred; see
+    [docs/theory/02](https://github.com/DataZooDE/anofox-optimize/blob/main/docs/theory/02-packing-and-knapsack.md).
+    Everything else is heuristic and carries no guarantee. Functions that would blow up refuse rather than hang —
     `schedule_exact` rejects more than 14 jobs with an error naming the
     heuristic to use instead.
 

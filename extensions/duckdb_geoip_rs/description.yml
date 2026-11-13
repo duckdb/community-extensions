@@ -1,18 +1,18 @@
 extension:
   name: duckdb_geoip_rs
   description: Retrieve geo ip data from MMDB database
-  version: 0.2.5
+  version: 0.3.0
   language: Rust
   build: cmake
   license: MIT
-  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl;wasm_mvp;wasm_eh;wasm_threads"
+  excluded_platforms: "windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl"
   requires_toolchains: "rust;python3"
   maintainers:
     - william-billaud
 
 repo:
   github: william-billaud/duckdb-geoip-rs
-  ref: 5c8632d581330038bb5a59490063ebc0dad34d21
+  ref: 27c9b1f86772a5e8927c5dd6cfc0e0bf1f194ba4
 
 docs:
   hello_world: |

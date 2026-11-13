@@ -1,7 +1,7 @@
 extension:
   name: whisper
   description: Speech-to-text transcription using whisper.cpp, OpenAI's Whisper model
-  version: 0.6.0
+  version: 0.7.1
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,8 @@ extension:
 
 repo:
   github: tobilg/duckdb-whisper
-  ref: d6ca92023f952818f7568d599fc1a63696c32343
+  ref: ea3e28cec89677e0940806297af7bf37a43228d0
+  variegata: d6ca92023f952818f7568d599fc1a63696c32343
 
 docs:
   hello_world: |

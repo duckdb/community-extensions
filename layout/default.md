@@ -1,4 +1,3 @@
-
 ### Installing and Loading
 ```sql
 INSTALL {{ page.extension.name }} FROM community;
@@ -15,4 +14,3 @@ LOAD {{ page.extension.name }};
 ### About {{ page.extension.name }}
 {{ page.docs.extended_description }}
 {% endif %}
-

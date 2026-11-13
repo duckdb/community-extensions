@@ -39,4 +39,5 @@ extension:
 repo:
   andium: 2d31ccebd7f44babc901c84ba0fe8b560647e136
   github: quackscience/duckdb-quickjs
-  ref: 4b7bb7db382f328b826bcaeeae05cfbafec82eb8
+  ref: dfc77480cf1035f95c447b3a50725ea782d9370b
+  variegata: c1022cee7c834461ca717d18c11862e83bdf8b93

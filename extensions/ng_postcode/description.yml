@@ -1,0 +1,41 @@
+extension:
+  name: ng_postcode
+  description: Parse, validate, format, and group Nigeria's NIPOST digital postcode (NDAPS)
+  version: 0.2.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - Adeniyikayodee
+
+repo:
+  github: Adeniyikayodee/ng-postcode-duckdb
+  ref: a584158edc26f40554ee5fb8a3290ff3eca1c90a
+
+docs:
+  hello_world: |
+    SELECT ng_postcode_parse('ek 01 a03 fk 01') AS code,
+           ng_postcode_format(ng_postcode_truncate('ek 01 a03 fk 01', 'district')) AS district;
+  extended_description: |
+    Nigeria's digital postcode has eleven letters and digits in five segments: state, local government area, district, area, and unit. It is written `EK-01-A03-FK-01` and stored as `EK01A03FK01`.
+
+    This extension reads the code offline, with no network call and no lookup table. A value that is not a well-formed code gives NULL.
+
+    - `ng_postcode_parse(text)` returns the compact form of a complete code.
+    - `ng_postcode_prefix_parse(text)` accepts a code cut off after any segment.
+    - `ng_postcode_format(text)` returns the hyphenated form.
+    - `ng_postcode_truncate(text, segment)` cuts a code after `state`, `lga`, `district`, `area`, or `unit`.
+    - `ng_postcode_parent(text)` returns the next coarser prefix.
+    - `ng_postcode_within(text, prefix)` tells whether a code lies inside a prefix.
+    - `ng_postcode_compact(text)` strips spaces and hyphens and uppercases.
+    - `ng_postcode_version()` returns the extension version.
+
+    Counting rows by district needs no map:
+    ```sql
+    SELECT ng_postcode_format(ng_postcode_truncate(postcode, 'district')) AS district, count(*)
+    FROM deliveries GROUP BY 1 ORDER BY 2 DESC;
+    ```
+
+    The functions pass the shared test cases of the [ng-postcode](https://github.com/Adeniyikayodee/ng-postcode) libraries for Rust, Python, JavaScript, and Java. The source is at https://github.com/Adeniyikayodee/ng-postcode-duckdb.

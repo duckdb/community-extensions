@@ -1,7 +1,7 @@
 extension:
   name: geography
   description: Global spatial data processing on the sphere
-  version: 0.1.1
+  version: 0.1.2
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: paleolimbot/duckdb-geography
-  ref: 05dcc8fd1df597907135e62a72a7b63aff3289cd
+  ref: f777314ad074872e9118d5f28b3960fde4eacb33
 
 docs:
   hello_world: |

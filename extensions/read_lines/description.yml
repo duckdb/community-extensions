@@ -10,6 +10,11 @@ extension:
 repo:
   github: teaguesterling/duckdb_read_lines
   ref: 63d27fec46a4c9baa98708cc1884329f20a597bf
+  # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
+  # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
+  # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Equal to
+  # `ref` while both lines build; advance only to a commit v1.5.6 can still build.
+  variegata: 63d27fec46a4c9baa98708cc1884329f20a597bf
   # ref_next == ref (deliberate): validate the shipped release on DuckDB
   # v2.0-cyanoptera. v0.4.3 lands the family-C port (named_parameter ->
   # FunctionSignature typed-kwargs shim, #18) — verified by a real cyanoptera CI

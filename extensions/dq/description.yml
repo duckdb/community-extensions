@@ -14,6 +14,7 @@ extension:
 repo:
   github: alitrack/duckdb_dq
   ref: 3d5e95d24383353a1bd36e20edfa76ee169b805a
+  ref_next: 3d5e95d24383353a1bd36e20edfa76ee169b805a
 
 docs:
   hello_world: |
