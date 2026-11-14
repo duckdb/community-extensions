@@ -5,7 +5,7 @@ extension:
   language: Rust
   build: cargo
   license: MIT
-  excluded_platforms: "wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
   requires_toolchains: "rust;python3"
   maintainers:
     - alitrack
@@ -52,8 +52,7 @@ docs:
     **pre-execution cost estimate**: exact postings+positions byte ranges
     from TermInfo, doc-frequency bounds, confidence + notes; absent terms
     report 0 bytes (AND short-circuits). Never decodes postings, never
-    scores (~2ms). v0.4.0 also enables the wasm platforms (in-memory
-    RamDirectory indexes on wasm32; persistent indexes remain native-only).
+    scores (~2ms).
 
     ### Functions
 
@@ -96,7 +95,10 @@ docs:
     itself). Permanent and attached tables work fine.
 
     Windows (rtools/mingw) and musl builds are excluded pending CI
-    coverage, matching the other quack-rs based community extensions;
-    `wasm_threads` is excluded because the wasm32 build is single-threaded.
+    coverage, matching the other quack-rs based community extensions.
+    The wasm platforms (`wasm_mvp` / `wasm_eh` / `wasm_threads`) are
+    excluded for now: the C-API Rust extension wasm build path is not yet
+    wired (it needs an `examples/` target plus an Emscripten link for the
+    C deps); wasm support is tracked as follow-up work.
 
     →  [GitHub](https://github.com/alitrack/duckdb-tantivy)
