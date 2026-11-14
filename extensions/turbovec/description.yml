@@ -1,78 +1,100 @@
 extension:
   name: turbovec
-  description: "Compressed vector search for DuckDB — Google TurboQuant quantization, IVF indexing, incremental CRUD, cosine/L2/dot"
+  description: Compressed vector search for DuckDB — 2/3/4-bit TurboQuant quantization (random-rotation, training-free) with flat and IVF indexes, ensembles for recall recovery, and a process-wide index cache, through DuckDB's C Extension API (quack-rs)
   version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
-  requires_toolchains: rust
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
   maintainers:
     - alitrack
-  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
 
 repo:
   github: alitrack/duckdb_turbovec
-  ref: 5d5448d0ae1759c4d56317cd1e44f4eb63f0c252
-  ref_next: 5d5448d0ae1759c4d56317cd1e44f4eb63f0c252
+  ref: 6e7514ed7c784f6bdf4d20617ab64596b78539e9
+  ref_next: 6e7514ed7c784f6bdf4d20617ab64596b78539e9
 
 docs:
   hello_world: |
+    INSTALL turbovec FROM community;
     LOAD turbovec;
 
-    -- Build a compressed vector index (8-dim vectors, 3 sub-vectors)
-    SELECT * FROM turboquant_build_list(
-      [0.0::FLOAT,1.0,2.0,3.0,4.0,5.0,6.0,7.0],
-      3, 'my_index'
+    -- Build a 4-bit quantized flat index from a vectors table
+    SELECT * FROM turboquant_build(
+      (SELECT string_agg(list_serialize(embedding), chr(10)) FROM docs),
+      1536, 4, '/tmp/myindex.tv'
     );
 
-    -- Add a vector
-    SELECT * FROM turboquant_add(
-      [8.0::FLOAT,9.0,10.0,11.0,12.0,13.0,14.0,15.0],
-      'my_index'
+    -- Search: exact-k quantized top-k (idx, score)
+    SELECT * FROM turboquant_search('/tmp/myindex.tv', '[0.1, ...]', 10);
+
+    -- IVF for sub-linear search at scale (auto num_lists = sqrt(n))
+    SELECT * FROM turboquant_build_ivf(
+      (SELECT string_agg(list_serialize(embedding), chr(10)) FROM docs),
+      1536, 4, 0, '/tmp/myivf/'
     );
-
-    -- Search nearest neighbors
-    SELECT * FROM turboquant_search('my_index', 'l2', 3);
-
-    -- Build concatenated indexes
-    SELECT * FROM turboquant_build_concat('my_index', 'my_index', 'union');
-
-    -- Build IVF index for faster search
-    SELECT * FROM turboquant_build_ivf('my_index', 10, 'ivf_index', 'l2');
-    SELECT * FROM turboquant_search_ivf('ivf_index', 'l2', [0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5]::FLOAT[], 3);
+    SELECT * FROM turboquant_search_ivf('/tmp/myivf/', '[0.1, ...]', 10);
 
   extended_description: |
     ## turbovec — Compressed Vector Search for DuckDB
 
-    High-performance approximate nearest neighbor (ANN) search using
-    Google's TurboQuant for product quantization and IVF indexing.
+    A native Rust DuckDB loadable extension for **extremely compressed
+    vector search**, built on
+    [TurboQuant](https://arxiv.org/abs/2504.19874) (Zandieh et al., 2025;
+    Rust crate [turbovec](https://crates.io/crates/turbovec)):
+    a random rotation concentrates vector coordinates into a near-uniform
+    distribution, after which **2, 3 or 4 bits per dimension** quantize
+    with near-optimal distortion — no training pass, no codebook fitting.
 
-    **9 Functions:**
+    ### Why compressed vectors
+
+    Measured on real OpenAI embeddings (1,472 docs × 1536 dims,
+    recall@10 vs exact brute force, i5-14600K):
+
+    | Index | Size | Query p50 | recall@10 |
+    |---|---|---|---|
+    | 4-bit flat | 2.8 MB | 0.84 ms | 0.888 |
+    | 4-bit IVF | 3.0 MB | 0.83 ms | 0.849 |
+    | 4-bit ensemble ×4 | 11.2 MB | 1.48 ms | 0.939 |
+
+    At 100k × 1536 vectors the 4-bit index is ~0.08 GB (a full-precision
+    copy would be ~0.6 GB), with IVF search at ~1.8 ms after the
+    process-wide index cache warms up.
+
+    ### Functions
 
     | Function | Description |
-    |----------|-------------|
-    | `turboquant_build_list(FLOAT[], INT, VARCHAR)` | Build index from vector list |
-    | `turboquant_build(FLOAT[], FLOAT[], FLOAT[], INT, VARCHAR)` | Build from separate batches |
-    | `turboquant_add(FLOAT[], VARCHAR)` | Add single vector |
-    | `turboquant_remove(INT, VARCHAR)` | Remove vector |
-    | `turboquant_search(VARCHAR, VARCHAR, INT)` | Search (l2/cosine/dot) |
-    | `turboquant_score(FLOAT[], VARCHAR)` | Score a query vector |
-    | `turboquant_build_concat(VARCHAR, VARCHAR, VARCHAR)` | Merge indexes |
-    | `turboquant_build_ivf(VARCHAR, INT, VARCHAR, VARCHAR)` | Build IVF index |
-    | `turboquant_search_ivf(VARCHAR, VARCHAR, FLOAT[], INT)` | IVF search |
+    |---|---|
+    | `turboquant_build(vectors, dim, bit_width, path)` | Build a flat quantized index → file |
+    | `turboquant_search(path, query, k)` | Quantized top-k from a flat index |
+    | `turboquant_score(path, query, k)` | Score-style variant |
+    | `turboquant_build_ivf(vectors, dim, bit_width, num_lists, dir)` | Build an IVF index (k-means++ seeding, parallel Lloyd, `num_list=0` → auto √n; single-file v2 layout) |
+    | `turboquant_search_ivf(dir, query, k)` | Probe `nprobe` lists (default 8) and merge |
+    | `turboquant_build_ensemble(vectors, dim, bit_width, members, dir)` | Build m permutation-decorrelated indexes for recall recovery |
+    | `turboquant_search_ensemble(dir, query, k)` | Average-fused search over ensemble members |
 
-    **Features:**
-    - **Vector compression** via TurboQuant (product quantization)
-    - **IVF index** with configurable nlist
-    - **Multiple metrics:** l2, cosine, dot
-    - **Incremental** add/remove without full rebuild
-    - **Index concatenation** for merging datasets
+    `bit_width` ∈ {2, 3, 4} (kernel hard limit); `members` ∈ [1, 8].
 
-    **Performance:**
-    - 10-100× compression vs raw vectors
-    - Sub-millisecond search on million-scale datasets
+    ### Design notes
 
-    **Platforms:** Linux x64, macOS arm64/x64.
-    Windows and WASM excluded (OpenBLAS dependency).
+    - **Training-free**: TurboQuant needs no k-means codebook fitting for
+      quantization itself (the random rotation is analytic), so building a
+      flat index is a single pass.
+    - **IVF v2 layout**: all vectors live in one id-mapped index file in
+      cluster-contiguous slot order; probing a list translates to a slot
+      range on the search allowlist. One shared rotation matrix and
+      codebook instead of one per cluster — a 32-list index shrinks from
+      53.8 MB to 3.0 MB on the 1,472-doc dataset.
+    - **Ensembles for recall**: quantization noise across members (each
+      behind its own deterministic dimension permutation) averages down
+      ~1/√m; 2 members at 4-bit ≈ the memory of a hypothetical 8-bit index
+      with recall 0.916 vs 0.888 single.
+    - **Index cache**: loaded indexes are cached process-wide (path-keyed,
+      FIFO), so repeated queries skip the file read — 21× faster repeated
+      IVF search on a 100k-vector index.
 
-    Built on Google's [TurboQuant](https://github.com/google/turbovec) library.
+    Excluded platforms match the other quack-rs based community extensions
+    (Windows and musl pending CI coverage).
+
+    → [GitHub](https://github.com/alitrack/duckdb_turbovec)
