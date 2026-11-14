@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: alitrack/duckdb_turbovec
-  ref: 6e7514ed7c784f6bdf4d20617ab64596b78539e9
-  ref_next: 6e7514ed7c784f6bdf4d20617ab64596b78539e9
+  ref: 54e69201fbd29ba226fc77d662178a12bde4c801
+  ref_next: 54e69201fbd29ba226fc77d662178a12bde4c801
 
 docs:
   hello_world: |
@@ -35,6 +35,14 @@ docs:
       1536, 4, 0, '/tmp/myivf/'
     );
     SELECT * FROM turboquant_search_ivf('/tmp/myivf/', '[0.1, ...]', 10);
+
+    -- Rerank: keep raw vectors at build (6th param), oversample + exact rescore
+    SELECT * FROM turboquant_build_ivf(
+      (SELECT string_agg(list_serialize(embedding), chr(10)) FROM docs),
+      1536, 4, 0, '/tmp/myivf_rr/', true
+    );
+    -- factor=4, nprobe=32: recall@10 0.846 -> 0.996 on real OpenAI embeddings
+    SELECT * FROM turboquant_search_ivf('/tmp/myivf_rr/', '[0.1, ...]', 10, 32, 4);
 
   extended_description: |
     ## turbovec — Compressed Vector Search for DuckDB
@@ -69,12 +77,14 @@ docs:
     | `turboquant_build(vectors, dim, bit_width, path)` | Build a flat quantized index → file |
     | `turboquant_search(path, query, k)` | Quantized top-k from a flat index |
     | `turboquant_score(path, query, k)` | Score-style variant |
-    | `turboquant_build_ivf(vectors, dim, bit_width, num_lists, dir)` | Build an IVF index (k-means++ seeding, parallel Lloyd, `num_list=0` → auto √n; single-file v2 layout) |
-    | `turboquant_search_ivf(dir, query, k)` | Probe `nprobe` lists (default 8) and merge |
+    | `turboquant_build_ivf(vectors, dim, bit_width, num_lists, dir, [keep_raw])` | Build an IVF index (k-means++ seeding, parallel Lloyd, `num_list=0` → auto √n; single-file v2 layout) |
+    | `turboquant_search_ivf(dir, query, k, [probes], [rerank_factor])` | Probe `nprobe` lists (default 8) and merge |
     | `turboquant_build_ensemble(vectors, dim, bit_width, members, dir)` | Build m permutation-decorrelated indexes for recall recovery |
     | `turboquant_search_ensemble(dir, query, k)` | Average-fused search over ensemble members |
 
     `bit_width` ∈ {2, 3, 4} (kernel hard limit); `members` ∈ [1, 8].
+
+    **Rerank path** (Qdrant-style oversampling): build with `keep_raw=true`, search with `rerank_factor>1` — the quantized index proposes k×factor candidates, exact f32 rescoring settles the top-k. Recall@10 on real OpenAI embeddings: 0.846 (plain) → 0.921 (factor=4) → **0.996** (factor=4, nprobe=32) at ~2 ms, within 0.2 points of full-precision DuckIR u8.
 
     ### Design notes
 
