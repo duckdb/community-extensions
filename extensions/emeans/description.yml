@@ -28,8 +28,12 @@ docs:
     SELECT emeans_assign([9, 9], [[0, 0], [10, 10]]);
     -- {'label': 2, 'sq_distance': 2.0}
 
-    -- A table larger than memory: one row per cluster, the passes sorted out of core
-    SELECT cluster, centroid, n FROM emeans_stream('SELECT embedding FROM docs', 256);
+    -- Streamed from a query, for tables larger than memory: one row per cluster
+    CREATE TABLE points AS
+    SELECT [(i % 2) * 10 + (i % 5) * 0.1, (i % 3) * 0.1]::FLOAT[2] AS v FROM range(1000) t(i);
+    SELECT centroid, n FROM emeans_stream('SELECT v FROM points', 2) ORDER BY centroid[1];
+    -- [0.2, 0.1]      500
+    -- [10.2, 0.0998]  500
 
   extended_description: |
     e-means (Bessa et al. 2026, arXiv 2611.09501) is mini-batch k-means whose centroids follow an
