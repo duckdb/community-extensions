@@ -11,10 +11,10 @@ extension:
 
 repo:
   github: cityjson/duckdb-3d
-  # ref builds against DuckDB v2.0.0 (tag on `main`); variegata builds
-  # against v1.5.6 (tag on `v1.5-variegata`).
-  ref: v0.3.0
-  variegata: v0.3.0-duckdb1.5
+  # ref builds against DuckDB v2.0.0 (release v0.3.0, on `main`); variegata
+  # builds against v1.5.6 (release v0.3.0-duckdb1.5, on `v1.5-variegata`).
+  ref: c8e0f0c5ffd75fd3cb6461e17220fa74ae53cef4
+  variegata: 409029354fc63ed4ae6539eccf135b2b59f5e03f
 
 docs:
   hello_world: |
