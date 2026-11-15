@@ -1,0 +1,53 @@
+extension:
+  name: emeans
+  description: "e-means clustering in SQL: mini-batch k-means with EMA updates and fitted scaling laws (Bessa et al. 2026), in memory or streamed from a query larger than memory."
+  version: "0.1.0"
+  language: "C++"
+  build: "cmake"
+  license: "MIT"
+  requires_toolchains: "python3"
+  maintainers:
+    - "oluies"
+
+repo:
+  github: "hugr-lab/duck-emeans"
+  # v0.1.0 (the commit tag v0.1.0 points at), for DuckDB 2.0.0.
+  ref: eb6d27d9df570a1874c45925e92ba7a684dfbb2b
+
+docs:
+  hello_world: |
+    INSTALL emeans FROM community;
+    LOAD emeans;
+
+    -- Two unit squares; each centroid ends at the mean of its square's four corners
+    SELECT list_sort((emeans([[0, 0], [0, 1], [1, 0], [1, 1],
+                              [10, 10], [10, 11], [11, 10], [11, 11]], 2)).centroids);
+    -- [[0.5, 0.5], [10.5, 10.5]]
+
+    -- The nearest centroid of one vector, 1-based, and the squared distance to it
+    SELECT emeans_assign([9, 9], [[0, 0], [10, 10]]);
+    -- {'label': 2, 'sq_distance': 2.0}
+
+    -- A table larger than memory: one row per cluster, the passes sorted out of core
+    SELECT cluster, centroid, n FROM emeans_stream('SELECT embedding FROM docs', 256);
+
+  extended_description: |
+    e-means (Bessa et al. 2026, arXiv 2611.09501) is mini-batch k-means whose centroids follow an
+    exponential moving average of their batch means, with the batch size and step set by fitted
+    scaling laws. The paper reports Lloyd's 25-epoch loss beaten in 1.4 to 2.6 epochs. The extension
+    reimplements the reference in faiss/contrib/e_means; its objective is within 0.5% of faiss-cpu's.
+
+    - emeans(vectors, k [, nepochs [, seed]]): centroids, 1-based labels and the objective per pass, for
+      FLOAT, DOUBLE or integer lists or fixed-size arrays such as FLOAT[384]. emeans_spherical clusters
+      by direction, for embeddings compared by cosine similarity.
+    - emeans_stream(query, k, ...): data larger than memory. It runs the query once per pass, ordered by a
+      hash, so DuckDB's sort spills each pass, and holds only a batch and the centroids.
+    - emeans_assign / emeans_assign_spherical: the nearest centroid of a vector, an IVF partition key.
+    - emeans_agg and emeans_cluster_id(geom, k) OVER (...): clustering of POINT geometries like PostGIS's
+      ST_ClusterKMeans, on the sphere for geographic coordinate systems; emeans_assign_point.
+    - emeans_recipe and emeans_trace: the batch size and step the scaling laws pick, and a run frame by frame.
+
+    Every fit can be interrupted (Ctrl-C, con.interrupt(), max_execution_time), takes its buffers from
+    DuckDB's buffer manager, and gives the same result for the same seed on any number of threads.
+
+    Documentation: https://hugr-lab.github.io/duck-emeans/
