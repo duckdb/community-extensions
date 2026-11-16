@@ -1,7 +1,7 @@
 extension:
   name: turbovec
-  description: "Compressed vector search for DuckDB — Google TurboQuant quantization, IVF indexing, incremental CRUD, cosine/L2/dot"
-  version: 0.3.0
+  description: "Compressed vector search for DuckDB — Google TurboQuant quantization, IVF indexing, rerank, ensembles, filtered search, cosine/L2/dot"
+  version: 0.4.0
   language: Rust
   build: cargo
   license: MIT
@@ -12,67 +12,72 @@ extension:
 
 repo:
   github: alitrack/duckdb_turbovec
-  ref: 5d5448d0ae1759c4d56317cd1e44f4eb63f0c252
-  ref_next: 5d5448d0ae1759c4d56317cd1e44f4eb63f0c252
+  ref: 9c4eccaaa45dc48e14a5e2201a3478f01492e7fb
+  ref_next: 9c4eccaaa45dc48e14a5e2201a3478f01492e7fb
 
 docs:
   hello_world: |
     LOAD turbovec;
 
-    -- Build a compressed vector index (8-dim vectors, 3 sub-vectors)
+    -- Build a compressed vector index (8-dim vectors, 4-bit) from a list
     SELECT * FROM turboquant_build_list(
-      [0.0::FLOAT,1.0,2.0,3.0,4.0,5.0,6.0,7.0],
-      3, 'my_index'
+      [0.0::FLOAT,1.0,2.0,3.0,4.0,5.0,6.0,7.0,
+       8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0],
+      4, '/tmp/myidx.tv'
     );
 
-    -- Add a vector
+    -- Add a vector to the index
     SELECT * FROM turboquant_add(
-      [8.0::FLOAT,9.0,10.0,11.0,12.0,13.0,14.0,15.0],
-      'my_index'
+      '/tmp/myidx.tv', '[16.0,17.0,18.0,19.0,20.0,21.0,22.0,23.0]', 8
     );
 
-    -- Search nearest neighbors
-    SELECT * FROM turboquant_search('my_index', 'l2', 3);
+    -- Top-k search (metric inferred from index: l2/cosine/dot)
+    SELECT * FROM turboquant_search('/tmp/myidx.tv', '[8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0]', 3);
 
-    -- Build concatenated indexes
-    SELECT * FROM turboquant_build_concat('my_index', 'my_index', 'union');
-
-    -- Build IVF index for faster search
-    SELECT * FROM turboquant_build_ivf('my_index', 10, 'ivf_index', 'l2');
-    SELECT * FROM turboquant_search_ivf('ivf_index', 'l2', [0.5,1.5,2.5,3.5,4.5,5.5,6.5,7.5]::FLOAT[], 3);
+    -- Build an IVF index (num_lists=0 auto), then search
+    SELECT * FROM turboquant_build_ivf(
+      '[[0,1,2,3],[4,5,6,7],[8,9,10,11],[12,13,14,15]]', 4, 4, 0, '/tmp/myivf/'
+    );
+    SELECT * FROM turboquant_search_ivf('/tmp/myivf/', '[8.0,9.0,10.0,11.0]', 3, 0);
 
   extended_description: |
     ## turbovec — Compressed Vector Search for DuckDB
 
     High-performance approximate nearest neighbor (ANN) search using
-    Google's TurboQuant for product quantization and IVF indexing.
+    Google's TurboQuant data-oblivious product quantization, with IVF
+    indexing, rerank, ensembles, and filtered search.
 
-    **9 Functions:**
+    **12 Functions:**
 
     | Function | Description |
     |----------|-------------|
-    | `turboquant_build_list(FLOAT[], INT, VARCHAR)` | Build index from vector list |
-    | `turboquant_build(FLOAT[], FLOAT[], FLOAT[], INT, VARCHAR)` | Build from separate batches |
-    | `turboquant_add(FLOAT[], VARCHAR)` | Add single vector |
-    | `turboquant_remove(INT, VARCHAR)` | Remove vector |
-    | `turboquant_search(VARCHAR, VARCHAR, INT)` | Search (l2/cosine/dot) |
-    | `turboquant_score(FLOAT[], VARCHAR)` | Score a query vector |
-    | `turboquant_build_concat(VARCHAR, VARCHAR, VARCHAR)` | Merge indexes |
-    | `turboquant_build_ivf(VARCHAR, INT, VARCHAR, VARCHAR)` | Build IVF index |
-    | `turboquant_search_ivf(VARCHAR, VARCHAR, FLOAT[], INT)` | IVF search |
+    | `turboquant_build(str, dim, bits, path)` | Build index from nested-array string |
+    | `turboquant_build_list(LIST, bits, path)` | Build from a flat vector LIST (dim auto) |
+    | `turboquant_build_concat(path, dim, bits, str)` | Append CSV vectors to an index |
+    | `turboquant_build_ivf(str, dim, bits, nlists, dir, [keep_raw])` | Build IVF index (nlists 0 = auto √n) |
+    | `turboquant_build_ensemble(str, dim, bits, m, dir)` | Ensemble of m decorrelated indexes |
+    | `turboquant_add(path, str, dim)` | Incremental add |
+    | `turboquant_remove(path, idx)` | Incremental remove |
+    | `turboquant_search(path, query, k)` | Top-k search (l2/cosine/dot) |
+    | `turboquant_search_within(path, query, eps, k)` | Radius (WITHIN) / top-k+eps fused search |
+    | `turboquant_search_ivf(dir, query, k, probes, [rerank_factor])` | IVF search, optional rerank |
+    | `turboquant_search_ivf_filter(dir, query, k, ids, [max_probes:=], [rerank_factor:=])` | Filtered IVF search (pgvector-style iterative scan) |
+    | `turboquant_search_ensemble(dir, query, k)` | Ensemble search (score-averaged) |
+    | `turboquant_score(path, query)` | Full scoring, all vectors ranked |
+    | `turbovec_config(knob, value)` | Set/get process-wide search defaults |
 
     **Features:**
-    - **Vector compression** via TurboQuant (product quantization)
-    - **IVF index** with configurable nlist
+    - **2-bit (16×) / 4-bit (8×)** data-oblivious compression, zero training
+    - **SIMD** search: NEON (ARM), AVX-512BW/AVX2 (x86)
+    - **Beats FAISS PQ**: +0.2–1.9pp R@1 on OpenAI embeddings; ARM +12–20% vs FastScan
+    - **IVF v2** single-file layout (7–18× smaller than per-cluster files), k-means++ + parallel Lloyd
+    - **Rerank** (`keep_raw` build + `rerank_factor` search) — recall@10 0.846 → 0.996 @ ~2 ms
+    - **Ensembles** (m permutation-decorrelated indexes, score-averaged) — recall@10 0.888 → 0.939
+    - **Filtered search** (`turboquant_search_ivf_filter`) — arbitrary SQL predicate as a `LIST<BIGINT>` allowlist, iterative probe widening
+    - **Radius (WITHIN)** search and **incremental** add/remove
+    - **Process-wide index cache** — repeated search 37.7 ms → 1.77 ms on 100k vectors
     - **Multiple metrics:** l2, cosine, dot
-    - **Incremental** add/remove without full rebuild
-    - **Index concatenation** for merging datasets
 
-    **Performance:**
-    - 10-100× compression vs raw vectors
-    - Sub-millisecond search on million-scale datasets
-
-    **Platforms:** Linux x64, macOS arm64/x64.
-    Windows and WASM excluded (OpenBLAS dependency).
+    **Platforms:** Linux x64, macOS x64/arm64, Windows x64 (WASM and linux_arm64 excluded).
 
     Built on Google's [TurboQuant](https://github.com/google/turbovec) library.
