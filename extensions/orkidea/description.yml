@@ -1,7 +1,7 @@
 extension:
   name: orkidea
   description: Read, write, upsert, and alter Oracle Database tables through a Rust ADBC driver, with no Oracle client
-  version: '0.3.0'
+  version: '0.4.1'
   language: C++
   build: cmake
   license: Apache-2.0
@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: Tnsor-Labs/duckdb-orkidea
-  # The commit tagged v0.3.0, built for DuckDB v2.0.0.
-  ref: 1d71f9ec81ba04f67849dbbc6dda76cd00c76c51
+  # The commit tagged v0.4.1, built for DuckDB v2.0.0.
+  ref: 9991acda12c087ce933c0cea941f95abe4d43680
 
 docs:
   hello_world: |
