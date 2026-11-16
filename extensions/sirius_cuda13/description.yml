@@ -9,9 +9,8 @@ extension:
     - mbrobbel
   requires_toolchains: "cuda;rust"
   excluded_platforms: "linux_amd64_musl;linux_arm64_musl;osx_amd64;osx_arm64;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
-  cuda_archs: "80-real"
+  cuda_archs: "75-real;80-real;86-real;90a-real;100f-real;120f-real"
   cuda_version: "13"
-  test_config: '{"test_env_variables":{"VCPKG_CUDA_ARCHITECTURES":"80-real"}}'
   skip_tests: true
   vcpkg_commit: cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3
   extra_extension_config: |-
