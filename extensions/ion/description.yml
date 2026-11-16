@@ -7,7 +7,9 @@ extension:
   license: MIT
   maintainers:
     - kestra-io
-    - proddata
+    - jymaire
+    - Malaydewangan09
+    - fdelbrayelle
 
 repo:
   github: kestra-io/duckdb-ion
