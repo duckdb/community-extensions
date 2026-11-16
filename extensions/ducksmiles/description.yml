@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: ea09cd5f4d6afb71b44328498b6b432fd48a4e9c
+  ref: bc898ea130d08fc02136e226fb55e9887f6cd27c
 
 docs:
   hello_world: |
@@ -160,7 +160,7 @@ docs:
     - Temperature-dependent liquid viscosity evaluation, experimental log-OLS
       fitting, and logarithmic mixing with optional binary Grunberg-Nissan G12.
     - No new runtime dependencies. Units, assumptions and reference validation:
-      [MATERIALS.md](https://github.com/nkwork9999/duckSMILES/blob/ea09cd5f4d6afb71b44328498b6b432fd48a4e9c/MATERIALS.md).
+      [MATERIALS.md](https://github.com/nkwork9999/duckSMILES/blob/bc898ea130d08fc02136e226fb55e9887f6cd27c/MATERIALS.md).
 
     **Architecture:** Rust (core logic, zero external chemistry crates) + C++ (DuckDB
     integration via FFI).
