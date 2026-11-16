@@ -1,0 +1,70 @@
+extension:
+  name: tensorust
+  description: Private credit marks, lender disagreement, Q3 2026 BDC markdowns and banned-vendor exposure from the Tensorust Data API as typed SQL tables, plus a catalog of 145 entity-level datasets with free samples
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  # wasm and MinGW: the HTTPS client (ureq + rustls/ring) does not build there.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - Mattbusel
+
+repo:
+  github: Mattbusel/duckdb-tensorust
+  ref: a93139d01e852b5dce1d466fb3fc77fff79980f1
+
+docs:
+  hello_world: |
+    -- Loans two or more BDC managers mark 10+ points apart, widest gap first.
+    -- No key needed for the preview.
+    SELECT company, gap_points, lowest_manager, lowest_mark, highest_manager, highest_mark
+    FROM tensorust_credit_disagreements();
+
+    -- Every fund's mark on one borrower's first-lien loan
+    SELECT fund, manager, mark, lowest_mark, highest_mark, gap_points
+    FROM tensorust_lender_marks('Pluralsight');
+
+    -- Q3 2026 cuts of 5+ points as each 10-Q is filed
+    SELECT company, fund, jun30_mark, sep30_mark, change_points, holders_not_filed_yet_above
+    FROM tensorust_q3_cuts();
+
+    -- Federal research awards whose papers name a banned-list vendor
+    SELECT award, agency, fy25_obligations, vendors, lists
+    FROM tensorust_exposure('Stanford University');
+
+    -- The dataset catalog and a free 25-row sample
+    SELECT slug, name, rows FROM tensorust_datasets(search := 'BDC');
+    FROM tensorust_sample('bdc-nonaccrual-watch');
+  extended_description: |
+    Reads the [Tensorust Data API](https://shop.tensorust.com), which is built from public
+    filings: SEC Business Development Company XBRL schedules of investments for private
+    credit, and federal award records matched to 2025-26 papers for vendor exposure.
+
+    | Function | One row per |
+    | --- | --- |
+    | `tensorust_lender_marks(company)` | BDC fund holding the company's first-lien loan, with its mark as a share of par |
+    | `tensorust_credit_disagreements()` | loan that two or more BDC managers mark 10+ points apart |
+    | `tensorust_q3_cuts()` | fund that cut a loan's mark by 5+ points from Jun 30 to Sep 30 2026 |
+    | `tensorust_exposure(institution)` | federal award whose papers name a vendor on the DoD 1260H, Section 889, FCC Covered, UFLPA or BIOSECURE lists |
+    | `tensorust_datasets(search := '', category := '')` | dataset in the catalog, with price tiers and sample link |
+    | `tensorust_sample(slug)` | row of a dataset's free 25-row sample, with inferred column types |
+
+    Columns are typed: marks and dollars are `DOUBLE`, counts `BIGINT`, dates `DATE`, and a
+    figure the API does not publish stays `NULL`. Because the results are ordinary tables,
+    a valuation team can join them to its own book in one query:
+
+    ```sql
+    SELECT b.borrower, b.my_mark, d.lowest_mark, d.highest_mark, d.gap_points
+    FROM my_book b
+    JOIN tensorust_credit_disagreements() d ON lower(d.company) = lower(b.borrower);
+    ```
+
+    Every function works without a key and returns the free preview (for example the top
+    10 disagreements, or three funds per borrower). With an enterprise key the credit and
+    exposure functions return full rows: every fund with par, prior-quarter mark, Sep 30
+    mark and filing link, and every award with its evidence. Set it with
+    `SET tensorust_api_key = 'tdk_...'` or the `TENSORUST_API_KEY` environment variable;
+    it is sent as an `Authorization: Bearer` header, never in a URL. Each credit and
+    exposure row has an `access` column (`preview` or `full`).
