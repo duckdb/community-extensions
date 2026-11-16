@@ -1,7 +1,7 @@
 extension:
   name: docn
   description: DigitalOcean AI-Native Cloud services as SQL functions
-  version: 0.1.0
+  version: 0.1.1
   language: C/C++
   build: CMake
   license: MIT
@@ -15,7 +15,7 @@ extension:
 
 repo:
   github: digitalocean-labs/duckdb-do
-  ref: 02039868b47efa85a9fd0f14b38aac8f86cc92b3
+  ref: 3ae37d05b935fbd3f7b97d6ba440722e7d6d4e51
 
 docs:
   hello_world: |
