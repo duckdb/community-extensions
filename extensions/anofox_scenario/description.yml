@@ -1,6 +1,6 @@
 extension:
   name: anofox_scenario
-  version: 2026.10.21
+  version: 2026.11.13
   description: Git-like branching for analytical databases. Attach isolated what-if scenarios as catalogs, edit them with ordinary SQL on copy-on-write delta storage, branch, diff, and merge them back.
   language: C++
   build: cmake
@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: DataZooDE/anofox-scenario
-  ref: 1813667992e470e4f775e2a5714ed6a23e213821
-  variegata: 1813667992e470e4f775e2a5714ed6a23e213821
+  ref: 2b25c9851831babc0d8512b7017a5f6c5b7c0731
+  variegata: 2b25c9851831babc0d8512b7017a5f6c5b7c0731
 
 docs:
   hello_world: |
@@ -52,15 +52,21 @@ docs:
     A streaming diff engine (`scenario_diff`, `scenario_diff_summary`) audits any
     world against its origin or another world, and
     `scenario_merge(name, on_conflict := 'abort'|'ours'|'theirs')` promotes a
-    scenario into its base atomically — with true 3-way drift conflicts when a
-    creation snapshot exists. Views rebind inside scenarios, all base schemas
-    are mirrored, and tables without a primary key work either via
+    scenario into its base atomically. Base rows edited after the scenario
+    touched them are reported as conflicts (pre-images for live overlays, 3-way
+    against the snapshot otherwise), and `scenario_merge_preview` shows the plan
+    first. Base `ALTER TABLE ... ADD COLUMN` carries into open scenarios. Views
+    rebind inside scenarios, all base schemas are mirrored, and tables without a primary key work either via
     `key_columns :=` declared identity or bag semantics with multiplicity
     tracking.
 
     Scenario worlds compose with table-name-driven extensions: for example
     `ts_forecast_by('s.demand', ...)` (anofox_forecast) forecasts a what-if
     world directly, no copies needed.
+
+    A Claude Code plugin with usage-pattern skills (what-if, safe change,
+    snapshot/audit, reference) ships in the repository:
+    `/plugin marketplace add DataZooDE/anofox-scenario`.
 
     The extension collects anonymous usage telemetry (an envelope-only
     `extension_loaded` event; never table names, keys, or SQL). Disable with
