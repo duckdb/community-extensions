@@ -1,6 +1,6 @@
 extension:
   name: sharepoint
-  version: 2026.11.03
+  version: 2026.11.13
   description: SharePoint and OneDrive in SQL -- files (sharepoint://), Excel workbooks, SharePoint lists, search and change feeds
   language: C++
   build: cmake
@@ -10,19 +10,21 @@ extension:
   # wasm side-module defers symbol resolution to load time, so it would build
   # green and then fail to LOAD.
   # mingw: vcpkg's OpenSSL port is fragile there; sibling extensions skip it.
-  excluded_platforms: "windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  # osx_amd64: community-extensions no longer builds Intel macOS (2026-11), and
+  # neither do we.
+  excluded_platforms: "osx_amd64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
   maintainers:
     - jrosskopf
     - sipemu
 
 repo:
   github: DataZooDE/duckdb-sharepoint
-  ref: 9704b2b63de18beb1666872409d298e0edcc0229
+  ref: a4426c0f600408465e2f13b30a1bee72e00d78e0
   # ref builds against DuckDB 2.0 and variegata against v1.5.6
   # (community-extensions scripts/build.py); a missing key falls back to ref.
   # One commit serves both lines (duckdb-compat), so at release both are the
   # same tagged SHA. No andium key: DuckDB 1.4.x is not supported.
-  variegata: 9704b2b63de18beb1666872409d298e0edcc0229
+  variegata: a4426c0f600408465e2f13b30a1bee72e00d78e0
 
 docs:
   hello_world: |
@@ -68,8 +70,15 @@ docs:
     pushed down to Graph on indexed columns) and `COPY ... (FORMAT
     sharepoint_list)` creates or updates items; `read_sharepoint_files` lists a
     library with its metadata; `search_sharepoint` runs Microsoft Search;
-    `sharepoint_changes` returns the files changed since a token;
-    `?version=` reads an earlier version of a file.
+    `sharepoint_changes` / `sharepoint_list_changes` return what changed
+    since a token; `?version=` reads an earlier version of a file.
+    `ATTACH` a site to see its lists (and, with `WORKBOOKS`, Excel tables) in
+    the catalog; the `excel` extension's `read_xlsx` / `FORMAT xlsx` work on
+    `sharepoint://` paths;
+    `read_docx` reads Word documents and `COPY ... (FORMAT docx, TEMPLATE ...)`
+    fills templates; `read_onenote_pages`, `read_outlook_messages`,
+    `read_planner_tasks` / `read_todo_tasks` and `sharepoint_permissions`
+    reach OneNote, Outlook mail, tasks and sharing.
     Besides app-only client credentials or a certificate, a user can sign in
     with `device_code` or `authorization_code`. Also registers the
     scheme-generic `write_blob`, `remove_file`, `move_file` and `file_size` SQL
