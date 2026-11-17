@@ -40,10 +40,10 @@ repo:
   # The DuckDB 1.5 build of the same release. `ref` builds for DuckDB 2.0, and
   # its duckdb-rs 2.0 needs a newer rustc than the v1.5 pipeline's wasm image
   # carries, so 1.5 builds from the `duckdb-1.5` branch: the same laterite engine
-  # on duckdb-rs 1.5. Move it with every release that ships to both.
-  # 0.17.0 does not: its engine crates need rustc 1.89, newer than that wasm
-  # image's, so DuckDB 1.5 stays on the 0.16.0 build pinned here.
-  variegata: 310118ba75bb8fc3df67e5ca5c51a9df6961afca
+  # on duckdb-rs 1.5. Move it with every release that ships to both. Since
+  # 0.17.0 the engine needs rustc 1.89, so the v1.5 build is requested with
+  # extension-ci-tools v2.0-cyanoptera (rustc 1.97.1), as 0.16.0's was.
+  variegata: d3624b7b2c6f67033b70cd7400aeac864d068ace
 
 docs:
   hello_world: |
