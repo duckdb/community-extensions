@@ -1,0 +1,78 @@
+# Submission descriptor for duckdb/community-extensions.
+#
+# Copy to extensions/athena/description.yml in a fork of that repo, with `ref`
+# pinned to the commit being submitted, and open a PR. Their CI runs
+# `make configure && make release` in a container and expects the packaged
+# extension at build/release/extension/athena/athena.duckdb_extension, which is
+# what this repo's Makefile produces.
+extension:
+  name: athena
+  description: Query AWS Athena tables from DuckDB
+  version: 0.4.3
+  language: Rust
+  build: cargo
+  license: MIT
+  # community-extensions builds every platform in
+  # extension-ci-tools/config/distribution_matrix.json that is not listed here,
+  # and a platform that fails to build fails the submission. Only linux_amd64 and
+  # osx_arm64 are built and load-tested by this repo's own release workflow, so
+  # everything else is excluded as unverified rather than known-broken.
+  #
+  # WASM genuinely cannot work: it needs the AWS SDK and outbound sockets.
+  # The rest are candidates to enable one at a time, each after this repo builds
+  # and loads it first -- linux_arm64 especially, since Graviton is common for
+  # exactly the AWS workloads this extension serves.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64;windows_amd64;windows_arm64;windows_amd64_mingw"
+  requires_toolchains: "rust"
+  maintainers:
+    - ebunt
+
+repo:
+  github: ebunt/duckdb-athena
+  # Their CI builds this sha, not a tag, so it has to be a commit whose tree
+  # carries both the MIT file `license:` claims and the current behaviour --
+  # here, the one where a refused stop_query_execution is reported rather than
+  # swallowed. Repin when anything user-visible lands on main.
+  ref: 3025a22fd1ec405dd860f6d83d6b843abaf8d1d2
+
+docs:
+  hello_world: |
+    -- Reads the Glue schema, runs the query in Athena, and streams the result
+    -- back from S3. Credentials come from the usual AWS chain.
+    SELECT COUNT(*) FROM athena_scan('my_table');
+
+    -- A different Glue database, and a cap on rows fetched
+    SELECT * FROM athena_scan('my_table', database='my_db', maxrows=100);
+
+    -- Push a filter into Athena so it scans less data (and costs less)
+    SELECT * FROM athena_scan('events', predicate='year = 2024');
+  extended_description: |
+    `athena_scan` exposes an AWS Athena table as a DuckDB table function.
+
+    The schema comes from the Glue catalog, the query runs in Athena, and the
+    result is streamed from the CSV Athena writes to S3 in a single `GetObject`
+    rather than paged 1000 rows at a time — a million-row table comes back in
+    seconds. Workgroups using Athena-managed query results expose no S3
+    location, and those fall back to `GetQueryResults` paging.
+
+    - **Projection pushdown** is automatic: only the columns your query
+      references are selected from Athena, which reduces bytes scanned on
+      Parquet and ORC.
+    - **Filter pushdown** is manual via `predicate=`, because the DuckDB C
+      extension API does not expose table filters
+      ([duckdb/duckdb#25163](https://github.com/duckdb/duckdb/issues/25163)).
+      On partitioned tables a partition predicate prunes as you would expect.
+    - **Types**: `DATE`, `TIMESTAMP` and `DECIMAL(p,s)` map natively. Complex
+      columns (`array`, `map`, `struct`) are read as JSON, so DuckDB's json
+      functions work on them.
+
+    Named parameters: `database`, `maxrows`, `predicate`, `workgroup`,
+    `output_location`, `region`, `profile`, `timeout_seconds`,
+    `result_reuse_minutes`. `ATHENA_WORKGROUP` and `ATHENA_OUTPUT_LOCATION`
+    set session defaults for the two that are otherwise repeated on every
+    scan; region and profile follow `AWS_REGION` and `AWS_PROFILE`.
+
+    Required IAM: `athena:StartQueryExecution`, `athena:GetQueryExecution`,
+    `athena:GetQueryResults`, `athena:StopQueryExecution`, `glue:GetTable`, and
+    `s3:GetObject`/`s3:PutObject`
+    on the workgroup's results bucket.
