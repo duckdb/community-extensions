@@ -1,7 +1,7 @@
 extension:
   name: panduck
   description: Read documents natively into the duck_block vocabulary -- DOCX, ODT, EPUB, RTF, LaTeX, Org, RST, ipynb, MediaWiki and Textile -- and write them back as Pandoc JSON, without linking Pandoc
-  version: 0.10.0
+  version: 0.11.0
   language: C++
   build: cmake
   license: MIT
@@ -13,13 +13,13 @@ extension:
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 repo:
   github: teaguesterling/duckdb_panduck
-  ref: 5e1497d154a06a82e348fad597729d7022029872
+  ref: 8966847c38b5464a19f8420f233b0d643f02553e
   # variegata pins the v1.5.6 track. scripts/build.py sends a v1.5.6 build here when
   # present and to `ref` otherwise, and unlike ref_next it has no skip branch -- so
   # once `ref` is 2.0-only a v1.5.6 build would fail rather than be skipped. Advance
   # only to a commit v1.5.6 can still build.
   #
-  # HELD AT 0.7.0 FOR 0.10.0, deliberately. panduck's CI retired its v1.5.6 leg when
+  # HELD AT 0.7.0 FOR 0.11.0, deliberately. panduck's CI retired its v1.5.6 leg when
   # v2.0.0 became the shipping line, so no v1.5.6 build of `ref` has been measured, and
   # one call in `ref` uses a Catalog::GetEntry overload that v1.5.6 does not have.
   # v1.5.6 users stay on 0.7.0, which is the release paired with duck_block_utils 4.0.0.
@@ -46,7 +46,7 @@ repo:
   # look". panduck v0.2.0 merged that way, and the job has since caught two real defects.
   # A STALE ref_next is worse than an absent one: it validates the PREVIOUS release
   # against the next line while reporting green, so it moves with ref every release.
-  ref_next: 5e1497d154a06a82e348fad597729d7022029872
+  ref_next: 8966847c38b5464a19f8420f233b0d643f02553e
 docs:
   hello_world: |
     LOAD panduck;
@@ -165,6 +165,17 @@ docs:
     document -- a markdown cell inside a `.ipynb` -- so a notebook is navigable rather
     than a wall of `raw` blocks. Opt-in: it needs the `markdown` extension, and an
     unchanged call reads identically without it.
+
+    ## Embedded data as tables
+
+    | Function | Description |
+    |----------|-------------|
+    | `panduck_embedded_to_table(text, format)` | Parse `csv`, `tsv`, `json` (an array of objects) or `jsonl` text into table block content; returns `STRUCT(content, error)` |
+    | `panduck_blocks_parse_embedded(blocks[, formats])` | Turn each code block whose language is in `formats` (default csv, tsv, json, jsonl) into a native `table` block |
+    | `panduck_table_read(content)` | A table block's content back to a typed relation |
+
+    A csv or json code block in a document therefore reads as data rather than as text.
+    `panduck_table_read` is the inverse of `duck_block_utils`' `duck_block_json_to_table`.
 
     ## Writing Pandoc JSON
 
