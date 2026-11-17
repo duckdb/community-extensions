@@ -1,7 +1,7 @@
 extension:
   name: finance
   description: SQL-native quant finance functions for DuckDB
-  version: 0.3.2
+  version: 0.3.3
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
     - leonardovida
 repo:
   github: leonardovida/duckdb-finance
-  ref: 1ee24a015dba22bca719d8ecbd970e3059f9dceb
+  ref: 592dc151760fb3df03943834960f7622b837bb5d
 docs:
   hello_world: |
     INSTALL finance FROM community;
