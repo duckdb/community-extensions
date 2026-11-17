@@ -22,7 +22,7 @@ extension:
 
 repo:
   github: sirius-db/sirius
-  ref: 83d6c0ee01f2a98b97ce04c74141e2881f49438e
+  ref: e6a43ebcde9d04524a80aa059e06727c03da578d
   build_directory: sirius-duckdb
 
 docs:
