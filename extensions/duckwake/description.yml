@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: duckwake/duckwake
-  ref: 7077f30437aeb021ea5b34dc63b534162ddaabb9
+  ref: 16ec8d6b32e27312733d51ca2caadaa55619802f
 
 docs:
   hello_world: |
