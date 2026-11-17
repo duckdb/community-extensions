@@ -1,7 +1,7 @@
 extension:
   name: prometheus
   description: Query Prometheus-compatible HTTP APIs directly from DuckDB
-  version: 0.3.0
+  version: 0.3.1
   language: Rust
   build: cargo
   license: Apache-2.0
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: botan/duckdb-prometheus
-  ref: 7dff993bacd1fca00a4bc7e5ff4018757eaee1b4
+  ref: 18fbd828d5e229393fab773d308ab2892958d286
   variegata: b20a37bb2423e41cc2e67aa3db91bd49318cead9
 
 docs:
