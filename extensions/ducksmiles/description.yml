@@ -1,7 +1,7 @@
 extension:
   name: ducksmiles
   description: Cheminformatics and CPU numerical analytics for DuckDB - molecular formats, descriptors, fingerprints, similarity, regression, statistical inference, experimental design, time series, reliability and model evaluation from SQL
-  version: 0.6.4
+  version: 0.7.0
   language: C++
   build: cmake
   requires_toolchains: rust
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 2d4a5201c71c15828c7be8e2fc7e1d8b12a0cb85
+  ref: bc898ea130d08fc02136e226fb55e9887f6cd27c
 
 docs:
   hello_world: |
@@ -150,6 +150,17 @@ docs:
     covariance, static SVG histograms/box plots and ordered categorical ML with
     saved prediction. JMP default Lasso, sandwich inference and full plot options
     remain explicitly incomplete in the source README.
+
+    **Materials and liquid viscosity (0.7.0):**
+    - Composition descriptors support positive fractional amounts and groups.
+    - ABX3 site radii and charges yield Goldschmidt and octahedral factors and
+      a charge-balance report; no phase-stability classification is inferred.
+    - Solvent/additive molecular features reuse the native RDKit-defined
+      descriptor implementations, with mole-fraction mixture feature moments.
+    - Temperature-dependent liquid viscosity evaluation, experimental log-OLS
+      fitting, and logarithmic mixing with optional binary Grunberg-Nissan G12.
+    - No new runtime dependencies. Units, assumptions and reference validation:
+      [MATERIALS.md](https://github.com/nkwork9999/duckSMILES/blob/bc898ea130d08fc02136e226fb55e9887f6cd27c/MATERIALS.md).
 
     **Architecture:** Rust (core logic, zero external chemistry crates) + C++ (DuckDB
     integration via FFI).
