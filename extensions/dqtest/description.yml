@@ -1,7 +1,7 @@
 extension:
   name: dqtest
   description: Define and run data-quality tests inside DuckDB
-  version: 1.0.2
+  version: 1.0.3
   language: C++
   build: cmake
   license: MIT
@@ -11,7 +11,7 @@ extension:
     
 repo:
   github: vhe74/duckdb-dataquality-extension
-  ref: c958595e73b84b77be8e7ebe58fbd14021ee32e8
+  ref: 007e72f997e37dc1a435b61fba51fb47c3d79da5
 
 docs:
   hello_world: |
