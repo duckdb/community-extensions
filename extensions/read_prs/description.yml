@@ -1,0 +1,60 @@
+# Descriptor for DuckDB's community extensions repository
+# (duckdb/community-extensions, extensions/read_prs/description.yml).
+#
+# Rust extension on DuckDB's v2 C API (USE_UNSTABLE_C_API=1), pinned to DuckDB 2.0.0, built through
+# extension-ci-tools' c_api_extensions/rust.Makefile (see ./Makefile), like the official rusty_quack
+# extension from duckdb/extension-template-rs.
+#
+# Before submitting: set repo.ref to the commit to build.
+extension:
+  name: read_prs
+  description: Read SAS, Stata and SPSS files directly in SQL, and write query results to Stata, SPSS and SAS files.
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: Apache-2.0
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw;windows_amd64_rtools;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - jrothbaum
+
+repo:
+  github: jrothbaum/duckdb_prs
+  ref: 66e74057621b80ccfa889b73ebdd417270b96f3a
+
+docs:
+  hello_world: |
+    INSTALL read_prs FROM community;
+    LOAD read_prs;
+
+    -- Write a small Stata file, then read it back
+    COPY (SELECT 1 AS id, 'Ada' AS name, DATE '1815-12-10' AS born)
+        TO 'read_prs_example.dta' (FORMAT dta);
+    SELECT * FROM read_prs('read_prs_example.dta');
+    -- id | name | born
+    -- 1  | Ada  | 1815-12-10
+
+    -- Only the columns a query uses are read from the file
+    SELECT name FROM read_prs('read_prs_example.dta') WHERE id = 1;
+  extended_description: |
+    `read_prs(path)` is a table function that reads SAS (`.sas7bdat`), Stata (`.dta`) and SPSS
+    (`.sav`, `.zsav`) files, and the less common SAS transport (`.xpt`) and SPSS portable (`.por`)
+    formats. The format is taken from the file extension.
+
+    ```sql
+    SELECT age, income FROM read_prs('survey.sav') WHERE age >= 18;
+    CREATE TABLE survey AS SELECT * FROM read_prs('survey.sas7bdat');
+    ```
+
+    - Only the columns a query uses are read from the file.
+    - Files are opened through DuckDB's file system, so `s3://` paths use your DuckDB secrets and
+      settings.
+    - Options follow polars_readstat: `preserve_order`, `row_index_name`,
+      `value_labels_as_strings`, `missing_string_as_null`, `row_offset`, `n_rows`, `threads` and
+      `batch_size`.
+    - `COPY ... TO` writes any query result as Stata (`FORMAT dta`), SPSS (`FORMAT sav`), a CSV
+      plus a SAS script that loads it (`FORMAT sas_csv`), SAS transport (`FORMAT xpt`) or SPSS
+      portable (`FORMAT por`), with variable labels.
+
+    It reads files with the same Rust core as [polars_readstat](https://github.com/jrothbaum/polars_readstat).
+    Documentation: https://github.com/jrothbaum/duckdb_prs
