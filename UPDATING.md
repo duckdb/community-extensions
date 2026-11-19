@@ -102,43 +102,6 @@ Maintainers who need users to pin or install historical extension builds should 
 community extension descriptor path, for example through separate custom extension repositories, separate channels, or
 direct artifact URLs.
 
-### Building and publishing an untagged DuckDB version
-
-The manual `build.yml` and `build_all.yml` workflows accept a `duckdb_version`
-label and an exact `duckdb_commit` independently. The version is not an allowlist:
-for example, `v100.10.12` can be built from an existing commit even though no such
-release exists. The extension must still be compatible with that commit's API.
-
-```bash
-gh workflow run build.yml --repo duckdb/community-extensions --ref main \
-  -f extension_name=sirius_cuda12 \
-  -f duckdb_version=v100.10.12 \
-  -f duckdb_commit='<full-duckdb-commit-sha>' \
-  -f reduced_ci_mode=disabled \
-  -f deploy=false
-```
-
-Replace `<full-duckdb-commit-sha>` before running the command. When both inputs
-are supplied, the workflow checks out that commit and uses `duckdb_version` as a
-local tag for the build and as the deployment version. No public DuckDB tag needs
-to be created. An explicit `duckdb_tag` takes precedence over this automatic tag.
-Omitting overrides preserves the normal stable-build defaults. For a release
-whose tag already exists, pass `duckdb_version` alone: the current CI tools'
-local-tag creation step does not handle recreating an existing tag.
-
-Custom versions select the extension's `repo.ref`; the DuckDB commit is **not**
-an extension source commit. Existing release-specific mappings remain in place:
-`v1.4.5` selects `repo.andium`, `v1.5.6` selects `repo.variegata`, and the existing
-`v2.0.0-alpha` placeholder selects `repo.ref_next`. A missing release-specific ref
-still skips the build rather than falling back to potentially incompatible code.
-
-For prepublication, use the intended release label (for example, `v2.0.1`) and
-set `deploy=true`. Deployment requires running from upstream `main` with the
-repository's publishing credentials. This publishes immediately under that label;
-it does not create a public DuckDB release. Verify the artifacts with a DuckDB
-binary carrying the same version identity, and rebuild if the final candidate
-commit changes. Do not publish fictional labels to the production repository.
-
 ## Upgrading an extension to a new DuckDB version
 When a new DuckDB version is (about to be) released, there are two states your extension can be in, which we will illustrate using the example extension described before:
 
