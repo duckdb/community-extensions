@@ -99,7 +99,6 @@ with open('env.sh', 'w+') as hdl:
 	elif os.environ['DUCKDB_VERSION'] == 'v2.0.0-alpha': # placeholder
 		extension_ref = select_ref('ref_next');
 	else:
-		# Custom DuckDB versions use the default extension source, not an allowlist.
 		extension_ref = select_ref('ref');
 
 	if extension_ref:
