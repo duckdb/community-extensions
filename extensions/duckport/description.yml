@@ -7,13 +7,12 @@ extension:
   license: MIT
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;osx_amd64"
   requires_toolchains: rust
-  use_merged_vcpkg_manifest: true
   maintainers:
     - dentiny
 
 repo:
   github: dentiny/duckport
-  ref: 8a528ed1119bf6c3acb857c254a8e3da18dceb2a
+  ref: 833095c3fb1c9002c39a2105f4d68c69087d25f3
 
 docs:
   hello_world: |
