@@ -90,7 +90,8 @@ with open('env.sh', 'w+') as hdl:
 		hdl.write(f"COMMUNITY_EXTENSION_CANONICAL_NAME={desc['repo']['canonical_name']}\n")
 
 	extension_ref = None
-	if os.environ['DUCKDB_VERSION'] == os.environ['DUCKDB_LATEST_STABLE']:
+	# Prepublish v2.0.1 from the stable extension refs without changing the stable default.
+	if os.environ['DUCKDB_VERSION'] in (os.environ['DUCKDB_LATEST_STABLE'], 'v2.0.1'):
 		extension_ref = select_ref('ref');
 	elif os.environ['DUCKDB_VERSION'] == 'v1.4.5':
 		extension_ref = select_ref('andium');

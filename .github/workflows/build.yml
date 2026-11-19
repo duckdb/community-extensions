@@ -118,8 +118,8 @@ jobs:
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' && needs.prepare.outputs.COMMUNITY_EXTENSION_REF != '' }}
     with:
       duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0' }}
-      # no tag currently for v2.0.0-alpha46057; re-add duckdb_tag and remove duckdb_commit when bumping to official 2.0
-      # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
+      # Allow an untagged release candidate to carry the intended release version.
+      duckdb_tag: ${{ inputs.duckdb_tag }}
       duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && 'd54cbbe3df17e8e5ce68312f483b4155836112aa' || '') }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
       reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
@@ -175,8 +175,8 @@ jobs:
     with:
       deploy_latest: true
       duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0' }}
-      # re-add duckdb_tag when bumping to 2.0.0
-      # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
+      # Publish under the same release version used to build the artifacts.
+      duckdb_tag: ${{ inputs.duckdb_tag }}
       duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && 'd54cbbe3df17e8e5ce68312f483b4155836112aa' || '') }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
       reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
