@@ -3,10 +3,13 @@ on:
   workflow_dispatch:
     inputs:
       duckdb_version:
+        description: "DuckDB version label; with duckdb_commit, the tag need not exist"
         type: string
       duckdb_tag:
+        description: "Optional version override; defaults to duckdb_version when duckdb_commit is provided"
         type: string
       duckdb_commit:
+        description: "Exact DuckDB source commit; overrides the checkout selected by duckdb_version"
         type: string
       ci_tools_version:
         type: string
