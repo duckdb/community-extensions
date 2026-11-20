@@ -1,7 +1,7 @@
 extension:
   name: ducksmiles
   description: Cheminformatics and CPU numerical analytics for DuckDB - molecular formats, descriptors, fingerprints, similarity, regression, statistical inference, experimental design, time series, reliability and model evaluation from SQL
-  version: 0.7.0
+  version: 0.7.1
   language: C++
   build: cmake
   requires_toolchains: rust
@@ -13,13 +13,16 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: bc898ea130d08fc02136e226fb55e9887f6cd27c
+  ref: 43f02424d1e7ef0baafb986d3b6f46f59dc07946
 
 docs:
   hello_world: |
     -- Parse SMILES and get molecular formula
     SELECT mol_formula('CCO');
     -- C2H6O
+
+    -- All 291 molecular descriptors in catalog order
+    SELECT mol_descriptor_catalog_json(), mol_descriptor_values_json('CCO');
 
     -- Calculate molecular weight
     SELECT round(mol_weight('c1ccccc1'), 2);
