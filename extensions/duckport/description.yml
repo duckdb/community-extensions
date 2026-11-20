@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckport
-  ref: 75b40fa4861f2445fc59689ed1012e32d2712ada
+  ref: 1e4878da642312929f323836e91179828908737e
 
 docs:
   hello_world: |
