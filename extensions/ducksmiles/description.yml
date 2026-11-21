@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: bef8675ee50efc158db4e6ee3b1985f422f460d6
+  ref: 048cead6dbd009a4eb18feefb1cefc4c70f76f82
 
 docs:
   hello_world: |
@@ -172,3 +172,9 @@ docs:
     heavy-atom count and ring count in one STRUCT from a single parse. The source
     repository also includes a Python typed mass-window join and a batched descriptor
     reader.
+
+    Use sdf_projected_properties_json(sdf, names) to read selected tags with original SDF record numbers.
+    The source repository also includes typed molecular search, versioned fingerprint indexes,
+    descriptor caching, and scaffold-based dataset splitting.
+
+    [English project documentation](https://nkwork9999.github.io/duckSMILES/).
