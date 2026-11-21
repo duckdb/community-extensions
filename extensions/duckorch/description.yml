@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/duck-orch
-  ref: b54db2c2b7b15d395fcccf1e1f8c544e9a138a1f
+  ref: fd1c38fa7a4a19e8095ce1348f78cde0261cb245
 
 docs:
   hello_world: |
@@ -143,3 +143,8 @@ docs:
     days and propagates changes across registered dependencies using half-open date
     windows. Applications provide a tenant-scoped DuckDB connection and a mapping of model
     IDs to asset names.
+
+    The embedded Python API also covers durable partition reservations, asset-revision manifests,
+    idempotent publication and notification delivery, file-revision tracking, and shared quality scans.
+
+    [English project documentation](https://nkwork9999.github.io/duck-orch/).
