@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/miniplot
-  ref: 805cfc446ba5e1dfba396b5fe26ef75d9d4135c2
+  ref: d37132d37769ebdf228cef5d925249e5bff89f92
 
 docs:
   hello_world: |
@@ -65,3 +65,8 @@ docs:
     The source repository includes host-side Python classes for time-bin reduction,
     gap-separated time series and fixed-boundary histogram counts. The Python module is
     distributed as source and works with a host-provisioned DuckDB connection.
+
+    The embedded Python API also includes grouped statistics, sparse heatmaps, market bars,
+    treemaps, revision comparison, and 3D point aggregation.
+
+    [English project documentation](https://nkwork9999.github.io/miniplot/).
