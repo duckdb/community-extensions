@@ -12,6 +12,7 @@ extension:
 repo:
   github: isaacbrodsky/h3-duckdb
   ref: ae1c424773752f775e0549971818454f61255291
+  variegata: ae1c424773752f775e0549971818454f61255291
 
 docs:
   hello_world: |
