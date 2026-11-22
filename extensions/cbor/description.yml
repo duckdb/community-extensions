@@ -1,0 +1,72 @@
+extension:
+  name: cbor
+  description: "CBOR (RFC 8949) + MessagePack codec in SQL — decode/validate/canonicalize, tag projection, COSE payload & x5t thumbprint, cross-format transcode"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-cbor
+  ref: 4699f8e3f0d3cd1c256f743edf827f655e8687ea
+
+docs:
+  hello_world: |
+    LOAD cbor;
+
+    -- Decode: lossless JSON projection.
+    SELECT cbor_to_json(from_hex('83010203'));      -- [1,2,3]
+    SELECT cbor_to_json(from_hex('a1616101'));      -- {"a":1}
+
+    -- Debug view: keeps tags, byte strings, the null/undefined distinction.
+    SELECT cbor_diagnostic(from_hex('c11a514b67b0'));  -- 1(1363896240)
+
+    -- Validate: total, per-row, never aborts.
+    SELECT cbor_is_valid(from_hex('830102'));      -- false (truncated)
+    SELECT cbor_well_formed(from_hex('830102'));   -- {ok: false, error: 'input ended...', kind: 'truncated'}
+
+    -- Encode: JSON -> core-deterministic CBOR bytes.
+    SELECT to_hex(cbor_from_json('[1,2,3]'));      -- 83010203
+
+    -- Cross-format: MessagePack -> CBOR, then read back as JSON.
+    SELECT cbor_to_json(msgpack_to_cbor(from_hex('93010203')));  -- [1,2,3]
+
+  extended_description: |
+    ## cbor — CBOR (RFC 8949) + MessagePack in SQL
+
+    Decode, validate, canonicalize, tag-project, and transcode binary
+    self-describing data right where you query it — with first-class COSE
+    payload / thumbprint extraction for JWS/CWT/WebAuthn workflows.
+    The lossless JSON projection for CBOR, EDN for the debug view.
+
+    The engine (`cbor_core/`) is a verbatim port of the
+    [Query-farm `vgi-cbor`](https://github.com/Query-farm/vgi-cbor)
+    cbor-core crate (MIT/Apache-2.0) — a pure-Rust structural decoder with
+    no Arrow, no VGI, and no cryptographic verification; only the transport
+    layer was replaced with direct DuckDB C-API vector I/O (via
+    [quack-rs](https://github.com/tomtom215/quack-rs)).
+
+    **11 Functions:**
+
+    | Function | Signature | Returns |
+    |----------|-----------|---------|
+    | `cbor_to_json` | `(blob)` | `VARCHAR` — canonical JSON (byte strings as base64url) |
+    | `cbor_diagnostic` | `(blob)` | `VARCHAR` — RFC 8949 §8 Extended Diagnostic Notation |
+    | `cbor_is_valid` | `(blob)` | `BOOLEAN` — exactly one well-formed item, no trailing bytes |
+    | `cbor_well_formed` | `(blob)` | `STRUCT(ok, error, kind)` — classified failure taxonomy |
+    | `cbor_untag` | `(blob, tag UBIGINT)` | `VARCHAR` — JSON array of values under a semantic tag |
+    | `cbor_from_json` | `(json VARCHAR)` | `BLOB` — JSON text -> core-deterministic CBOR |
+    | `cbor_canonical` | `(blob, mode VARCHAR)` | `BLOB` — deterministic re-encode (`core` / `ctap2`) |
+    | `cbor_cose_payload` | `(blob)` | `BLOB` — COSE inner payload (tagged or unprotected) |
+    | `cbor_cose_x5t` | `(blob)` | `VARCHAR` — COSE x5t thumbprint (lowercase hex) |
+    | `msgpack_to_json` | `(blob)` | `VARCHAR` — MessagePack -> JSON (ext/timestamp handled) |
+    | `msgpack_to_cbor` | `(blob)` | `BLOB` — MessagePack -> CBOR transcode |
+
+    Decoders are total and bound recursion at a fixed max nesting depth, so
+    a hostile blob fails its own row, never crashes the scan. NULL flows
+    through; malformed input -> NULL (except `cbor_canonical` with an
+    unknown `mode`, which is a caller mistake -> clean SQL error).
