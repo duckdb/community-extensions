@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: alitrack/duckdb-bson
-  ref: PENDING_SHA
+  ref: 70566559721d91cc0068c86caf2fca8a609101f7
 
 docs:
   hello_world: |
