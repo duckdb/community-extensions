@@ -1,7 +1,7 @@
 extension:
   name: duck_lineage
   description: DuckLineage automatically captures data lineage from every DuckDB query and emits OpenLineage events.
-  version: 0.3.0
+  version: 0.4.0
   language: C++
   build: cmake
   license: MIT
@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: ilum-cloud/duck_lineage
-  ref: 33cb810b8025bca52e5a7ba5571a7400e53f6852
+  ref: 471136ef5109b364d1c4d3638263960abe26d801
   variegata: d5ec5f21c72b755b3b0e3d6a7bfb634325d9c9b6
   andium: 98045876ee9f77b31dca907a5d481691661962af
 
