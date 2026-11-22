@@ -1,0 +1,66 @@
+extension:
+  name: asn1
+  description: "ASN.1 BER/CER/DER codec in SQL — decode TLV to JSON, openssl-style dump, OID name resolution, validation, canonical DER re-encode"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-asn1
+  ref: PENDING_SHA
+
+docs:
+  hello_world: |
+    LOAD asn1;
+
+    -- The classic SEQUENCE { INTEGER 5 } (hex 3003020105)
+    SELECT asn1_to_json(from_hex('3003020105')) AS json;   -- [5]
+
+    -- openssl asn1parse-style tree
+    SELECT asn1_dump(from_hex('3003020105'), 'openssl');
+    --     0:d=0 hl=2 l=   3 cons: SEQUENCE
+    --     2:d=1 hl=2 l=   1 prim: INTEGER:5
+
+    -- Validate under DER rules
+    SELECT asn1_is_valid(from_hex('3003020105'), 'der') AS valid;  -- true
+
+    -- OID <-> name both directions
+    SELECT asn1_oid_name('1.2.840.113549.1.1.11');          -- sha256WithRSAEncryption
+    SELECT asn1_oid('sha256WithRSAEncryption');             -- 1.2.840.113549.1.1.11
+
+  extended_description: |
+    ## asn1 — ASN.1 BER/CER/DER in SQL
+
+    Decode a DER/BER blob to a nested JSON tree, render it like
+    `openssl asn1parse`, resolve OBJECT IDENTIFIERS to names, triage
+    well-formedness, pull a node out by path, and re-encode to canonical
+    DER — right in DuckDB. No `openssl` on the box, no Python `pyasn1` /
+    `asn1crypto`: the parser is pure Rust, compiled in.
+
+    The engine is a port of the MIT-licensed Query-farm ASN.1 codec
+    (LICENSE: Copyright Query Farm LLC); the Arrow IPC transport layer was
+    replaced with direct DuckDB C-API vector I/O (via
+    [quack-rs](https://github.com/tomtom215/quack-rs)). No VGI, no Arrow
+    IPC, no JSON shims.
+
+    **8 Functions:**
+
+    | Function | Returns | Notes |
+    |----------|---------|-------|
+    | `asn1_to_json(payload)` | `VARCHAR` | Nested JSON projection of the TLV tree; malformed blob yields `{"error": ..., "kind": ...}` (never a SQL error) |
+    | `asn1_dump(payload, fmt)` | `VARCHAR` | `openssl asn1parse`-style tree; `fmt` in `openssl` (default) / `dumpasn1` (Gutmann-style with OID names) |
+    | `asn1_is_valid(payload, rules)` | `BOOLEAN` | Well-formed under `rules` in `der`/`cer`/`ber` (default `der`) |
+    | `asn1_well_formed(payload)` | `STRUCT(ok, error, kind)` | BER triage with a classified failure `kind` (`truncated`, `length-overflow`, `invalid-tag`, ...) |
+    | `asn1_at_path(payload, path)` | `VARCHAR` | JSON value at a node path, e.g. `asn1_at_path(b, '$.0.2')` |
+    | `asn1_oid_name(dotted)` | `VARCHAR` | Dotted OID -> registered name; `NULL` if unknown |
+    | `asn1_oid(name)` | `VARCHAR` | Inverse of `asn1_oid_name`; `NULL` if unknown |
+    | `asn1_to_der(payload)` | `BLOB` | Re-encode to canonical DER (definite minimal lengths, sorted `SET`); `NULL` if unparseable |
+
+    Useful for cert-trust audits, CRL/OCSP triage, Kerberos ticket
+    forensics, and any pipeline that ingests binary protocol captures
+    (TLS, PKI, SNMP, LDAP, CMS) into a database.
