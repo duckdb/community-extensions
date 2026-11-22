@@ -1,0 +1,72 @@
+extension:
+  name: bson
+  description: "BSON / MongoDB Extended-JSON v2 codec in SQL — decode/validate, dotted-path field projection with coercion, ObjectId helpers, JSON round-trip"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-bson
+  ref: PENDING_SHA
+
+docs:
+  hello_world: |
+    LOAD bson;
+
+    -- {a: 1} as a BSON document
+    CREATE TABLE d AS SELECT from_hex('0c0000001061000100000000') AS b;
+
+    -- Extended-JSON v2 (canonical and relaxed)
+    SELECT bson_to_json(b, 'canonical') FROM d;   -- {"a":{"$numberInt":"1"}}
+    SELECT bson_to_json(b, 'relaxed')   FROM d;   -- {"a":1}
+
+    -- Validate: total, per-row, never aborts.
+    SELECT bson_is_valid(b) FROM d;               -- true
+    SELECT bson_well_formed(b) FROM d;            -- {ok: true, error: NULL, kind: NULL}
+
+    -- Field projection (dotted path) + type
+    SELECT bson_field(b, 'a', '') FROM d;         -- 1
+    SELECT bson_type_of(b, 'a')   FROM d;         -- int
+
+    -- ObjectId helpers (literal bytes, no table needed)
+    SELECT bson_objectid_hex(from_hex('00112233445566778899aabb'));  -- 24-char hex
+    SELECT to_hex(bson_objectid_from_hex('00112233445566778899aabb'));
+
+  extended_description: |
+    ## bson — BSON / Extended-JSON v2 in SQL
+
+    Decode a BSON document to MongoDB's Extended JSON, build one back,
+    validate it (with a classified error taxonomy), project any dotted
+    path with a type coercion, and read/write ObjectIds — all in SQL,
+    right where you query.
+
+    Built as a DuckDB loadable extension with the
+    [quack-rs](https://crates.io/crates/quack-rs) C-API binding layer.
+    The engine (`bson_core/`) is a verbatim port of the
+    [Query-farm `vgi-bson`](https://github.com/Query-farm/vgi-bson)
+    bson-core crate (MIT) — a pure-Rust structural decoder over the
+    official `bson` crate, with no Arrow, no VGI, and no `mongodb`
+    driver; only the transport layer was replaced with direct C-API
+    vector I/O.
+
+    **9 Functions:**
+
+    | Function | Signature | Returns |
+    |----------|-----------|---------|
+    | `bson_to_json` | `(doc BLOB, mode VARCHAR)` | `VARCHAR` — Extended-JSON v2 (`canonical` / `relaxed`) |
+    | `bson_decode` | `(doc BLOB)` | `VARCHAR` — Extended-JSON v2 canonical |
+    | `bson_from_json` | `(json VARCHAR)` | `BLOB` — Extended-JSON v2 -> BSON bytes |
+    | `bson_is_valid` | `(doc BLOB)` | `BOOLEAN` — single well-formed BSON document |
+    | `bson_well_formed` | `(doc BLOB)` | `STRUCT(ok, error, kind)` — classified failure taxonomy |
+    | `bson_field` | `(doc BLOB, path VARCHAR, mode VARCHAR)` | `VARCHAR` — leaf at dotted path, coerced (inference / `objectid` / `decimal` / `uuid` / `timestamp` / `datetime` / `blob` / `json`) |
+    | `bson_type_of` | `(doc BLOB, path VARCHAR)` | `VARCHAR` — BSON type name at path (or top level) |
+    | `bson_objectid_hex` | `(oid BLOB)` | `VARCHAR` — 12-byte ObjectId -> 24-char hex |
+    | `bson_objectid_from_hex` | `(hex VARCHAR)` | `BLOB` — 24-char hex -> 12-byte ObjectId |
+
+    The decoder is total and bounds nesting depth, so a hostile blob
+    fails its own row, never crashes the scan. NULL flows through.
