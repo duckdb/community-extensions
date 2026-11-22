@@ -1,0 +1,47 @@
+extension:
+  name: capped
+  description: "Tables that forget: retention by age, size or row count over immutable Parquet files"
+  version: 0.1.0
+  language: "C++ & Rust"
+  build: cmake
+  license: Apache-2.0
+  requires_toolchains: "rust"
+  excluded_platforms: "linux_amd64_musl;linux_arm64_musl;windows_amd64;windows_arm64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  # osx_amd64 is an opt-in entry in extension-ci-tools' distribution matrix,
+  # so the registry only builds it when opted into here.
+  opt_in_platforms: osx_amd64
+  maintainers:
+    - hamin
+
+repo:
+  github: hamin/duckdb-capped
+  ref: 309d2a56037760cd5427b07dc42221b0db084a8c
+
+docs:
+  hello_world: |
+    INSTALL capped FROM community;
+    LOAD capped;
+
+    ATTACH 'telemetry-store' AS t (TYPE capped);
+    CREATE TABLE t.main.events(ts TIMESTAMPTZ, severity VARCHAR, body VARCHAR) WITH (time_col = 'ts', ttl = '7 days', max_bytes = '1GB');
+    INSERT INTO t.main.events VALUES (now(), 'info', 'hello capped');
+    SELECT severity, body FROM t.main.events;
+
+  extended_description: |
+    capped gives DuckDB tables that forget. You set a limit on each table when
+    you create it: how old rows may get (`ttl`), how big the table may grow
+    (`max_bytes`), or how many rows it may hold (`max_rows`). New rows keep
+    coming in, and the oldest data is removed whenever a limit is passed.
+
+    It is built for telemetry such as logs, traces, metrics and events, where
+    nobody needs last month's data and nobody wants to schedule cleanup jobs.
+
+    Each table is stored as a series of immutable Parquet files. Removing old
+    data means deleting whole files, so nothing is rewritten, no space is
+    left behind, and size limits are exact. Queries go through DuckDB's own
+    Parquet reader, so filters and pushdown work as usual.
+
+    Retention runs when a store is attached, on every write, and on a
+    background thread. Tables can also opt in to full-text and vector search
+    (`capped_fts`, `capped_vector_search`), and the indexes are removed along
+    with the data they cover.
