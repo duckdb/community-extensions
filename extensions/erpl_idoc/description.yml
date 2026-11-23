@@ -1,6 +1,6 @@
 extension:
   name: erpl_idoc
-  version: 2026.10.22
+  version: 2026.11.22
   description: Read & write SAP IDoc files (flat + IDoc-XML) as SQL in DuckDB — a community extension in the erpl family.
   language: C++
   build: cmake
@@ -11,5 +11,5 @@ extension:
     - jrosskopf
 repo:
   github: DataZooDE/erpl-idoc
-  ref: c4b7f6da2e07fa7a0453217c2c7de48ca89a0b40
-  variegata: c4b7f6da2e07fa7a0453217c2c7de48ca89a0b40
+  ref: d8a0b21da40e52b4fa3b7247ded4bbddf3db8a06
+  variegata: d8a0b21da40e52b4fa3b7247ded4bbddf3db8a06
