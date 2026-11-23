@@ -99,7 +99,7 @@ with open('env.sh', 'w+') as hdl:
 	elif os.environ['DUCKDB_VERSION'] == 'v2.0.0-alpha': # placeholder
 		extension_ref = select_ref('ref_next');
 	else:
-		print("No valid ")
+		extension_ref = select_ref('ref');
 
 	if extension_ref:
 		hdl.write(f"COMMUNITY_EXTENSION_REF={extension_ref}\n")
