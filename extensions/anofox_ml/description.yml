@@ -1,0 +1,34 @@
+extension:
+  name: anofox_ml
+  version: 0.3.0
+  description: Machine learning in SQL - 196 scikit-learn-compatible estimators (trees, boosting, linear models, GLMs, SVMs, kNN, naive Bayes, MLPs, clustering, decomposition, preprocessing, text vectorizers, meta-estimators, conformal prediction), fitted per group with an aggregate and stored as BLOBs, plus metrics, cross-validation, tuning and drift detection.
+  language: C++
+  build: cmake
+  license: BSL 1.1
+  requires_toolchains: rust
+  maintainers:
+    - sipemu
+repo:
+  github: DataZooDE/anofox-ml
+  ref: 7dbc531a2fd0ca7a869fedfebc08f8016fb10554
+  variegata: 7dbc531a2fd0ca7a869fedfebc08f8016fb10554
+docs:
+  hello_world: |
+    CREATE TABLE train AS
+      SELECT (i % 2)::DOUBLE AS y, [i::DOUBLE, (i % 2) * 3.0 + (i % 5) * 0.1] AS x
+      FROM range(100) t(i);
+    -- fit a model in an aggregate; it is an ordinary BLOB value
+    CREATE TABLE models AS
+      SELECT ml_fit_agg('RandomForestClassifier', y, x, '{"n_estimators": 50, "seed": 42}') AS model
+      FROM train;
+    SELECT ml_predict(model, [7.0, 3.2]) AS label,
+           ml_predict_proba(model, [7.0, 3.2]) AS proba
+    FROM models;
+  extended_description: |
+    anofox_ml brings the anofox-ml Rust library into SQL. `ml_fit_agg(kind, y, x [, params])` fits any of
+    188 estimators (see `ml_estimators()`), one model per `GROUP BY` group in parallel; the result is a
+    versioned, compressed BLOB you can keep in a table or Parquet file and use with `ml_predict`,
+    `ml_predict_proba`, `ml_transform`, `ml_predict_interval` and the other model functions in any later query.
+    It also has metric aggregates, cross-validation splitters, grid / random / halving search
+    (`ml_tune_agg`), permutation importance, recursive feature elimination and drift detection.
+    Documentation: https://github.com/DataZooDE/anofox-ml

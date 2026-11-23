@@ -1,0 +1,47 @@
+extension:
+  name: x12
+  description: ANSI X12 / UN-EDIFACT EDI in SQL — sniff transaction type, read the interchange delimiter set, count segments, extract segment data elements
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-x12
+  ref: 3390c5941916e48a386df2f75fa6037bb4442196
+  ref_next: 3390c5941916e48a386df2f75fa6037bb4442196
+
+docs:
+  hello_world: |
+    INSTALL x12 FROM community;
+    LOAD x12;
+
+    -- Transaction type (ST01 for X12, UNH02 for EDIFACT), NULL if not EDI
+    SELECT x12_transaction_type('ISA*00*          *00*          *ZZ*S*ZZ*R*240101*1200*U*00401*000000001*0*P*>~ST*835*0001~SE*2*0001~');
+
+    -- Sniffed delimiter set + family
+    SELECT x12_delimiters('ISA*00*00*ZZ*S*ZZ*R*240101*1200*U*00401*1*0*P*>~ST*835*0001~');
+
+    -- Segment count, and the Nth segment's data elements
+    SELECT x12_segment_count('ISA*...~ST*835*0001~SE*2*0001~');
+    SELECT x12_elements('ISA*...~ST*835*0001~SE*2*0001~', 1);
+
+  extended_description: |
+    ## x12 — EDI in SQL
+
+    Structural ANSI X12 / UN-EDIFACT parser (envelope + segments +
+    delimiters, serde only, no I/O, no network). Ported from the MIT-licensed
+    Query-farm `vgi-x12` worker.
+
+    | Function | Returns | Notes |
+    |---|---|---|
+    | `x12_transaction_type(content)` | VARCHAR | First ST01 / UNH02 code, NULL if not EDI |
+    | `x12_delimiters(content)` | STRUCT | Element/segment/component/repetition/release + family |
+    | `x12_segment_count(content)` | BIGINT | Body segments (ST..SE) across transactions; -1 when not EDI |
+    | `x12_elements(content, n)` | LIST | The Nth segment's data elements (0-based, document order) |
+
+    →  [GitHub](https://github.com/alitrack/duckdb-x12)

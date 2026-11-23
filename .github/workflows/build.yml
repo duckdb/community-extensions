@@ -17,14 +17,17 @@ on:
       extension_name:
         type: string
       duckdb_version:
+        description: "DuckDB version label; with duckdb_commit, the tag need not exist"
         type: string
       ci_tools_version:
         type: string
       reduced_ci_mode:
         type: string
       duckdb_tag:
+        description: "Optional version override; defaults to duckdb_version when duckdb_commit is provided"
         type: string
       duckdb_commit:
+        description: "Exact DuckDB source commit; overrides the checkout selected by duckdb_version"
         type: string
       deploy:
         type: string
@@ -85,10 +88,10 @@ jobs:
       COMMUNITY_EXTENSION_USE_MERGED_VCPKG_MANIFEST: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_USE_MERGED_VCPKG_MANIFEST }}
       COMMUNITY_EXTENSION_VCPKG_URL: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL == '' && 'https://github.com/microsoft/vcpkg.git' || steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_URL }}
       # Release 2025.12.12 for 1.5.5, else 2026.06.24
-      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT != '' && steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT || ((inputs.duckdb_version || 'd54cbbe3df17e8e5ce68312f483b4155836112aa') == 'v1.5.6' && '84bab45d415d22042bd0b9081aea57f362da3f35' || 'cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3') }}
+      COMMUNITY_EXTENSION_VCPKG_COMMIT: ${{ steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT != '' && steps.parse.outputs.COMMUNITY_EXTENSION_VCPKG_COMMIT || ((inputs.duckdb_version || 'v2.0.1') == 'v1.5.6' && '84bab45d415d22042bd0b9081aea57f362da3f35' || 'cd61e1e26a038e82d6550a3ebbe0fbbfe7da78e3') }}
     env:
-      DUCKDB_LATEST_STABLE: 'v2.0.0'
-      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v2.0.0' }}
+      DUCKDB_LATEST_STABLE: 'v2.0.1'
+      DUCKDB_VERSION: ${{ inputs.duckdb_version || 'v2.0.1' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -117,10 +120,10 @@ jobs:
     uses: duckdb/extension-ci-tools/.github/workflows/_extension_distribution.yml@v2.0-cyanoptera
     if: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME != '' && needs.prepare.outputs.COMMUNITY_EXTENSION_REF != '' }}
     with:
-      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0' }}
-      # no tag currently for v2.0.0-alpha46057; re-add duckdb_tag and remove duckdb_commit when bumping to official 2.0
-      # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
-      duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && 'd54cbbe3df17e8e5ce68312f483b4155836112aa' || '') }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.1' }}
+      # With an explicit checkout, use the requested version as its local release tag.
+      duckdb_tag: ${{ inputs.duckdb_tag || (inputs.duckdb_commit != '' && inputs.duckdb_version || '') }}
+      duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && '8d78114e90a53823803660bf821f6073ac87da8c' || '') }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
       reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
 
@@ -150,7 +153,7 @@ jobs:
     uses: ./.github/workflows/generate_docs.yml
     with:
       extension_name: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_NAME }}
-      duckdb_version: ${{ inputs.duckdb_version || 'd54cbbe3df17e8e5ce68312f483b4155836112aa' }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.1' }}
 
   archive:
     needs:
@@ -174,10 +177,10 @@ jobs:
     secrets: inherit
     with:
       deploy_latest: true
-      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.0' }}
-      # re-add duckdb_tag when bumping to 2.0.0
-      # duckdb_tag: ${{ inputs.duckdb_tag || 'v2.0.0-alpha46057' }}
-      duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && 'd54cbbe3df17e8e5ce68312f483b4155836112aa' || '') }}
+      duckdb_version: ${{ inputs.duckdb_version || 'v2.0.1' }}
+      # Publish under the same release version used to build the artifacts.
+      duckdb_tag: ${{ inputs.duckdb_tag || (inputs.duckdb_commit != '' && inputs.duckdb_version || '') }}
+      duckdb_commit: ${{ inputs.duckdb_commit || (inputs.duckdb_version == '' && '8d78114e90a53823803660bf821f6073ac87da8c' || '') }}
       ci_tools_version: ${{ inputs.ci_tools_version || 'v2.0-cyanoptera' }}
       reduced_ci_mode: ${{ inputs.reduced_ci_mode || 'auto' }}
       exclude_archs: ${{ needs.prepare.outputs.COMMUNITY_EXTENSION_EXCLUDE_PLATFORMS }}

@@ -1,0 +1,43 @@
+extension:
+  name: disasm
+  description: Binary format + entry-point probe in SQL — container (PE/ELF/Mach-O/fat) and architecture from headers, entry point with file offset and section, bounded against hostile input
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-disasm
+  ref: e9a5d35686e69bf2c828c02f9d4177d3b9f34b60
+  ref_next: e9a5d35686e69bf2c828c02f9d4177d3b9f34b60
+
+docs:
+  hello_world: |
+    INSTALL disasm FROM community;
+    LOAD disasm;
+
+    -- Container + architecture straight from the headers
+    SELECT disasm_format(from_hex('7f454c46')).container;   -- elf
+
+    -- Unrecognized blobs are total: container='raw', detail fields NULL
+    SELECT disasm_format(CAST('hello' AS BLOB)).container;      -- raw
+
+    -- Wire it to real files: SELECT disasm_entrypoint(read_blob('a.out'));
+
+  extended_description: |
+    ## disasm — binary triage in SQL
+
+    Total and bounded: adversarial section sizes are clamped, so hostile
+    input never errors — unrecognized blobs come back as `container='raw'`
+    with NULL detail fields.
+
+    | Function | Returns | Notes |
+    |---|---|---|
+    | `disasm_format(blob)` | STRUCT | `container` (pe/elf/macho/fat-macho/raw), arch, mode, bits, endian, entry |
+    | `disasm_entrypoint(blob)` | STRUCT | arch, mode, vaddr, file_off, section |
+
+    →  [GitHub](https://github.com/alitrack/duckdb-disasm)

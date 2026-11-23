@@ -1,7 +1,7 @@
 extension:
   name: duckdb_geoip_rs
   description: Retrieve geo ip data from MMDB database
-  version: 0.3.0
+  version: 0.3.1
   language: Rust
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: william-billaud/duckdb-geoip-rs
-  ref: 27c9b1f86772a5e8927c5dd6cfc0e0bf1f194ba4
+  ref: e92992331128de08c3f34797c2b36b3d928a4552
 
 docs:
   hello_world: |

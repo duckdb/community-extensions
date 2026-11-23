@@ -1,7 +1,7 @@
 extension:
   name: oracle_scanner
   description: Read and write Oracle Database with no Oracle client
-  version: '0.6.2'
+  version: '0.8.3'
   language: C++
   build: cmake
   license: Apache-2.0
@@ -12,9 +12,9 @@ extension:
 
 repo:
   github: krokozyab/quack-oracle
-  # The commit tagged v0.6.2, built for DuckDB v2.0.0, pinned by SHA so what is
+  # The commit tagged v0.8.3, built for DuckDB v2.0.0 and v2.0.1, pinned by SHA so what is
   # built cannot move.
-  ref: aee367eaec18b338ea047dc7e534afe1cd7a4a0b
+  ref: fcf53d04c65b4e223fdb19fd66643be6386ba76a
   # DuckDB 1.5.6 stays on v0.4.0, the last release built for that line.
   variegata: d4aa50f9bf23ca44b44f0df48fb0065ba751f5be
 
@@ -53,16 +53,19 @@ docs:
     always verifies the certificate and host name.
 
     **Read** with `oracle_query` (bind parameters supported) or `ATTACH` a
-    schema and query its tables and views by name. Filters, `ORDER BY ...
-    LIMIT`, aggregates, joins between two attached tables, and JSON path
-    filters are sent to Oracle when its answer is provably the same; large
-    tables are read through several sessions by ROWID ranges at one SCN;
-    heavy columns are fetched only for rows that pass the filter.
+    database and query the tables and views of any schema you can see by name
+    (`o.hr.employees`). Filters, `LIMIT` and `ORDER BY ... LIMIT`, aggregates
+    including `avg` and `count(DISTINCT ...)`, inner joins of attached tables,
+    and JSON path filters are sent to Oracle when its answer is provably the
+    same; large tables are read through several sessions by ROWID ranges at one
+    SCN; heavy columns are fetched only for rows that pass the filter.
     `EXPLAIN ANALYZE` shows the SQL Oracle ran and the bytes it moved.
 
-    **Write** with `INSERT`, `UPDATE`, `DELETE` (including `RETURNING`)
-    through the attached schema, in DuckDB transactions that commit or roll
-    back on Oracle, or with `oracle_execute` for batches.
+    **Write** with `INSERT`, `UPDATE`, `DELETE` (including `RETURNING`) and
+    upserts (`ON CONFLICT`, `INSERT OR REPLACE`, `MERGE INTO`, run as Oracle
+    `MERGE`) through the attached schema, in DuckDB transactions that commit or
+    roll back on Oracle, or with `oracle_execute` for batches. `CREATE TABLE`,
+    `CREATE TABLE AS`, `ALTER TABLE` and `DROP TABLE` run in Oracle too.
 
     **Call** procedures and functions (`oracle_call_auto`, `oracle_call_named`,
     `oracle_arguments`) and run anonymous PL/SQL blocks (`oracle_plsql`).

@@ -12,6 +12,7 @@ extension:
 repo:
   github: yoogoc/duckdb-table-guard
   ref: 0ba95aa9e8b793c1470cc005d63b47bb3006c8de
+  variegata: abc838d7cddce1b7d00fe4189ade8a0aa0d3ee34
 
 docs:
   hello_world: |

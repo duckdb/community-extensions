@@ -1,0 +1,21 @@
+extension:
+  name: vgi
+  description: Call table, scalar, aggregate and COPY functions served by remote workers over Apache Arrow IPC. Installs from the Query.Farm extension repository.
+  version: '2026110601'
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw
+  maintainers:
+    - rustyconover
+
+repo:
+  github: query-farm/vgi
+  ref: a94777f6cb3921fa0bee2d79e8639de5f2ed4278
+
+docs:
+  extended_description: >-
+    The community build of `vgi` is a placeholder: VGI is distributed from the Query.Farm
+    extension repository. Loading it explains how to add that repository and install VGI,
+    or, once installed, loads the Query.Farm build. For more information, see the
+    [documentation](https://query.farm/products/extensions/vgi/).
