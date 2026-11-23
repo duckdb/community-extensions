@@ -1,7 +1,7 @@
 extension:
   name: sitting_duck
   description: Parse and analyze source code ASTs from 28 programming languages with tree-sitter grammars, pattern matching, and structural search
-  version: 1.17.0
+  version: 1.18.4
   language: C++
   build: cmake
   license: Apache-2.0
@@ -9,94 +9,122 @@ extension:
     - teaguesterling
 repo:
   github: teaguesterling/sitting_duck
-  # THREE KEYS, ONE COMMIT. Per scripts/build.py:42-54 they select like this:
+  # v1.18 REQUIRES DUCKDB 2.0, so `ref` and `variegata` are no longer the same
+  # commit. sitting_duck's duckdb submodule pin moved to the v2.0.0 tag and the
+  # v1.5 build leg was removed from its own CI.
   #
-  #   ref        -> the DEFAULT build, which is the 2.0 line (v2.0.0 today)
-  #   variegata  -> DuckDB v1.5.6 builds. Absent, v1.5.6 falls back to `ref`,
-  #                 so it is stated explicitly rather than left to the fallback
-  #   ref_next   -> a prerelease that is neither v1.4.5, v1.5.6 nor the latest
-  #                 stable. build_next.yml's test_against_latest is currently
-  #                 `if: false`, so this is dormant; it is set so prerelease
-  #                 validation builds this release instead of printing
-  #                 "Skipping prerelease validation" when that job returns.
+  #   ref, ref_next -> v1.18.4, for the 2.0 line
+  #   variegata     -> held at v1.17.0, so DuckDB v1.5.6 keeps the artifact it
+  #                    has today
   #
-  # All three are the same commit deliberately: ONE source tree builds against
-  # both DuckDB lines. The v2.0 removal of TableFunction::named_parameters goes
-  # through named_parameter_compat.hpp, which declares via
-  # GetSignature().WithTypedKwargs() on v2.0 and the flat map on v1.5.
-  ref: cee95ef6eeb33aa6c25527769d3ebf97898aa994
+  # `variegata` is unchanged on purpose: the v1.5.6 leg then skips and its
+  # existing artifact stays in place. Stated plainly, so nobody is surprised:
+  # under this entry's `version: 1.18.4`, v1.5.6 continues to serve
+  # sitting_duck v1.17.0. Only the 2.0 line moves.
+  #
+  # PER-CALL PLANNING COST ON THE 2.0 LINE: an `ast_select` call plans a large
+  # SQL macro, and that planning is paid on every call. v1.18.4 is the release
+  # that reduces it. Measured 2026-11-09 with the explicit `-no-agent` flag, on
+  # one DuckDB v2.0.0-dev88609 binary, `threads=1`, with the old and the new
+  # macro read into the same shell, two interleaved rounds:
+  #
+  #   ast_select_from(table, selector)   17.42 / 17.25 s  ->  2.36 / 2.32 s
+  #   ast_select('simple.py', selector)  19.24 / 19.70 s  ->  3.12 / 2.90 s
+  #
+  # Those rows shadow the macro with `.read`. Confirmed on 2026-11-10 UTC against
+  # the SHIPPED artifact instead -- the built-in macro compiled into a
+  # v2.0.0-dev88614 build whose `src/` is identical to this `ref` -- at
+  # 2.928 / 2.922 s and 2.366 / 2.290 s for the same two calls. Both builds carry
+  # DuckDB source_id d54cbbe3df; only the dev counter differs. Profiling one of
+  # the shipped-build calls puts 1.541 s in the planner and 1.132 s in the
+  # optimizer against 0.110 s of CPU, so what remains is planning, not
+  # execution.
+  #
+  # A related upstream planner regression is open as duckdb/duckdb#26036,
+  # labelled `reproduced`. It measures a synthetic statement-size repro, which on
+  # 2026-10-08 scaled super-linearly on both the 2.0 branch and duckdb `main`.
+  ref: c2a386367fb3e4c0d5b55866322c2ba34fe7db9a
   variegata: cee95ef6eeb33aa6c25527769d3ebf97898aa994
   #
-  # v1.17.0 is a CORRECTNESS release with OUTPUT CHANGES, and no API removals.
-  # Full notes: docs/releases/v1.17.0.md in the extension repo.
+  # THIS BUMP SPANS THREE RELEASES. The registry's previous entry was v1.18.1,
+  # so v1.18.2, v1.18.3 AND v1.18.4 all arrive here. v1.18.2 and v1.18.3 each
+  # change read_ast() output; v1.18.4 does not.
   #
-  # FOUR NAME-BINDING FORMS NOW BIND, so ast_definitions() and the
-  # NAME_DEFINITION flag return MORE rows than v1.16.0 did for the same
-  # input: Python match/case captures (#279), comprehension targets, which
-  # are now scope boundaries (#278), destructuring assignment targets (#274),
-  # and for-loop and comprehension tuple targets, `for i, j in pairs` (#289).
-  # Go's `for k, v := range xs` deliberately still binds nothing, because `:=`
-  # binds while `=` reassigns (#277). Variadic parameters also appear in the
-  # `parameters` column for go, cpp and swift, where native extraction was
-  # declared but unreachable (#272). If you pin counts from ast_definitions(),
-  # re-measure.
+  # v1.18.4 is a PERFORMANCE release with no output change. It rewrites the
+  # selector macro's pseudo-class arms as a single hit-set probe, which cuts the
+  # per-call planning cost described above. A differential against the previous
+  # release found 0 differing rows in EITHER direction, over 7776 rows from 78
+  # non-empty selectors in 100 cases.
+  # Notes: https://github.com/teaguesterling/sitting_duck/releases/tag/v1.18.4
   #
-  # SQL MACROS NOW CARRY DESCRIPTIONS in duckdb_functions() (#170): 58 of 97,
-  # including all 52 table macros, and 13 carry examples. duckdb_functions() is
-  # the only surface an agent connected to a database can read. The text is
-  # lifted from the banner comment above each macro, so it cannot drift from
-  # the macro. The remaining 39 scalar macros need a banner written beside
-  # them; that is content work, not a defect.
+  # v1.18.2 moved IS_EXPORTED. It no longer depends on query options: the fix
+  # reaches every caller of is_exported(flags) and every prune := ['internal']
+  # query. Previously `prune := ['internal']` emptied the bodies of the
+  # functions it keeps (one fixture went 1246 nodes to 841, assignments 26 to 2).
   #
-  # EVIDENCE. The refs above are the v1.17.0 tag, which adds the release
-  # notes and nothing else: the diff from d297e858ac touches docs/ and
-  # mkdocs.yml only, so every measurement below describes the same binary.
-  # One run of d297e858ac on the extension repo's main, run 40626001782, is
-  # completed/success with no job outside success and skipped. It covers both
-  # lines:
+  # v1.18.3 changes C++ parameters in two user-visible ways. ARITY: a defaulted
+  # parameter now appears, so `void f(int a, int b = 2)` reports two parameters
+  # where it reported one, and `void dv(const int& x = 0)` reports one where it
+  # reported none -- the old counts were short without saying so. NAMES: where a
+  # declarator nests, the name was the TYPE or the DEFAULT VALUE and is now the
+  # declarator-id, so `const std::string& s` was `std::string` and is now `s`,
+  # `int& r = global` was `global` and is now `r`, and `int* p` was empty and is
+  # now `p`. Three further C++ nodes (function_declarator, parameter_list,
+  # lambda_expression) now carry parameters where they carried none, so a C++
+  # function yields two DEFINITION_FUNCTION rows with the same payload. C's
+  # function name for a function returning a function pointer was the return
+  # type and is now the function's own name.
+  # Notes: https://github.com/teaguesterling/sitting_duck/releases/tag/v1.18.3
   #
-  #   v1.5.6, ci-tools @v1.5-variegata -- 9 platforms build. The suite RUNS on
-  #     linux_amd64, osx_arm64, windows_amd64 and windows_amd64_mingw, each
-  #     reporting `All tests passed (5 skipped tests, 9027 assertions in 162
-  #     test cases)`. The other five legs are cross-compiled and run no suite.
-  #   2.0 line, ci-tools @main -- two separate legs, and they differ:
-  #     - the canary passes `duckdb_version: v2.0-cyanoptera` with
-  #       `skip_tests: true`, so its 8 green platforms are COMPILE evidence
-  #       only. A green "Test" step there executed nothing.
-  #     - a dedicated leg pinned to the v2.0.0 TAG, with no skip_tests and no
-  #       duckdb_tag, RUNS the suite on linux_amd64: `ran tests: 162 passed,
-  #       5 skipped`.
+  # v1.18.0 CHANGED OUTPUT, so re-measure if you pin values. ast_type_map()
+  # gained a `native_strategy` column at index 8, which moves `flags` from 8 to
+  # 9. Four native-extraction paths that returned populated but WRONG values now
+  # return correct ones: python type annotations, swift call arguments, and lua
+  # local visibility and modifier scope. v1.18.1 adds an opt-in `peek :=`
+  # parameter to ast_select and corrects the ast_unparse documentation.
+  # Notes: https://github.com/teaguesterling/sitting_duck/blob/main/docs/releases/v1.18.1.md
   #
-  # That second leg is new since the previous release, which had no 2.0 test
-  # evidence at its ref. 2.0 test coverage is linux_amd64 only; Windows, macOS
-  # and wasm on the 2.0 line are compile-checked, not tested.
+  # EVIDENCE: run 42732006631 on the extension repo, at the commit `ref` names, is
+  # completed/success: 29 jobs success, 3 skipped, none otherwise. It covers
+  # eight build platforms -- linux_amd64, linux_arm64, osx_arm64, windows_amd64,
+  # windows_amd64_mingw, wasm_mvp, wasm_eh, wasm_threads -- plus a second
+  # linux_amd64 leg for v2.0 test coverage. The 3 skipped are
+  # `matrix.duckdb_arch` placeholders on that second leg.
+  # https://github.com/teaguesterling/sitting_duck/actions/runs/42732006631
   #
-  # ONE FIX WORTH NAMING, because it was invisible on Linux. The header
-  # generator read the .sql sources with the locale's encoding. On a Windows
-  # runner that is cp1252, which breaks the em-dash separator in a macro's
-  # banner comment, so one macro silently lost its description there and only
-  # there -- 57 of 58 documented macros, with no error on either side. The
-  # reads and the write are now pinned to UTF-8, and both decodings produce
-  # byte-identical headers.
+  # The suite RUNS against DuckDB v2.0.0 -- the version this registry builds --
+  # on five legs, with identical counts. Job ids are quoted because this matrix
+  # has TWO jobs per display name, and only one of each pair runs tests. Which
+  # one is not predictable from the id order, so the display name alone cannot
+  # tell you whether a platform was tested:
   #
-  # STILL TRUE, AND THE REASON `variegata` IS SET: ast_select is 28x slower
-  # per call on the 2.0 line. Measured against this registry's own pinned
-  # commit, d54cbbe3df17, with one variable changed: 0.448 s per call on
-  # v1.5.6 against 12.537 s. The cost is planning, not execution. Under
-  # EXPLAIN ANALYZE every operator reports 0us on both lines. PREPARE does
-  # not amortize it either: on the 2.0 line each EXECUTE costs the full
-  # 12.6 s again, while v1.5.6 drops to 0.117 s. It is an upstream planner
-  # regression, duckdb/duckdb#26036.
+  #   linux_amd64          129552187924   182 passed, 5 skipped in 523s
+  #   linux_amd64 (v2.0)   129552193217   182 passed, 5 skipped in 386s
+  #   osx_arm64            129562295794   182 passed, 5 skipped in 680s
+  #   windows_amd64        129562296053   182 passed, 5 skipped in 895s
+  #   windows_amd64_mingw  129562296077   182 passed, 5 skipped in 639s
   #
-  # It no longer reproduces on duckdb main. Built against main at ed0443f18a
-  # with the same extension source, the call costs 1.192 s. That fix is on
-  # main only. It is not on the v2.0-cyanoptera branch and not in any
-  # release, so it does not reach this registry's 2.0 builds yet.
+  # A separate job runs the C++ unit tests with the runtime-grammar directory
+  # set, job 129552079027: All tests passed (10028 assertions in 187 test
+  # cases). That is the same total this job reported at v1.18.3, so v1.18.4
+  # adds no assertions and loses none.
   #
-  # So on the 2.0 default this extension builds, loads and answers correctly,
-  # and its headline feature is much slower. `variegata` keeps a v1.5.6
-  # artifact available while that stands.
-  ref_next: cee95ef6eeb33aa6c25527769d3ebf97898aa994
+  # SIDE EVIDENCE for the planning fix, from this registry's own build system.
+  # The same suite on the same four platforms took 1423s, 4463s, 5170s and
+  # 5220s at v1.18.3, against 523s, 680s, 895s and 639s here. CI wall time is
+  # NOT a controlled measurement -- two runs of identical code have differed by
+  # 1.6x before -- so the exact ratios mean little. The direction and the scale
+  # agree with the per-call figures above, on a 182-test suite rather than one
+  # selector.
+  #
+  # The rest is COMPILE evidence, stated so a green "Test" step is not
+  # over-read. Every leg not listed above has a green Test step that runs
+  # nothing, and says so in the harness's own words: "Tests are not supported
+  # for linux_arm64." (129552187818), "The Wasm distribution job has no test
+  # target." (wasm_mvp 129562295898, wasm_eh 129562295923, wasm_threads
+  # 129562296013), and "Tests skipped by workflow input." on the duplicate leg
+  # of every platform.
+  ref_next: c2a386367fb3e4c0d5b55866322c2ba34fe7db9a
 docs:
   hello_world: |
     -- Parse Python code and find function definitions

@@ -1,0 +1,38 @@
+extension:
+  name: duckwake
+  description: Real-time DuckLake tables, exactly once. Keeps SQL views over Kafka as DuckLake tables, updated every few seconds.
+  version: 0.2.0
+  language: Rust
+  build: cmake
+  license: MIT
+  excluded_platforms: "windows_amd64_rtools;windows_amd64_mingw;windows_amd64;wasm_threads;wasm_eh;wasm_mvp;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - harrydevforlife
+
+repo:
+  github: duckwake/duckwake
+  ref: 16ec8d6b32e27312733d51ca2caadaa55619802f
+
+docs:
+  hello_world: |
+    -- A DuckLake catalog in PostgreSQL and a Kafka topic of JSON events.
+    CALL duckwake_connect('ducklake:postgres:dbname=lake host=localhost user=lake password=lake', data_path := 'lake_data/');
+    CALL duckwake_create_source('clicks', 'kafka', '{"brokers":"localhost:9092","topic":"clicks","event_time":"ts",
+      "columns":{"ts":"TIMESTAMP","game_id":"VARCHAR","amount":"DECIMAL(18,2)"}}');
+    CALL duckwake_create_view('analytics.clicks_per_min',
+      'SELECT window_start, game_id, count(*) AS n, sum(amount) AS revenue
+       FROM TUMBLE(clicks, ts, INTERVAL 1 MINUTE) GROUP BY ALL');
+    CALL duckwake_worker_start();
+    CALL duckwake_start('analytics.clicks_per_min');
+    FROM duckwake_jobs();
+  extended_description: |
+    DuckWake keeps a SQL view's table in a DuckLake lake current as events arrive from Kafka. Each epoch (every
+    10 seconds by default) commits the view's new rows, its state and the Kafka offsets in one DuckLake
+    transaction, so a crash never loses or repeats an event, and `duckwake_verify` checks a view against its
+    query run as one batch. Views can filter, join lake tables, aggregate over tumbling and hopping windows or
+    per group, and read other views and lake tables through their change feed.
+
+    The extension runs a worker inside the DuckDB process (`duckwake_worker_start`); the same engine also runs
+    as the `duckwaked` server and the `duckwake` CLI. It needs a DuckLake catalog in PostgreSQL and Kafka
+    (JSON messages). Documentation: https://duckwake.github.io

@@ -1,7 +1,7 @@
 extension:
   name: opendal
-  description: Access S3, local filesystem, and other storage services through Apache OpenDAL
-  version: "0.1.0"
+  description: Access S3, GCS, Azure, HTTP, local filesystem, and other storage services through Apache OpenDAL
+  version: "0.2.0"
   language: C++ & Rust
   build: cmake
   license: MIT
@@ -15,7 +15,7 @@ extension:
 
 repo:
   github: chitralverma/duckdb-opendal
-  ref: 6e998efad81618458518fbc061f1797354f13c56
+  ref: 6536e4d6e13bd09edee1b349fd30f775b074046d
 
 docs:
   hello_world: |
@@ -47,8 +47,10 @@ docs:
 
     - **`fs://`** / **`file://`** — Local filesystem
     - **`s3://`** — Amazon S3 and S3-compatible stores (MinIO, R2, etc.)
+    - **`gcs://`** — Google Cloud Storage
+    - **`azblob://`**, **`azdls://`**, **`azfile://`** — Azure Blob Storage, Data Lake Gen2, Files
+    - **`http://`** / **`https://`** — HTTP servers (read-only)
     - **`memory://`** — In-memory storage (useful for testing)
-    - more services coming soon
 
     ### Key Features
 
@@ -64,8 +66,8 @@ docs:
     - **Configurable layers** — retry, timeout, I/O concurrency, and caching
       (in-memory via foyer, optional on-disk tier)
     - **Global settings** for default I/O, retry, timeout, and cache configuration
-    - **Coexistence** with DuckDB's native `httpfs` extension via
-      `opendal_override_native_filesystems` setting
+    - **Coexistence** with other filesystem extensions such as `httpfs` via the
+      `opendal_override_schemes` setting
     - **DuckDB FileSystem logging** integration for structured I/O tracing
 
     ### Configuration Example

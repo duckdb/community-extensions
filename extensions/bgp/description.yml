@@ -1,0 +1,46 @@
+extension:
+  name: bgp
+  description: BGP AS-path and community helpers in SQL — path length, origin AS, prepend count, membership test, RFC 8092 large-community classification
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-bgp
+  ref: efc37b947cf628912b036f2e7b1f51761550b696
+  ref_next: efc37b947cf628912b036f2e7b1f51761550b696
+
+docs:
+  hello_world: |
+    INSTALL bgp FROM community;
+    LOAD bgp;
+
+    SELECT bgp_path_length('100 200 300');        -- 3
+    SELECT bgp_origin_asn('100 200 300');          -- 300
+    SELECT bgp_as_path_prepends('100 100 100 200');-- prepends
+    SELECT bgp_path_contains('100 200 300', 200);  -- true
+
+    SELECT bgp_community_parse('65001:100');       -- STRUCT(asn, value)
+    SELECT bgp_is_large_community('65001:100:5');  -- true
+
+  extended_description: |
+    ## bgp — route-policy primitives in SQL
+
+    AS-path and community attributes are the workhorse of route-policy
+    analysis. No Python, no bgpkit-parser script, no hand-rolled split.
+
+    | Function | Returns | Notes |
+    |---|---|---|
+    | `bgp_path_length(path)` | BIGINT | Number of AS hops |
+    | `bgp_origin_asn(path)` | BIGINT | Last AS in the path |
+    | `bgp_as_path_prepends(path)` | BIGINT | Prepend count |
+    | `bgp_path_contains(path, asn)` | BOOLEAN | Transit membership test |
+    | `bgp_community_parse(community)` | STRUCT | `asn` + `value`, NULL if malformed |
+    | `bgp_is_large_community(community)` | BOOLEAN | RFC 8092 `a:b:c` form |
+
+    →  [GitHub](https://github.com/alitrack/duckdb-bgp)
