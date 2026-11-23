@@ -19,7 +19,7 @@ repo:
 docs:
   hello_world: |
     -- Country data files are free downloads: https://gridpin.dev
-    -- (the United States, Canada, Germany, France, Italy, Spain, Australia, Mexico, the Netherlands, Brazil and Serbia today; one file per country.)
+    -- (Australia, Brazil, Canada, France, Germany, Italy, Mexico, the Netherlands, New Zealand, Poland, Serbia, Spain and the United States today; one file per country.)
     LOAD gridpin_ext;
 
     -- Point the extension at a downloaded sheet. One sheet is loaded at a time.
