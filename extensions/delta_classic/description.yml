@@ -1,7 +1,7 @@
 extension:
   name: delta_classic
   description: Attach a directory of Delta tables as a single DuckDB database with automatic schema discovery
-  version: 0.2.0
+  version: 0.3.0
   language: C++
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 repo:
   github: djouallah/delta_classic
   andium: 27b979b1f1c161c767f3bb24d9ee67fe28a2f16c
-  ref: 3b930e3dd1aded4738c65410bf5026693e862e56
+  ref: 978446fec90702a754c590aaf29db833427783b4
 
 docs:
   hello_world: |
@@ -21,31 +21,45 @@ docs:
     LOAD delta_classic;
 
     -- Attach a directory of Delta tables as a single database
-    ATTACH 's3://bucket/lake' AS mydb (TYPE delta_classic, PIN_SNAPSHOT);
+    -- (lake/sales/orders/_delta_log, lake/hr/people/_delta_log, ...)
+    ATTACH 's3://bucket/lake' AS lake (TYPE delta_classic);
 
-    -- Query tables directly
-    SELECT * FROM mydb.main.orders LIMIT 10;
+    -- Query tables directly: <db>.<schema>.<table>
+    SELECT * FROM lake.sales.orders LIMIT 10;
 
     -- Time travel on one table
-    SELECT count(*) FROM mydb.main.orders AT (VERSION => 3);
+    SELECT count(*) FROM lake.sales.orders AT (VERSION => 3);
 
     -- Read every table as of a point in time
     ATTACH 's3://bucket/lake' AS asof (TYPE delta_classic, TIMESTAMP '2026-10-01 00:00:00+00');
+
+    -- Write: read-only by default, READ_ONLY false allows CREATE SCHEMA, CREATE TABLE (AS) and INSERT
+    ATTACH 's3://bucket/lake' AS rw (TYPE delta_classic, READ_ONLY false);
+    CREATE SCHEMA rw.staging;
+    CREATE TABLE rw.staging.orders_2026 AS SELECT * FROM rw.sales.orders WHERE year(order_date) = 2026;
   extended_description: |
     Delta Classic lets you attach a directory of Delta Lake tables as a single
     DuckDB database, instead of attaching each table individually. It discovers
     tables by scanning for subdirectories containing a _delta_log folder.
 
-    The extension supports three layouts:
+    The extension supports these layouts:
     - Single table: the attached path is itself a Delta table
     - Single-schema: the attached path directly contains Delta tables
     - Multi-schema: the attached path contains subdirectories, each treated as
-      a schema, with Delta tables inside them
+      a schema, with Delta tables inside them. A directory inside a schema that
+      is not a table is a nested schema (db.sales.eu.orders)
+    - Microsoft Fabric: a OneLake workspace attaches as
+      <workspace>.<lakehouse>.<schema>.<table>, a lakehouse as
+      <lakehouse>.<schema>.<table>
 
-    All Delta reading is delegated to the Delta extension via internal
-    ATTACH ... (TYPE DELTA). The ATTACH options PIN_SNAPSHOT, TIMESTAMP,
-    PUSHDOWN_FILTERS and PUSHDOWN_PARTITION_INFO are passed to every table, and
-    AT (VERSION => ...) / AT (TIMESTAMP => ...) work per query. Works with all
-    storage backends (local filesystem, S3 and S3-compatible stores, ABFSS, GCS).
-    Read-only. Not available in DuckDB-WASM, because the Delta extension has no
-    WASM build.
+    All Delta reading and writing is delegated to the Delta extension via
+    internal ATTACH ... (TYPE DELTA). The ATTACH options PIN_SNAPSHOT,
+    TIMESTAMP, PUSHDOWN_FILTERS and PUSHDOWN_PARTITION_INFO are passed to every
+    table, and AT (VERSION => ...) / AT (TIMESTAMP => ...) work per query.
+    Works with all storage backends (local filesystem, S3 and S3-compatible
+    stores, GCS, Azure and OneLake).
+
+    Read-only by default. Attached with READ_ONLY false, CREATE SCHEMA,
+    CREATE TABLE, CREATE TABLE AS SELECT and INSERT write Delta tables in the
+    schema directories; UPDATE, DELETE, MERGE and DROP are not supported. Not
+    available in DuckDB-WASM, because the Delta extension has no WASM build.
