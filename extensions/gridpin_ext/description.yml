@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: gridpin/duckdb-gridpin
-  variegata: 38cac3e7895f3579e851deae295d097ca5698d22
-  ref: 38cac3e7895f3579e851deae295d097ca5698d22
+  variegata: b548065337b09a0ed9a2d34cc470563937be9e3b
+  ref: b548065337b09a0ed9a2d34cc470563937be9e3b
 
 docs:
   hello_world: |
