@@ -1,0 +1,78 @@
+extension:
+  name: charset
+  description: "Character-encoding detection, transcoding & mojibake repair in SQL — chardetng detection, WHATWG/encoding_rs codecs, UTF-8 validity"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-charset
+  ref: 09d85c919e0a73081e8131ca1fe96eb00a324f49
+
+docs:
+  hello_world: |
+    LOAD charset;
+
+    -- Guess the encoding of a blob of windows-1252 "cafe" bytes and read it back
+    SELECT detect_encoding(from_hex('636166e9')) AS detected;  -- windows-1252
+    SELECT to_utf8(from_hex('636166e9'))         AS text;      -- cafe
+
+    -- Explicit-label decode (e.g. a Shift_JIS byte stream)
+    SELECT to_utf8_from(from_hex('93fa967b8cea'), 'shift_jis') AS text;
+
+    -- Encode for export (cafe -> windows-1252 bytes, round-trips losslessly)
+    SELECT to_utf8_from(transcode('cafe', 'windows-1252'), 'windows-1252') AS back;
+
+    -- Repair garble: "Cafe" with a mojibake e is what you get when
+    -- UTF-8 "Cafe" is misread as 1252
+    SELECT fix_mojibake('Caf\u00c3\u00a9') AS fixed;
+
+    -- Validate and enumerate
+    SELECT is_valid_utf8(from_hex('636166e9'));  -- false (0xE9 alone is not UTF-8)
+    SELECT count(*) FROM supported_encodings();  -- 40
+
+  extended_description: |
+    ## charset — Character-encoding detection & transcoding in SQL
+
+    Guess the encoding of a `BLOB` of raw bytes, decode it to UTF-8,
+    encode a string back to a target codec, check UTF-8 validity, and
+    repair the classic "UTF-8 misread as Windows-1252" garble.
+
+    Built on two battle-tested pure-Rust libraries that ship with Firefox:
+
+    - **`chardetng`** — the heuristic encoding *detector* (a Rust port of
+      the Mozilla chardet-style guesser).
+    - **`encoding_rs`** — the WHATWG Encoding Standard *codec* library
+      (decodes/encodes every web-platform label, with lossy U+FFFD /
+      HTML-ref handling for unmappable input).
+
+    The engine is ported verbatim from the MIT-licensed
+    [Query-farm `vgi-charset`](https://github.com/Query-farm/vgi-charset)
+    VGI worker; only the Arrow IPC transport layer was replaced with
+    direct DuckDB C-API vector I/O (via
+    [quack-rs](https://github.com/tomtom215/quack-rs)). No VGI, no Arrow
+    IPC, no JSON shims.
+
+    **8 Functions:**
+
+    | Function | Signature | Returns | Notes |
+    |----------|-----------|---------|-------|
+    | `detect_encoding` | `(bytes BLOB)` | `VARCHAR` | BOM first, then chardetng. Empty/NULL -> NULL |
+    | `detect_confidence` | `(bytes BLOB)` | `DOUBLE` | `[0,1]` decode-cleanliness proxy. Empty -> 0.0 |
+    | `is_valid_utf8` | `(bytes BLOB)` | `BOOLEAN` | strict `from_utf8` check |
+    | `to_utf8` | `(bytes BLOB)` | `VARCHAR` | decode with *detected* encoding. Undecodable -> U+FFFD |
+    | `to_utf8_from` | `(bytes BLOB, label VARCHAR)` | `VARCHAR` | decode with *explicit* label. Unknown label -> SQL error |
+    | `transcode` | `(text VARCHAR, to_encoding VARCHAR)` | `BLOB` | encode a string to bytes. Unknown label -> SQL error |
+    | `fix_mojibake` | `(text VARCHAR)` | `VARCHAR` | repair UTF-8 -> 1252 double-encoding; no-op if unsure |
+    | `supported_encodings` | `()` | `table(encoding)` | the 40 WHATWG/`encoding_rs` canonical labels |
+
+    NULL/error policy: `to_utf8` / `to_utf8_from` never error on *dirty*
+    bytes — undecodable bytes become U+FFFD. Only an **unknown encoding
+    label** raises a SQL error. `fix_mojibake` is conservative: it repairs
+    only when the re-decode provably reduces mojibake markers, otherwise
+    it returns the input unchanged.
