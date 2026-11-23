@@ -1,7 +1,7 @@
 extension:
   name: decide
   description: Filter, classify, and score text with OpenAI Decisions, TypeSafe Jev, or Cloudflare Clef
-  version: 0.2.1
+  version: 0.2.2
   language: C++
   build: cmake
   license: MIT
@@ -10,8 +10,8 @@ extension:
     - gzheng92
 repo:
   github: gzheng92/duckdb-decide
-  # Validated DuckDB 2.0.0 source revision: the v0.2.1 release commit.
-  ref: a520e4b0a4aa9e7a1ed20e8fd825108f7e6ecd3a
+  # Validated DuckDB 2.0.0 source revision: the v0.2.2 release commit.
+  ref: 03e8fe1da3153f9eb3cac2eb692fc876d2bdf08e
 docs:
   hello_world: |
     -- OpenAI example; use your own API key.
@@ -27,7 +27,20 @@ docs:
     explicit multi-question JSON answers. `SELECT * FROM decision_providers()`
     lists the providers, models, and credential names.
     Typed functions batch 20 rows per request by default; set
-    `decisions_batch_size = 1` for independent row evaluation.
+    `decisions_batch_size = 1` for independent row evaluation. Identical rows
+    in a chunk are sent once, and requests run 4 at a time by default
+    (`decisions_concurrency`, 1 to 32); Ctrl-C cancels requests in flight.
+
+    `decision_choice_detail` and `decision_score_detail` also return the
+    provider's confidence, a probability for each label, and the model version
+    that answered, for routing uncertain rows to review:
+
+    ```sql
+    SELECT d.choice, d.confidence, d.probabilities['billing'] AS billing, d.model
+    FROM (SELECT decision_choice_detail('I was charged twice.', 'Which team?',
+                                        ['support', 'billing', 'shipping']) AS d);
+    ```
+
     Non-NULL inputs and instructions are sent to the selected provider and can
     incur API charges.
 
@@ -56,10 +69,9 @@ docs:
                          'Does this report physical damage?') AS probability;
     ```
 
-    Clef caps requests at 64 questions. Neither Jev nor Clef returns refusal
-    answers. All providers accept text only.
+    Requests respect provider-specific limits; Clef caps requests at 64 questions.
+    Neither Jev nor Clef returns refusal answers. All providers accept text only.
 
-    No API key is required to build or run the offline tests.
     This is an independent integration, not an official extension of OpenAI,
     TypeSafe, or Cloudflare.
     See the [README](https://github.com/gzheng92/duckdb-decide#readme)
