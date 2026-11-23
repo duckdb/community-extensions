@@ -1,7 +1,7 @@
 extension:
   name: anofox_similarity
-  version: 2026.09.26
-  description: Multi-modal product similarity search for manufacturing supply chain planning. Find similar materials by BOM component overlap (Jaccard), graph-structural similarity (Weisfeiler-Lehman kernel), text embeddings, and transactional patterns, with predecessor detection and cold-start analog matching for demand forecasting.
+  version: 2026.11.22
+  description: "Multi-modal product similarity search for manufacturing supply chain planning. Find similar materials by BOM component overlap (Jaccard), graph-structural similarity (Weisfeiler-Lehman kernel), text embeddings, and transactional patterns, with predecessor detection and cold-start analog matching for demand forecasting. Requirements coverage matching: direction-aware value checks with units (EN/DE), property trees from JSON, a traced coverage kernel with gap lists, catalogue classification with your own vectors, vocabulary review, evaluation, and MinHash/LSH recall. Asset Administration Shell (AAS v3): read JSON/XML/AASX, match on ECLASS / IEC CDD ids, check data quality, and write results back as AAS."
   language: C++
   build: cmake
   license: BSL 1.1
@@ -11,7 +11,8 @@ extension:
 
 repo:
   github: DataZooDE/anofox-similarity
-  ref: f519db0d5eca24dbd979d69a4e6bd38c24851629
+  ref: d7f8e29ce54c8f3984e5c325ccba0cacba48dfaa
+  variegata: d7f8e29ce54c8f3984e5c325ccba0cacba48dfaa
 
 docs:
   hello_world: |
@@ -26,8 +27,7 @@ docs:
     SELECT material_id, similarity, shared_components, total_components
     FROM find_similar_materials_jaccard('PUMP-A', 3, bom_table := 'bom_items')
     ORDER BY similarity DESC;
-    -- PUMP-B   0.75  3  4   (high overlap)
-    -- PUMP-C   0.0   0  5   (disjoint)
+    -- PUMP-B   0.75  3  4   (PUMP-C shares nothing and is left out; min_similarity := 0 keeps it)
 
     -- Structural similarity that also weighs BOM topology, not just component sets
     SELECT wl_kernel_similarity('PUMP-A', 'PUMP-B', iterations := 3, bom_table := 'bom_items');
@@ -52,10 +52,21 @@ docs:
       embedding signals into one fusable vector, indexable with DuckDB's `vss`
       extension via the bundled HNSW index helpers.
 
-    SAP (MARA/MAKT/MAST/STKO/STPO) and Dynamics 365 transformation macros
-    (`sap_to_bom_items`, `sap_to_materials_with_desc`, ...) normalize common
+    SAP (MARA/MAKT/MAST/STKO/STPO/STAS) and Dynamics 365 (BOMVersion, BOM
+    lines) readers (`sap_to_bom_items`, `dynamics365_to_bom_header`, ...) turn
     ERP exports into the BOM/material schema the rest of the extension expects,
-    so integration is mostly `SELECT * FROM sap_to_bom_items(...)`.
+    applying BOM categories, alternatives, versions on a reference date and
+    deletion flags, so integration is mostly `SELECT * FROM sap_to_bom_items(...)`.
+
+    Requirements coverage matching answers "which past programme or supplier
+    offer covers this request, and what is missing": `tree_coverage` scores
+    property trees with unit- and direction-aware value checks and returns a
+    gap list. Supplier offers and requests can come straight from Asset
+    Administration Shells (`aas_to_trees`, `aas_issues`, `aas_quality`), and a
+    match can be written back as an AAS CoverageResult submodel.
+
+    A Claude Code plugin with six skills (in the repository) teaches an AI
+    assistant to write correct SQL for the extension.
 
     All table functions accept a fully qualified read-only DuckDB database and
     degrade gracefully when optional companion extensions (`anofox_forecast`

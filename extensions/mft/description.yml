@@ -1,0 +1,43 @@
+extension:
+  name: mft
+  description: NTFS $MFT inspection in SQL — parse record headers, triage well-formedness and reconstruct file paths straight from read_blob('$MFT')
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - alitrack
+
+repo:
+  github: alitrack/duckdb-mft
+  ref: 89a129feb308dbd9600be382dccd6f5d79600714
+  ref_next: 89a129feb308dbd9600be382dccd6f5d79600714
+
+docs:
+  hello_world: |
+    INSTALL mft FROM community;
+    LOAD mft;
+
+    -- Wire it to a carved $MFT: the table is just a BLOB column
+    --   SELECT mft_record_header(read_blob('$MFT'), 12);
+    --   SELECT mft_full_path(read_blob('$MFT'), 12);
+
+    -- Self-contained probe: garbage input is reported, never crashes
+    SELECT (mft_well_formed(CAST('garbage' AS BLOB), 0)).ok;
+
+  extended_description: |
+    ## mft — NTFS Master File Table in SQL
+
+    The $MFT is the NTFS file system's heart: every file's timestamps, size,
+    stream layout and path. These are the first inspection primitives a DFIR
+    analyst needs, as SQL functions over a BLOB column.
+
+    | Function | Returns | Notes |
+    |---|---|---|
+    | `mft_record_header(mft, n)` | STRUCT | Signature, flags, in_use, is_dir, sequence, timestamps |
+    | `mft_well_formed(mft, n)` | STRUCT | `ok` / `kind` / `error` triage |
+    | `mft_full_path(mft, n)` | VARCHAR | Reconstructed parent path for the entry |
+
+    →  [GitHub](https://github.com/alitrack/duckdb-mft)

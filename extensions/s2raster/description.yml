@@ -13,6 +13,7 @@ extension:
 repo:
   github: alitrack/duckdb-s2raster
   ref: 80bd487da7cab44f34f2c40fbce380db91f10ed5
+  ref_next: 80bd487da7cab44f34f2c40fbce380db91f10ed5
 
 docs:
   hello_world: |

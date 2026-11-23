@@ -1,20 +1,22 @@
 extension:
   name: dc
   description: Compose fast bounded judgments, semantic resolution, and selective LLM reasoning with provenance
-  version: 0.2.1
+  version: 0.2.2
   language: C++
   build: cmake
   license: Apache-2.0
   maintainers:
     - prasanthj
-  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_mingw;windows_amd64_rtools"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools"
+  opt_in_platforms: "linux_arm64;osx_amd64;osx_arm64"
   requires_toolchains: vcpkg
   vcpkg_commit: 84bab45d415d22042bd0b9081aea57f362da3f35
 
 repo:
   github: prasanthj/duckdb-dual-cognition
-  ref: 158494419be2003894f8907dd32e1d1e7b753274
-  andium: 158494419be2003894f8907dd32e1d1e7b753274
+  ref: 8a4c282095efbf0e7ff5dd744940b917ab678104
+  variegata: 8a4c282095efbf0e7ff5dd744940b917ab678104
+  andium: 8a4c282095efbf0e7ff5dd744940b917ab678104
 
 docs:
   hello_world: |

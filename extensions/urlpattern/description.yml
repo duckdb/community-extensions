@@ -1,7 +1,7 @@
 extension:
   name: urlpattern
   description: WHATWG URLPattern API for matching and extracting components from URLs using pattern syntax
-  version: 0.4.2
+  version: 0.4.3
   language: C++
   build: cmake
   license: MIT
@@ -12,26 +12,53 @@ extension:
 
 repo:
   github: teaguesterling/duckdb_urlpattern
-  ref: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
-  # ref_next == ref (deliberate): make test_against_latest build+test this release
-  # against DuckDB v2.0-cyanoptera instead of skipping the prerelease leg.
-  ref_next: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
-  andium: bc9864b9fad37bffe15f7499fc5b9021e970eaf8
-  # andium (DuckDB v1.4.5 track) left at the pre-v1.5-variegata commit;
-  # v0.4.1 targets the v1.5.x line and ships on that track via ref.
-  # raw commit for refs/tags/v0.4.1 (catalog refs must not be movable tags)
-  # ref_next makes the PRERELEASE leg actually build against DuckDB v2.0.
-  # Without it scripts/build.py prints "Skipping prerelease validation" and the
-  # run passes green having verified nothing on that line.
+  # THE THREE KEYS NOW MEAN DIFFERENT THINGS THAN THEY DID WHEN THIS DESCRIPTOR WAS
+  # LAST TOUCHED. #3079 (merged 2026-10-15) changed build.yml's default duckdb_version
+  # from the v1.5.6 tag to a pinned DuckDB commit, so per scripts/build.py:42-54:
   #
-  # Deliberately NOT the same commit as ref. v0.4.1 (ref, tagged 2026-07-19)
-  # predates the v2.0 compat work: it assigns ScalarFunction::varargs and
-  # ::null_handling as public fields, which v2.0-cyanoptera moved into
-  # FunctionSignature behind Get/SetVarArgs and Get/SetNullHandling. Commit
-  # 25284e3 (2026-09-05) routes those through feature-detecting helpers in
-  # src/include/duckdb_compat.hpp. ref_next therefore points at current main,
-  # so the prerelease leg validates the code that actually compiles on v2.0,
-  # while ref keeps shipping the released v0.4.1 on the stable line.
+  #   ref        -> the DEFAULT build, i.e. the DuckDB 2.0 line today
+  #   variegata  -> the DuckDB v1.5.6 build. NOTE: this path has no skip branch, so
+  #                 without this key a v1.5.6 build silently falls back to `ref`.
+  #   andium     -> the DuckDB v1.4.5 track (left where it was; v0.4.x targets v1.5+)
+  #
+  # ref = v0.4.3, which fixes the v2.0 build. variegata = v0.4.2 DELIBERATELY: see below.
+  ref: 0e14b580454ea92ff0120bdbac9ab836c407bd1b
+  variegata: 0b7dae3e564ffdaeb90f36407c8ab97e56d1175b
+  ref_next: 0e14b580454ea92ff0120bdbac9ab836c407bd1b
+  andium: bc9864b9fad37bffe15f7499fc5b9021e970eaf8
+  #
+  # WHAT v0.4.3 FIXES. urlpattern_init, url_build and url_modify take NAMED arguments
+  # (`url_build(protocol := 'https')`). DuckDB 2.0 changed both how such a function is
+  # declared and how it learns its argument names, and only the first was a compile error:
+  #   * SimpleFunction::varargs is gone. 2.0 splits it into AddArgs (VAR_POSITIONAL,
+  #     "*args") and AddKwargs (VAR_KEYWORD, "**kwargs"). These functions take keyword
+  #     arguments, so they declare AddKwargs plus SetRequiresExpressionNames(true) --
+  #     the same way DuckDB's own union_value is declared. Declaring *args instead
+  #     COMPILES CLEANLY and then fails at load ("A function signature can only have
+  #     one '*args' parameter"), so this could not be verified by building alone.
+  #   * Argument NAMES moved off aliases. On v1.5 a named argument's name is an alias on
+  #     the bound child (GetAlias()); on 2.0 aliases are empty and names come from
+  #     BindFunctionInput::GetArgumentNames(). Code that kept reading GetAlias() compiles
+  #     on 2.0 and then treats every argument as positional -- silently wrong.
+  # CORRECTION to this descriptor's previous comment, which claimed 2.0 moved varargs
+  # "behind Get/SetVarArgs": SetVarArgs NEVER LANDED. Probing for it silently selected
+  # the v1.5 branch, which is why the build failed at duckdb_compat.hpp:221 rather than
+  # taking a v2.0 path.
+  #
+  # WHY variegata < ref (the clickhouse_scanner pattern, not finetype's). v0.4.3 builds
+  # and passes on BOTH lines -- 0 errors and 162 assertions each, verified against
+  # b15358c371daf10dad799a43b6167f6ccdce84d8 (this registry's default) and against the
+  # repo's v1.5 pin b155d6f63ce. But the repo's v1.5 pin is v1.5.4-154, NOT the v1.5.6
+  # tag that this key builds, so there is no direct v1.5.6 evidence for v0.4.3. v0.4.2 is
+  # the released v1.5.6 line marker and is the commit this descriptor's `ref` named until
+  # now, i.e. exactly what v1.5.6 users already run (0b7dae3e, the raw commit for
+  # refs/tags/v0.4.2 -- NOT the annotated tag object dd0e7367, which the registry
+  # cannot resolve). Since v0.4.3
+  # changes nothing user-visible on v1.5, pinning variegata here costs them nothing and
+  # asserts only what was measured. Advance variegata once a v1.5.6 build is confirmed.
+  #
+  # ref_next == ref so test_against_latest builds this release rather than skipping the
+  # prerelease leg ("Skipping prerelease validation" passes green having verified nothing).
 
 docs:
   hello_world: |

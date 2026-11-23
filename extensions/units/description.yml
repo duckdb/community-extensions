@@ -1,0 +1,87 @@
+extension:
+  name: units
+  description: Physical unit conversion, unit and quantity parsing, dimensional compatibility, and measurement validation using UCUM
+  version: 0.3.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "windows_amd64;windows_amd64_rtools;windows_amd64_mingw;osx_amd64"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - sebastiaan-dev
+
+repo:
+  github: sebastiaan-dev/duckdb-units-rs
+  ref: 5403287d6456414058c63df5427768c88bf8d922
+
+docs:
+  hello_world: |
+    LOAD units;
+
+    -- Normalize mixed energy measurements. UCUM spells kilowatt-hour as kW.h.
+    SELECT site, round(unit_convert(value, source_unit, 'kW.h'), 6) AS kwh
+    FROM (VALUES
+      ('Plant A', 3600000.0, 'J'),
+      ('Plant B', 1250.0, 'W.h'),
+      ('Plant C', 2.5, 'kW.h')
+    ) AS readings(site, value, source_unit);
+
+    -- General compound expressions and dimensional compatibility.
+    SELECT unit_convert(1000, 'kg/m3', 'g/L') AS density_g_per_litre,
+           unit_compatible('Pa', 'kg/(m.s2)') AS pressure_matches;
+
+    -- Absolute temperatures and temperature differences are different operations.
+    SELECT unit_convert(20, 'Cel', '[degF]') AS absolute_fahrenheit,
+           unit_convert_delta(20, 'Cel', '[degF]') AS difference_fahrenheit;
+
+    -- Diagnostics without aborting a dirty-data scan.
+    SELECT unit_convert_checked(1, 'kg', 'm');
+    SELECT unit_parse_checked('Cel/s');
+
+    -- Parse measurement text with an explicit separator and no alias guessing.
+    SELECT quantity_parse('12.5 kg/m3');
+    SELECT quantity_parse_checked('1eV'); -- invalid_quantity; use '1 eV'
+
+    -- Discover registered units, including explicit support status.
+    SELECT unit, name, supported
+    FROM unit_search('pressure') ORDER BY unit;
+
+  extended_description: |
+    `units` is a native Rust extension for DuckDB 2.0.0 using C Extension API v2.
+    It provides measurement normalization with runtime unit columns, compound-unit
+    parsing, dimensional compatibility checks, and distinct conversion functions
+    for absolute temperatures and temperature differences. No worker process or
+    custom numeric type is required.
+
+    Unit definitions and parsing use the pinned `octofhir-ucum` 0.9.2 backend.
+    Syntax follows case-sensitive UCUM 2.2: use `kW.h`, `kg/m3`, `Cel`, and
+    `[degF]`. Human spellings are not guessed: `C` is coulomb, not Celsius;
+    `MW` and `mW` differ by a factor of one billion.
+
+    Strict conversion raises errors for invalid units and incompatible dimensions.
+    Checked conversion returns `STRUCT(value, status, message)`; checked parsing
+    returns `STRUCT(definition, status, message)`. Missing inputs have a distinct
+    `missing_input` status. This supports auditing and quarantining bad rows before
+    normalization. `quantity_parse()` parses a decimal value plus a UCUM unit;
+    `quantity_parse_checked()` returns `STRUCT(quantity, status, message)`.
+    Quantity text requires a space or tab between the number and unit, rejecting
+    ambiguous compact forms, locale-dependent numbers, and out-of-range values.
+
+    `units_catalog()` exposes 312 registered UCUM atoms with definitions and support
+    diagnostics; 253 currently pass the extension's conversion policy. Prefixes and
+    compound expressions extend beyond this finite catalog. `unit_search()` searches
+    codes, names, and properties for discovery, without changing strict parsing.
+
+    Compatibility checks dimensions, not semantic quantity kinds: energy and torque
+    are dimensionally compatible. Logarithmic and arbitrary units, affine-temperature
+    compounds, quantity algebra, and uncertainty propagation are deliberately outside
+    the current scope. SQL results are DOUBLE, not exact rational quantities.
+
+    This is a development version, not yet a production release. Project code is
+    licensed under MIT; third-party dependencies and UCUM data retain their
+    respective license terms.
+
+    See the [README](https://github.com/sebastiaan-dev/duckdb-units-rs#readme)
+    for the full API, numerical limits, and examples, and the
+    [roadmap](https://github.com/sebastiaan-dev/duckdb-units-rs/blob/main/docs/ROADMAP.md)
+    for release gates.

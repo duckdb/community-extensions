@@ -1,0 +1,40 @@
+extension:
+  name: cardinal
+  description: Better cardinality estimates for DuckDB's join-order optimizer, learned from your tables with Bayesian networks
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - MaxHalford
+
+repo:
+  github: MaxHalford/cardinal
+  ref: 4fcae2efa9ba7e1b2ed198af92e91599238e777b
+
+docs:
+  hello_world: |
+    -- Moderators, 1% of users, make half of the edits.
+    CREATE TABLE users AS SELECT range AS id, range % 100 = 0 AS moderator FROM range(10000);
+    CREATE TABLE edits AS
+    SELECT CASE WHEN range % 2 = 0 THEN (range // 2) % 100 * 100 ELSE range % 10000 END AS user_id
+    FROM range(100000);
+
+    -- The join's estimate is ~59,000 rows with cardinal, ~20,000 without. The true count is 50,000.
+    EXPLAIN SELECT count(*) FROM users u, edits e WHERE u.id = e.user_id AND u.moderator;
+
+    -- Plan without cardinal, for this connection.
+    SET cardinal_estimator = 'off';
+  extended_description: |
+    DuckDB picks a join order from estimates of how many rows each join produces. Those estimates
+    assume columns are independent, so on real data they can be off by orders of magnitude.
+
+    cardinal learns a Bayesian network per table, the first time a query needs it, and gives DuckDB
+    its estimates instead. There is nothing to configure. Results never change, only plans. On the
+    STATS-CEB benchmark, total runtime goes from 130 s to 67 s.
+
+    Models are saved in `~/.duckdb/extension_data/cardinal/`, never in your database. Only DuckDB
+    tables are estimated: queries on Parquet or CSV files are planned by DuckDB alone.
+
+    Documentation, benchmarks and limits: https://github.com/MaxHalford/cardinal

@@ -18,14 +18,17 @@
 extension:
   name: subtoken
   description: Text becomes tokens, tokens become vectors. Inside DuckDB, with no network, no key and no bill
-  version: 0.1.0
+  version: 0.2.0
   language: Rust
   build: cargo
   license: MIT
   # wasm: the artifact is a native cdylib and the bundled weights alone are 30 MB.
   # musl and windows_arm64 are opt-in in the distribution matrix and are not
-  # opted into. windows_amd64_mingw is excluded; windows_amd64 (MSVC) is not.
+  # opted into. osx_amd64 became opt-in in the DuckDB 2.0 matrix, and is opted
+  # into so Intel Macs keep a build. windows_amd64_mingw is excluded;
+  # windows_amd64 (MSVC) is not.
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw"
+  opt_in_platforms: "osx_amd64"
   # python3 backs the metadata-stamp venv the C-API build contract uses.
   requires_toolchains: "rust;python3"
   maintainers:
@@ -33,10 +36,14 @@ extension:
 
 repo:
   github: meridian-online/subtoken
-  ref: 3bf95680e23ba6ad23951023bd65432f53877485
+  ref: a0aa1d802ab3a6fdea67b4ec5453f6e916863bc0
   # The registry builds `ref_next` against the next DuckDB release before it
   # ships; without it that build skips and passes having built nothing.
-  ref_next: 3bf95680e23ba6ad23951023bd65432f53877485
+  ref_next: a0aa1d802ab3a6fdea67b4ec5453f6e916863bc0
+  # DuckDB 1.5.6 builds from `variegata`: the commit the v1 build was already
+  # published from, which targets the v1 C API. A build from `ref` would not
+  # load on 1.5.
+  variegata: 3bf95680e23ba6ad23951023bd65432f53877485
 
 docs:
   hello_world: |
@@ -83,6 +90,18 @@ docs:
     Being a scalar is the point. `subtoken_embed` composes with `WHERE` and `LIMIT`, so a
     filtered subset of a table can be embedded without materialising the rest,
     and it behaves the same over a local Parquet file as over a remote one.
+
+    ## Requirements
+
+    The extension needs DuckDB 2.0.0 exactly. DuckDB 2.0 ships its v2 C API as unstable, so a build loads only on the DuckDB release it was built for; each DuckDB release gets a rebuild. If you are on DuckDB 1.5, `INSTALL subtoken FROM community` fetches the earlier build, which stays pinned to the v1 commit it was published from.
+
+    `duckdb_functions()` describes each function, with real parameter names, a description, a runnable example and a category:
+
+    ```sql
+    SELECT function_name, parameters, description, examples, categories
+    FROM duckdb_functions()
+    WHERE function_name LIKE 'subtoken_%';
+    ```
 
     ## What it is good at, and what it is not
 

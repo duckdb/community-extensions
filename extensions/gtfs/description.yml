@@ -1,0 +1,22 @@
+extension:
+  name: gtfs
+  description: GTFS transit feed normalization, analysis, pathfinding and route geometry functions
+  version: 1.0.2
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - gabrielAHN
+
+repo:
+  github: gabrielAHN/gtfs-duckdb
+  ref: 55db96d0e602a790c9f339442611b29f3861bbee
+
+docs:
+  hello_world: |
+    SELECT route_type_to_name(3);
+  extended_description: |
+    GTFS DuckDB (gtfs) registers GTFS transit functions at LOAD and exposes explicit dataset lifecycle pragmas:
+    PRAGMA gtfs_prepare, PRAGMA gtfs_init and PRAGMA gtfs_refresh. Loading does not create or reset tables.
+    PRAGMA gtfs_import('feed') reads a GTFS folder and builds every table. Spatial geometry functions need the
+    spatial extension loaded. See https://github.com/gabrielAHN/gtfs-duckdb for the function reference.

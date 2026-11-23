@@ -1,16 +1,23 @@
 # Submission file for https://github.com/duckdb/community-extensions
 #
-# This update bumps salesforce from v0.19.1 to v0.19.2 (own-repo release
-# 2026-10-14: tag v0.19.2, commit 2c96c1916c6067d979f578c1b73d7872457425d3,
-# Release published with signed assets). Deltas: version + repo.ref bumped;
-# extended_description gains the v0.19.2 sentence (latest_date_covered
-# column, read_only ATTACH option, plan-time Id validation,
-# sf_timeout_read_s). Function count unchanged (28, all self-documented).
+# READY for maintainer review: v0.19.2 -> v0.20.2 community update. NOT live;
+# the real mirror stays at docs/community/description.yml (v0.19.2) until the
+# update PR is merged. Branch/push/PR require explicit approval of the exact
+# submission (gate C.5).
+#
+# repo.ref is pinned to the ACTUAL v0.20.2 tag commit
+# (`git rev-parse v0.20.2^{commit}`), not the annotated tag object.
+#
+# Deltas vs the live v0.19.2 descriptor: version + repo.ref bumped;
+# extended_description gains dual-line DuckDB v2.0.0 support, the v0.20.1
+# vector-cardinality/STRUCT validity correction, and the v0.20.2 provenance
+# note. Function count unchanged (28, all self-documented). The registry
+# builds against its own DuckDB pin; this source supports both 1.5.x and 2.0.
 
 extension:
   name: salesforce
   description: Read-only access to Salesforce orgs as DuckDB SQL tables over the official REST and Bulk APIs — OAuth refresh-token or JWT-bearer auth (credentials from inline options, environment variables, or an SFDX auth URL), native ATTACH, projection + predicate pushdown, COUNT pushdown, explicit server-side aggregates with GROUP BY, lazy/auto/Bulk transports with PK chunking (Bulk blob/base64 compatibility guard), a per-job API quota governor, parent + grandparent relationship STRUCT columns with diagnostics, queryAll (archived + deleted), Tooling-API fast schema, and metadata helpers (manual cache refresh, picklist values, record types). Requires DuckDB v1.5.4 or newer.
-  version: 0.19.2
+  version: 0.20.2
   language: C++
   build: cmake
   license: MIT
@@ -26,8 +33,8 @@ extension:
 repo:
   github: flozer/duckdb-salesforce
   # community-extensions CI checks out exactly this ref to build + sign.
-  # PLACEHOLDER - pin to the v0.19.2 tag commit before submitting.
-  ref: 2c96c1916c6067d979f578c1b73d7872457425d3
+  # tag v0.20.2
+  ref: 0c9c2620d7e0479cf9d499674187cd82bcb030d4
 
 docs:
   hello_world: |
@@ -65,9 +72,19 @@ docs:
     point), salesforce_relationship_graph recurses child relationships up to
     max_depth with cycle protection, and the Report Bridge resolves a report's
     base object from the official reportTypeMetadata when the first category
-    is unambiguous. Built and tested against DuckDB v1.5.4, v1.5.5 and
-    v1.5.6 (v1.5.2/v1.5.3 support was dropped in v0.15.0 — see CHANGELOG.md).
-    Full change history in this repo's CHANGELOG.md.
+    is unambiguous. Built and tested against DuckDB v1.5.4, v1.5.5, v1.5.6
+    AND v2.0.0 (dual-line: one source tree, version selected at build time;
+    v1.5.2/v1.5.3 support was dropped in v0.15.0 — see CHANGELOG.md). Full
+    change history in this repo's CHANGELOG.md.
+    Since v0.20.2, the vcpkg manifest version matches the release provenance;
+    this metadata-only patch carries the same runtime code as v0.20.1.
+    Since v0.20.1, DuckDB 2.0 table-function emissions synchronize logical
+    chunk cardinality with child vector sizes, and REST/Bulk relationship
+    decoders mark populated parent STRUCT values valid explicitly, fixing
+    projected STRUCT IS NULL results while preserving 1.5.x behavior.
+    Since v0.20.0, DuckDB v2.0.0 is a supported baseline alongside v1.5.x
+    (same features on both lines, including the transparent COUNT(DISTINCT)
+    pushdown, which recognizes 2.0's split-aggregate plan shape).
     Since v0.19.2, salesforce_deleted_ids returns latest_date_covered (the
     getDeleted coverage frontier, for wide-window sweep checkpoints), the
     read_only ATTACH option is accepted as a documented no-op (the catalog is

@@ -83,4 +83,5 @@ extension:
 repo:
   andium: e404bc8c0d0b204b2f58e0c954881bc0f7d4ec70
   github: quackscience/duckdb-extension-tsid
-  ref: 186b60f519f443362c940b8014c8b0f480421ed5
+  ref: cd697d31c4e2aca2aaf42fca81fcb3f37000fd09
+  variegata: bd6d432b71cf69017654d8ddd28dd57c8e25f4f5

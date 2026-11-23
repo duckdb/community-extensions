@@ -1,0 +1,61 @@
+extension:
+  name: llm_prices
+  description: LLM API token costs in SQL, offline. llm_cost(model, input_tokens, output_tokens) over a dated, source-cited price table of 146 models from 10 providers
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - Mattbusel
+
+repo:
+  github: Mattbusel/duckdb-llm-prices
+  ref: 1821f6afe37f7ea42713e4f726a36ace80d00247
+
+docs:
+  hello_world: |
+    -- One request: 1,200 input and 350 output tokens on gpt-4o, in USD
+    SELECT llm_cost('gpt-4o', 1200, 350);
+
+    -- With 18,000 input tokens read from the prompt cache
+    SELECT llm_cost('claude-sonnet-4-5', 2000, 400, 18000);
+
+    -- Spend per model from a usage log
+    SELECT llm_model_id(model) AS model, count(*) AS requests,
+           sum(llm_cost(model, input_tokens, output_tokens, cached_tokens)) AS usd
+    FROM 'usage/*.parquet'
+    GROUP BY ALL
+    ORDER BY usd DESC;
+
+    -- The price table, USD per 1M tokens
+    SELECT provider, model, input, output, cache_read, checked
+    FROM llm_prices()
+    WHERE status = 'listed'
+    ORDER BY output;
+  extended_description: |
+    Prices LLM API usage inside DuckDB. The extension bundles the
+    [llm-prices](https://crates.io/crates/llm-prices) table: one row per model for Anthropic,
+    OpenAI, Google, DeepSeek, Mistral, xAI, Cohere, Groq, Together AI and Fireworks AI, each
+    read from the provider's pricing page and dated. Prices are compiled in, so nothing is
+    fetched at query time, no key is needed, and it works in DuckDB-Wasm.
+
+    | Function | Returns |
+    | --- | --- |
+    | `llm_cost(model, input_tokens, output_tokens, cached_tokens := 0)` | USD cost of one request as `DOUBLE`, `NULL` for a model the table does not price |
+    | `llm_model_id(model, provider := '')` | the table's model id for a raw id, for joins |
+    | `llm_prices()` | one row per model: every price per 1M tokens, aliases, status, source URL and check date |
+    | `llm_prices_version()` | the date the bundled table was checked |
+
+    `input_tokens` are uncached input tokens (for OpenAI usage, `prompt_tokens` minus
+    `prompt_tokens_details.cached_tokens`) and `cached_tokens` are prompt-cache reads.
+    `llm_cost` also takes `cache_write_5m_tokens`, `cache_write_1h_tokens`, `batch := true`
+    for Batch API prices, and `provider := 'groq'` to pick one provider's row. Long-context
+    prices apply automatically above a model's threshold. Model ids match in any case and
+    with provider prefixes (`anthropic/`, `openrouter/`), Bedrock and Vertex ids, dated
+    snapshots and `-latest` aliases.
+
+    It pairs with extensions that call models from SQL (`ai`, `open_prompt`, `llm`) and with
+    usage exports from Langfuse, Helicone, gateways or OpenTelemetry `gen_ai` spans.
+    New llm-prices releases ship as version bumps of this extension.

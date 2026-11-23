@@ -1,0 +1,52 @@
+extension:
+  name: duckbridge
+  description: Bridge between SQL Server and DuckDB - import a SQL Server database, run T-SQL on DuckDB through a built-in translator, export back as a live load, a restorable .bak, PostgreSQL or Parquet
+  version: 0.1.2
+  language: Rust
+  build: cargo
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - singhpratech
+
+repo:
+  github: singhpratech/duckbridge-extension
+  ref: 5333079b7525f0d488ebcc36c16c27030df88950
+
+docs:
+  hello_world: |
+    -- T-SQL in, DuckDB SQL out (no connection needed)
+    SELECT bridge_transpile('tsql', 'duckdb', 'SELECT TOP 5 ISNULL(a, 0) FROM dbo.t');
+
+    -- SQL Server -> this DuckDB database, 8 parallel streams; identity columns become sequences
+    SELECT * FROM bridge_import('mssql://user:p%40ss@sql01:1433/Sales', parallel := 8);
+
+    -- run the team's T-SQL unchanged against DuckDB
+    SELECT * FROM bridge_run('SELECT c.id, SUM(o.amount) AS total INTO dbo.kpi
+                              FROM dbo.customers c JOIN dbo.orders o ON o.customer_id = c.id GROUP BY c.id;');
+
+    -- ship the result back: live load, clustered keys after the data, then a verified .bak
+    SELECT * FROM bridge_export('mssql://user:p%40ss@sql01:1433/Sales_kpi', tables := 'kpi',
+                                bak := '/var/opt/mssql/backup/Sales_kpi.bak', verify_restore := true);
+  extended_description: |
+    DuckBridge moves whole databases between SQL Server and DuckDB and translates the SQL in between,
+    so a team that lives in T-SQL can do its heavy processing in DuckDB and keep SQL Server as the
+    system of record.
+
+    Functions:
+    - `bridge_import(dsn, ...)`: copy a SQL Server database (tables, views, keys, identity values) into the
+      current DuckDB database with parallel key-range streams.
+    - `bridge_run(tsql, ...)`: translate a T-SQL script to DuckDB SQL and run it here, with a SQL Server
+      compatibility prelude (integer division, NULL ordering, case-insensitive comparisons, UTC).
+    - `bridge_export(target, ...)`: push tables to SQL Server (live load with bulk copy, or a restorable
+      `.bak` with optional restore verification), to PostgreSQL, to Parquet, or to a T-SQL script.
+    - `bridge_transpile(from, to, sql [, target_version])` and `bridge_prelude(nocase)`: the translator
+      and the prelude as plain functions. Dialects: `tsql`, `duckdb`, `postgres`.
+
+    SQL Server is reached natively over TDS (no ODBC or `bcp`), with Windows authentication by default
+    (`DOMAIN\user`, `user@domain`, or integrated login on Windows) and SQL logins otherwise. Passwords in
+    `mssql://` URLs are percent-encoded. The translator is DuckBridge's own; constructs it cannot translate
+    are reported, never silently changed. Every table function returns `(object, kind, rows, note)` rows.
+    The extension opens a pool of connections to the host database at load time, so `parallel` is capped
+    at 64. Source and CLI: https://github.com/singhpratech/duckbridge

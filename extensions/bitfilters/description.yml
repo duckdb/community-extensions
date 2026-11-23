@@ -14,4 +14,5 @@ extension:
 repo:
   andium: 57a34490474678f4d8706418d4a1c568da44068c
   github: query-farm/bitfilters
-  ref: 53bc84994882fdde2834e913b2367f9296040c79
+  ref: 17ff3ae7348579cba9a70ce2f184243b1a503c56
+  variegata: 9f6b837bde151e9bfb61e9e8297261cdf617b7f0

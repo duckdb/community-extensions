@@ -17,4 +17,5 @@ extension:
 repo:
   andium: 3c12d74372ff8e7f5b4577da7dce3c36aca0bb6f
   github: query-farm/airport
-  ref: 23f967d317f89a749c1e4ae68460f721141e0c0a
+  ref: d6aed16bf9a1787c26602f146dd92debd939f33e
+  variegata: dc4208dc3c544169def364f179771e8ef9e7d444

@@ -1,7 +1,7 @@
 extension:
   name: duckorch
   description: Asset-centric data orchestration with JSON ingestion, partitions, declarative automation sensor, Snowflake-compatible CREATE DYNAMIC ASSET, MCP server, lineage and OpenLineage emission — all on DuckDB
-  version: 0.3.0
+  version: 0.3.1
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: nkwork9999/duck-orch
-  ref: d9bc95f49410c86f3f07a2bf8d2982aecbbf3dd7
+  ref: 2fdc68e6cb2a36a7ad18ee0b23e2e1f7d27f5ddd
 
 docs:
   hello_world: |
@@ -138,3 +138,13 @@ docs:
     orch_ingest / orch_core / orch_cli / orch_mcp), keeping all logic in
     Rust while the
     C++ layer handles DuckDB-internal calls.
+
+    The source repository includes a Python daily-partition planner. It coalesces pending
+    days and propagates changes across registered dependencies using half-open date
+    windows. Applications provide a tenant-scoped DuckDB connection and a mapping of model
+    IDs to asset names.
+
+    The embedded Python API also covers durable partition reservations, asset-revision manifests,
+    idempotent publication and notification delivery, file-revision tracking, and shared quality scans.
+
+    [English project documentation](https://nkwork9999.github.io/duck-orch/).

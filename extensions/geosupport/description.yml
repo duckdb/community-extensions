@@ -1,0 +1,39 @@
+extension:
+  name: geosupport
+  description: NYC address, BBL, and BIN geocoding with explicitly versioned Geosupport engine and data bundles
+  version: 0.3.0
+  language: C++
+  build: CMake
+  license: MIT
+  requires_toolchains: "python3"
+  excluded_platforms: "linux_arm64;linux_amd64_musl;linux_arm64_musl;osx_amd64;osx_arm64;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - SPTKL
+
+repo:
+  github: SPTKL/duckdb-geosupport
+  ref: '5369d13a89c8b1ce96f6161d6adaf4093afe68ba'
+
+docs:
+  hello_world: |
+    SELECT release, engine_version, platform FROM gs_available_releases();
+  extended_description: |
+    Geocode New York City addresses, borough-block-lot numbers, and building
+    identification numbers using NYC Department of City Planning Geosupport.
+
+    Requires DuckDB 1.5.6+ and Linux x86-64 (glibc). The adapter embeds its native
+    worker; Python and Docker are not runtime requirements. NYC's engine and
+    quarterly data have separate terms and are not included in the extension.
+    Installing a bundle is explicit, uses pinned checksums, and needs several
+    GiB of disk. No bundle is downloaded by INSTALL or LOAD of the extension.
+
+    ```sql
+    CALL gs_install('26c');
+    SET VARIABLE geosupport_release = (SELECT bundle_id FROM gs_load('26c'));
+    SELECT gs_address('125', 'Worth St', 'Mn');
+    ```
+
+    External filesystem access, HTTPS downloads, and native worker execution
+    require enable_external_access=true. Native operations have timeouts but do
+    not yet stop promptly when a DuckDB query is interrupted. See the source README and
+    THIRD_PARTY_NOTICES.md for runtime requirements and licensing details.

@@ -21,4 +21,3 @@ jobs:
       duckdb_version: 'v2.0-cyanoptera'
       ci_tools_version: 'main'
       deploy: 'false'
-      require_ref_next: true

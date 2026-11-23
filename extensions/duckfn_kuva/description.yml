@@ -1,7 +1,7 @@
 extension:
   name: duckfn_kuva
   description: Statistical plotting in SQL - a thin wrapper around the Rust library kuva, with the statistical semantics of seaborn and ggplot2 but no Python or R environment, on every platform DuckDB runs (console, JVM, Python, Node, browser)
-  version: 0.2.0
+  version: 0.3.0
   language: Rust
   build: cargo
   license: MIT
@@ -11,8 +11,8 @@ extension:
 
 repo:
   github: shijianjs/duckfn-kuva
-  ref: 229292db2882927cbaaa209687d44f6117ba1065
-  ref_next: 229292db2882927cbaaa209687d44f6117ba1065
+  ref: 5fd677c70d5572f61eab5d44ce9a157708d15486
+  ref_next: 5fd677c70d5572f61eab5d44ce9a157708d15486
 
 docs:
   hello_world: |
@@ -34,7 +34,7 @@ docs:
     -- <svg xmlns="http://www.w3.org/2000/svg" ...> ... </svg>
   extended_description: |
     Renders statistical charts from SQL. The extension wraps the Rust plotting library kuva (SVG backend
-    only) and exposes it through three scalar functions, so charts work anywhere DuckDB runs - the CLI, a
+    only) and exposes it through five scalar functions, so charts work anywhere DuckDB runs - the CLI, a
     Python or R session, the JVM, or the browser build (DuckDB-Wasm) - from one and the same extension
     binary. There is no matplotlib or ggplot2 in the loop, and no plotting environment to install.
 
@@ -42,9 +42,11 @@ docs:
     | --- | --- | --- |
     | `kuva_render(spec)` | scalar | `VARCHAR` (a JSON chart spec) -> `VARCHAR` (an SVG document) |
     | `kuva_render_terminal(spec)` | scalar | `VARCHAR` -> `VARCHAR` (terminal text: braille dots and ANSI colour) |
+    | `kuva_render_typst(spec)` | scalar | `VARCHAR` -> `VARCHAR` (Typst source: a `.typ` CETZ document for `typst compile`) |
     | `kuva_render_file(spec)` | scalar | `VARCHAR` -> `VARCHAR` (the path of the SVG file it wrote; native builds only) |
+    | `kuva_version()` | scalar | `-> VARCHAR` (the kuva version the loaded build was compiled against) |
 
-    All three take the same JSON spec, and all three also take an optional second argument: a JSON
+    All four render functions take the same JSON spec, and all four also take an optional second argument: a JSON
     object mapping dataset names to arrays of rows, so the chart config and the data can be built by
     different things - the config by a host SDK, the data by SQL. A series names a dataset with
     `dataset` and maps its columns with `encode` (roles like `x`, `y`, `value`, `name`, `group`); the
@@ -53,10 +55,13 @@ docs:
     Their own options stay in the JSON: `kuva_render_terminal` reads a top-level `terminal` object
     (`cols` / `rows` / `print`) and `kuva_render_file` reads a top-level `file` object (`dir` / `name` /
     `open`), which is what lets one statement write a chart to disk and optionally open it in a browser.
+    `kuva_render_typst` has no options object: it returns Typst source (a CETZ vector drawing) that you
+    compile yourself with `typst compile`.
 
     The JSON spec uses snake_case keys and describes the drawing rather than one particular chart. The
     top-level keys are `title`, `x_axis`, `y_axis`, `grid`, `legend`, `theme`, `palette`, `font`,
-    `annotations`, `width`, `height` and `series`. Every `series` entry carries a `type` from the table
+    `annotations`, `width`, `height` and `series` (or `figure` / `composite` instead of `series`). Every
+    `series` entry carries a `type` from the table
     below and declares only the fields that type needs, so a scatter takes `data` as `{"x":…, "y":…}`
     objects with optional `x_err` / `y_err`, a bar takes `categories` plus `values` (or several named
     `series` for grouped and stacked bars), a histogram takes `values` with optional `bins` and a `kde`
@@ -76,9 +81,12 @@ docs:
     JSON rather than a STRUCT is deliberate: the series of one figure are heterogeneous, and a STRUCT
     list cannot hold a mix of them.
 
-    Composition works two ways. Several series in one `series` array are overlaid on a shared set of
+    Composition works three ways. Several series in one `series` array are overlaid on a shared set of
     axes - a line with its scatter points on top, for instance. A top-level `figure` with `rows`,
     `cols` and `panels` switches to a multi-panel grid with shared axes and an optional shared legend.
+    A top-level `composite` object draws a genome-browser coverage figure or a population
+    allele-frequency figure (`type: coverage` or `brick_pop`); it is mutually exclusive with `series`
+    and `figure`, carries its own canvas size and does not read a dataset.
 
     `theme` selects light, dark, minimal or solarized (or overrides individual colours), `palette`
     selects one of the named palettes or an explicit colour list, and `annotations` adds reference

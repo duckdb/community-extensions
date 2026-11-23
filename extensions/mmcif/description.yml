@@ -10,8 +10,8 @@ extension:
 
 repo:
   github: i-VRESSE/duckdb-mmcif
-  ref: 199a8dee2ab13919d0cb8e7f46a49fbc192200cd
-  ref_next: 4bdc8d545e1ea49ad838f812f281c78530ca6140
+  variegata: 199a8dee2ab13919d0cb8e7f46a49fbc192200cd
+  ref: 4bdc8d545e1ea49ad838f812f281c78530ca6140
 
 docs:
   hello_world: |

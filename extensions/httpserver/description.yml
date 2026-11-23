@@ -44,4 +44,5 @@ extension:
   version: '20260707'
 repo:
   github: Query-farm/httpserver
-  ref: ff40b661c5415359df80a3f67fb0cf78962e0c34
+  ref: 647d099778dac1fced7d442b7f46c75413c7d8a3
+  variegata: bb04a75a66c80b29c7ef8fccaff9dbb40b7b9f86

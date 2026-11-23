@@ -1,0 +1,54 @@
+extension:
+  name: ortools
+  description: Native CP-SAT constraint solving and GLOP linear optimization with relational resource allocation
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - prasanthj
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;linux_amd64_musl;linux_arm64_musl"
+  opt_in_platforms: "linux_arm64;osx_amd64;osx_arm64"
+
+repo:
+  github: prasanthj/duckdb-ortools
+  ref: c657da7900676c05dbc46b8eeb022ed70b182ad6
+  variegata: c657da7900676c05dbc46b8eeb022ed70b182ad6
+  andium: c657da7900676c05dbc46b8eeb022ed70b182ad6
+
+docs:
+  hello_world: |
+    INSTALL ortools FROM community;
+    LOAD ortools;
+
+    WITH solved AS (
+      SELECT ortools_solve('{
+        "version": 1,
+        "solver": "cp_sat",
+        "maximize": true,
+        "variables": [{"id": "x", "upper": 4, "objective": 2}],
+        "constraints": []
+      }') AS solution
+    )
+    SELECT solution.status, solution.values['x'] AS x, solution.objective
+    FROM solved;
+    -- OPTIMAL | 4.0 | 8.0
+
+  extended_description: |
+    Solve optimization models directly in DuckDB SQL using native C++ OR-Tools.
+    No API key, hosted solver, or Python solver runtime is required.
+
+    `ortools_solve` accepts a versioned JSON model and returns a typed solution
+    struct containing status, objective, bound, decision values, timing, and
+    infeasibility diagnostics. CP-SAT handles integer and Boolean constraints;
+    GLOP handles continuous linear optimization. `ortools_allocate` supports
+    relational allocation with capacity and demand shared across input chunks.
+    Active searches honor DuckDB query cancellation.
+
+    The community build is self-contained: its pinned, minimal OR-Tools
+    dependencies are statically linked. Gurobi, CPLEX, Xpress, COIN-OR, GLPK,
+    SCIP, HiGHS, and PDLP are disabled. License and modification notices are
+    embedded and readable with `SELECT ortools_licenses();`.
+
+    Model reference, examples, and dependency policy:
+    https://github.com/prasanthj/duckdb-ortools

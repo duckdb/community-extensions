@@ -1,7 +1,7 @@
 extension:
   name: st_read_multi
   description: Read multiple geospatial files
-  version: 0.0.4
+  version: 0.0.6
   language: Rust
   build: cargo
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: yutannihilation/duckdb-ext-st-read-multi
-  ref: 27060866a7f71433d70d7598033ccefab9fc510c
+  ref: b57e6f26d86e7a979e3de8c2970bee3a758b5d38
 
 docs:
   hello_world: |

@@ -17,7 +17,7 @@ mlpack_naive_bayes_train,fit and store naive Bayes classification,"parameters 'n
 mlpack_naive_bayes_pred,predict classification using stored naive Bayes model,"",""
 mlpack_random_forest_train,use random forest to train and store a model,"parameters 'nclasses', 'ntrees', 'seed', 'threads' and 'silent'",""
 mlpack_random_forest_pred,predict classification using stored random forest model,"",""
-mlpack_softmax_regression_train,fit and store softmax regression classification,"parameters 'numClasses', 'lambda', 'fitIntercept', 'silent'",""
+mlpack_softmax_regression_fit,fit and store softmax regression classification,"parameters 'numClasses', 'lambda', 'fitIntercept', 'silent'",""
 mlpack_softmax_regression_pred,predict classification using softmax regression model,"",""
 mlpack_kmeans,use kmeans unsupervised clustering,"parameters 'clusters', and 'iterations'",""
 mlpack_mlpack_version,returns the version string for the mlpack version used,"",""

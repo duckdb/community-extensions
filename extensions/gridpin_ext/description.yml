@@ -1,24 +1,25 @@
 extension:
   name: gridpin_ext
   description: Offline geocoding from a single country file — forward and reverse, no server, no network
-  version: 0.4.0
+  version: 0.10.0
   language: Rust
   build: cargo
   license: Apache-2.0
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw;linux_amd64_musl"
+  opt_in_platforms: "osx_amd64"
   requires_toolchains: "rust;python3"
   maintainers:
     - gridpin-reserve
 
 repo:
   github: gridpin/duckdb-gridpin
-  ref: 0f4e7e09393858c196bb7fb5cbcf8a6bbd97e391
-  ref_next: 225c3307cdc79177ba8ad71e9dd8cdb19b11c057
+  variegata: 38cac3e7895f3579e851deae295d097ca5698d22
+  ref: 38cac3e7895f3579e851deae295d097ca5698d22
 
 docs:
   hello_world: |
     -- Country data files are free downloads: https://gridpin.dev
-    -- (France, Italy, the Netherlands, Serbia, Germany, Spain and Brazil today; one file per country.)
+    -- (the United States, Canada, Germany, France, Italy, Spain, Australia, Mexico, the Netherlands, Brazil and Serbia today; one file per country.)
     LOAD gridpin_ext;
 
     -- Point the extension at a downloaded sheet. One sheet is loaded at a time.
@@ -69,3 +70,9 @@ docs:
     them). Germany covers 15 of 16 Länder (Bavaria is not covered). The engine itself is
     Apache-2.0 and lives at [gridpin/gridpin](https://github.com/gridpin/gridpin); this
     repository holds the extension crate only.
+
+    ### Licences
+
+    The extension statically links the Rust libraries listed in
+    [THIRDPARTY.yml](https://github.com/gridpin/duckdb-gridpin/blob/main/THIRDPARTY.yml),
+    which carries their licence texts.

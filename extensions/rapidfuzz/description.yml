@@ -13,4 +13,5 @@ extension:
 repo:
   andium: eb2fe18d3f60205722521ff2ddd8eb3c932c7888
   github: query-farm/rapidfuzz
-  ref: 8dca273affb2c907b3830a2d30e65266f9f692ea
+  ref: f26a9693db5037ef1b012f901eeeb771551df664
+  variegata: 9331bf3003cd3c2bc7ad7659cb747705ccce1e3b

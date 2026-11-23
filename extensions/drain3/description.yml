@@ -1,0 +1,48 @@
+extension:
+  name: drain3
+  description: Drain log template mining in SQL, with clusters identical to logpai/Drain3
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: Apache-2.0
+  excluded_platforms: "linux_amd64_musl"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - akshatagarwl
+
+repo:
+  github: akshatagarwl/duckdb-drain3
+  ref: 3f6d36bd1615c5b2470f2bfbf3ff69d6d661410d
+
+docs:
+  hello_world: |
+    CREATE TABLE logs AS SELECT * FROM (VALUES
+      (1, 'user alice logged in from 10.0.0.1 after 3 attempts'),
+      (2, 'user bob logged in from 10.0.0.7 after 1 attempts'),
+      (3, 'connection closed by peer 10.1.1.1')) t(ts, message);
+
+    -- Every row with its template and parameters, trained in ts order.
+    FROM drain_parse('logs', 'message', order_by := 'ts');
+
+    -- Train a model once, then match new lines in parallel.
+    CREATE TABLE models AS SELECT drain_train(message ORDER BY ts) AS model FROM logs;
+    SELECT drain_match(model, 'user carol logged in from 10.9.8.7 after 2 attempts') FROM models;
+
+    -- Top templates.
+    SELECT unnest(drain_clusters(model), recursive := true) FROM models;
+  extended_description: |
+    `drain3` runs the Drain log parsing algorithm inside DuckDB. It groups log lines into templates
+    such as `user <*> logged in from <*>` and extracts the variable parts. It is built on the
+    [drain3](https://crates.io/crates/drain3) Rust crate, whose clusters and templates are identical
+    to [logpai/Drain3](https://github.com/logpai/Drain3) on all 16 Loghub-2k datasets.
+
+    - `drain_parse(table, message_column, order_by := ...)`: every row plus `cluster_id`,
+      `template` and `params`.
+    - `drain_train(message ORDER BY ts)`: an aggregate that returns the trained model as a BLOB.
+    - `drain_match(model, message)`: matches a message without training. It runs in parallel.
+    - `drain_clusters(model)`, `drain_params(template, message)`, `drain_render(template, params)`.
+
+    Training is order-dependent. Use `ORDER BY` for results identical to logpai/Drain3. Defaults
+    (`sim_threshold`, `depth`, `max_children`, `masks`, ...) match logpai/Drain3.
+    See the [README](https://github.com/akshatagarwl/duckdb-drain3#readme) for examples, limits and
+    benchmarks.

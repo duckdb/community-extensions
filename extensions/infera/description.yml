@@ -1,7 +1,7 @@
 extension:
   name: infera
   description: A DuckDB extension for in-database inference
-  version: 0.4.0
+  version: 0.5.0
   language: Rust & C++
   build: cmake
   license: MIT OR Apache-2.0
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: CogitatorTech/infera
-  ref: fd67b27a544a7cf30e23993759ae42aaac91864a
+  ref: d70d4f1f8df2a5aa76f2c68d0b4c4b719eb5a2ce
 
 docs:
   hello_world: |

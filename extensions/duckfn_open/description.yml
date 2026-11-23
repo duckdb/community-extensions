@@ -1,0 +1,55 @@
+extension:
+  name: duckfn_open
+  description: Wrap Rust's open and sanitize-filename crates for SQL — open a path, a URL or the output of a query with your desktop's own program, and turn a string into a usable file name
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: "rust;python3"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - shijianjs
+
+repo:
+  github: shijianjs/duckfn-open
+  ref: 6995c11bb78279aab4caf5b11f3d0df3011fb3a7
+  ref_next: 6995c11bb78279aab4caf5b11f3d0df3011fb3a7
+
+docs:
+  hello_world: |
+    -- What would open this on the machine running the query, without opening anything
+    SELECT op_open_commands('report.html');
+
+    -- Hand an existing path to the desktop's default program
+    SELECT op_open_path('./report.html');
+
+    -- Most query output is content, not a path: write it out and get the path back
+    SELECT op_write_file('{"a":1}', 'json');
+  extended_description: |
+    `duckfn_open` wraps two mature Rust crates for SQL: [`open`](https://crates.io/crates/open), which hands a
+    path or a URL to whatever the desktop is configured to open it with, and
+    [`sanitize-filename`](https://crates.io/crates/sanitize-filename), whose file-name rules it puts on SQL.
+    Nine scalar function names, in three groups:
+
+    - **Paths and URLs** — `op_open_path(path[, app])` and `op_open_path_detached(path[, app])` hand an existing
+      file or link to the desktop, waiting for it or not; `op_open_commands(path)` lists the commands a launch
+      would try, running none of them.
+    - **Content** — `op_write_file(content|blob, ext[, opts])` writes text or bytes to a file and returns the
+      path, starting nothing; `op_open_content(…)` writes it and opens it in the same call; `op_open_html(content)`
+      is the zero-configuration version of that; `op_print(text[, tail])` writes to stdout, past the result set's
+      column formatting, and hands the text back. The optional third argument is the registered
+      `op_write_file_options` STRUCT (`dir`, `name`, `part`).
+    - **File names** — `op_sanitize_filename(value[, replacement[, truncate, windows]])` rewrites a value into a
+      usable name, and `op_sanitize_filename_check(…)` answers whether it already is one. This pair starts no
+      process and touches no file, so a name taken from the data can be checked before anything is built on it.
+
+    It is aimed at interactive work: a person is at the machine, running DuckDB, and wants the result in front
+    of them. A launcher is desktop software, so DuckDB embedded in an application is outside what this is for —
+    on a machine with no desktop only the half that starts no process is of any use. The extension starts a
+    process and writes the file you ask for (into the directory you name, or the system temp directory); it
+    reads no configuration, opens no network connection of its own, and does not inspect the content it passes
+    along. Requires **DuckDB 1.3 or newer**.
+
+    Documentation: [user guide](https://shijianjs.github.io/duckfn-open/docs/intro) ·
+    [function reference](https://shijianjs.github.io/duckfn-open/docs/category/functions) ·
+    [source and development notes](https://github.com/shijianjs/duckfn-open).

@@ -1,0 +1,53 @@
+extension:
+  name: usd
+  description: Query Universal Scene Description (USD) files with SQL
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: MIT
+  maintainers:
+    - brannn
+  # Linux and macOS only: Windows is not a target, and OpenUSD does not build for WebAssembly or musl
+  excluded_platforms: "windows_amd64;windows_arm64;windows_amd64_mingw;windows_amd64_rtools;wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;linux_arm64_musl"
+
+repo:
+  github: brannn/duckdb-usd
+  ref: ee5db2c2f0954a01c766dbbab72a72ece39c8db7
+
+docs:
+  hello_world: |
+    -- Prims of a USD stage
+    SELECT prim_path, prim_type, kind FROM usd_prims('scene.usda') LIMIT 10;
+
+    -- World-space positions
+    SELECT prim_path, x, y, z FROM usd_xforms('scene.usda') WHERE prim_path LIKE '/World/%';
+
+    -- Typed property values
+    SELECT prim_path, property_name, value FROM usd_properties('scene.usda', authored_only := true);
+
+  extended_description: |
+    The usd extension reads Universal Scene Description (USD) stages - the scene format created by Pixar and used
+    across 3D content, simulation and digital twin pipelines - and exposes their contents as tables:
+
+    - `usd_prims`: the prims of a stage, with type, kind, activation, instancing, payloads, applied schemas,
+      custom data and asset info
+    - `usd_properties`: attributes and relationships, with typed values (VARIANT)
+    - `usd_relationships`: relationship targets, for graph analysis
+    - `usd_xforms`: world-space positions, rotations, scales and matrices
+    - `usd_bounds`: world-space bounding boxes
+    - `usd_variants`, `usd_layers`, `usd_stage_metadata` and `usd_composition_errors`: variant sets, the layers a
+      stage uses, stage metadata such as units and up axis, and broken references
+    - `usd_composition_arcs`: the references, payloads, inherits and variant selections of each prim, i.e. which
+      assets a scene uses, where and how often
+    - `usd_material_bindings`: the material each prim is bound to, and the binding that decides it
+    - `usd_time_samples`: the values recorded over time - animation, sensor readings, simulation results
+
+    Every function accepts a path, a glob or a list of paths, and options to restrict the scan to a subtree,
+    descend into instances or skip payloads; values, transforms and bounds can be read at one or several time
+    codes. Scans are parallel and only compute the columns a query uses, so scenes with millions of prims spread
+    over hundreds of layers can be queried directly.
+
+    OpenUSD 26.05 is linked into the extension, with its schemas for geometry, shading, lights, skeletons, physics,
+    semantic labels, volumes, audio, render settings, procedurals and UI. See the
+    [function reference](https://github.com/brannn/duckdb-usd/blob/main/docs/functions.md) and
+    [cookbook](https://github.com/brannn/duckdb-usd/blob/main/docs/cookbook.md).
