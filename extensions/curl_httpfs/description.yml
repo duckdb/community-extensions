@@ -12,7 +12,7 @@ extension:
 repo:
   github: dentiny/duckdb-curl-filesystem
   andium: e5c4921e6e908d07abab3f89c0d036a22db0cd4b
-  ref: 851a8b1ecec0ec90eee46c152cbf67f1444f09e5
+  ref: 1b3c94882fe8387c4454ce2f91f59eadc9a27c68
 
 docs:
   hello_world: |
