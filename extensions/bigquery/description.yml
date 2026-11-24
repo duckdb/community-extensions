@@ -8,7 +8,7 @@ extension:
   vcpkg_commit: "ef7dbf94b9198bc58f45951adcf1f041fcbc5ea0"
   requires_toolchains: "parser_tools"
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_mingw"
-  opt_in_platforms: "linux_amd64_musl;linux_arm64_musl"
+  opt_in_platforms: "linux_amd64_musl;linux_arm64_musl;osx_amd64;osx_arm64"
   maintainers:
     - hafenkran
 
