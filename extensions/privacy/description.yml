@@ -1,0 +1,32 @@
+extension:
+  name: "privacy"
+  description: "Privacy engineering primitives: differential privacy mechanisms + budget ledger, PII/PHI masking, CN-compliant masking (GB/T 37964), MIMIC-style date shifting, k-anonymity, secrets/text redaction with reversible restore, and format-preserving encryption (FF3/FF3-1, NIST SP 800-38G)"
+  version: "0.1.0"
+  language: "Rust"
+  build: "cargo"
+  license: "MIT"
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;linux_amd64_musl;windows_amd64_rtools;windows_amd64_mingw"
+  requires_toolchains: "rust;python3"
+  maintainers:
+    - "alitrack"
+
+repo:
+  github: "alitrack/duckdb-privacy"
+  ref: "7f3fadc89fed930c17a50c0f9eba291ee806c9e7"
+
+docs:
+  hello_world: |
+    SELECT privacy('{"op":"mask_cn","v":"13812345678"}');
+  extended_description: |
+    Privacy engineering primitives for DuckDB, as a native Rust extension. Ported 1:1 from the `duckdb-luajit-libs` privacy lib.
+
+    Everything is reachable through one dispatcher that mirrors the source API, plus single-argument convenience scalars:
+
+    ```sql
+    SELECT privacy('{"op":"mask_cn","v":"110101199003071234","kind":"idcard","mode":"birth"}');
+    SELECT privacy('{"op":"fpe_encode","v":"1234567890","key":"00000000000000000000000000000000","algo":"ff31"}');
+    ```
+
+    **Ops** (18): `dp_count` / `dp_sum` / `dp_mean` / `laplace` / `dp_compose` / `dp_alloc` / `dp_budget` (differential privacy + epsilon budget ledger), `mask` / `mask_cn` (PII masking, CN-compliant), `dateshift` / `dateoffset` (MIMIC-style deterministic date shifting), `kanon` (k-anonymity), `kanon_report` (l-diversity / t-closeness / suppression), `redact_text` / `redact_secrets` / `restore_text` (PHI + credential redaction with reversible restore), `fpe_encode` / `fpe_decode` / `fpe_luhn` / `fpe_token` (FF3 / FF3-1 format-preserving encryption).
+
+    **Verified**: 24 unit tests; FPE checked differentially against an independent Python oracle (15 NIST FF3 + 18 FF3-1 vectors, encrypt + decrypt).

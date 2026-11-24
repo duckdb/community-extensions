@@ -1,0 +1,11 @@
+function,description,comment,example
+privacy,"Privacy dispatcher: takes a JSON object with an op key and returns the op's JSON result (18 ops: DP, masking, dateshift, k-anonymity, redaction, FPE).","Single entry point mirroring the Lua source API.","SELECT privacy('{""op"":""mask_cn"",""v"":""13812345678""}')")
+dp_count,"Differentially-private count: adds Laplace(1/epsilon) noise to a row count.","Requires an allocated epsilon budget for the table.","SELECT dp_count('{""v"":5,""epsilon"":1.0,""table"":""t1""}')")
+dp_sum,"Differentially-private sum: Laplace noise scaled by sensitivity over epsilon.","","SELECT dp_sum('{""v"":[1,2,3],""epsilon"":1.0}')")
+mask,"Generic PII mask: modes prefix/suffix/full/partial over a value.","","SELECT mask('{""v"":""secret-value"",""mode"":""partial""}')")
+mask_cn,"CN-compliant masking (GB/T 37964): phone/idcard/bankcard/name/email auto-detected or by kind; idcard birth mode generalizes the date to year.","","SELECT mask_cn('13812345678')")
+dateshift,"MIMIC-style deterministic date shifting: shifts a date by a per-key offset (same key always same shift) within +/- days.","","SELECT dateshift('2024-05-15')")
+redact_secrets,"Irreversible credential/topology redaction: replaces keys/JWT/tokens/PEM/passwords/IPs with [**X**] placeholders; returns counts.","","SELECT redact_secrets('aws 138.0.0.1 sk-abc token')")
+fpe_encode,"Format-preserving encryption (FF3/FF3-1): encrypts a string to same-alphabet same-length ciphertext (reversible with key).","","SELECT fpe_encode('1234567890','00000000000000000000000000000000','ff31')")
+fpe_decode,"Inverse of fpe_encode: recovers the plaintext from a ciphertext (reversible with key).","","SELECT fpe_decode('4908574168','00000000000000000000000000000000','ff31')")
+laplace,"Sample from Laplace(scale): the noise mechanism used by the dp_* ops (deterministic per seed).","","SELECT laplace('{""scale"":1.0,""seed"":42}')")
