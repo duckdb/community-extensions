@@ -11,7 +11,7 @@ extension:
 
 repo:
   github: dentiny/duckdb-huggingface
-  ref: 1d93f99b891b66ec2763c7def92f5fad9471cbb1
+  ref: 72cb8fd6e20915ef2584aed56be57fd072b3b04e
 
 docs:
   hello_world: |
