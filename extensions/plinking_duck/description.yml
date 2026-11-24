@@ -1,7 +1,7 @@
 extension:
   name: plinking_duck
   description: Read and write PLINK 2 genomics file formats and run common genetic analyses directly in SQL
-  version: 0.17.0
+  version: 0.18.0
   language: C++
   build: cmake
   license: MIT
@@ -11,31 +11,23 @@ extension:
 
 repo:
   github: teaguesterling/plinking_duck
-  # Post-#3079 keys: ref = the default build (the DuckDB 2.0 line, v2.0.0); variegata
+  # Post-#3079 keys: ref = the default build (the DuckDB 2.0 line, v2.0.1); variegata
   # = the DuckDB v1.5.6 build (explicit, not left to fall back to ref); ref_next = the
   # dormant prerelease slot (build_next test_against_latest is if:false).
   #
-  # v0.17.0 is a FEATURE release and is v2.0.0-ONLY. A catalog read now opens only the
-  # cells a query can reach, on BOTH axes: a WHERE on CHROM/POS drops variant blocks and a
-  # WHERE on IID drops sample blocks, before those cells are read (P13-006). read_pfile also
-  # DISCOVERS <p>.pfile.json from a plain prefix, and catalog := reads version-1 catalogs
-  # (a sharded cohort or single fileset) as well as version-2 matrices. TWO BREAKING
-  # CHANGES: (1) COPY ... (FORMAT pvar|pgen|psam|pfile) errors if its output exists — add
-  # force to replace it; (2) ATTACH c.genotypes on a v2 matrix is now one row per variant
-  # (a fixed ARRAY over all samples), not one row per variant per sample block. The DuckDB
-  # v1.5.6 variant build stays RETIRED.
+  # v0.18.0 is a FEATURE release for the DuckDB v2.0.1 line. ONE BREAKING CHANGE (#139):
+  # ATTACH c.genotypes is now one row per variant x sample; the old shapes are
+  # c.genotypes_by_variant_list and c.genotypes_by_sample_list. A WHERE on ID, CPRA,
+  # genotype or IID now narrows the read, the .pgen header is decoded once and shared,
+  # and the .psam.parquet path is fast at 8M samples. macOS builds again (#151).
   #
-  # So ref / ref_next advance to the v0.17.0 commit (b808cfe) while variegata stays
-  # PINNED at the v0.14.2 commit (7a34f3ab) — the last commit that builds on v1.5.6.
-  # variegata cannot advance (v0.17.0 uses v2.0-only APIs) and must not be dropped
-  # (absent -> v1.5.6 falls back to ref -> builds the v2.0-only tree on v1.5.6 and
-  # fails). Net: v1.5.6 users keep v0.14.2; the 2.0 line gets v0.17.0. ref_next == ref.
-  # b808cfe (= v0.16.0's 493bf5a + the #112 doc fix + the #110 test) is green on both
-  # release legs of its push-to-main run (43158384720): ref (v2.0.0) and ref_next
-  # (cyanoptera, v2.0), each on linux amd64/arm64 + osx arm64.
-  ref: b808cfe4809be72c1951add834dbe85b3f992aa9
+  # ref / ref_next advance to the v0.18.0 commit (de9161c). variegata stays PINNED at the
+  # v0.14.2 commit (7a34f3ab), the last commit that builds on v1.5.6. de9161c is green on
+  # its push-to-main run (45330456492) on DuckDB v2.0.1: ran tests: 155 passed on
+  # linux_amd64 and osx_arm64; linux_arm64 is compiled, not tested.
+  ref: de9161c25d8d068da12d876160806a4583912bce
   variegata: 7a34f3ab8d76534aaebed0aaa88e8ef27099f4e6
-  ref_next: b808cfe4809be72c1951add834dbe85b3f992aa9
+  ref_next: de9161c25d8d068da12d876160806a4583912bce
 
 docs:
   hello_world: |
