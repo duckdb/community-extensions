@@ -1,7 +1,7 @@
 extension:
   name: opendal
   description: Access S3, GCS, Azure, HTTP, local filesystem, and other storage services through Apache OpenDAL
-  version: "0.2.0"
+  version: "0.2.1"
   language: C++ & Rust
   build: cmake
   license: MIT
@@ -9,13 +9,15 @@ extension:
     - chitralverma
   requires_toolchains: rust
   # Exclusions:
-  # - WASM: extension-ci-tools pins rust-toolchain@1.86 which is below opendal's MSRV (1.91). See https://github.com/duckdb/extension-ci-tools/issues/385
+  # - WASM: tokio's net feature (via reqwest/hyper) pulls in mio, which does not build for wasm32-unknown-emscripten.
   # - MinGW: Rtools MinGW is missing libgcc_eh.a which is required by rustc for the gnu target. Rely on standard MSVC instead.
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64_rtools;windows_amd64_mingw"
+  # osx_amd64 is opt-in on the v2.0 matrix.
+  opt_in_platforms: "osx_amd64"
 
 repo:
   github: chitralverma/duckdb-opendal
-  ref: 6536e4d6e13bd09edee1b349fd30f775b074046d
+  ref: 92d8f47ef4575abade30907cd9597ea5e70fdeef
 
 docs:
   hello_world: |
