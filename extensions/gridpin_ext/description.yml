@@ -1,6 +1,6 @@
 extension:
   name: gridpin_ext
-  description: Offline geocoding from a single country file — forward and reverse, no server, no network
+  description: Geocode addresses inside DuckDB offline — forward and reverse geocoding from one country file, no server, no API key
   version: 0.10.0
   language: Rust
   build: cargo
@@ -13,8 +13,8 @@ extension:
 
 repo:
   github: gridpin/duckdb-gridpin
-  variegata: 38cac3e7895f3579e851deae295d097ca5698d22
-  ref: 38cac3e7895f3579e851deae295d097ca5698d22
+  variegata: b548065337b09a0ed9a2d34cc470563937be9e3b
+  ref: b548065337b09a0ed9a2d34cc470563937be9e3b
 
 docs:
   hello_world: |
@@ -37,10 +37,11 @@ docs:
            json_extract(gridpin_geocode(address), '$.lon') AS lon
     FROM customers;
   extended_description: |
-    GridPin resolves addresses to coordinates and back **entirely offline**: one
-    memory-mapped file per country, millisecond lookups on a single core, and typo
-    tolerance built into the index. There is no server to run, no database to import,
-    no API key and no per-request fee — the addresses you geocode never leave the machine.
+    GridPin geocodes addresses inside DuckDB **entirely offline**: `gridpin_geocode(address)` turns an address
+    string into coordinates, and `gridpin_reverse(lat, lon)` turns coordinates into the nearest street address. It
+    reads one memory-mapped file per country, answers in milliseconds on a single core and tolerates typos. There is
+    no server to run, no database to import, no API key and no per-request fee — the addresses you geocode never
+    leave the machine.
 
     ### Functions
 
@@ -61,14 +62,12 @@ docs:
 
     ### Data files
 
-    Country sheets are published as free downloads at
-    [gridpin.dev](https://gridpin.dev) and in the [releases of the main
-    repository](https://github.com/gridpin/gridpin/releases). Each sheet carries its own
-    source licence (France comes from the national BAN registry under Licence Ouverte;
-    Italy, the Netherlands, Serbia, Germany, Spain and Brazil are built from Overture,
-    with OpenAddresses, CartoCiudad and IBGE CNEFE sources where the country publishes
-    them). Germany covers 15 of 16 Länder (Bavaria is not covered). The engine itself is
-    Apache-2.0 and lives at [gridpin/gridpin](https://github.com/gridpin/gridpin); this
+    Country sheets are free downloads at [gridpin.dev](https://gridpin.dev/docs#delivery) and in the [releases of
+    the main repository](https://github.com/gridpin/gridpin/releases): Australia, Brazil, Canada, France, Germany, Italy, Mexico, the Netherlands, New Zealand, Poland, Serbia, Spain and the United States.
+    The sheets are built from Overture Maps addresses and national open address registers; each carries its own
+    source licence, listed in [ATTRIBUTIONS.md](https://github.com/gridpin/gridpin/blob/main/ATTRIBUTIONS.md). What
+    each country covers and where it is thin is on its page under [gridpin.dev/guides](https://gridpin.dev/guides).
+    The engine itself is Apache-2.0 and lives at [gridpin/gridpin](https://github.com/gridpin/gridpin); this
     repository holds the extension crate only.
 
     ### Licences
