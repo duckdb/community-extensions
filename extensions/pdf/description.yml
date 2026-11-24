@@ -1,8 +1,8 @@
-# PDF 0.10.0: Apple Vision OCR and barcodes, column-aware reading order.
+# PDF 0.10.1: pages render in parallel; automatic OCR reads stamp-only text layers.
 extension:
   name: pdf
   description: Read, OCR (Tesseract or Apple Vision), inspect, transform, and write PDFs in SQL
-  version: 0.10.0
+  version: 0.10.1
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: cde4d9d0291d934c3f3565ff75d4305ff9466505
+  ref: 03000e23db18b37e79d9ef5c3a6b6bce93ef6770
 
 docs:
   hello_world: |
