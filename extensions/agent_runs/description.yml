@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckdb_agent_runs
-  ref: b5c5074c22fc5cd98d2615a4e76cbfc1e9e7983e
+  ref: 1b093e5a038d1af2b97eca75b8219d73e769cd2e
 
 docs:
   hello_world: |
