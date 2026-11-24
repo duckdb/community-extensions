@@ -1,7 +1,7 @@
 extension:
   name: ducksmiles
   description: Cheminformatics and CPU numerical analytics for DuckDB - molecular formats, descriptors, fingerprints, similarity, regression, statistical inference, experimental design, time series, reliability and model evaluation from SQL
-  version: 0.8.0
+  version: 0.8.1
   language: C++
   build: cmake
   requires_toolchains: rust
@@ -13,10 +13,14 @@ extension:
 
 repo:
   github: nkwork9999/duckSMILES
-  ref: 15324f9f49108299d41267c03c4696aa8e09d11e
+  ref: b0c03d368d0629793b474172732d3b7d785f3791
 
 docs:
   hello_world: |
+    -- Davies HLB for n-butanol (manually assigned groups)
+    SELECT chem_davies_hlb(MAP {'hydrocarbon': 4, 'free_hydroxyl': 1});
+    -- 7.0
+
     -- Parse SMILES and get molecular formula
     SELECT mol_formula('CCO');
     -- C2H6O
@@ -73,8 +77,8 @@ docs:
     - PDB/CIF/XYZ: protein structure analysis (atom, chain, residue, model counts)
     - SELFIES: bidirectional SMILES-SELFIES conversion for ML pipelines
 
-    **435 SQL overloads**, including the 156 molecular overloads and
-    279 CPU analytics functions. Molecular methods cover property extraction, format conversion,
+    **448 documented SQL overloads**, including a Davies HLB calculator and
+    a table of the 13 signed group contributions. Molecular methods cover property extraction, format conversion,
     structural comparison, fingerprinting, similarity search, drug-likeness /
     toxicophore filtering, and structure-based virtual screening.
 
