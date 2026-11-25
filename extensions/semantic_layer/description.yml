@@ -1,7 +1,7 @@
 extension:
   name: semantic_layer
   description: Define metrics, dimensions and relationships once in SQL, then query them at the right grain
-  version: "0.2.0"
+  version: "0.2.1"
   language: C++
   build: cmake
   license: MIT
@@ -10,7 +10,7 @@ extension:
 
 repo:
   github: altertable-ai/duckdb-semantic_layer
-  ref: 2b2a186cfb94f6f90ee70fc24e61469975fa1ab7
+  ref: b33793b61506ee95df179a1cc782c0f950a22a9d
   variegata: 1cea189f6d4f9e6af30c09ecb085883784cd04e0
 
 docs:
