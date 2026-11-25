@@ -15,7 +15,7 @@ extension:
 
 repo:
   github: hamin/duckdb-capped
-  ref: 309d2a56037760cd5427b07dc42221b0db084a8c
+  ref: ed5377165b4ae1903b3825538882b19eba6a00ef
 
 docs:
   hello_world: |
