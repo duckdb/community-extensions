@@ -5,6 +5,7 @@ extension:
   language: C++
   build: cmake
   excluded_platforms: "windows_amd64_mingw"
+  opt_in_platforms: "osx_amd64"
   license: MIT
   maintainers:
     - ahuarte47
