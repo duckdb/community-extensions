@@ -1,0 +1,25 @@
+extension:
+  name: quack_weave
+  description: Query Ladybug, RelateDB and Neo4j graphs from DuckDB using SQL/PGQ GRAPH_TABLE and read-only graph queries.
+  version: 0.2.0
+  language: Rust
+  build: cargo
+  license: Apache-2.0
+  maintainers:
+    - kevintruong
+  excluded_platforms: "linux_amd64_musl;linux_arm64_musl;osx_amd64;windows_amd64;windows_arm64;windows_amd64_mingw;wasm_mvp;wasm_eh;wasm_threads"
+  requires_toolchains: "rust"
+
+repo:
+  github: kevintruong/quack-weave
+  ref: 55ece1f2aaa467701611105d90cfb8c831eefec9
+
+docs:
+  hello_world: |
+    SELECT provider_id, setting_name
+    FROM qw_graph_providers()
+    ORDER BY provider_id;
+  extended_description: |
+    Quack Weave exposes the `GRAPH_TABLE` operator for joining graph matches to SQL tables.
+    One extension includes Ladybug, RelateDB, and Neo4j. Configure a provider with an existing graph before querying it.
+    See the [Quack Weave documentation](https://kevintruong.github.io/quack-weave/docs/) for provider setup and SQL/PGQ examples.
