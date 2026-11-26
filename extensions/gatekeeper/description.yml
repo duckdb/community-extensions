@@ -1,19 +1,19 @@
 extension:
   name: gatekeeper
   description: Authorization for untrusted read-only SQL from tenants, LLM agents, and dashboard builders. Validate a statement without executing it, or enforce a lockable policy on the connection itself, with an audit log of every decision.
-  version: 0.4.4
+  version: 0.4.5
   language: C++
   build: cmake
   license: MIT
   maintainers:
     - derekperkins
   requires_toolchains: python3
-  excluded_platforms: 'wasm_mvp;wasm_threads;wasm_eh'
+  excluded_platforms: 'wasm_mvp;wasm_threads'
   opt_in_platforms: 'osx_amd64;linux_amd64_musl;linux_arm64_musl;windows_amd64_mingw;windows_arm64'
 
 repo:
   github: nozzle/duckdb-gatekeeper
-  ref: fabb0894997a4a15b180e7f50aff2bb89b5400f7
+  ref: 0d822bd1308df68a5f6675311cf33adbf16a8fe5
   variegata: c4b9b3cf2c71ac527fb3f8ae7310066384e397f1
 
 docs:
@@ -111,7 +111,7 @@ docs:
     |--------|------|---------|-------|
     | `allowed_tables` | STRUCT[] | unrestricted (non-internal) | `{catalog?, schema_path: VARCHAR[], table}`. Nonempty path, outermost first; `'*'` matches one component at exactly that depth, never recursively. Omitted or NULL catalog matches any. `[]` denies all tables and views. Until this is set, every non-internal table and view is readable. |
     | `blocked_tables` | STRUCT[] | `[]` | Same identity rules, including exact depth: `['*']` does not block nested schemas on 2.0. A match always denies what the caller names; does not reach inside trusted views, macros, or attached tables. |
-    | `use_default_functions` | BOOLEAN | `true` | `true`: 919 reviewed qualified defaults (913 distinct names) **plus** `allowed_functions`. `false`: only `allowed_functions`. |
+    | `use_default_functions` | BOOLEAN | `true` | `true`: 920 reviewed qualified defaults (913 distinct names) **plus** `allowed_functions`. `false`: only `allowed_functions`. |
     | `allowed_functions` | STRUCT[] | `[]` | Resolved `{catalog?, schema_path, name, type?}` grants. Required exact leaf; `'*'` means multiplication, not all functions. Defaults cover reviewed system.main identities. |
     | `blocked_functions` | STRUCT[] | `[]` | Same qualified identity rules as grants, including optional kind and exact schema depth. A matching block always wins for caller-attributable functions. Does not reach inside trusted views, macros, or attached tables. |
 
@@ -133,7 +133,7 @@ docs:
     `system` catalog name. Non-internal entries can use schema patterns; unknown bound-function
     internal origin cannot use schema-wildcard grants. Reviewed defaults already name exact identities.
 
-    Follow the [policy v2 migration guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/policy-migration.md)
+    Follow the [policy v2 migration guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/policy-migration.md)
     for legacy function strings, old `schema` fields, typed empty lists, and canonical settings.
 
     ### Result columns
@@ -196,7 +196,7 @@ docs:
     checks still apply: Gatekeeper's control plane remains refused on every route, and
     private catalog authorization refuses unsupported Quack dependencies even inside trusted
     bodies. Deferred binding can execute remotely before that refusal; see the
-    [Quack support matrix](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/quack.md).
+    [Quack support matrix](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/quack.md).
 
     - Allowing a view admits its underlying tables. Block the view itself to withdraw it.
     - A caller's separate reference to an underlying table or function is still checked.
@@ -210,7 +210,7 @@ docs:
       errors, are privileged host information. `caller_objects` is not universally caller-safe.
       Applications may expose a minimal decision or a separately reviewed projection.
 
-    See the [trusted-definition rules](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/security.md#function-enforcement-and-trusted-expansion)
+    See the [trusted-definition rules](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/security.md#function-enforcement-and-trusted-expansion)
     for query-wide name overlaps and bound implementation checks.
 
     ### Enforced connections
@@ -231,7 +231,7 @@ docs:
     - An already-connected DuckDB 2.0 session can dispatch SQL before the local enforcement hook,
       including the activation call. A successful remote result does not establish local enforcement.
 
-    See the [enforcement guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/security.md#enforced-connections)
+    See the [enforcement guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/security.md#enforced-connections)
     for setup and execution-boundary details, including parser-time side effects.
 
     ### Audit and log-only mode
@@ -253,8 +253,8 @@ docs:
 
     Apart from those routing controls, log-only provides no policy protection, including for
     Gatekeeper's settings. Before locking configuration, plan how
-    the host will turn it off. See the [audit log](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/security.md#audit-log)
-    and [log-only guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/security.md#log-only-mode).
+    the host will turn it off. See the [audit log](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/security.md#audit-log)
+    and [log-only guide](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/security.md#log-only-mode).
 
     ### What is never allowed
 
@@ -268,7 +268,7 @@ docs:
 
     File readers are grantable, but are **not defaults**. Granting a reader permits its
     resource access; `allowed_tables` does not restrict file paths. See the
-    [function policy](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/security.md#never-bind-functions)
+    [function policy](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/security.md#never-bind-functions)
     for the exact never-bind list and trusted-definition exceptions.
 
     ### Security boundaries
@@ -279,36 +279,37 @@ docs:
     - **Binding can perform I/O.** Prepared statements may bind before enforcement hooks run.
       Unsupported deferred Quack bodies and native DuckDB 1.5 preparation of constant remote
       SQL can execute remotely before a later refusal; see
-      [remote scope and preparation limits](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/quack.md).
+      [remote scope and preparation limits](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/quack.md).
     - **Parsing can have side effects.** DuckDB evaluates some `PRAGMA` arguments before
       enforcement; validate complete text first if your host cannot accept that residual.
     - **The host controls the environment.** Restrict external access and autoloading where
       possible, set resource limits, and lock configuration before handing out connections.
     - **Diagnostics can reveal names.** Treat engine error messages and audit logs as host data.
 
-    Read the [security model](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/security.md)
+    Read the [security model](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/security.md)
     for the full boundaries and setup requirements. Report suspected bypasses through
-    [SECURITY.md](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/SECURITY.md).
+    [SECURITY.md](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/SECURITY.md).
 
     ### Compatibility
 
     - **Community binaries:** the community repository builds this release for DuckDB 2.0. It no
       longer builds DuckDB 1.5; its 1.5.6 binaries remain Gatekeeper v0.4.1. The policy model is
       shared, with engine-specific capabilities and refusals;
-      [Compatibility and review](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/docs/security.md#compatibility-and-review)
+      [Compatibility and review](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/docs/security.md#compatibility-and-review)
       lists what a host on 2.0 sees differently.
-    - **Primary build / GitHub release v0.4.4:** target DuckDB 2.0.0, source revision
-      `d54cbbe3df17e8e5ce68312f483b4155836112aa`. Published v0.4.3 assets target 1.5.6.
-      Source compatibility with 1.5.6 is maintained until March 1, 2027. Each binary requires its
-      matching engine. Builds and regression tests, not an engine allowlist, establish compatibility.
-    - **Platforms:** the 2.0 distribution restores Windows MinGW with CRAN R. Wasm EH source
-      builds are browser-tested with a matching development-labeled 2.0 runtime; release Wasm
-      assets await a release-labeled host. MVP and threads/COI remain excluded.
+    - **Primary build / GitHub release v0.4.5:** target DuckDB 2.0.1, source revision
+      `8d78114e90a53823803660bf821f6073ac87da8c`. Published v0.4.4 assets target 2.0.0 and v0.4.3
+      assets target 1.5.6. Source compatibility with 1.5.6 is maintained until March 1, 2027. Each
+      binary requires its matching engine. Builds and regression tests, not an engine allowlist,
+      establish compatibility.
+    - **Platforms:** nine native targets, including Windows MinGW with CRAN R, and Wasm EH,
+      browser-tested with `@duckdb/duckdb-wasm@1.33.1-dev121.0` embedding DuckDB 2.0.1. MVP and
+      threads/COI remain excluded.
     - **API stability:** Gatekeeper is in early development (0.x); options and result schemas
       may change between releases.
 
-    See [build-pin maintenance](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/inventories/README.md#repinning-the-engine)
-    and [Wasm setup](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/test/wasm/README.md).
+    See [build-pin maintenance](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/inventories/README.md#repinning-the-engine)
+    and [Wasm setup](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/test/wasm/README.md).
 
     ### Benchmarks
 
@@ -317,22 +318,22 @@ docs:
 
     | | point lookup (1 K rows) | aggregate (10 M rows) | large statement (11 KB) |
     | --- | ---: | ---: | ---: |
-    | plain connection | 103 µs | 4.0 ms | 9.4 ms |
-    | enforced connection | 164 µs (+61 µs) | 4.2 ms (+221 µs) | 20.7 ms (+11.3 ms) |
-    | enforced, audit log at debug | 227 µs (+124 µs) | 4.4 ms (+370 µs) | 20.8 ms (+11.4 ms) |
-    | validate, then execute | 278 µs (+175 µs) | 4.4 ms (+405 µs) | 19.2 ms (+9.8 ms) |
-    | denied on an enforced connection | 334 µs | 529 µs | 11.1 ms |
+    | plain connection | 110 µs | 4.6 ms | 6.9 ms |
+    | enforced connection | 160 µs (+50 µs) | 4.9 ms (+302 µs) | 16.1 ms (+9.2 ms) |
+    | enforced, audit log at debug | 225 µs (+115 µs) | 5.0 ms (+378 µs) | 16.4 ms (+9.4 ms) |
+    | validate, then execute | 277 µs (+167 µs) | 5.1 ms (+465 µs) | 14.7 ms (+7.8 ms) |
+    | denied on an enforced connection | 911 µs | 1.2 ms | 7.3 ms |
 
     Median of 1000 runs per cell after 20 warm-ups, `execute().fetchall()` through the Python
-    client on one connection of an in-memory database; Apple M3 Max, DuckDB 2.0.0, Gatekeeper
-    0.4.4. The plain row is the client round trip plus the engine's own work; in parentheses,
+    client on one connection of an in-memory database; Apple M3 Max, DuckDB 2.0.1, Gatekeeper
+    0.4.5. The plain row is the client round trip plus the engine's own work; in parentheses,
     what each mode adds to it.
 
     The check is a second parse and bind of the statement plus the AST walk, so its cost
     follows the statement's size, not the data's. `gatekeeper_validate` runs the same check;
     the rest of its row is the second client round trip. A refusal never reaches the engine.
     The table is regenerated by
-    [scripts/benchmark.py](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/scripts/benchmark.py).
+    [scripts/benchmark.py](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/scripts/benchmark.py).
 
     Full documentation, including a Python integration example, is in the
-    [README](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.4/README.md).
+    [README](https://github.com/nozzle/duckdb-gatekeeper/blob/v0.4.5/README.md).
