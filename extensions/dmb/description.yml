@@ -1,0 +1,32 @@
+extension:
+  name: dmb
+  description: Runs DCS (Cascading Duck Sheets), CSS-shaped rule sheets that transform duck_blocks documents.
+  version: 0.1.0
+  language: C++
+  build: cmake
+  license: Apache-2.0
+  maintainers:
+    - teaguesterling
+repo:
+  github: teaguesterling/duckdb_dmb
+  ref: d9b18643d02d26482e6cf831eb882501a3c8ec22
+docs:
+  docs_url: https://duckdb-dmb.readthedocs.io
+  hello_world: |
+    LOAD dmb;
+
+    -- Check a sheet: one row per diagnostic
+    SELECT severity, code, message, line, "column"
+    FROM dcs_check('h2:contains("Comments") { -dcs-prune: section; } p { -dcs-replace: "(" "x"; }');
+
+    -- List the rules and declarations of a sheet
+    SELECT rule, selector, property, value, specificity
+    FROM dcs_rules('heading { -dcs-id: auto; } .comment { --audience: "kids"; }');
+  extended_description: |
+    dmb applies a DCS sheet to a duck_blocks document and returns a new document. A selector
+    chooses blocks, as in CSS. The declarations set ids and attributes, drop sections, wrap or
+    retype blocks, add generated text, reorder blocks, and write front matter. Any duck_block_utils
+    renderer can then write the result as Markdown, HTML or text.
+
+    Functions: `dcs_apply`, `dcs_select`, `dcs_explain`, `dcs_check`, `dcs_rules`,
+    `dcs_parse_markdown`, `dcs_parse_html`, `dcs_version`. See https://duckdb-dmb.readthedocs.io.
