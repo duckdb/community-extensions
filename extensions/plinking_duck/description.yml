@@ -1,7 +1,7 @@
 extension:
   name: plinking_duck
   description: Read and write PLINK 2 genomics file formats and run common genetic analyses directly in SQL
-  version: 0.18.0
+  version: 0.18.1
   language: C++
   build: cmake
   license: MIT
@@ -15,19 +15,19 @@ repo:
   # = the DuckDB v1.5.6 build (explicit, not left to fall back to ref); ref_next = the
   # dormant prerelease slot (build_next test_against_latest is if:false).
   #
-  # v0.18.0 is a FEATURE release for the DuckDB v2.0.1 line. ONE BREAKING CHANGE (#139):
-  # ATTACH c.genotypes is now one row per variant x sample; the old shapes are
-  # c.genotypes_by_variant_list and c.genotypes_by_sample_list. A WHERE on ID, CPRA,
-  # genotype or IID now narrows the read, the .pgen header is decoded once and shared,
-  # and the .psam.parquet path is fast at 8M samples. macOS builds again (#151).
+  # v0.18.1 is a PATCH release for the DuckDB v2.0.1 line, no breaking change. It fixes
+  # plink_pca returning 0 rows or wrong eigenvalues under threads > 1 (#155), and a
+  # region := read that raised a Conversion Error (or, for '\x41', returned contig A's
+  # rows) with a non-ASCII or backslash contig (#157). A .pvar.parquet region read opens
+  # the file 3 times, not 5 (#127).
   #
-  # ref / ref_next advance to the v0.18.0 commit (de9161c). variegata stays PINNED at the
-  # v0.14.2 commit (7a34f3ab), the last commit that builds on v1.5.6. de9161c is green on
-  # its push-to-main run (45330456492) on DuckDB v2.0.1: ran tests: 155 passed on
+  # ref / ref_next advance to the v0.18.1 commit (baf5f2b). variegata stays PINNED at the
+  # v0.14.2 commit (7a34f3ab), the last commit that builds on v1.5.6. baf5f2b is green on
+  # its push-to-main run (45891110427) on DuckDB v2.0.1: ran tests: 159 passed on
   # linux_amd64 and osx_arm64; linux_arm64 is compiled, not tested.
-  ref: de9161c25d8d068da12d876160806a4583912bce
+  ref: baf5f2ba642b30cfc7eed3a15b52ca8b53aaabea
   variegata: 7a34f3ab8d76534aaebed0aaa88e8ef27099f4e6
-  ref_next: de9161c25d8d068da12d876160806a4583912bce
+  ref_next: baf5f2ba642b30cfc7eed3a15b52ca8b53aaabea
 
 docs:
   hello_world: |
