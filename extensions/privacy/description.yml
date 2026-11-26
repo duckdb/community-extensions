@@ -12,8 +12,8 @@ extension:
 
 repo:
   github: "alitrack/duckdb-privacy"
-  ref: "7f3fadc89fed930c17a50c0f9eba291ee806c9e7"
-  variegata: "7f3fadc89fed930c17a50c0f9eba291ee806c9e7"
+  ref: "a3175e255d60c903559e0d5ad061cde87042a4a3"
+  variegata: "a3175e255d60c903559e0d5ad061cde87042a4a3"
 
 docs:
   hello_world: |
