@@ -1,7 +1,10 @@
 extension:
   name: duckflight
-  description: Query DuckDB from PostgreSQL, Arrow Flight SQL, HTTP, and Quack clients
-  version: 0.1.20
+  description: >-
+    Use DuckDB as your data warehouse. BI tools, psql, and other PostgreSQL or Arrow Flight SQL
+    clients can connect and query your DuckDB tables and your Iceberg, DuckLake, or Parquet data.
+    Authentication, TLS, and role-based access control are built in.
+  version: 0.1.21
   language: Rust
   build: cargo
   license: MIT
@@ -13,51 +16,83 @@ extension:
 
 repo:
   github: sidequery/duckflight-extension
-  ref: 11527a44e39e5b49e3d35a974e80005476f42c80
+  ref: dd932d64bfbecded7a95019f9efb361bfc682101
   variegata: d6646edb7877ab65f39ffa1cfe53b5d090f3694b
 
 docs:
   hello_world: |
-    -- Let PostgreSQL clients query this DuckDB database.
-    SELECT * FROM duckflight_pg_serve(
-      '127.0.0.1:5433', '/path/to/duckflight.toml'
-    );
+    -- Create a login. The password is generated and returned once.
+    SELECT * FROM duckflight_user_create('duckflight.toml', 'alice');
 
-    -- Let Arrow Flight SQL clients query the same database.
-    SELECT * FROM duckflight_flight_serve(
-      '127.0.0.1:31337', '/path/to/duckflight.toml'
-    );
+    CREATE TABLE trips AS SELECT 1 AS id, 'Lisbon' AS city;
+
+    -- Serve this database to PostgreSQL clients.
+    SELECT * FROM duckflight_pg_serve('127.0.0.1:5433', 'duckflight.toml');
+
+    -- From another terminal:
+    --   psql "host=127.0.0.1 port=5433 user=alice dbname=memory"
+    --   SELECT * FROM trips;
   extended_description: |
-    Use DuckDB as a database server. DuckFlight lets PostgreSQL, Arrow Flight SQL, HTTP, and Quack
-    clients query the same live DuckDB database that loaded the extension—no export, copy, or
-    second database required.
+    DuckFlight lets other programs connect to DuckDB and run queries, the way they would with
+    a data warehouse. `psql`, JDBC, SQLAlchemy and BI tools connect as if it were PostgreSQL.
+    ADBC drivers connect over Arrow Flight SQL, and another DuckDB can attach it as a catalog.
 
-    Connect with PostgreSQL tools such as `psql`, Psycopg, JDBC, and BI applications; Arrow ADBC
-    Flight SQL clients; or another DuckDB instance through the Airport extension. Reads and writes
-    are immediately visible to DuckDB and every connected client.
+    Clients can query anything that DuckDB can: its own tables, attached databases, Iceberg and
+    DuckLake catalogs, and Parquet or CSV files in object storage. Everything runs inside the
+    DuckDB process that loaded the extension, so there is nothing else to deploy and no data to
+    copy. It works on a laptop, and a
+    [Docker image and Helm chart](https://github.com/sidequery/duckflight-extension/blob/main/docs/DOCKER.md)
+    are available for running it for a team.
 
-    Listeners require authentication. A single `duckflight.toml` configures users, access
-    tokens, and optional TLS. See the
-    [quick start and authentication guide](https://github.com/sidequery/duckflight-extension/blob/main/README.md#authentication-setup).
+    Clients can connect over four protocols, which can run at the same time:
 
-    HTTP returns Arrow IPC; Quack serves DuckDB's binary protocol at `/quack`.
-    Both accept tokens, OIDC, or mTLS rather than PostgreSQL SCRAM users.
+    | Protocol | Start function | Clients | Credentials |
+    | --- | --- | --- | --- |
+    | PostgreSQL wire | `duckflight_pg_serve` | `psql`, Psycopg, JDBC, SQLAlchemy, BI tools | Users, OIDC, mTLS |
+    | Arrow Flight SQL | `duckflight_flight_serve` | ADBC drivers, DuckDB's Airport extension | Users, bearer tokens, OIDC, mTLS |
+    | HTTP (Arrow IPC) | `duckflight_http_serve` | Anything that can `POST` JSON and read Arrow | Bearer tokens, OIDC, mTLS |
+    | Quack | `duckflight_quack_serve` | Another DuckDB, through its `quack` extension | Bearer tokens, OIDC, mTLS |
 
-    Server-control functions:
+    Every listener requires authentication, and an address other than loopback also requires
+    TLS. One `duckflight.toml` file holds users, bearer tokens, OIDC providers, client-certificate
+    identities and the TLS certificate. Bearer tokens carry scopes, so a token can be limited to
+    reads. On DuckDB 2.0.1, SQL-managed roles can also restrict clients to specific tables,
+    columns and rows, with column masks and row filters.
+
+    Functions that start, stop and list listeners:
 
     | Function | Purpose |
     | --- | --- |
-    | `duckflight_pg_serve(address, config_file)` | Starts an authenticated PostgreSQL listener; returns its protocol and bound address. |
-    | `duckflight_flight_serve(address, config_file)` | Starts an authenticated Arrow Flight SQL listener; returns its protocol and bound address. |
-    | `duckflight_http_serve(address, config_file)` | Starts an authenticated HTTP Arrow IPC listener; returns its protocol and bound address. |
-    | `duckflight_quack_serve(address, config_file)` | Starts an authenticated binary Quack listener; returns its protocol and bound address. |
-    | `duckflight_stop(protocol, address)` | Stops the specified listener and returns its status. |
+    | `duckflight_pg_serve(address, config_file)` | Starts a PostgreSQL listener and returns its protocol and bound address. |
+    | `duckflight_flight_serve(address, config_file)` | Starts an Arrow Flight SQL listener. |
+    | `duckflight_http_serve(address, config_file)` | Starts an HTTP listener that returns Arrow IPC. |
+    | `duckflight_quack_serve(address, config_file)` | Starts a listener for DuckDB's Quack protocol. |
     | `duckflight_servers()` | Lists running listeners and their bound addresses. |
-    | `duckflight_core_status()` | Reports whether the runtime loaded, its ABI version, and status details. |
+    | `duckflight_stop(protocol, address)` | Stops a listener and returns its status. |
+    | `duckflight_core_status()` | Reports whether the runtime loaded, with a reason when it did not. |
 
-    The automatically detected functions below also include PostgreSQL compatibility macros
-    and internal session/catalog helpers installed by the runtime. These support PostgreSQL
-    queries and client metadata discovery; they are not additional server controls or a complete
-    implementation of PostgreSQL functions. Their catalog comments describe each helper.
-    The v1 table-function C API does not expose function-description setters,
-    so the seven native server functions are documented above.
+    Functions that create credentials in `duckflight.toml`:
+
+    | Function | Purpose |
+    | --- | --- |
+    | `duckflight_user_create(config_file, name)` | Adds a user and returns a generated password once. `password_file` supplies your own. |
+    | `duckflight_token_create(config_file, name)` | Adds a bearer token and returns it once. `scopes` sets what it may do. |
+    | `duckflight_config_check(config_file)` | Validates a config file the way a listener does and reports what it defines. |
+
+    Only the DuckDB process that owns the database can call the serve, stop, list and
+    credential functions. A client connected through a listener cannot, whatever its credentials
+    allow. Secrets are never function arguments, and the file stores only digests and password
+    verifiers.
+
+    DuckFlight runs on Linux and macOS, on amd64 and arm64. See the
+    [quickstart](https://github.com/sidequery/duckflight-extension/blob/main/README.md#quickstart),
+    [client examples](https://github.com/sidequery/duckflight-extension/blob/main/docs/CLIENTS.md),
+    [authentication](https://github.com/sidequery/duckflight-extension/blob/main/docs/AUTHENTICATION.md)
+    and [SQL access controls](https://github.com/sidequery/duckflight-extension/blob/main/docs/ACCESS_CONTROL.md).
+
+    The automatically detected functions below also include PostgreSQL compatibility macros,
+    such as `to_char` and `quote_ident`, and internal session and catalog helpers. They let
+    PostgreSQL queries and client metadata discovery work; they are not a complete
+    implementation of PostgreSQL's functions. Their catalog comments describe each one. The
+    native functions in the tables above have no catalog descriptions, because the table-function
+    C API they use does not provide a way to set them.
