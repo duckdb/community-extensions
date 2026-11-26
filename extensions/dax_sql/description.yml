@@ -1,0 +1,41 @@
+extension:
+  name: dax_sql
+  description: A Power BI semantic model (.bim, TMDL or Apache Ossie YAML) as a semantic view, queried in plain SQL; its DAX measures are compiled to DuckDB SQL
+  version: "0.1.0"
+  language: C++
+  build: cmake
+  license: MIT
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  maintainers:
+    - djouallah
+
+repo:
+  github: djouallah/dax-sql-duckdb
+  ref: 56255236402dbf2c14b58a9d645b160e8511c6fe
+
+docs:
+  hello_world: |
+    INSTALL dax_sql FROM community;
+    LOAD dax_sql;
+    CREATE SECRET onelake (TYPE azure, PROVIDER credential_chain);
+
+    -- A Direct Lake model: its lakehouse is attached through OneLake's Iceberg catalog.
+    CREATE SEMANTIC VIEW sales
+        FROM 'abfss://<workspace>@onelake.dfs.fabric.microsoft.com/<lakehouse>/Files/model.bim';
+
+    SHOW SEMANTIC METRICS IN sales;
+
+    SELECT Product.Color, AGG(Orders) AS orders, AGG("Sales Amount") AS amount
+    FROM sales
+    WHERE Customer.Country = 'France'
+    GROUP BY ALL
+    ORDER BY amount DESC;
+  extended_description: |
+    dax_sql reads a Power BI semantic model, as a TMSL .bim, TMDL files or Apache Ossie YAML
+    (a Fabric semantic view's Context/Semantic Views/<view>/ folder), and makes it a semantic view.
+    Queries are plain DuckDB SQL: a measure is AGG(name) or AGG("name with spaces"), and a
+    dimension is Table.Column. The measures' DAX is compiled to DuckDB SQL at bind time by
+    dax-sql (https://github.com/djouallah/dax-sql), embedded in the extension through QuickJS.
+    A Direct Lake model's tables are read from its lakehouse through OneLake's Iceberg REST
+    catalog, pinned to their snapshots until REFRESH SEMANTIC VIEW. Not built for wasm: OneLake
+    is read through the azure extension, which has no wasm build.
