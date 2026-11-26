@@ -13,7 +13,7 @@ extension:
 
 repo:
   github: altertable-ai/duckdb-databricks
-  ref: f4251bf80648e6b8321e99b251fc4ab4457ab35b
+  ref: b099492c4381dddf32358f34bc1dcbbbd78de393
   variegata: 272162459a35364c0cb5639b2bc035bb8591d826
 
 docs:
