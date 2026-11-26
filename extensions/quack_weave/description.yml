@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: kevintruong/quack-weave
-  ref: ccf3f2e6e1163e0d1ea9a5c93d81c8bb7ce13b5d
+  ref: bc600c8f9cec15537d994b7aec4fde78a1f30c31
 
 docs:
   hello_world: |
