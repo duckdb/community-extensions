@@ -1,10 +1,10 @@
 # Submission file for https://github.com/duckdb/community-extensions
 #
-# salesforce v0.22.0 submission. Adds DuckDB v2.0.1 to the supported matrix
-# (now {v1.5.6, v2.0.0, v2.0.1}); folds in the v0.21.0 baseline reduction
-# (v1.5.4/v1.5.5 dropped). repo.ref pinned to the v0.22.0 tag commit
-# (git rev-parse v0.22.0^{commit}). Registry builds against DuckDB v1.5.6,
-# which this source supports (floor = v1.5.6).
+# salesforce v0.22.1 submission (patch). Optional client_secret for public
+# connected apps (empty secret omitted from the token request) and a base64
+# decoder UB fix. Supported matrix unchanged ({v1.5.6, v2.0.0, v2.0.1}).
+# repo.ref pinned to the v0.22.1 tag commit (git rev-parse v0.22.1^{commit}).
+# Registry builds against DuckDB v1.5.6, which this source supports.
 #
 
 extension:
