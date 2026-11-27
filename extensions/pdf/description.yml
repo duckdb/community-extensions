@@ -1,8 +1,8 @@
-# PDF 0.10.1: pages render in parallel; automatic OCR reads stamp-only text layers.
+# PDF 0.10.2: pages render in parallel; automatic OCR reads stamp-only text layers; build guard runs only in the local test run.
 extension:
   name: pdf
   description: Read, OCR (Tesseract or Apple Vision), inspect, transform, and write PDFs in SQL
-  version: 0.10.1
+  version: 0.10.2
   language: C++
   build: cmake
   license: GPL-2.0-or-later
@@ -18,7 +18,7 @@ extension:
 
 repo:
   github: asubbarao/duckdb-pdf
-  ref: f1eeb39a36b66357b51865354a77a5916898393e
+  ref: cb9a28a93602d245475e6e6a2f4679a86da64385
 
 docs:
   hello_world: |
