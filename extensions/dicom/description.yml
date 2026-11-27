@@ -6,6 +6,7 @@ extension:
   language: C++
   build: cmake
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  vcpkg_commit: 93ad765c7b66ab9ce97469ec23a90b15c3a14ee5
   license: MIT
   maintainers:
     - nmontesg
@@ -26,7 +27,7 @@ docs:
     convert them into JSON format.
 
     For full documentation and examples, see the project [`documentation`](https://nmontesg.github.io/duck-dicom/).
-    
+
     **Key functionality:**
 
     * `read_dicom()` - Table function to import DICOM files directly into DuckDB, including support for local and remote
