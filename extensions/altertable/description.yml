@@ -12,7 +12,7 @@ extension:
   requires_toolchains: "vcpkg;parser_tools"
 repo:
   github: altertable-ai/duckdb-altertable
-  ref: 12fea1270cace5c7446bdc86dc48c98f6e84c398
+  ref: 8a798e1997f65072550836857ee3b3b19a6e684a
   variegata: 350de4b8e0dafb87435927c1e31f3670e4335bb5
 docs:
   hello_world: |
