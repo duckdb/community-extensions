@@ -14,6 +14,7 @@ extension:
 repo:
   github: snouhaud/DuckDB-QVD-Extension
   variegata: 2aa71d2b35ffe0c27825504711dd54a9412dd214
+  # Rebuilt on DuckDB v2.0.1: the previous build of this ref ran before the v2.0.1 bump (7228ae2).
   ref: 3b7e8d55f20263dd3c398ec47bfe5bcb1a9c00cd
 
 docs:
