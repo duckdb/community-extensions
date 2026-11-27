@@ -2,17 +2,18 @@ extension:
   name: dicom
   description: |
     DuckDB integration with medical imaging data (DICOM - Digital Imaging and Communication in Medicine).
-  version: 1.0.1
+  version: 1.1.0
   language: C++
   build: cmake
   excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads"
+  vcpkg_commit: 93ad765c7b66ab9ce97469ec23a90b15c3a14ee5
   license: MIT
   maintainers:
     - nmontesg
 
 repo:
   github: nmontesg/duck-dicom
-  ref: 84d789a585bf4b33a91ac66c58cfbbb3e09b3b4f
+  ref: 8690e5294aa91403526ab2cb1309f23f1305bcc2
 
 docs:
   hello_world: |
@@ -26,7 +27,7 @@ docs:
     convert them into JSON format.
 
     For full documentation and examples, see the project [`documentation`](https://nmontesg.github.io/duck-dicom/).
-    
+
     **Key functionality:**
 
     * `read_dicom()` - Table function to import DICOM files directly into DuckDB, including support for local and remote
