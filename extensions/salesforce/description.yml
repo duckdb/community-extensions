@@ -10,7 +10,7 @@
 extension:
   name: salesforce
   description: Read-only access to Salesforce orgs as DuckDB SQL tables over the official REST and Bulk APIs — OAuth refresh-token or JWT-bearer auth (credentials from inline options, environment variables, or an SFDX auth URL), native ATTACH, projection + predicate pushdown, COUNT pushdown, explicit server-side aggregates with GROUP BY, lazy/auto/Bulk transports with PK chunking (Bulk blob/base64 compatibility guard), a per-job API quota governor, parent + grandparent relationship STRUCT columns with diagnostics, queryAll (archived + deleted), Tooling-API fast schema, and metadata helpers (manual cache refresh, picklist values, record types). Requires DuckDB v1.5.6 or newer.
-  version: 0.22.0
+  version: 0.22.1
   language: C++
   build: cmake
   license: MIT
@@ -26,8 +26,8 @@ extension:
 repo:
   github: flozer/duckdb-salesforce
   # community-extensions CI checks out exactly this ref to build + sign.
-  # tag v0.22.0
-  ref: eecf4ad2d3909b5045addca1bfe5426773d60efb
+  # tag v0.22.1
+  ref: ff658cfef83eb86b23922a4a14001c51734f551c
 
 docs:
   hello_world: |
@@ -69,6 +69,11 @@ docs:
     one source tree, version selected at build time; v1.5.2/v1.5.3 dropped in
     v0.15.0, v1.5.4/v1.5.5 dropped in v0.21.0 - see CHANGELOG.md). Full
     change history in this repo's CHANGELOG.md.
+    Since v0.22.1, client_secret is optional on every refresh-token path
+    (public connected apps such as the Salesforce CLI's have none; an empty
+    secret is omitted from the token request instead of being rejected as
+    invalid_client), and the BLOB base64 decoder no longer overflows a signed
+    integer (output unchanged).
     Since v0.22.0, DuckDB v2.0.1 is a supported baseline alongside v1.5.6
     and v2.0.0 (v2.0.1 is a bugfix patch on the v2.0 LTS line; no source
     change - the dual-line v2.x path already covers it).
