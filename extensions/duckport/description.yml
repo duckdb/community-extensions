@@ -1,7 +1,7 @@
 extension:
   name: duckport
   description: Read files and dataset services into DuckDB and stream query results to Lance, Parquet datasets, and Iceberg tables
-  version: 0.2.1
+  version: 0.2.2
   language: C++ & Rust
   build: cmake
   license: MIT
@@ -12,7 +12,7 @@ extension:
 
 repo:
   github: dentiny/duckport
-  ref: 8fe58404860c5f9ecca3e415a425db3a209779df
+  ref: 93bf6e409d437abb3e0e9fdd6d76ddb395de3af9
 
 docs:
   hello_world: |
