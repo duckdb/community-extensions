@@ -1,7 +1,7 @@
 extension:
   name: dax_sql
   description: A Power BI semantic model (.bim, TMDL or Apache Ossie YAML) as a semantic view, queried in plain SQL; its DAX measures are compiled to DuckDB SQL
-  version: "0.1.0"
+  version: "0.1.1"
   language: C++
   build: cmake
   license: MIT
@@ -11,25 +11,25 @@ extension:
 
 repo:
   github: djouallah/dax-sql-duckdb
-  ref: 56255236402dbf2c14b58a9d645b160e8511c6fe
+  ref: 7267fec4f040c7081531ca583bb2160b617d91bc
 
 docs:
   hello_world: |
     INSTALL dax_sql FROM community;
     LOAD dax_sql;
-    CREATE SECRET onelake (TYPE azure, PROVIDER credential_chain);
+    -- Not needed in a Fabric notebook; on a laptop (az login) or in CI with OIDC:
+    CREATE OR REPLACE SECRET onelake (TYPE azure, PROVIDER credential_chain);
 
-    -- A Direct Lake model: its lakehouse is attached through OneLake's Iceberg catalog.
-    CREATE SEMANTIC VIEW sales
-        FROM 'abfss://<workspace>@onelake.dfs.fabric.microsoft.com/<lakehouse>/Files/model.bim';
+    -- A Fabric semantic view's Apache Ossie YAML: its lakehouse is attached through OneLake's Iceberg catalog.
+    CREATE OR REPLACE SEMANTIC VIEW nem
+        FROM 'abfss://<workspace>@onelake.dfs.fabric.microsoft.com/<lakehouse>.Lakehouse/Context/Semantic Views/nem/ossie.yaml';
 
-    SHOW SEMANTIC METRICS IN sales;
+    DESCRIBE SEMANTIC VIEW nem;
 
-    SELECT Product.Color, AGG(Orders) AS orders, AGG("Sales Amount") AS amount
-    FROM sales
-    WHERE Customer.Country = 'France'
+    SELECT dim_region.Region, AGG("Registered units") AS units, AGG("Registered MW") AS mw
+    FROM nem
     GROUP BY ALL
-    ORDER BY amount DESC;
+    ORDER BY ALL;
   extended_description: |
     dax_sql reads a Power BI semantic model, as a TMSL .bim, TMDL files or Apache Ossie YAML
     (a Fabric semantic view's Context/Semantic Views/<view>/ folder), and makes it a semantic view.
