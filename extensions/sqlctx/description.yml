@@ -1,0 +1,51 @@
+extension:
+  name: sqlctx
+  description: SQL-first semantic models with reusable dimensions, metrics, relationships and automatic query rewriting
+  version: "0.1.0"
+  language: C++
+  build: cmake
+  license: AGPL-3.0-only AND MIT
+  requires_toolchains: rust
+  # Match the native platforms covered by the release workflow.
+  excluded_platforms: "wasm_mvp;wasm_eh;wasm_threads;windows_amd64;windows_amd64_rtools;windows_amd64_mingw;windows_arm64;linux_amd64_musl;linux_arm64_musl"
+  opt_in_platforms: osx_amd64
+  maintainers:
+    - nicosuave
+
+repo:
+  github: sidequery/sqlctx
+  build_directory: sqlctx-duckdb
+  # The same source supports both released DuckDB C++ APIs.
+  ref: 84eeb497c61fad939ea38c3ab45e61032662213b
+  variegata: 84eeb497c61fad939ea38c3ab45e61032662213b
+
+docs:
+  hello_world: |
+    INSTALL sqlctx FROM community;
+    LOAD sqlctx;
+
+    CREATE TABLE orders(id INTEGER, region VARCHAR, amount DECIMAL(10,2));
+    INSERT INTO orders VALUES (1, 'US', 100), (2, 'US', 200), (3, 'EU', 150);
+
+    MODEL (name sales, table orders, primary_key id);
+    DIMENSION (name region, type categorical);
+    METRIC revenue AS SUM(amount);
+
+    SELECT sales.region, sales.revenue FROM sales ORDER BY 1;
+    SHOW METRICS FROM sales;
+    SELECT sqlctx_rewrite_sql('SELECT sales.region, sales.revenue FROM sales');
+  extended_description: |
+    Define semantic models, dimensions, metrics and relationships in SQL, or load
+    definition files with sqlctx_load_file. Query model fields with ordinary SQL;
+    sqlctx compiles the requested dimensions and metrics into DuckDB SQL at bind time.
+
+    Definitions participate in DuckDB transactions. SHOW MODELS, SHOW METRICS and
+    SHOW DIMENSIONS expose the model vocabulary, and sqlctx_rewrite_sql returns
+    generated SQL for inspection. Models are also discoverable under the semantic
+    schema through DuckDB's catalog interfaces.
+
+    Native PEG grammar is used on DuckDB 2.0.1; DuckDB 1.5.6 uses the compatibility
+    frontend. The extension includes its Rust compiler in the binary and does not
+    require a Python environment or a separate server at runtime.
+
+    Documentation: https://github.com/sidequery/sqlctx/tree/main/sqlctx-duckdb
