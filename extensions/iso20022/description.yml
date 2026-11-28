@@ -1,0 +1,92 @@
+extension:
+  name: iso20022
+  description: "SWIFT MT / ISO 20022 MX payment messages in SQL — sniff the MT type, read tagged fields, exact :32A: interbank amount, structural validation; no external SWIFT tooling"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-iso20022
+  ref: 454d5cf8926bd797201dd6fcf8a3d28c397f216e
+
+docs:
+  hello_world: |
+    LOAD iso20022;
+
+    -- Sniff the MT type from the {2:...} block
+    SELECT iso20022_mt_type('{1:F01X}{2:I103X}{4:
+    :23B:CRED
+    :20:R
+    :32A:260101EUR1234,56
+    -}');                                        -- MT103
+
+    -- Read a tagged B-block field (prefix match, first occurrence)
+    SELECT iso20022_mt103_field('{1:F01X}{2:I103X}{4:
+    :23B:CRED
+    :20:R
+    :32A:260101EUR1234,56
+    -}', '20');                                 -- R
+
+    -- The exact :32A: interbank settled amount (comma-normalized, never a float)
+    SELECT iso20022_mt103_amount('{1:F01X}{2:I103X}{4:
+    :23B:CRED
+    :20:R
+    :32A:260101EUR1234,56
+    -}');                                        -- 1234.56
+
+    -- Structural validation (total: never errors; clean messages -> NULL error list)
+    SELECT iso20022_validate_ok('{1:F01X}{2:I103X}{4:
+    :23B:CRED
+    :20:R
+    :32A:260101EUR1234,56
+    :50K:/123
+    :59A:/456
+    :70:/ACC
+    -}');                                        -- true when a full MT103
+
+    -- Not an MT/MX message -> NULL / false, never a SQL error
+    SELECT iso20022_mt_type('garbage not swift');      -- NULL
+
+  extended_description: |
+    ## iso20022 — SWIFT MT / ISO 20022 MX inspection in SQL
+
+    Sniff the MT type, read any tagged field of an MT103/MT202, pull out the
+    exact `:32A:` interbank settled amount (comma-normalized, never a float),
+    and run structural validation — right in DuckDB, **no external SWIFT
+    tooling**.
+
+    The engine (`iso20022_core/`) is a verbatim port of the pure-compute core
+    of Query-farm's `vgi-iso20022` worker (MIT) — a SWIFT **MT**
+    (MT103/202/940/942) + ISO 20022 **MX** (pacs/pain/camt) parser with no
+    I/O, no network, no Arrow — with only the transport layer swapped for
+    direct C-API vector I/O.
+
+    **5 functions:**
+
+    | Function | Returns | Notes |
+    |----------|---------|-------|
+    | `iso20022_mt_type` | `(content) → VARCHAR` | `{2:I103…}` block type → `MT103` / `MT202`; `NULL` when not an MT |
+    | `iso20022_mt103_field` | `(content, tag) → VARCHAR` | raw value of a tagged B-block field (prefix match, first occurrence) |
+    | `iso20022_mt103_amount` | `(content) → VARCHAR` | the `:32A:` settled amount as a canonical decimal string (comma→dot, `rust_decimal`) |
+    | `iso20022_validate_ok` | `(content) → BOOLEAN` | `true` when the message passes structural validation (total) |
+    | `iso20022_validate_errors` | `(content) → LIST(VARCHAR)` | the validation error strings; `NULL` when clean |
+
+    **Semantics:** sniffing is **total** — anything not a recognizable
+    MT/MX message yields `NULL` (type/field/amount) or `false`/`NULL`
+    (validation), never a SQL error. **Money is exact** — the `:32A:` amount
+    parses via `rust_decimal` (comma-normalized) and returns its canonical
+    string, so MT↔MX amount-equality joins are byte-exact with no float
+    drift. A LIST row is capped (4096 errors).
+
+    **Deferred (documented):** the worker's 9 file/glob **table** functions
+    (`mt103`, `mt202`, `mt940`, `mt942`, `pacs002`, `pacs008`, `pain001`,
+    `camt053`, `camt054`, + `scan`) read a file-path source the VGI host
+    exposes but a loadable extension has no surface for; the underlying
+    parse is fully available in-process and the scalars above reuse it.
+
+    **Install:** `INSTALL iso20022 FROM community;`
