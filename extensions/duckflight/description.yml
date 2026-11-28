@@ -4,7 +4,7 @@ extension:
     Use DuckDB as your data warehouse. BI tools, psql, and other PostgreSQL or Arrow Flight SQL
     clients can connect and query your DuckDB tables and your Iceberg, DuckLake, or Parquet data.
     Authentication, TLS, and role-based access control are built in.
-  version: 0.1.21
+  version: 0.2.1
   language: Rust
   build: cargo
   license: MIT
@@ -16,22 +16,23 @@ extension:
 
 repo:
   github: sidequery/duckflight-extension
-  ref: dd932d64bfbecded7a95019f9efb361bfc682101
+  ref: 20171b6c62495f8cf5b3560e76497573533ec517
   variegata: d6646edb7877ab65f39ffa1cfe53b5d090f3694b
 
 docs:
   hello_world: |
-    -- Create a login. The password is generated and returned once.
-    SELECT * FROM duckflight_user_create('duckflight.toml', 'alice');
+    -- Create the first administrator. The password is generated and returned once.
+    SELECT * FROM duckflight_init('alice');
 
     CREATE TABLE trips AS SELECT 1 AS id, 'Lisbon' AS city;
 
     -- Serve this database to PostgreSQL clients.
-    SELECT * FROM duckflight_pg_serve('127.0.0.1:5433', 'duckflight.toml');
+    SELECT * FROM duckflight_serve('postgres', '127.0.0.1:5433');
 
     -- From another terminal:
     --   psql "host=127.0.0.1 port=5433 user=alice dbname=memory"
     --   SELECT * FROM trips;
+    --   CREATE USER bob ROLE reader;
   extended_description: |
     DuckFlight lets other programs connect to DuckDB and run queries, the way they would with
     a data warehouse. `psql`, JDBC, SQLAlchemy and BI tools connect as if it were PostgreSQL.
@@ -44,45 +45,54 @@ docs:
     [Docker image and Helm chart](https://github.com/sidequery/duckflight-extension/blob/main/docs/DOCKER.md)
     are available for running it for a team.
 
-    Clients can connect over four protocols, which can run at the same time:
+    Clients can connect over four protocols, which can run at the same time. One function,
+    `duckflight_serve(protocol, address)`, starts each of them:
 
-    | Protocol | Start function | Clients | Credentials |
+    | Protocol | `protocol` | Clients | Credentials |
     | --- | --- | --- | --- |
-    | PostgreSQL wire | `duckflight_pg_serve` | `psql`, Psycopg, JDBC, SQLAlchemy, BI tools | Users, OIDC, mTLS |
-    | Arrow Flight SQL | `duckflight_flight_serve` | ADBC drivers, DuckDB's Airport extension | Users, bearer tokens, OIDC, mTLS |
-    | HTTP (Arrow IPC) | `duckflight_http_serve` | Anything that can `POST` JSON and read Arrow | Bearer tokens, OIDC, mTLS |
-    | Quack | `duckflight_quack_serve` | Another DuckDB, through its `quack` extension | Bearer tokens, OIDC, mTLS |
+    | PostgreSQL wire | `postgres` | `psql`, Psycopg, JDBC, SQLAlchemy, BI tools | Passwords, tokens, OIDC, mTLS |
+    | Arrow Flight SQL | `flight` | ADBC drivers, DuckDB's Airport extension | Passwords, tokens, OIDC, mTLS |
+    | HTTP (Arrow IPC) | `http` | Anything that can `POST` JSON and read Arrow | Tokens, OIDC, mTLS |
+    | Quack | `quack` | Another DuckDB, through its `quack` extension | Tokens, OIDC, mTLS |
 
     Every listener requires authentication, and an address other than loopback also requires
-    TLS. One `duckflight.toml` file holds users, bearer tokens, OIDC providers, client-certificate
-    identities and the TLS certificate. Bearer tokens carry scopes, so a token can be limited to
-    reads. On DuckDB 2.0.1, SQL-managed roles can also restrict clients to specific tables,
-    columns and rows, with column masks and row filters.
+    TLS. Users live in an account store beside the database and are managed with SQL through
+    any listener: `CREATE USER`, `ALTER USER`, `DROP USER` and `CREATE TOKEN ... FOR USER`. Each
+    user has the role `reader`, `writer` or `admin`, and one account works on all four
+    protocols with its password or its tokens. Changes apply to running listeners at once. No
+    config file is needed; an optional `duckflight.toml` adds TLS, OIDC providers and
+    client-certificate identities. On DuckDB 2.0.1, SQL-managed roles can also restrict clients
+    to specific tables, columns and rows, with column masks and row filters.
+
+    Version 0.2.0 replaced `duckflight_pg_serve`, `duckflight_flight_serve`,
+    `duckflight_http_serve` and `duckflight_quack_serve` with `duckflight_serve`. Users and
+    tokens in an existing `duckflight.toml` keep working until the account store is created,
+    and `duckflight_import` moves them into it.
 
     Functions that start, stop and list listeners:
 
     | Function | Purpose |
     | --- | --- |
-    | `duckflight_pg_serve(address, config_file)` | Starts a PostgreSQL listener and returns its protocol and bound address. |
-    | `duckflight_flight_serve(address, config_file)` | Starts an Arrow Flight SQL listener. |
-    | `duckflight_http_serve(address, config_file)` | Starts an HTTP listener that returns Arrow IPC. |
-    | `duckflight_quack_serve(address, config_file)` | Starts a listener for DuckDB's Quack protocol. |
+    | `duckflight_serve(protocol, address, config_file := '')` | Starts a listener for `postgres`, `flight`, `http` or `quack` and returns its protocol and bound address. |
     | `duckflight_servers()` | Lists running listeners and their bound addresses. |
     | `duckflight_stop(protocol, address)` | Stops a listener and returns its status. |
     | `duckflight_core_status()` | Reports whether the runtime loaded, with a reason when it did not. |
 
-    Functions that create credentials in `duckflight.toml`:
+    Functions that manage accounts from the DuckDB process that owns the database:
 
     | Function | Purpose |
     | --- | --- |
-    | `duckflight_user_create(config_file, name)` | Adds a user and returns a generated password once. `password_file` supplies your own. |
-    | `duckflight_token_create(config_file, name)` | Adds a bearer token and returns it once. `scopes` sets what it may do. |
+    | `duckflight_init(admin)` | Creates the account store and its first administrator, and returns a generated password once. `password_file` supplies your own. |
+    | `duckflight_user_add(name, role := 'reader')` | Adds a user and returns a generated password once. |
+    | `duckflight_token_add(user, token_name)` | Adds a token for a user and returns it once. |
+    | `duckflight_accounts()` | Lists users with their roles and credentials. |
+    | `duckflight_import(config_file)` | Moves users and tokens from an older `duckflight.toml` into the account store. |
     | `duckflight_config_check(config_file)` | Validates a config file the way a listener does and reports what it defines. |
 
-    Only the DuckDB process that owns the database can call the serve, stop, list and
-    credential functions. A client connected through a listener cannot, whatever its credentials
-    allow. Secrets are never function arguments, and the file stores only digests and password
-    verifiers.
+    Only the DuckDB process that owns the database can call these functions. A client connected
+    through a listener cannot, whatever its role; administrators manage accounts there with the
+    SQL statements above. Secrets are never function arguments, and the store holds only digests
+    and password verifiers.
 
     DuckFlight runs on Linux and macOS, on amd64 and arm64. See the
     [quickstart](https://github.com/sidequery/duckflight-extension/blob/main/README.md#quickstart),
