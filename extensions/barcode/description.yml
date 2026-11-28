@@ -1,0 +1,70 @@
+extension:
+  name: barcode
+  description: "Barcode / QR-code decode and generation in SQL — read the payload + symbology of an image, or produce a scannable PNG; all round-trippable in one query"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-barcode
+  ref: 8282f36a5508c77cc7b7ebf31fc7bd1ab8bdaffc
+
+docs:
+  hello_world: |
+    LOAD barcode;
+
+    -- Round-trip: text -> QR PNG -> text
+    SELECT decode_barcode(generate_qr('https://example.com')) AS back;   -- https://example.com
+
+    -- Read the symbology of a scanned image
+    SELECT barcode_format(generate_qr('x')) AS symbology;                -- QR_CODE
+
+    -- Generate a 1D barcode (EAN-13) and confirm a non-empty PNG came back
+    SELECT generate_barcode('5901234123457', 'EAN_13') IS NOT NULL AS ean_ok;
+
+    -- Every code found in one image (multi-detect)
+    SELECT count(*) AS n FROM decode_barcodes(generate_qr('hello'));
+
+    -- The 13 advertised symbologies
+    SELECT count(*) AS n FROM barcode_formats();
+
+  extended_description: |
+    ## barcode — barcode / QR-code decode & generation in SQL
+
+    Point it at an image BLOB to read the symbol and its payload, or hand it
+    text to produce a scannable PNG — all round-trippable in one query:
+    `decode_barcode(generate_qr('hi'))` = `'hi'`.
+
+    Decoding and encoding use **rxing 0.9.3** (a pure-Rust ZXing port — QR,
+    Aztec, Data Matrix, PDF417, EAN/UPC, Code-128/39/93, ITF, Codabar, …);
+    image containers (PNG/JPEG/GIF/BMP/WebP) are read/written by the `image`
+    crate. Untrusted image bytes are guarded against image bombs (dimension +
+    pixel caps checked at the header stage), and decode failures surface as
+    `NULL`, never a crash.
+
+    **6 functions:**
+
+    | Function | Returns | Description |
+    |----------|---------|-------------|
+    | `decode_barcode` | `(image BLOB) → VARCHAR` | decoded payload of the first symbol found; `NULL` if not decodable |
+    | `barcode_format` | `(image BLOB) → VARCHAR` | canonical ZXing name (`QR_CODE`, `EAN_13`, `CODE_128`, …) |
+    | `generate_qr` | `(text[, size_px]) → BLOB` | square QR-code PNG (size_px ≤ 4096, default 256) |
+    | `generate_barcode` | `(text, format[, size_px]) → BLOB` | encode in a given symbology (2D → square, 1D → wide) |
+    | `decode_barcodes` | `(image BLOB) → table(seq, format, text)` | every barcode found (multi-detect) |
+    | `barcode_formats` | `() → table(format)` | the 13 advertised symbologies |
+
+    `size_px` / `format` and the table-function `image` are **constant**
+    arguments (DuckDB table functions take constants); for per-row images use
+    the `decode_barcode` scalar in a `SELECT` over your table.
+
+    **Limits:** decoded images ≤ 20 000 px/side and ≤ 100 M px total (image-bomb
+    protection); generated images size_px in `1..=4096`; an encode failure
+    (bad payload / unknown format / oversize) is a clean SQL error.
+    `panic = "unwind"`: a Rust panic becomes a DuckDB error, never a host abort.
+
+    **Install:** `INSTALL barcode FROM community;`
