@@ -1,0 +1,82 @@
+extension:
+  name: tiktoken
+  description: "Exact LLM token counting, tokenization and token-aware RAG chunking in SQL — OpenAI BPE encodings bundled in the binary (no runtime download)"
+  version: 0.1.0
+  language: Rust
+  build: cargo
+  license: MIT
+  requires_toolchains: rust
+  maintainers:
+    - alitrack
+  excluded_platforms: "linux_arm64;wasm_mvp;wasm_eh;wasm_threads"
+
+repo:
+  github: alitrack/duckdb-tiktoken
+  ref: bf52619e57728a29e8adeae90b25410d9cc060ac
+
+docs:
+  hello_world: |
+    LOAD tiktoken;
+
+    -- Exact BPE token count (default encoding cl100k_base, GPT-3.5/GPT-4 family)
+    SELECT count_tokens('hello world');                    -- 2
+    SELECT count_tokens('hello world', 'gpt-4o');          -- o200k_base count
+    SELECT count_tokens('hello world', 'not-a-model');     -- NULL (never an error)
+
+    -- Tokenize to BPE ids
+    SELECT len(tokenize_ids('hello world'));               -- 2
+
+    -- Keep the first N tokens, decoded
+    SELECT truncate_to_tokens('The quick brown fox jumps over the lazy dog.', 3);
+    -- -> The quick brown
+
+    -- Token-aware RAG chunking (<= max_tokens per chunk, overlap shared)
+    SELECT len(chunk_by_tokens('The quick brown fox jumps over the lazy dog. Pack my box.', 8, 2));
+
+    -- The 5 bundled BPE encodings + the version
+    SELECT * FROM supported_encodings();
+    SELECT tiktoken_version();
+
+  extended_description: |
+    ## tiktoken — exact LLM token counting & RAG chunking in SQL
+
+    Count, tokenize, and chunk text by real BPE tokens right where you query
+    it. Powered by [tiktoken-rs](https://crates.io/crates/tiktoken-rs),
+    which bundles the five OpenAI BPE encodings (cl100k_base, o200k_base,
+    gpt-4, gpt-3.5-turbo, p50k_base, r50k_base) inside the binary — **no
+    network download at runtime**. Written against the C Extension API
+    (ABI v1.2.0) through [quack-rs](https://github.com/tomtom215/quack-rs):
+    scalar functions read real input vectors and return real columns (no VGI,
+    no Arrow IPC, no JSON shims).
+
+    The tokenization core is a port of Query-farm's
+    [vgi-tiktoken](https://github.com/Query-farm/vgi-tiktoken) (MIT); only
+    the transport layer was replaced with direct C-API vector I/O.
+
+    **8 functions:**
+
+    | Function | Signature | Returns |
+    |----------|-----------|---------|
+    | `count_tokens` | `(text[, model])` | `BIGINT` — BPE token count |
+    | `tokenize_ids` | `(text[, model])` | `INTEGER[]` — BPE token ids |
+    | `truncate_to_tokens` | `(text, n[, model])` | `VARCHAR` — first `n` tokens decoded |
+    | `chunk_by_tokens` | `(text, max_tokens[, overlap[, model]])` | `VARCHAR[]` — RAG chunks |
+    | `encoding_for_model` | `(model)` | `VARCHAR` — model → encoding name |
+    | `supported_encodings` | `()` | table: `encoding VARCHAR` |
+    | `tiktoken_version` | `()` | `VARCHAR` — version string |
+
+    **Model / encoding resolution:** a NULL or empty `model` uses the default
+    `cl100k_base`; a known model name (gpt-4o, gpt-4, …) maps to its encoding;
+    a canonical encoding name (o200k_base, …) is used directly. An **unknown
+    model is a documented, recoverable condition → the row's result is SQL
+    NULL, never an error**, so dirty data does not abort a query. `n < 0` /
+    `max_tokens <= 0` / `overlap < 0` are clean semantic errors.
+
+    Counts are **exact** for the OpenAI BPE families; for other families
+    (Claude, Llama, Mistral, Gemini, …) tiktoken is a close proxy but not
+    exact — those vendors use different tokenizers.
+
+    **Hard limits** (clean SQL errors, never crashes or silent loss): per-text
+    16 MiB, `tokenize_ids` 1M ids, `chunk_by_tokens` 100k chunks.
+
+    **Install:** `INSTALL tiktoken FROM community;`
